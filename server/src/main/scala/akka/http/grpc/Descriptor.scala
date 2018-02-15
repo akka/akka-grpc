@@ -117,10 +117,12 @@ object Grpc {
     }.toMap
 
     Function.unlift { request =>
+      println(s"got request $request")
       if (request.uri.path.startsWith(base)) {
-        val path = request.uri.path.dropChars(base.length)
+        val path = request.uri.path.tail.tail
         handlerMap.get(path) match {
           case Some(handler) =>
+            println(s"got handler $handler")
             Some(handler(request))
           case None =>
             Some(HttpResponse(entity = HttpEntity.Chunked(contentType, Source.single(
