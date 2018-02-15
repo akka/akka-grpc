@@ -1,9 +1,10 @@
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
+val AkkaHttp = "10.1.0-RC2+12-7675041d"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % "2.5.9",
-  "com.typesafe.akka" %% "akka-http" % "10.0.11",
-  "com.typesafe.akka" %% "akka-http2-support" % "10.0.11",
+  "com.typesafe.akka" %% "akka-http" % AkkaHttp,
+  "com.typesafe.akka" %% "akka-http2-support" % AkkaHttp,
 
   "io.grpc" % "grpc-netty" % com.trueaccord.scalapb.compiler.Version.grpcJavaVersion,
   "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % com.trueaccord.scalapb.compiler.Version.scalapbVersion
