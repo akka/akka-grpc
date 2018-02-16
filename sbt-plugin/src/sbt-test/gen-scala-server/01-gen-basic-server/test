@@ -1,0 +1,6 @@
+> compile
+
+> check
+
+$ exists src_managed
+$ exists src_managed/hello

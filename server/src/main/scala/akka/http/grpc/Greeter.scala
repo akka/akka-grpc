@@ -21,7 +21,7 @@ class GreeterImpl extends Greeter {
 }
 
 object Greeter {
-  val descriptor = {
+  val descriptor: Descriptor[Greeter] = {
     val builder = new ServerInvokerBuilder[Greeter]
     Descriptor[Greeter]("helloworld.Greeter", Seq(
       CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))

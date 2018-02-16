@@ -54,8 +54,10 @@ class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion
   override def deserialize(bytes: ByteString): T = companion.parseFrom(bytes.iterator.asInputStream)
 }
 
-class CallInvoker[Request, Response](val desc: CallDescriptor[_, Request, Response],
+class CallInvoker[Request, Response](
+  val desc: CallDescriptor[_, Request, Response],
   handler: Source[Request, _] => Source[Response, _]) {
+
   def apply(request: HttpRequest): HttpResponse = {
     // todo handle trailers
     val byteStream = request.entity.dataBytes
