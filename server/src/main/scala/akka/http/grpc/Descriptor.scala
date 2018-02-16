@@ -5,15 +5,15 @@ import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.stream.{Attributes, Materializer}
+import akka.stream.{ Attributes, Materializer }
 import akka.stream.impl.io.ByteStringParser
-import akka.stream.impl.io.ByteStringParser.{ParseResult, ParseStep}
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.impl.io.ByteStringParser.{ ParseResult, ParseStep }
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
-import com.trueaccord.scalapb.{GeneratedMessage, GeneratedMessageCompanion, Message}
+import com.trueaccord.scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Message }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class Descriptor[T](name: String, calls: Seq[CallDescriptor[T, _, _]])
 
@@ -21,8 +21,7 @@ case class CallDescriptor[T, Request, Response](
   methodName: String,
   serverInvoker: CallDescriptor.ServerInvoker[T, Request, Response],
   requestSerializer: ProtobufSerializer[Request],
-  responseSerializer: ProtobufSerializer[Response]
-) {
+  responseSerializer: ProtobufSerializer[Response]) {
 
   def toCallInvoker(server: T, mat: Materializer, ec: ExecutionContext): CallInvoker[Request, Response] = {
     new CallInvoker[Request, Response](this, serverInvoker(server, mat, ec))
@@ -44,7 +43,7 @@ trait ProtobufSerializer[T] {
 }
 
 object ProtobufSerializer {
-  implicit def scalaPbSerializer[T <: GeneratedMessage with Message[T] : GeneratedMessageCompanion]: ProtobufSerializer[T] = {
+  implicit def scalaPbSerializer[T <: GeneratedMessage with Message[T]: GeneratedMessageCompanion]: ProtobufSerializer[T] = {
     new ScalapbProtobufSerializer(implicitly[GeneratedMessageCompanion[T]])
   }
 }
@@ -87,23 +86,19 @@ class ServerInvokerBuilder[T] {
   def apply[Request, Response](handler: T => (Source[Request, _] => Source[Response, _])): ServerInvoker[T, Request, Response] =
     (t, _, _) => handler(t)
 
-  def unaryToUnary[Request, Response](handler: T => (Request => Future[Response])): ServerInvoker[T, Request, Response] = {
-    (t, mat, ec) => sourceIn =>
-      Source.fromFuture(sourceIn.runWith(Sink.head)(mat)
-        .flatMap(handler(t))(ec))
-    }
-
-  def unaryToStream[Request, Response, M](handler: T => (Request => Source[Response, M])): ServerInvoker[T, Request, Response] = {
-    (t, mat, ec) => sourceIn =>
-      Source.fromFutureSource[Response, M](
-        sourceIn.runWith(Sink.head)(mat)
-            .map(handler(t))(ec)
-      )
+  def unaryToUnary[Request, Response](handler: T => (Request => Future[Response])): ServerInvoker[T, Request, Response] = { (t, mat, ec) => sourceIn =>
+    Source.fromFuture(sourceIn.runWith(Sink.head)(mat)
+      .flatMap(handler(t))(ec))
   }
 
-  def streamToUnary[Request, Response](handler: T => Source[Request, _] => Future[Response]): ServerInvoker[T, Request, Response] = {
-    (t, _, _) => sourceIn =>
-      Source.fromFuture(handler(t)(sourceIn))
+  def unaryToStream[Request, Response, M](handler: T => (Request => Source[Response, M])): ServerInvoker[T, Request, Response] = { (t, mat, ec) => sourceIn =>
+    Source.fromFutureSource[Response, M](
+      sourceIn.runWith(Sink.head)(mat)
+        .map(handler(t))(ec))
+  }
+
+  def streamToUnary[Request, Response](handler: T => Source[Request, _] => Future[Response]): ServerInvoker[T, Request, Response] = { (t, _, _) => sourceIn =>
+    Source.fromFuture(handler(t)(sourceIn))
   }
 }
 
@@ -126,8 +121,7 @@ object Grpc {
             Some(handler(request))
           case None =>
             Some(HttpResponse(entity = HttpEntity.Chunked(contentType, Source.single(
-              LastChunk(trailer = List(RawHeader("grpc-status", "5"), RawHeader("grpc-message", "gRCP method at path " + path + " not found.")))
-            ))))
+              LastChunk(trailer = List(RawHeader("grpc-status", "5"), RawHeader("grpc-message", "gRCP method at path " + path + " not found.")))))))
         }
       } else {
         None
@@ -149,8 +143,7 @@ object Grpc {
         (length >> 24).toByte,
         (length >> 16).toByte,
         (length >> 8).toByte,
-        length.toByte
-      ) ++ frame
+        length.toByte) ++ frame
     }
   }
 
@@ -182,6 +175,5 @@ object Grpc {
       }
     }
   }
-
 
 }

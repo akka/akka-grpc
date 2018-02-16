@@ -4,13 +4,13 @@ import javax.net.ssl.SSLContext
 
 import akka.actor.ActorSystem
 import akka.http.impl.util.JavaMapping.HttpsConnectionContext
-import akka.http.scaladsl.{ConnectionContext, Http2}
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.http.scaladsl.{ ConnectionContext, Http2 }
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloReply, HelloRequest}
+import io.grpc.examples.helloworld.helloworld.{ GreeterGrpc, HelloReply, HelloRequest }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait Greeter {
   def sayHello(req: HelloRequest): Future[HelloReply]
@@ -24,8 +24,7 @@ object Greeter {
   val descriptor: Descriptor[Greeter] = {
     val builder = new ServerInvokerBuilder[Greeter]
     Descriptor[Greeter]("helloworld.Greeter", Seq(
-      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))
-    ))
+      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))))
   }
 }
 
@@ -42,7 +41,8 @@ object Test extends App {
     val greeterHandler = Grpc(Greeter.descriptor, new GreeterImpl)
 
     // Start Akka HTTP server
-    Http2().bindAndHandleAsync(request => Future.successful(greeterHandler(request)),
+    Http2().bindAndHandleAsync(
+      request => Future.successful(greeterHandler(request)),
       interface = "localhost",
       port = 8443,
       httpsContext = ConnectionContext.https(SSLContext.getDefault))
@@ -59,6 +59,5 @@ object Test extends App {
     system.terminate()
     channel.shutdown()
   }
-
 
 }

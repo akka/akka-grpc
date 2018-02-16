@@ -4,10 +4,10 @@ import akka.grpc.gen.CodeGenerator
 import akka.http.grpc.ScalaServerCodeGenerator
 import com.google.protobuf.ExtensionRegistry
 import com.google.protobuf.Descriptors._
-import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
+import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 
 import scala.collection.JavaConverters._
-import com.trueaccord.scalapb.compiler.{FunctionalPrinter, GeneratorParams, DescriptorPimps ⇒ DescriptorImplicits}
+import com.trueaccord.scalapb.compiler.{ FunctionalPrinter, GeneratorParams, DescriptorPimps ⇒ DescriptorImplicits }
 
 /**
  * Adapts existing [[akka.grpc.gen.CodeGenerator]] into the sbt-protoc required type
@@ -22,7 +22,6 @@ object AkkaGrpcSbtCodeGenerator extends protocbridge.ProtocCodeGenerator with De
     impl.run(request)
 
   override val params: GeneratorParams = com.trueaccord.scalapb.compiler.GeneratorParams()
-
 
   def generateFile(fileDesc: FileDescriptor): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()

@@ -19,10 +19,7 @@ class AkkaGrpcSbt extends AutoPlugin {
 
   override def projectConfigurations = Seq(AkkaGrpc)
 
-  override def projectSettings = inConfig(AkkaGrpc)(Defaults.compileSettings ++ Seq(
-    // TODO automatically add protopb
-
+  override def projectSettings = inConfig(AkkaGrpc)(Defaults.compileSettings ++ Seq( // TODO automatically add protopb
   ))
-
 
 }

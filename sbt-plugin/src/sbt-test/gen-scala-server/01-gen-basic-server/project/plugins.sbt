@@ -1,7 +1,9 @@
-// addSbtPlugin("com.lightbend" % "akka-grpc-sbt" % sys.props("project.version"))
+addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % sys.props("project.version"))
 
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.13")
+// TODO ideally we do not want to need to add any other plugins explicitly
+
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.12")
 
 libraryDependencies += "com.trueaccord.scalapb" %% "compilerplugin" % "0.6.7"
 
-libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.5.1"
+addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4")

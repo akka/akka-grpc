@@ -30,7 +30,8 @@ object NameUtils {
     @annotation.tailrec
     def inner(name: String, lastLower: Boolean): Unit = if (name.nonEmpty) {
       val nextLastLower = name.head match {
-        case c if c.isLower => b.append(c.toUpper)
+        case c if c.isLower =>
+          b.append(c.toUpper)
           true
         case c if c.isUpper =>
           if (lastLower) { b.append('_') }
@@ -45,6 +46,5 @@ object NameUtils {
     inner(name, false)
     b.toString
   }
-
 
 }

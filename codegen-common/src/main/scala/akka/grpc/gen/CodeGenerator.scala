@@ -17,6 +17,6 @@ trait CodeGenerator {
     res.toByteArray
   }
 
-  def run(request:  CodeGeneratorRequest): CodeGeneratorResponse
+  def run(request: CodeGeneratorRequest): CodeGeneratorResponse
 
 }
