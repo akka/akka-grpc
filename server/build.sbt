@@ -1,5 +1,5 @@
 PB.targets in Compile := Seq(
-  scalapb.gen() -> (sourceManaged in Compile).value
+  scalapb.gen(grpc = false) -> (sourceManaged in Compile).value
 )
 
 enablePlugins(JavaAgent)

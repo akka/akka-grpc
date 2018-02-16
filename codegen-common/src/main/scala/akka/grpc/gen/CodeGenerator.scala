@@ -9,6 +9,9 @@ import scala.collection.JavaConverters._
  */
 trait CodeGenerator {
 
+  /** Generator name; example: `akka-grpc-scala` */
+  def name: String
+
   final def run(request: Array[Byte]): Array[Byte] = {
     val req = CodeGeneratorRequest.parseFrom(request)
     println(s"Generating from: ${req.getProtoFileList.asScala.toList}")

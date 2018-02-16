@@ -8,6 +8,9 @@ import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGen
 import scala.collection.JavaConverters._
 
 class ScalaServerCodeGenerator extends CodeGenerator {
+
+  def name = "grpc-akka-scaladsl"
+
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
 
@@ -16,9 +19,11 @@ class ScalaServerCodeGenerator extends CodeGenerator {
     val fileDescByName: Map[String, FileDescriptor] =
       request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
         case (acc, fp) =>
-          val deps = fp.getDependencyList.asScala.map(acc)
-          acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps.toArray))
+          val deps = fp.getDependencyList.asScala.map(acc).toArray
+          acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
+
+    println(s"fileDescByName = ${fileDescByName}")
 
     request.getFileToGenerateList.asScala.foreach { name ⇒
       val fileDesc = fileDescByName(name)
@@ -46,7 +51,7 @@ class ScalaServerCodeGenerator extends CodeGenerator {
     //            .add("}")
     //      }
     //    b.setContent(fp.result)
-    b.setContent("// Hello world!!!!")
+    b.setContent(s"// Hello: ${fileDesc.getFullName}")
     b.build
   }
 }

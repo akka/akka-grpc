@@ -15,8 +15,10 @@ import com.trueaccord.scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Mes
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+// TODO separate it into "runtime" library
 case class Descriptor[T](name: String, calls: Seq[CallDescriptor[T, _, _]])
 
+// TODO separate it into "runtime" library
 case class CallDescriptor[T, Request, Response](
   methodName: String,
   serverInvoker: CallDescriptor.ServerInvoker[T, Request, Response],
@@ -28,6 +30,7 @@ case class CallDescriptor[T, Request, Response](
   }
 }
 
+// TODO separate it into "runtime" library
 object CallDescriptor {
 
   type ServerInvoker[T, Request, Response] = (T, Materializer, ExecutionContext) => (Source[Request, _] => Source[Response, _])
@@ -37,6 +40,8 @@ object CallDescriptor {
     CallDescriptor(name, serverInvoker, implicitly[ProtobufSerializer[Request]], implicitly[ProtobufSerializer[Response]])
 }
 
+// TODO separate it into "runtime" library;
+// TODO go over ByteBuffers so we avoid copying?
 trait ProtobufSerializer[T] {
   def serialize(t: T): ByteString
   def deserialize(bytes: ByteString): T

@@ -41,7 +41,7 @@ val serverSbtLib = Project(
   base = file("sbt-plugin")
 ).settings(Dependencies.server)
   .settings(commonSettings)
-  .dependsOn(server)
+  .dependsOn(server, codegenCommon)
 
 val serverSbt = Project(
   id = "akka-grpc-sbt-plugin",

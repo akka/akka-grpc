@@ -8,7 +8,8 @@ import akka.http.scaladsl.{ ConnectionContext, Http2 }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.helloworld.{ GreeterGrpc, HelloReply, HelloRequest }
+import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
+// import io.grpc.examples.helloworld.GreeterGrpc
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -49,12 +50,12 @@ object Test extends App {
 
     val request = HelloRequest(name = "World")
 
-    val blockingStub = GreeterGrpc.blockingStub(channel)
-
-    Thread.sleep(30000)
-
-    val reply: HelloReply = blockingStub.sayHello(request)
-    println(reply)
+    //    val blockingStub = GreeterGrpc.blockingStub(channel)
+    //
+    //    Thread.sleep(30000)
+    //
+    //    val reply: HelloReply = blockingStub.sayHello(request)
+    //    println(reply)
   } finally {
     system.terminate()
     channel.shutdown()
