@@ -170,7 +170,8 @@ object Grpc {
           // If we want to support > 2GB frames, this should be unsigned
           val length = reader.readIntBE()
 
-          ParseResult(None, ReadFrame(compression == 1, length), acceptUpstreamFinish = false)
+          if (length == 0) ParseResult(Some(ByteString.empty), ReadFrameHeader)
+          else ParseResult(None, ReadFrame(compression == 1, length), acceptUpstreamFinish = false)
         }
       }
 
