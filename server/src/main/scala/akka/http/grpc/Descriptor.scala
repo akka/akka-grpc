@@ -119,10 +119,12 @@ object Grpc {
     }.toMap
 
     Function.unlift { request =>
+      println(s"got request $request")
       if (request.uri.path.startsWith(base)) {
-        val path = request.uri.path.dropChars(base.length)
+        val path = request.uri.path.tail.tail
         handlerMap.get(path) match {
           case Some(handler) =>
+            println(s"got handler $handler")
             Some(handler(request))
           case None =>
             Some(HttpResponse(entity = HttpEntity.Chunked(contentType, Source.single(
@@ -168,7 +170,8 @@ object Grpc {
           // If we want to support > 2GB frames, this should be unsigned
           val length = reader.readIntBE()
 
-          ParseResult(None, ReadFrame(compression == 1, length), acceptUpstreamFinish = false)
+          if (length == 0) ParseResult(Some(ByteString.empty), ReadFrameHeader)
+          else ParseResult(None, ReadFrame(compression == 1, length), acceptUpstreamFinish = false)
         }
       }
 
