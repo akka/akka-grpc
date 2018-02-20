@@ -5,6 +5,15 @@ import java.security.{KeyStore, SecureRandom}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 
 import akka.actor.ActorSystem
+import akka.http.impl.util.JavaMapping.HttpsConnectionContext
+import akka.http.scaladsl.{ ConnectionContext, Http2 }
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.stream.{ ActorMaterializer, Materializer }
+import io.grpc.ManagedChannelBuilder
+import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
+// import io.grpc.examples.helloworld.GreeterGrpc
+
+import scala.concurrent.{ ExecutionContext, Future }
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
 import akka.stream.ActorMaterializer
 import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloReply, HelloRequest}
@@ -26,11 +35,10 @@ class GreeterImpl extends Greeter {
 }
 
 object Greeter {
-  val descriptor = {
+  val descriptor: Descriptor[Greeter] = {
     val builder = new ServerInvokerBuilder[Greeter]
     Descriptor[Greeter]("helloworld.Greeter", Seq(
-      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))
-    ))
+      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))))
   }
 }
 
@@ -41,7 +49,7 @@ object Test extends App {
   import system.dispatcher
 
   // Start scalapb grpc client
-  //val channel = ManagedChannelBuilder.forAddress("localhost", 8443).build
+  // val channel = ManagedChannelBuilder.forAddress("localhost", 8443).build
   val channel = NettyChannelBuilder.forAddress("akka.example.org", 8443)
     .sslContext(GrpcSslContexts.configure(SslContextBuilder.forClient(), SslProvider.JDK)
       .trustManager(resourceStream("rootCA.crt"))
@@ -74,20 +82,23 @@ object Test extends App {
     val greeterHandler = Grpc(Greeter.descriptor, new GreeterImpl)
 
     // Start Akka HTTP server
-    Http2().bindAndHandleAsync(request => Future.successful(greeterHandler(request)),
+    Http2().bindAndHandleAsync(
+      request => Future.successful(greeterHandler(request)),
       interface = "localhost",
       port = 8443,
       httpsContext = serverHttpContext())
 
     val request = HelloRequest(name = "World")
 
-    val blockingStub = GreeterGrpc.blockingStub(channel)
+    //    val blockingStub = GreeterGrpc.blockingStub(channel)
+    //
+    //    Thread.sleep(30000)
+    //
+    //    val reply: HelloReply = blockingStub.sayHello(request)
+    //    println(reply)
 
-    println("sleep before you call")
     Thread.sleep(5000)
-
-    val reply: HelloReply = blockingStub.sayHello(request)
-    println(reply)
+    
   } finally {
     system.terminate()
     channel.shutdown()
