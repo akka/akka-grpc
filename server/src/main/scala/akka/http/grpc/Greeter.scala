@@ -1,8 +1,8 @@
 package akka.http.grpc
 
 import java.io.InputStream
-import java.security.{KeyStore, SecureRandom}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
+import java.security.{ KeyStore, SecureRandom }
+import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
 import akka.actor.ActorSystem
 import akka.http.impl.util.JavaMapping.HttpsConnectionContext
@@ -14,11 +14,10 @@ import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 // import io.grpc.examples.helloworld.GreeterGrpc
 
 import scala.concurrent.{ ExecutionContext, Future }
-import akka.http.scaladsl.{Http2, HttpsConnectionContext}
+import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
-import io.grpc.examples.helloworld.helloworld.{GreeterGrpc, HelloReply, HelloRequest}
-import io.grpc.netty.{GrpcSslContexts, NettyChannelBuilder}
-import io.netty.handler.ssl.{SslContextBuilder, SslProvider}
+import io.grpc.netty.{ GrpcSslContexts, NettyChannelBuilder }
+import io.netty.handler.ssl.{ SslContextBuilder, SslProvider }
 
 import scala.concurrent.Future
 
@@ -98,7 +97,7 @@ object Test extends App {
     //    println(reply)
 
     Thread.sleep(5000)
-    
+
   } finally {
     system.terminate()
     channel.shutdown()
