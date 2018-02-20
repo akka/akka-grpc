@@ -10,11 +10,28 @@ import akka.http.grpc._
 import scala.concurrent.{ Future, Promise }
 import scala.reflect.ClassTag
 
+// TODO this trait would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
+// and move to the 'server' project
 trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
 }
 
+// TODO this descriptor would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
+// and move to the 'server' project
+object TestService {
+  import GoogleProtobufSerializer._
+  val descriptor = {
+    val builder = new ServerInvokerBuilder[TestService]
+    Descriptor[TestService]("grpc.testing.TestService", Seq(
+      CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
+      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall)),
+      CallDescriptor.named("CacheableUnaryCall", builder.unaryToUnary(_.unaryCall))))
+  }
+}
+
+// TODO this implementation should eventually be independent of the GoogleTestServiceImpl
+// and move to the 'server' project
 class TestServiceImpl(googleImpl: GoogleTestServiceImpl) extends TestService {
   override def emptyCall(req: EmptyProtos.Empty) = Future.successful(EmptyProtos.Empty.getDefaultInstance)
   override def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse] = {
@@ -28,23 +45,14 @@ class TestServiceImpl(googleImpl: GoogleTestServiceImpl) extends TestService {
   }
 }
 
-object TestService {
-  import GoogleProtobufSerializer._
-  val descriptor = {
-    val builder = new ServerInvokerBuilder[TestService]
-    Descriptor[TestService]("grpc.testing.TestService", Seq(
-      CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
-      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall)),
-      CallDescriptor.named("CacheableUnaryCall", builder.unaryToUnary(_.unaryCall))))
-  }
-}
-
+// TODO a serializer should be generated from the .proto files
 object GoogleProtobufSerializer {
   implicit def googlePbSerializer[T <: com.google.protobuf.Message: ClassTag]: ProtobufSerializer[T] = {
     new GoogleProtobufSerializer(implicitly[ClassTag[T]])
   }
 }
 
+// TODO a serializer should be generated from the .proto files
 class GoogleProtobufSerializer[T <: com.google.protobuf.Message](classTag: ClassTag[T]) extends ProtobufSerializer[T] {
   override def serialize(t: T) = ByteString(t.toByteArray)
   override def deserialize(bytes: ByteString): T = {
