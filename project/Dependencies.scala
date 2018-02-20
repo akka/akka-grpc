@@ -40,4 +40,8 @@ object Dependencies {
     "com.typesafe.akka"      %% "akka-http2-support" % Versions.akkaHttp
 
   ) ++ testing
+
+  val interopTests = l ++= Seq(
+    "io.grpc" % "grpc-interop-testing" % "1.9.0"
+  ) ++ testing
 }

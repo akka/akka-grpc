@@ -36,6 +36,17 @@ val server = Project(
   .settings(commonSettings)
   .dependsOn(codegenCommon)
 
+val interopTests = Project(
+  id = "akka-grpc-interop-tests",
+  base = file("interop-tests")
+).settings(Dependencies.interopTests)
+  .settings(commonSettings)
+  .enablePlugins(JavaAgent)
+  .settings(Seq(
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test",
+  ))
+  .dependsOn(server, codegenCommon)
+
 val serverSbtLib = Project(
   id = "akka-grpc-sbt-plugin",
   base = file("sbt-plugin")
@@ -56,7 +67,7 @@ val sbtPluginTester = Project(
 ).settings(commonSettings)
 
 val aggregatedProjects: Seq[ProjectReference] = Seq(
-  server, codegenCommon,
+  server, interopTests, codegenCommon,
   serverSbt, serverSbtLib,
   sbtPluginTester
 )
