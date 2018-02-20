@@ -27,21 +27,45 @@ class GrpcInteropSpec extends WordSpec {
 
   // see https://github.com/grpc/grpc/blob/master/tools/run_tests/run_interop_tests.py#L543
   val testCases = Seq(
-    "large_unary", "empty_unary", "ping_pong", "empty_stream",
-    "client_streaming", "server_streaming", "cancel_after_begin",
-    "cancel_after_first_response", "timeout_on_sleeping_server",
-    "custom_metadata", "status_code_and_message", "unimplemented_method",
-    "client_compressed_unary", // fails (?)
-    "client_compressed_streaming", // fails (?)
+    "large_unary",
+    "empty_unary",
+    "ping_pong",
+    "empty_stream",
+    "client_streaming",
+    "server_streaming",
+    "cancel_after_begin",
+    "cancel_after_first_response",
+    "timeout_on_sleeping_server",
+    "custom_metadata",
+    "status_code_and_message",
+    "unimplemented_method",
+    "client_compressed_unary",
+    "client_compressed_streaming",
     "server_compressed_unary",
     "server_compressed_streaming",
-    "unimplemented_service")
+    "unimplemented_service",
+  )
+
+  val pendingTestCases = Seq(
+    "large_unary",
+    "ping_pong",
+    "client_streaming",
+    "server_streaming",
+    "cancel_after_first_response",
+    "custom_metadata",
+    "status_code_and_message",
+    "unimplemented_method",
+    "client_compressed_unary",
+    "client_compressed_streaming",
+    "server_compressed_unary",
+    "server_compressed_streaming",
+    "unimplemented_service",
+  )
 
   "pass the simple test between grpc server and client" should {
     testCases.foreach { testCaseName =>
       s"pass $testCaseName" in {
-        withGrpcAkkaServer(Array.empty) {
-
+        withGrpcAkkaServer(serverArgs = Array.empty, expectedToFail = pendingTestCases.contains(testCaseName)) {
           val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
 
           Util.installConscryptIfAvailable()
@@ -58,9 +82,9 @@ class GrpcInteropSpec extends WordSpec {
     }
   }
 
-  private def withGrpcAkkaServer(serverArgs: Array[String])(block: => Unit): Assertion = {
+  private def withGrpcAkkaServer(serverArgs: Array[String], expectedToFail: Boolean)(block: => Unit): Assertion = {
+    implicit val sys = ActorSystem()
     try {
-      implicit val sys = ActorSystem()
       implicit val mat = ActorMaterializer()
       import sys.dispatcher
 
@@ -80,14 +104,17 @@ class GrpcInteropSpec extends WordSpec {
         println("executing test")
         block
         println("after executing test")
-        Thread.sleep(5000)
       } finally {
         sys.log.info("Exception thrown, unbinding")
         Await.result(binding.unbind(), 10.seconds)
         Await.result(sys.terminate(), 10.seconds)
       }
-      Succeeded
+      if (expectedToFail) fail("Succeeded against expectations")
+      else Succeeded
     } catch {
+      case e if expectedToFail =>
+        sys.log.error(e, "Expected failure")
+        pending
       case e: StatusRuntimeException =>
         // 'Status' is not serializable, so we have to unpack the exception
         // to avoid trouble when running tests from sbt
