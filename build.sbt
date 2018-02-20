@@ -19,8 +19,10 @@ val commonSettings = Seq(
 
   scriptedLaunchOpts :=
     scriptedLaunchOpts.value ++
-      Seq(s"-Dproject.version=${version.value}")
+      Seq(s"-Dproject.version=${version.value}"),
 
+  // For the akka-http snapshot
+  resolvers += Resolver.bintrayRepo("akka", "maven"),
 )
 
 val codegenCommon = Project(
