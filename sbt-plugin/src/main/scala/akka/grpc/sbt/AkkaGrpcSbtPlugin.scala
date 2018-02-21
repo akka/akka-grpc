@@ -25,7 +25,7 @@ object AkkaGrpcSbtPlugin extends AutoPlugin {
 
   val autoImport = Keys
 
-  //  override def projectConfigurations = Seq(AkkaGrpc)
+  override def projectConfigurations = Seq(AkkaGrpc)
 
   override def projectSettings = inConfig(AkkaGrpc)(Defaults.compileSettings ++ Seq(
 
