@@ -16,6 +16,7 @@ import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 import scala.concurrent.{ ExecutionContext, Future }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
+import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 import io.grpc.netty.{ GrpcSslContexts, NettyChannelBuilder }
 import io.netty.handler.ssl.{ SslContextBuilder, SslProvider }
 
