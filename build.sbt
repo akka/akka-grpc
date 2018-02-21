@@ -63,15 +63,9 @@ val serverSbt = Project(
   .settings(commonSettings)
   .dependsOn(serverSbtLib)
 
-val sbtPluginTester = Project(
-  id = "sbt-plugin-tester",
-  base = file("sbt-plugin-tester")
-).settings(commonSettings)
-
 val aggregatedProjects: Seq[ProjectReference] = Seq(
   server, interopTests, codegenCommon,
-  serverSbt, serverSbtLib,
-  sbtPluginTester
+  serverSbt, serverSbtLib
 )
 
 val root = Project(

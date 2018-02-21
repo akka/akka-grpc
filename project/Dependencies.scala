@@ -6,43 +6,56 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
-    val scalapb = com.trueaccord.scalapb.compiler.Version.scalapbVersion // TODO 0.6.7 exists already
-
     val akka = "2.5.9"
     // snapshot from master
     val akkaHttp = "10.1.0-RC2+15-f80d1fe5"
 
+    val scalapb = "0.6.7"
+    val grpc = "1.10.0"
+
     val scalaTest = "3.0.4"
   }
 
+  object Compile {
+    val akkaStream       = "com.typesafe.akka" %% "akka-stream"        % Versions.akka
+    val akkaHttp         = "com.typesafe.akka" %% "akka-http"          % Versions.akkaHttp
+    val akkaHttp2Support ="com.typesafe.akka"  %% "akka-http2-support" % Versions.akkaHttp
+
+    val scalapbCompilerPlugin = "com.trueaccord.scalapb" %% "compilerplugin"       % Versions.scalapb
+    val scalapbRuntimeGrpc =    "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % Versions.scalapb
+
+    val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
+    val grpcNetty          = "io.grpc" % "grpc-netty"           % Versions.grpc
+    val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+  }
+
+  object Test {
+    val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
+  }
 
   private val l = libraryDependencies
 
   val testing = Seq(
-    "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
+    Test.scalaTest
   )
 
   val common = l ++= Seq(
-    "com.trueaccord.scalapb" %% "compilerplugin" % Versions.scalapb,
-    "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % Versions.scalapb
+    Compile.scalapbCompilerPlugin,
+    Compile.scalapbRuntimeGrpc
   ) ++ testing
 
   val server = l ++= Seq(
-    "com.trueaccord.scalapb" %% "compilerplugin" % Versions.scalapb,
-    "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % Versions.scalapb,
+    Compile.scalapbCompilerPlugin,
+    Compile.scalapbRuntimeGrpc,
 
-    // FIXME 1.10 is latest
-    "io.grpc" % "grpc-core"   % "1.6.1",
-
-    "io.grpc" % "grpc-netty"  % com.trueaccord.scalapb.compiler.Version.grpcJavaVersion,
-
-    "com.typesafe.akka"      %% "akka-stream"        % Versions.akka,
-    "com.typesafe.akka"      %% "akka-http"          % Versions.akkaHttp,
-    "com.typesafe.akka"      %% "akka-http2-support" % Versions.akkaHttp
-
+    Compile.grpcCore,
+    Compile.grpcNetty,
+    Compile.akkaStream,
+    Compile.akkaHttp,
+    Compile.akkaHttp2Support
   ) ++ testing
 
   val interopTests = l ++= Seq(
-    "io.grpc" % "grpc-interop-testing" % "1.9.0"
+    Compile.grpcInteropTesting
   ) ++ testing
 }
