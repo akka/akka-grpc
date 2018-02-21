@@ -1,13 +1,13 @@
 package com.lightbend.grpc.interop
 
-import akka.util.ByteString
-import com.google.protobuf.EmptyProtos
-import io.grpc.stub.{ ServerCallStreamObserver, StreamObserver }
-import io.grpc.testing.integration.Messages
-import io.grpc.testing.integration.{ TestServiceImpl => GoogleTestServiceImpl }
 import akka.http.grpc._
+import com.google.protobuf.ByteString
+import com.google.protobuf.EmptyProtos
+import io.grpc.testing.integration.Messages
+import io.grpc.testing.integration.Messages.Payload
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 // TODO this trait would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
@@ -29,31 +29,15 @@ object TestService {
   }
 }
 
-// TODO this implementation should eventually be independent of the GoogleTestServiceImpl
 // and move to the 'server' project
-class TestServiceImpl(googleImpl: GoogleTestServiceImpl) extends TestService {
+class TestServiceImpl(implicit ec: ExecutionContext) extends TestService {
   override def emptyCall(req: EmptyProtos.Empty) = Future.successful(EmptyProtos.Empty.getDefaultInstance)
-  override def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse] = {
-    val promise = Promise[Messages.SimpleResponse]
-
-    val obs = new ServerCallStreamObserver[Messages.SimpleResponse] {
-      override def isCancelled: Boolean = ???
-      override def setCompression(compression: String): Unit = {
-        println(s"Got a call to setCompression with [$compression]")
-      }
-      override def setOnCancelHandler(onCancelHandler: Runnable): Unit = ???
-      override def setOnReadyHandler(onReadyHandler: Runnable): Unit = ???
-      override def request(count: Int): Unit = ???
-      override def disableAutoInboundFlowControl(): Unit = ???
-      override def isReady: Boolean = ???
-      override def setMessageCompression(enable: Boolean): Unit = ???
-      override def onError(t: Throwable): Unit = promise.failure(t)
-      override def onCompleted(): Unit = ()
-      override def onNext(value: Messages.SimpleResponse): Unit = promise.success(value)
-    }
-
-    googleImpl.unaryCall(req, obs)
-    promise.future
+  override def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse] = Future {
+    Messages.SimpleResponse.newBuilder
+      .setPayload(
+        Payload.newBuilder()
+          .setBody(ByteString.copyFrom(new Array[Byte](req.getResponseSize))))
+      .build()
   }
 }
 
@@ -66,8 +50,8 @@ object GoogleProtobufSerializer {
 
 // TODO a serializer should be generated from the .proto files
 class GoogleProtobufSerializer[T <: com.google.protobuf.Message](classTag: ClassTag[T]) extends ProtobufSerializer[T] {
-  override def serialize(t: T) = ByteString(t.toByteArray)
-  override def deserialize(bytes: ByteString): T = {
+  override def serialize(t: T) = akka.util.ByteString(t.toByteArray)
+  override def deserialize(bytes: akka.util.ByteString): T = {
     val parser = classTag.runtimeClass.getMethod("parseFrom", classOf[Array[Byte]])
     parser.invoke(classTag.runtimeClass, bytes.toArray).asInstanceOf[T]
   }
