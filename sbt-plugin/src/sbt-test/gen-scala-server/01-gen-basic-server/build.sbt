@@ -1,5 +1,5 @@
 PB.targets in Compile := Seq(
-  scalapb.gen() -> (sourceManaged in Compile).value
+  scalapb.gen(grpc = false) -> (sourceManaged in Compile).value
 )
 
 libraryDependencies +=     "io.grpc" % "grpc-core"   % "1.6.1"
@@ -19,5 +19,5 @@ libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % com.truea
 
 TaskKey[Unit]("check") := {
   import scala.sys.process._
-  "tree . ".!
+  "find . ".!
 }
