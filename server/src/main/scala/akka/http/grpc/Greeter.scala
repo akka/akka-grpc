@@ -5,15 +5,9 @@ import java.security.{ KeyStore, SecureRandom }
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
 import akka.actor.ActorSystem
-import akka.http.impl.util.JavaMapping.HttpsConnectionContext
-import akka.http.scaladsl.{ ConnectionContext, Http2 }
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.stream.{ ActorMaterializer, Materializer }
-import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
-// import io.grpc.examples.helloworld.GreeterGrpc
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
 
-import scala.concurrent.{ ExecutionContext, Future }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
 import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
@@ -24,6 +18,20 @@ import scala.concurrent.Future
 
 trait Greeter {
   def sayHello(req: HelloRequest): Future[HelloReply]
+
+  def toRoute()(implicit mat: Materializer): Route = {
+    import akka.http.scaladsl.server.Directives._
+    // TODO would be replaced by scalapb serializer
+    import GrpcRuntimeMarshallingImplicits._
+
+    path("helloworld.Greeter" / Segment) {
+      case "SayHello" ⇒
+        entity(as[HelloRequest]) { req ⇒
+          onSuccess(sayHello(req))(complete(_))
+        }
+      case _ ⇒ reject()
+    }
+  }
 }
 
 class GreeterImpl extends Greeter {
@@ -31,14 +39,6 @@ class GreeterImpl extends Greeter {
   override def sayHello(req: HelloRequest) = Future {
     println("returning response")
     HelloReply("Hello " + req.name)
-  }
-}
-
-object Greeter {
-  val descriptor: Descriptor[Greeter] = {
-    val builder = new ServerInvokerBuilder[Greeter]
-    Descriptor[Greeter]("helloworld.Greeter", Seq(
-      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))))
   }
 }
 
@@ -79,11 +79,11 @@ object Test extends App {
   }
 
   try {
-    val greeterHandler = Grpc(Greeter.descriptor, new GreeterImpl)
+    val greeterRoute = new GreeterImpl().toRoute()
 
     // Start Akka HTTP server
     Http2().bindAndHandleAsync(
-      request => Future.successful(greeterHandler(request)),
+      Route.asyncHandler(greeterRoute),
       interface = "localhost",
       port = 8443,
       httpsContext = serverHttpContext())

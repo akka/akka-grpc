@@ -1,13 +1,15 @@
 package com.lightbend.grpc.interop
 
-import akka.http.grpc._
 import com.google.protobuf.ByteString
 import com.google.protobuf.EmptyProtos
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.Messages.Payload
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import akka.http.grpc._
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
+
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
 // TODO this trait would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
@@ -15,17 +17,24 @@ import scala.reflect.ClassTag
 trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
-}
 
-// TODO this descriptor would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
-// and move to the 'server' project
-object TestService {
-  import GoogleProtobufSerializer._
-  val descriptor = {
-    val builder = new ServerInvokerBuilder[TestService]
-    Descriptor[TestService]("grpc.testing.TestService", Seq(
-      CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
-      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall))))
+  def toRoute()(implicit mat: Materializer): Route = {
+    import akka.http.scaladsl.server.Directives._
+    // TODO would be replaced by scalapb serializer
+    import GoogleProtobufSerializer._
+    import GrpcRuntimeMarshallingImplicits._
+
+    path("grpc.testing.TestService" / Segment) {
+      case "EmptyCall" ⇒
+        entity(as[EmptyProtos.Empty]) { req ⇒
+          onSuccess(emptyCall(req))(complete(_))
+        }
+      case "UnaryCall" ⇒
+        entity(as[Messages.SimpleRequest]) { req ⇒
+          onSuccess(unaryCall(req))(complete(_))
+        }
+      case _ ⇒ reject()
+    }
   }
 }
 
