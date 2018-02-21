@@ -4,7 +4,7 @@ import sbtprotoc._
 import akka.http.grpc.ScalaServerCodeGenerator
 import protocbridge.JvmGenerator
 import sbt._
-import sbt.Keys._
+import sbt.Keys.{ libraryDependencies, _ }
 
 import scala.collection.immutable
 
