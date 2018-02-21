@@ -6,9 +6,9 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 
 class Greeter extends GreeterService {
-  def sayHello(in: HelloRequest): Future[HelloRequest] = ???
+  override def sayHello(in: HelloRequest): Future[HelloRequest] = ???
 
-  def streamHellos(in: Source[HelloRequest, NotUsed]): Future[HelloRequest] = ???
+  override def streamHellos(in: Source[HelloRequest, NotUsed]): Future[HelloRequest] = ???
 
-  def itKeepsTalking(in: Source[HelloRequest,NotUsed]): Future[HelloRequest] = ???
+  override def itKeepsTalking(in: Source[HelloRequest,NotUsed]): Future[HelloRequest] = ???
 }
