@@ -2,7 +2,7 @@ package com.lightbend.grpc.interop
 
 import akka.util.ByteString
 import com.google.protobuf.EmptyProtos
-import io.grpc.stub.StreamObserver
+import io.grpc.stub.{ ServerCallStreamObserver, StreamObserver }
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.{ TestServiceImpl => GoogleTestServiceImpl }
 import akka.http.grpc._
@@ -25,8 +25,7 @@ object TestService {
     val builder = new ServerInvokerBuilder[TestService]
     Descriptor[TestService]("grpc.testing.TestService", Seq(
       CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
-      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall)),
-      CallDescriptor.named("CacheableUnaryCall", builder.unaryToUnary(_.unaryCall))))
+      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall))))
   }
 }
 
@@ -36,11 +35,24 @@ class TestServiceImpl(googleImpl: GoogleTestServiceImpl) extends TestService {
   override def emptyCall(req: EmptyProtos.Empty) = Future.successful(EmptyProtos.Empty.getDefaultInstance)
   override def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse] = {
     val promise = Promise[Messages.SimpleResponse]
-    googleImpl.unaryCall(req, new StreamObserver[Messages.SimpleResponse] {
+
+    val obs = new ServerCallStreamObserver[Messages.SimpleResponse] {
+      override def isCancelled: Boolean = ???
+      override def setCompression(compression: String): Unit = {
+        println(s"Got a call to setCompression with [$compression]")
+      }
+      override def setOnCancelHandler(onCancelHandler: Runnable): Unit = ???
+      override def setOnReadyHandler(onReadyHandler: Runnable): Unit = ???
+      override def request(count: Int): Unit = ???
+      override def disableAutoInboundFlowControl(): Unit = ???
+      override def isReady: Boolean = ???
+      override def setMessageCompression(enable: Boolean): Unit = ???
       override def onError(t: Throwable): Unit = promise.failure(t)
       override def onCompleted(): Unit = ()
       override def onNext(value: Messages.SimpleResponse): Unit = promise.success(value)
-    })
+    }
+
+    googleImpl.unaryCall(req, obs)
     promise.future
   }
 }

@@ -52,17 +52,21 @@ class GrpcInteropSpec extends WordSpec {
   )
 
   val pendingAkkaTestCases = Seq(
-    "large_unary",
+    //"large_unary",
+    //"empty_unary",
     "ping_pong",
+    //"empty_stream",
     "client_streaming",
     "server_streaming",
+    //"cancel_after_begin",
     "cancel_after_first_response",
+    //"timeout_on_sleeping_server",
     "custom_metadata",
     "status_code_and_message",
     "unimplemented_method",
     "client_compressed_unary",
     "client_compressed_streaming",
-    "server_compressed_unary",
+    //"server_compressed_unary",
     "server_compressed_streaming",
     "unimplemented_service",
   )
@@ -106,13 +110,16 @@ class GrpcInteropSpec extends WordSpec {
   }
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
-    try {
+    val result = try {
       block
-      if (expectedToFail) fail("Succeeded against expectations")
-      else Succeeded
+      Succeeded
     } catch {
-      case e if expectedToFail =>
-        pending
+      case e if expectedToFail => pending
+    }
+
+    result match {
+      case Succeeded if expectedToFail => fail("Succeeded against expectations")
+      case res => res
     }
   }
 
