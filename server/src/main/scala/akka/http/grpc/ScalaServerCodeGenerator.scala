@@ -23,8 +23,6 @@ class ScalaServerCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
-    println(s"fileDescByName = ${fileDescByName}")
-
     request.getFileToGenerateList.asScala.foreach { name ⇒
       val fileDesc = fileDescByName(name)
       val responseFile = generateFile(fileDesc)
@@ -51,6 +49,7 @@ class ScalaServerCodeGenerator extends CodeGenerator {
     //            .add("}")
     //      }
     //    b.setContent(fp.result)
+    b.setName(s"${fileDesc.getFullName}AkkaGrpcService.scala") // FIXME
     b.setContent(s"// Hello: ${fileDesc.getFullName}")
     b.build
   }
