@@ -1,6 +1,15 @@
-addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % sys.props("project.version"))
+import java.io.{BufferedInputStream, FileInputStream}
+import java.util.Properties
 
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.12")
+val theVersion = {
+  val p = new Properties()
+  val bos = new BufferedInputStream(new FileInputStream("../version.properties"))
+  try {
+    p.load(bos)
+    p.getProperty("project.version")
+  } finally bos.close()
+}
 
-libraryDependencies += "com.trueaccord.scalapb" %% "compilerplugin" % "0.6.7"
+addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % theVersion)
 
+addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4")
