@@ -47,21 +47,15 @@ class GrpcInteropSpec extends WordSpec {
   )
 
   val pendingAkkaTestCases = Seq(
-    //"large_unary",
-    //"empty_unary",
     "ping_pong",
-    //"empty_stream",
     "client_streaming",
     "server_streaming",
-    //"cancel_after_begin",
     "cancel_after_first_response",
-    //"timeout_on_sleeping_server",
     "custom_metadata",
     "status_code_and_message",
     "unimplemented_method",
     "client_compressed_unary",
     "client_compressed_streaming",
-    //"server_compressed_unary",
     "server_compressed_streaming",
     "unimplemented_service",
   )
@@ -114,7 +108,7 @@ class GrpcInteropSpec extends WordSpec {
 
       val googleTestService = new GoogleTestServiceImpl(Executors.newScheduledThreadPool(1))
 
-      val testService = Grpc(TestService.descriptor, new TestServiceImpl(googleTestService))
+      val testService = Grpc(TestServiceImpl.descriptor, new TestServiceImpl()(sys.dispatcher))
 
       val bindingFuture = Http2().bindAndHandleAsync(
         request => Future.successful(testService(request)),
