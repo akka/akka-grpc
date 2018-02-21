@@ -110,8 +110,8 @@ class ServerInvokerBuilder[T] {
 // TODO separate it into "runtime" library;
 object Grpc {
 
-    // TODO should this be a Route to allow mixing GRPC endpoints and other routes?
-    def apply[T](descriptor: Descriptor[T], service: T)(implicit mat: Materializer, ec: ExecutionContext): PartialFunction[HttpRequest, HttpResponse] = {
+  // TODO should this be a Route to allow mixing GRPC endpoints and other routes?
+  def apply[T](descriptor: Descriptor[T], service: T)(implicit mat: Materializer, ec: ExecutionContext): PartialFunction[HttpRequest, HttpResponse] = {
     // TODO this builds up a function based on the Descriptor that was generated from the grpc .proto file.
     // Shouldn't we generate this function directly instead of going via the Descriptor?
     val base = Path / descriptor.name

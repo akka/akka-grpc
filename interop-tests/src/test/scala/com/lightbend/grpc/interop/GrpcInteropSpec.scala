@@ -46,7 +46,12 @@ class GrpcInteropSpec extends WordSpec {
     "unimplemented_service",
   )
 
-  val pendingTestCases = Seq(
+  val pendingJavaTestCases = Seq(
+    "client_compressed_unary",
+    "client_compressed_streaming"
+  )
+
+  val pendingAkkaTestCases = Seq(
     "large_unary",
     "ping_pong",
     "client_streaming",
@@ -62,27 +67,56 @@ class GrpcInteropSpec extends WordSpec {
     "unimplemented_service",
   )
 
-  "pass the simple test between grpc server and client" should {
+  "java grpc server" should {
     testCases.foreach { testCaseName =>
-      s"pass $testCaseName" in {
-        withGrpcAkkaServer(serverArgs = Array.empty, expectedToFail = pendingTestCases.contains(testCaseName)) {
-          val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
-
-          Util.installConscryptIfAvailable()
-          val client = new TestServiceClient
-          client.parseArgs(args)
-          client.setUp()
-
-          try
-            client.run()
-          finally
-            client.tearDown()
+      s"pass the $testCaseName integration test" in {
+        pendingTestCaseSupport(pendingJavaTestCases.contains(testCaseName)) {
+          withGrpcJavaServer() {
+            runGrcpJavaClient(testCaseName)
+          }
         }
       }
     }
   }
 
-  private def withGrpcAkkaServer(serverArgs: Array[String], expectedToFail: Boolean)(block: => Unit): Assertion = {
+  "akka-http grpc server" should {
+    testCases.foreach { testCaseName =>
+      s"pass the $testCaseName integration test" in {
+        pendingTestCaseSupport(pendingAkkaTestCases.contains(testCaseName)) {
+          withGrpcAkkaServer() {
+            runGrcpJavaClient(testCaseName)
+          }
+        }
+      }
+    }
+  }
+
+  private def runGrcpJavaClient(testCaseName: String): Unit = {
+    val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
+
+    Util.installConscryptIfAvailable()
+    val client = new TestServiceClient
+    client.parseArgs(args)
+    client.setUp()
+
+    try
+      client.run()
+    finally
+      client.tearDown()
+  }
+
+  private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
+    try {
+      block
+      if (expectedToFail) fail("Succeeded against expectations")
+      else Succeeded
+    } catch {
+      case e if expectedToFail =>
+        pending
+    }
+  }
+
+  private def withGrpcAkkaServer()(block: => Unit): Assertion = {
     implicit val sys = ActorSystem()
     try {
       implicit val mat = ActorMaterializer()
@@ -101,20 +135,14 @@ class GrpcInteropSpec extends WordSpec {
       val binding = Await.result(bindingFuture, 10.seconds)
 
       try {
-        println("executing test")
         block
-        println("after executing test")
       } finally {
         sys.log.info("Exception thrown, unbinding")
         Await.result(binding.unbind(), 10.seconds)
         Await.result(sys.terminate(), 10.seconds)
       }
-      if (expectedToFail) fail("Succeeded against expectations")
-      else Succeeded
+      Succeeded
     } catch {
-      case e if expectedToFail =>
-        sys.log.error(e, "Expected failure")
-        pending
       case e: StatusRuntimeException =>
         // 'Status' is not serializable, so we have to unpack the exception
         // to avoid trouble when running tests from sbt
@@ -124,14 +152,7 @@ class GrpcInteropSpec extends WordSpec {
     }
   }
 
-  /*private def serverHttpContext() = {
-    ConnectionContext.https(SSLContext.getDefault)
-  }*/
-
   private def serverHttpContext() = {
-    // never put passwords into code!
-    val password = "abcdef".toCharArray
-
     val keyEncoded = new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath)), "UTF-8")
       .replace("-----BEGIN PRIVATE KEY-----\n", "")
       .replace("-----END PRIVATE KEY-----\n", "")
@@ -161,17 +182,15 @@ class GrpcInteropSpec extends WordSpec {
     new HttpsConnectionContext(context)
   }
 
-  private def withGrpcJavaServer(serverArgs: Array[String])(block: => Unit): Assertion = {
+  private def withGrpcJavaServer()(block: => Unit): Assertion = {
     try {
       val server = new TestServiceServer
-      server.parseArgs(serverArgs)
       if (server.useTls)
         println("\nUsing fake CA for TLS certificate. Test clients should expect host\n" +
           "*.test.google.fr and our test CA. For the Java test client binary, use:\n" +
           "--server_host_override=foo.test.google.fr --use_test_ca=true\n")
 
       server.start()
-      println("Server started on port " + server.port)
       try
         block
       finally
