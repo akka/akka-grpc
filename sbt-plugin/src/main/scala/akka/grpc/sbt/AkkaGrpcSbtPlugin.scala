@@ -1,12 +1,9 @@
 package akka.grpc.sbt
 
-import sbtprotoc._
 import akka.http.grpc.ScalaServerCodeGenerator
 import protocbridge.JvmGenerator
 import sbt._
 import sbt.Keys.{ libraryDependencies, _ }
-
-import scala.collection.immutable
 
 object AkkaGrpcSbtPlugin extends AutoPlugin {
   import sbtprotoc.ProtocPlugin.autoImport._
@@ -15,7 +12,7 @@ object AkkaGrpcSbtPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin
 
   object Keys {
-    val AkkaGrpc = config("akka-grpc") extend Compile
+    val AkkaGrpc = config("AkkaGrpc") extend Compile
 
     // these are on purpose not just sbt source generators, we plug them into the existing infrastructure of sbt-protoc
     val akkaGrpcCodeGenerators = settingKey[akka.grpc.gen.CodeGenerator]("The configured source generator")

@@ -2,7 +2,6 @@ package akka.http.grpc
 
 import akka.grpc.gen.CodeGenerator
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
-import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import com.trueaccord.scalapb.compiler.FunctionalPrinter
 
