@@ -131,7 +131,7 @@ class GrpcInteropSpec extends WordSpec {
 
       val googleTestService = new GoogleTestServiceImpl(Executors.newScheduledThreadPool(1))
 
-      val testService = Grpc(TestService.descriptor, new TestServiceImpl(googleTestService))
+      val testService = Grpc(TestService.descriptor, new TestServiceImpl()(sys.dispatcher))
 
       val bindingFuture = Http2().bindAndHandleAsync(
         request => Future.successful(testService(request)),
