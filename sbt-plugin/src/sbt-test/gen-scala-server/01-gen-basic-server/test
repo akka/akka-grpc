@@ -5,3 +5,5 @@
 $ exists target/scala-2.12/src_managed
 $ exists target/scala-2.12/src_managed/main/io/akka/grpc/helloworld/HelloRequest.scala
 $ exists target/scala-2.12/src_managed/main/io/akka/grpc/helloworld/HelloworldProto.scala
+# that needs to be fixed :-)
+$ exists target/scala-2.12/src_managed/main/helloworld.protoAkkaGrpcService.scala

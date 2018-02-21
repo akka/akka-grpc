@@ -1,6 +1,6 @@
-PB.targets in Compile := Seq(
-  scalapb.gen(grpc = false) -> (sourceManaged in Compile).value
-)
+//PB.targets in Compile := Seq(
+//  scalapb.gen(grpc = false) -> (sourceManaged in Compile).value
+//)
 
 libraryDependencies +=     "io.grpc" % "grpc-core"   % "1.6.1"
 
