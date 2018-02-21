@@ -4,6 +4,7 @@ import akka.grpc.gen.CodeGenerator
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
+import com.trueaccord.scalapb.compiler.FunctionalPrinter
 
 import scala.collection.JavaConverters._
 
@@ -37,22 +38,34 @@ class ScalaServerCodeGenerator extends CodeGenerator {
   def generateServiceFile(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
 
-    //    b.setName(s"${fileDesc.scalaDirectory}/${fileDesc.fileDescriptorObjectName}Foo.scala")
-    //    val fp = FunctionalPrinter()
-    //      .add(s"package ${fileDesc.scalaPackageName}")
-    //      .add("")
-    //      .print(fileDesc.getMessageTypes.asScala) {
-    //        case (p, m) =>
-    //          p.add(s"object ${m.getName}Boo {")
-    //            .indent
-    //            .add(s"type T = ${m.scalaTypeName}")
-    //            .add(s"val FieldCount = ${m.getFields.size}")
-    //            .outdent
-    //            .add("}")
-    //      }
-    //    b.setContent(fp.result)
-    b.setName(s"${fileDesc.getOptions.getJavaPackage.replace('.', '/')}/${fileDesc.getPackage}/${serviceDescriptor.getName}Service.scala")
-    b.setContent(s"// Hello: ${fileDesc.getFullName}")
+    val serviceClassName = serviceDescriptor.getName + "Service"
+    val fp = FunctionalPrinter()
+      .add(s"package ${fileDesc.getOptions.getJavaPackage}.${fileDesc.getPackage}")
+      .add("")
+      .add("import scala.concurrent.Future")
+      .add("")
+      .add("import akka.NotUsed")
+      .add("import akka.stream.scaladsl.Source")
+      .add("")
+      .add(s"trait $serviceClassName {")
+      .indent
+      .print(serviceDescriptor.getMethods.asScala) {
+        case (p, m) ⇒
+          val in =
+            if (m.toProto.getClientStreaming) s"Source[${m.getInputType.getName}, NotUsed]"
+            else m.getInputType.getName
+          val out =
+            if (m.toProto.getServerStreaming) s"Source[${m.getInputType.getName}, Any]"
+            else s"Future[${m.getInputType.getName}]"
+          p.add(s"def ${methodName(m.getName)}(in: $in): $out").add("")
+      }
+      .outdent
+      .add("}")
+    b.setContent(fp.result)
+    b.setName(s"${fileDesc.getOptions.getJavaPackage.replace('.', '/')}/${fileDesc.getPackage}/$serviceClassName.scala")
+
     b.build
   }
+
+  def methodName(name: String) = name.head.toLower +: name.tail
 }
