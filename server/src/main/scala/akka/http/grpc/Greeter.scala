@@ -5,9 +5,9 @@ import java.security.{ KeyStore, SecureRandom }
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.Uri.Path.Segment
-import akka.http.scaladsl.server.{ Route, RouteResult }
 import akka.stream.Materializer
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
@@ -20,28 +20,30 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait Greeter {
   def sayHello(req: HelloRequest): Future[HelloReply]
 
-  def toRoute()(implicit mat: Materializer): Route = {
+  def toHandler()(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     implicit val ec: ExecutionContext = mat.executionContext
 
     // This can be simplified further once we always use scalapb
     val helloRequestSerializer = new ScalapbProtobufSerializer(HelloRequest.messageCompanion)
     val helloResponseSerializer = new ScalapbProtobufSerializer(HelloReply.messageCompanion)
 
-    ctx ⇒ {
-      val request = ctx.request
-      request.uri.path match {
-        case Segment("helloworld.Greeter", Path.Slash(Segment(method, Path.Empty))) ⇒ method match {
-          case "SayHello" ⇒
-            GrpcRuntimeMarshalling.unmarshall(ctx.request, helloRequestSerializer, mat)
-              .flatMap(sayHello)
-              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, helloResponseSerializer, mat)))
-          case _ ⇒
-            Future.successful(RouteResult.Rejected(Nil))
-        }
-        case _ ⇒ Future.successful(RouteResult.Rejected(Nil))
-      }
+    def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
+      case "SayHello" ⇒
+        GrpcRuntimeMarshalling.unmarshall(request, helloRequestSerializer, mat)
+          .flatMap(sayHello)
+          .map(e ⇒ GrpcRuntimeMarshalling.marshal(e, helloResponseSerializer, mat))
+      case other ⇒
+        Future.successful(HttpResponse(StatusCodes.NotFound))
     }
+
+    Function.unlift((req: HttpRequest) ⇒ req.uri.path match {
+      case Path.Slash(Segment(Greeter.name, Path.Slash(Segment(method, Path.Empty)))) ⇒ Some(handle(req, method))
+      case _ ⇒ None
+    })
   }
+}
+object Greeter {
+  val name = "helloworld.Greeter"
 }
 
 class GreeterImpl extends Greeter {
@@ -89,11 +91,11 @@ object Test extends App {
   }
 
   try {
-    val greeterRoute = new GreeterImpl().toRoute()
-
     // Start Akka HTTP server
+    val handler = new GreeterImpl().toHandler()
+
     Http2().bindAndHandleAsync(
-      Route.asyncHandler(greeterRoute),
+      handler,
       interface = "localhost",
       port = 8443,
       httpsContext = serverHttpContext())

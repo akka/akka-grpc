@@ -5,6 +5,7 @@ import com.google.protobuf.EmptyProtos
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.Messages.Payload
 import akka.http.grpc._
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.http.scaladsl.server.{ Route, RouteResult }
@@ -19,32 +20,31 @@ trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
 
-  private val base = Path / "grpc.testing.TestService"
-  def toRoute()(implicit mat: Materializer): Route = {
+  def toHandler()(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     // TODO would be replaced by scalapb serializer
     implicit val ec: ExecutionContext = mat.executionContext
 
-    ctx ⇒ {
-      val request = ctx.request
-      request.uri.path match {
-        case Path.Slash(Segment("grpc.testing.TestService", Path.Slash(Segment(method, _)))) ⇒ method match {
-          case "EmptyCall" ⇒
-            GrpcRuntimeMarshalling.unmarshall(ctx.request, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat)
-              .flatMap(emptyCall)
-              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat)))
-          case "UnaryCall" ⇒
-            GrpcRuntimeMarshalling.unmarshall(ctx.request, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleRequest], mat)
-              .flatMap(unaryCall)
-              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleResponse], mat)))
-          case _ ⇒
-            Future.successful(RouteResult.Rejected(Nil))
-        }
-        case _ ⇒
-          println(s"did not recognize ${request.uri.path}")
-          Future.successful(RouteResult.Rejected(Nil))
-      }
+    def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
+      case "EmptyCall" ⇒
+        GrpcRuntimeMarshalling.unmarshall(request, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat)
+          .flatMap(emptyCall)
+          .map(e ⇒ GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat))
+      case "UnaryCall" ⇒
+        GrpcRuntimeMarshalling.unmarshall(request, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleRequest], mat)
+          .flatMap(unaryCall)
+          .map(e ⇒ GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleResponse], mat))
+      case _ ⇒
+        Future.successful(HttpResponse(StatusCodes.NotFound))
     }
+
+    Function.unlift((req: HttpRequest) ⇒ req.uri.path match {
+      case Path.Slash(Segment(TestService.name, Path.Slash(Segment(method, Path.Empty)))) ⇒ Some(handle(req, method))
+      case _ ⇒ None
+    })
   }
+}
+object TestService {
+  val name = "grpc.testing.TestService"
 }
 
 // and move to the 'server' project

@@ -11,6 +11,7 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 
 import akka.actor.ActorSystem
 import akka.http.grpc.Grpc
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.{ConnectionContext, Http2, HttpsConnectionContext}
 import akka.stream.ActorMaterializer
@@ -122,12 +123,10 @@ class GrpcInteropSpec extends WordSpec {
       implicit val mat = ActorMaterializer()
       import sys.dispatcher
 
-      val googleTestService = new GoogleTestServiceImpl(Executors.newScheduledThreadPool(1))
-
-      val testRoute = new TestServiceImpl()(sys.dispatcher).toRoute()
+      val handler = new TestServiceImpl()(sys.dispatcher).toHandler()
 
       val bindingFuture = Http2().bindAndHandleAsync(
-        Route.asyncHandler(testRoute),
+        handler.orElse { case _: HttpRequest ⇒ Future.successful(HttpResponse(StatusCodes.NotFound)) },
         interface = "127.0.0.1",
         port = 8080,
         httpsContext = serverHttpContext())
