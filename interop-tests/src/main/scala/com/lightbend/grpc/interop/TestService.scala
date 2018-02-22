@@ -4,9 +4,10 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.EmptyProtos
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.Messages.Payload
-
 import akka.http.grpc._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+import akka.http.scaladsl.server.{ Route, RouteResult }
 import akka.stream.Materializer
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -18,22 +19,30 @@ trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
 
+  private val base = Path / "grpc.testing.TestService"
   def toRoute()(implicit mat: Materializer): Route = {
-    import akka.http.scaladsl.server.Directives._
     // TODO would be replaced by scalapb serializer
-    import GoogleProtobufSerializer._
-    import GrpcRuntimeMarshallingImplicits._
+    implicit val ec: ExecutionContext = mat.executionContext
 
-    path("grpc.testing.TestService" / Segment) {
-      case "EmptyCall" ⇒
-        entity(as[EmptyProtos.Empty]) { req ⇒
-          onSuccess(emptyCall(req))(complete(_))
+    ctx ⇒ {
+      val request = ctx.request
+      request.uri.path match {
+        case Path.Slash(Segment("grpc.testing.TestService", Path.Slash(Segment(method, _)))) ⇒ method match {
+          case "EmptyCall" ⇒
+            GrpcRuntimeMarshalling.unmarshall(ctx.request, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat)
+              .flatMap(emptyCall)
+              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[EmptyProtos.Empty], mat)))
+          case "UnaryCall" ⇒
+            GrpcRuntimeMarshalling.unmarshall(ctx.request, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleRequest], mat)
+              .flatMap(unaryCall)
+              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, GoogleProtobufSerializer.googlePbSerializer[Messages.SimpleResponse], mat)))
+          case _ ⇒
+            Future.successful(RouteResult.Rejected(Nil))
         }
-      case "UnaryCall" ⇒
-        entity(as[Messages.SimpleRequest]) { req ⇒
-          onSuccess(unaryCall(req))(complete(_))
-        }
-      case _ ⇒ reject()
+        case _ ⇒
+          println(s"did not recognize ${request.uri.path}")
+          Future.successful(RouteResult.Rejected(Nil))
+      }
     }
   }
 }
@@ -52,7 +61,7 @@ class TestServiceImpl(implicit ec: ExecutionContext) extends TestService {
 
 // TODO a serializer should be generated from the .proto files
 object GoogleProtobufSerializer {
-  implicit def googlePbSerializer[T <: com.google.protobuf.Message: ClassTag]: ProtobufSerializer[T] = {
+  def googlePbSerializer[T <: com.google.protobuf.Message: ClassTag]: ProtobufSerializer[T] = {
     new GoogleProtobufSerializer(implicitly[ClassTag[T]])
   }
 }

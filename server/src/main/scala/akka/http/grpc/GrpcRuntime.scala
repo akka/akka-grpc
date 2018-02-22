@@ -17,12 +17,6 @@ trait ProtobufSerializer[T] {
   def deserialize(bytes: ByteString): T
 }
 
-object ProtobufSerializer {
-  implicit def scalaPbSerializer[T <: GeneratedMessage with Message[T]: GeneratedMessageCompanion]: ProtobufSerializer[T] = {
-    new ScalapbProtobufSerializer(implicitly[GeneratedMessageCompanion[T]])
-  }
-}
-
 class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion: GeneratedMessageCompanion[T]) extends ProtobufSerializer[T] {
   override def serialize(t: T) = ByteString(companion.toByteArray(t))
   override def deserialize(bytes: ByteString): T = companion.parseFrom(bytes.iterator.asInputStream)

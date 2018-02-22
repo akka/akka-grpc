@@ -5,31 +5,41 @@ import java.security.{ KeyStore, SecureRandom }
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+import akka.http.scaladsl.server.{ Route, RouteResult }
 import akka.stream.Materializer
-
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
 import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 import io.grpc.netty.{ GrpcSslContexts, NettyChannelBuilder }
 import io.netty.handler.ssl.{ SslContextBuilder, SslProvider }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait Greeter {
   def sayHello(req: HelloRequest): Future[HelloReply]
 
   def toRoute()(implicit mat: Materializer): Route = {
-    import akka.http.scaladsl.server.Directives._
-    // TODO would be replaced by scalapb serializer
-    import GrpcRuntimeMarshallingImplicits._
+    implicit val ec: ExecutionContext = mat.executionContext
 
-    path("helloworld.Greeter" / Segment) {
-      case "SayHello" ⇒
-        entity(as[HelloRequest]) { req ⇒
-          onSuccess(sayHello(req))(complete(_))
+    // This can be simplified further once we always use scalapb
+    val helloRequestSerializer = new ScalapbProtobufSerializer(HelloRequest.messageCompanion)
+    val helloResponseSerializer = new ScalapbProtobufSerializer(HelloReply.messageCompanion)
+
+    ctx ⇒ {
+      val request = ctx.request
+      request.uri.path match {
+        case Segment("helloworld.Greeter", Path.Slash(Segment(method, Path.Empty))) ⇒ method match {
+          case "SayHello" ⇒
+            GrpcRuntimeMarshalling.unmarshall(ctx.request, helloRequestSerializer, mat)
+              .flatMap(sayHello)
+              .map(e ⇒ RouteResult.Complete(GrpcRuntimeMarshalling.marshal(e, helloResponseSerializer, mat)))
+          case _ ⇒
+            Future.successful(RouteResult.Rejected(Nil))
         }
-      case _ ⇒ reject()
+        case _ ⇒ Future.successful(RouteResult.Rejected(Nil))
+      }
     }
   }
 }
