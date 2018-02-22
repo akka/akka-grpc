@@ -1,7 +1,7 @@
 package akka.http.grpc
 
 import akka.grpc.gen.CodeGenerator
-import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
+import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import com.trueaccord.scalapb.compiler.FunctionalPrinter
 
@@ -37,9 +37,14 @@ class ScalaServerCodeGenerator extends CodeGenerator {
   def generateServiceFile(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
 
+    val methods = serviceDescriptor.getMethods.asScala
+
+    // https://scalapb.github.io/generated-code.html for more subtleties
+    val pack = fileDesc.getOptions.getJavaPackage + "." + fileDesc.getName.replaceAll("\\.proto", "").split("/").last
+
     val serviceClassName = serviceDescriptor.getName + "Service"
     val fp = FunctionalPrinter()
-      .add(s"package ${fileDesc.getOptions.getJavaPackage}.${fileDesc.getPackage}")
+      .add(s"package $pack")
       .add("")
       .add("import scala.concurrent.Future")
       .add("")
@@ -48,23 +53,27 @@ class ScalaServerCodeGenerator extends CodeGenerator {
       .add("")
       .add(s"trait $serviceClassName {")
       .indent
-      .print(serviceDescriptor.getMethods.asScala) {
+      .print(methods) {
         case (p, m) ⇒
           val in =
-            if (m.toProto.getClientStreaming) s"Source[${m.getInputType.getName}, NotUsed]"
-            else m.getInputType.getName
+            if (m.toProto.getClientStreaming) s"Source[${messageType(m.getInputType)}, NotUsed]"
+            else messageType(m.getInputType)
           val out =
-            if (m.toProto.getServerStreaming) s"Source[${m.getInputType.getName}, Any]"
-            else s"Future[${m.getInputType.getName}]"
+            if (m.toProto.getServerStreaming) s"Source[${messageType(m.getOutputType)}, Any]"
+            else s"Future[${messageType(m.getOutputType)}]"
           p.add(s"def ${methodName(m.getName)}(in: $in): $out").add("")
       }
       .outdent
       .add("}")
     b.setContent(fp.result)
-    b.setName(s"${fileDesc.getOptions.getJavaPackage.replace('.', '/')}/${fileDesc.getPackage}/$serviceClassName.scala")
-
+    b.setName(s"${pack.replace('.', '/')}/$serviceClassName.scala")
+    println(s"Creating in $pack")
     b.build
   }
 
-  def methodName(name: String) = name.head.toLower +: name.tail
+  def methodName(name: String) =
+    name.head.toLower +: name.tail
+
+  def messageType(t: Descriptor) =
+    t.getFile.getOptions.getJavaPackage + "." + t.getFile.getName.replaceAll("\\.proto", "").split("/").last + "." + t.getName
 }
