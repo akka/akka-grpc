@@ -35,6 +35,7 @@ val interopTests = Project(
     base = file("interop-tests")
   )
   .settings(Dependencies.interopTests)
+  .settings(commonSettings)
   .enablePlugins(JavaAgent)
   .settings(Seq(
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test",
@@ -54,7 +55,9 @@ lazy val sbtPlugin = Project(
 
       // 00-interop scripted test dependency
       val p3 = (publishLocal in server).value
+      val p4 = (publishLocal in interopTests).value
     },
+    scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"),
   )
   .dependsOn(codegenCommon)
