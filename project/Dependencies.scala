@@ -57,5 +57,5 @@ object Dependencies {
 
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting
-  ) ++ testing
+  ) ++ testing.map(_.withConfigurations(Some("compile")))
 }
