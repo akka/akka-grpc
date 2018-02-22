@@ -21,7 +21,6 @@ trait TestService {
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
 
   def toHandler()(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
-    // TODO would be replaced by scalapb serializer
     implicit val ec: ExecutionContext = mat.executionContext
 
     def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
