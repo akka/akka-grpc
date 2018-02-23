@@ -6,8 +6,6 @@ import org.scalatest._
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
   override val pendingAkkaTestCases = Seq(
-    "ping_pong",
-    "cancel_after_first_response",
     "custom_metadata",
     "status_code_and_message",
     "client_compressed_unary",
