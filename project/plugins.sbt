@@ -3,6 +3,7 @@ addSbtPlugin("de.heikoseeberger" % "sbt-header" % "4.1.0")
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.13")
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "2.1.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.13")
 
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value

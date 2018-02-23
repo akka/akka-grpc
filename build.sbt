@@ -20,6 +20,7 @@ lazy val codegenCommon = Project(
     id = "akka-grpc-codegen-common",
     base = file("codegen-common")
   )
+  .enablePlugins(SbtTwirl)
   .settings(Dependencies.common)
   .settings(commonSettings)
 
