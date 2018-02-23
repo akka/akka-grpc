@@ -11,7 +11,6 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
     "cancel_after_first_response",
     "custom_metadata",
     "status_code_and_message",
-    "unimplemented_method",
     "client_compressed_unary",
     "client_compressed_streaming",
     "server_compressed_streaming",

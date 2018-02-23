@@ -2,15 +2,20 @@
 
 package io.grpc.testing.integration.test
 
+import io.grpc.Status
+import io.grpc.testing.integration.Messages
+
+import com.google.protobuf.EmptyProtos
+
 import scala.concurrent.{ ExecutionContext, Future }
-import akka.http.grpc.GrpcMarshalling
+
+import akka.http.grpc.{ GrpcExceptionHandler, GrpcMarshalling }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.stream.Materializer
-import com.google.protobuf.EmptyProtos
+
 import com.lightbend.grpc.interop.GoogleProtobufSerializer.googlePbSerializer
-import io.grpc.testing.integration.Messages
 
 object TestServiceServiceHandler {
   def apply(implementation: TestServiceService)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
@@ -72,10 +77,13 @@ object TestServiceServiceHandler {
           .flatMap(implementation.unimplementedCall(_))
           .map(e => GrpcMarshalling.marshal(e, EmptySerializer, mat))
 
+      case m =>
+        Future.failed(new NotImplementedError(s"Not implemented: $m"))
     }
 
     Function.unlift((req: HttpRequest) => req.uri.path match {
-      case Path.Slash(Segment(TestServiceService.name, Path.Slash(Segment(method, Path.Empty)))) ⇒ Some(handle(req, method))
+      case Path.Slash(Segment(TestServiceService.name, Path.Slash(Segment(method, Path.Empty)))) ⇒
+        Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
       case _ => None
     })
   }

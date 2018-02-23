@@ -1,15 +1,13 @@
 package akka.http.grpc
 
 import scala.concurrent.Future
-
 import akka.NotUsed
-
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
-
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
+import io.grpc.Status
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): Future[T] =
@@ -29,14 +27,21 @@ object GrpcMarshalling {
   def marshalStream[T](e: Source[T, _], m: ProtobufSerializer[T], mat: Materializer): HttpResponse = {
     val outChunks = (e.map(m.serialize) via Grpc.grpcFramingEncoder)
       .map(bytes ⇒ HttpEntity.Chunk(bytes))
-      .concat(Source.single(LastChunk(trailer = List(RawHeader("grpc-status", "0")))))
+      .concat(Source.single(trailer(Status.OK)))
       .recover {
         case e: Exception =>
           // TODO handle better
           e.printStackTrace()
-          LastChunk(trailer = List(RawHeader("grpc-status", "2"), RawHeader("grpc-message", "Stream error")))
+          trailer(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
       }
 
     HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
   }
+
+  def status(status: Status): HttpResponse =
+    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
+
+  private def trailer(status: Status): LastChunk =
+    LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _)))
+
 }
