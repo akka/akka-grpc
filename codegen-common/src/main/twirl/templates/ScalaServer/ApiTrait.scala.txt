@@ -1,0 +1,16 @@
+@(service: akka.http.grpc.Service)
+
+package @service.packageName
+
+import scala.concurrent.Future
+
+import akka.NotUsed
+import akka.stream.scaladsl.Source
+
+trait @service.name
+{
+    @for(method <- service.methods) {
+        def @method.name
+            (in: @method.parameterType): @method.returnType
+    }
+}
