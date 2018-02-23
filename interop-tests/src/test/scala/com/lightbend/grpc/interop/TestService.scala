@@ -3,14 +3,12 @@ package com.lightbend.grpc.interop
 import akka.NotUsed
 import akka.http.grpc._
 import akka.stream.scaladsl.Source
-import com.google.protobuf.ByteString
-import com.google.protobuf.EmptyProtos
 import com.google.protobuf.empty.Empty
+import com.google.protobuf.{ ByteString, EmptyProtos }
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.Messages.Payload
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
 // TODO this trait would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
