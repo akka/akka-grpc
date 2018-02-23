@@ -18,8 +18,8 @@ trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
   def cacheableUnaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse]
-  def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any]
-  def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any]
+  def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, Any]
+  def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, Any]
   def streamingInputCall(in: Source[Messages.StreamingInputCallRequest, _]): Future[Messages.StreamingInputCallResponse]
   def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, Any]
   def unimplementedCall(in: Empty): Future[Empty]
@@ -50,8 +50,8 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
       .build()
   }
   override def cacheableUnaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse] = ???
-  override def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any] = ???
-  override def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, Any] = ???
 
   override def streamingInputCall(in: Source[Messages.StreamingInputCallRequest, _]): Future[Messages.StreamingInputCallResponse] = {
     in

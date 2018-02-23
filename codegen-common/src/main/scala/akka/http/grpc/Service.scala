@@ -18,7 +18,7 @@ object Method {
     name.head.toLower +: name.tail
 
   private def parameterType(streaming: Boolean, t: Descriptor) =
-    if (streaming) s"Source[${messageType(t)}, NotUsed]"
+    if (streaming) s"Source[${messageType(t)}, _]"
     else messageType(t)
 
   private def returnType(streaming: Boolean, t: Descriptor) =
