@@ -1,13 +1,14 @@
 package com.lightbend.grpc.interop
 
+import akka.NotUsed
 import akka.http.grpc._
-import com.google.protobuf.ByteString
-import com.google.protobuf.EmptyProtos
+import akka.stream.scaladsl.Source
+import com.google.protobuf.empty.Empty
+import com.google.protobuf.{ ByteString, EmptyProtos }
 import io.grpc.testing.integration.Messages
 import io.grpc.testing.integration.Messages.Payload
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
 // TODO this trait would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
@@ -15,6 +16,12 @@ import scala.reflect.ClassTag
 trait TestService {
   def emptyCall(req: EmptyProtos.Empty): Future[EmptyProtos.Empty]
   def unaryCall(req: Messages.SimpleRequest): Future[Messages.SimpleResponse]
+  def cacheableUnaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse]
+  def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any]
+  def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any]
+  def streamingInputCall(in: Source[Messages.StreamingInputCallRequest, NotUsed]): Future[Messages.StreamingInputCallResponse]
+  def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, Any]
+  def unimplementedCall(in: Empty): Future[Empty]
 }
 
 // TODO this descriptor would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
@@ -29,6 +36,7 @@ object TestService {
   }
 }
 
+// TODO implement this from io.grpc.testing.integration.TestServiceImpl
 // and move to the 'server' project
 class TestServiceImpl(implicit ec: ExecutionContext) extends TestService {
   override def emptyCall(req: EmptyProtos.Empty) = Future.successful(EmptyProtos.Empty.getDefaultInstance)
@@ -39,6 +47,12 @@ class TestServiceImpl(implicit ec: ExecutionContext) extends TestService {
           .setBody(ByteString.copyFrom(new Array[Byte](req.getResponseSize))))
       .build()
   }
+  override def cacheableUnaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse] = ???
+  override def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, NotUsed]): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def streamingInputCall(in: Source[Messages.StreamingInputCallRequest, NotUsed]): Future[Messages.StreamingInputCallResponse] = ???
+  override def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def unimplementedCall(in: Empty): Future[Empty] = ???
 }
 
 // TODO a serializer should be generated from the .proto files
