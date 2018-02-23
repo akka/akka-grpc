@@ -1,12 +1,12 @@
 package com.lightbend.grpc.interop
 
 import akka.http.grpc._
-import akka.stream.Materializer
+import akka.stream.{ Materializer, javadsl }
 import akka.stream.scaladsl.Source
 import com.google.protobuf.EmptyProtos.Empty
 import com.google.protobuf.{ ByteString, EmptyProtos }
 import io.grpc.testing.integration.Messages
-import io.grpc.testing.integration.Messages.Payload
+import io.grpc.testing.integration.Messages.{ Payload, PayloadType }
 import io.grpc.testing.integration.test.TestServiceService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -36,7 +36,14 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
       }
   }
 
-  override def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, Any] = ???
+  override def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, Any] =
+    javadsl.Source.from(in.getResponseParametersList).asScala.map { parameters =>
+      Messages.StreamingOutputCallResponse.newBuilder()
+        .setPayload(Payload.newBuilder()
+          .setBody(ByteString.copyFrom(new Array[Byte](parameters.getSize))))
+        .build
+    }
+
   override def unimplementedCall(in: Empty): Future[Empty] = ???
 }
 
