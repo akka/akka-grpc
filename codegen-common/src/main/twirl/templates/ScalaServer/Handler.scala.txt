@@ -4,7 +4,7 @@ package @service.packageName
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-import akka.http.grpc.{ GrpcMarshalling, ScalapbProtobufSerializer }
+import akka.http.grpc.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
@@ -27,13 +27,15 @@ object @{service.name}Handler {
                         .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
                         .map(e => @{method.marshal}(e, @method.serializer.name, mat))
             }
-            case _ =>
-                Future.successful(HttpResponse(StatusCodes.NotFound))
+            case m =>
+                Future.failed(new NotImplementedError(s"Not implemented: $m"))
         }
 
         Function.unlift((req: HttpRequest) => req.uri.path match {
-            case Path.Slash(Segment(@{service.name}.name, Path.Slash(Segment(method, Path.Empty)))) ⇒ Some(handle(req, method))
-            case _ => None
+            case Path.Slash(Segment(@{service.name}.name, Path.Slash(Segment(method, Path.Empty)))) ⇒
+                Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
+            case _ =>
+                None
         })
     }
 }

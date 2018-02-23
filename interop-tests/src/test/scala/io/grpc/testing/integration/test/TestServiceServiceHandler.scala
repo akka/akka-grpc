@@ -2,7 +2,6 @@
 
 package io.grpc.testing.integration.test
 
-import io.grpc.Status
 import io.grpc.testing.integration.Messages
 
 import com.google.protobuf.EmptyProtos
