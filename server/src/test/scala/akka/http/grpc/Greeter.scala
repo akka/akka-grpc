@@ -4,42 +4,35 @@ import java.io.InputStream
 import java.security.{ KeyStore, SecureRandom }
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.impl.util.JavaMapping.HttpsConnectionContext
 import akka.http.scaladsl.{ ConnectionContext, Http2 }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
+import io.akka.grpc.helloworld.{ GreeterService, GreeterServiceHandler, HelloReply, HelloRequest }
 import io.grpc.ManagedChannelBuilder
-import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 // import io.grpc.examples.helloworld.GreeterGrpc
 
 import scala.concurrent.{ ExecutionContext, Future }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.ActorMaterializer
-import io.grpc.examples.helloworld.{ HelloReply, HelloRequest }
 import io.grpc.netty.{ GrpcSslContexts, NettyChannelBuilder }
 import io.netty.handler.ssl.{ SslContextBuilder, SslProvider }
 
 import scala.concurrent.Future
 
-trait Greeter {
-  def sayHello(req: HelloRequest): Future[HelloReply]
-}
-
-class GreeterImpl extends Greeter {
+class GreeterImpl extends GreeterService {
   import scala.concurrent.ExecutionContext.Implicits.global
   override def sayHello(req: HelloRequest) = Future {
     println("returning response")
     HelloReply("Hello " + req.name)
   }
-}
 
-object Greeter {
-  val descriptor: Descriptor[Greeter] = {
-    val builder = new ServerInvokerBuilder[Greeter]
-    Descriptor[Greeter]("helloworld.Greeter", Seq(
-      CallDescriptor.named("SayHello", builder.unaryToUnary(_.sayHello))))
-  }
+  override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = ???
+
+  override def streamHellos(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = ???
 }
 
 object Test extends App {
@@ -79,11 +72,11 @@ object Test extends App {
   }
 
   try {
-    val greeterHandler = Grpc(Greeter.descriptor, new GreeterImpl)
+    val greeterHandler = GreeterServiceHandler(new GreeterImpl)
 
     // Start Akka HTTP server
     Http2().bindAndHandleAsync(
-      request => Future.successful(greeterHandler(request)),
+      greeterHandler,
       interface = "localhost",
       port = 8443,
       httpsContext = serverHttpContext())

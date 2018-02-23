@@ -10,7 +10,7 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.stream.{ActorMaterializer, Materializer}
 import io.grpc.StatusRuntimeException
 import io.grpc.internal.testing.TestUtils
@@ -51,18 +51,7 @@ trait GrpcInteropTests { self: WordSpec =>
     "client_compressed_streaming"
   )
 
-  val pendingAkkaTestCases = Seq(
-    "ping_pong",
-    "server_streaming",
-    "cancel_after_first_response",
-    "custom_metadata",
-    "status_code_and_message",
-    "unimplemented_method",
-    "client_compressed_unary",
-    "client_compressed_streaming",
-    "server_compressed_streaming",
-    "unimplemented_service",
-  )
+  val pendingAkkaTestCases: Seq[String]
 
   def javaGrpcTests() =
     "java grpc server" should {
@@ -77,7 +66,7 @@ trait GrpcInteropTests { self: WordSpec =>
       }
     }
 
-  def akkaHttpGrpcTests(testServiceFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, HttpResponse]) =
+  def akkaHttpGrpcTests(testServiceFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]]) =
     "akka-http grpc server" should {
       testCases.foreach { testCaseName =>
         s"pass the $testCaseName integration test" in {
@@ -118,7 +107,7 @@ trait GrpcInteropTests { self: WordSpec =>
     }
   }
 
-  private def withGrpcAkkaServer(testServiceFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, HttpResponse])(block: => Unit): Assertion = {
+  private def withGrpcAkkaServer(testServiceFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]])(block: => Unit): Assertion = {
     implicit val sys = ActorSystem()
     try {
       implicit val mat = ActorMaterializer()
@@ -126,7 +115,7 @@ trait GrpcInteropTests { self: WordSpec =>
       val testService = testServiceFactory(mat)(sys.dispatcher)
 
       val bindingFuture = Http2().bindAndHandleAsync(
-        request => Future.successful(testService(request)),
+        testService.orElse { case _: HttpRequest ⇒ Future.successful(HttpResponse(StatusCodes.NotFound)) },
         interface = "127.0.0.1",
         port = 8080,
         httpsContext = serverHttpContext())
