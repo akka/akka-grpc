@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{ Flow, Source }
 import com.google.protobuf.EmptyProtos.Empty
 import com.google.protobuf.{ ByteString, EmptyProtos }
 import io.grpc.testing.integration.Messages
-import io.grpc.testing.integration.Messages.{ Payload, PayloadType }
+import io.grpc.testing.integration.Messages.{ Payload }
 import io.grpc.testing.integration.test.TestServiceService
 
 import scala.concurrent.{ ExecutionContext, Future }
