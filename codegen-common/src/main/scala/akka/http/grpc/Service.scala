@@ -4,33 +4,57 @@ import scala.collection.JavaConverters._
 
 import com.google.protobuf.Descriptors._
 
-case class Method(name: String, parameterType: String, returnType: String)
+case class Serializer(name: String, init: String)
+object Serializer {
+  def apply(t: Descriptor): Serializer = Serializer(
+    t.getName + "Serializer",
+    s"new ScalapbProtobufSerializer(${Method.messageType(t)}.messageCompanion)"
+  )
+}
+
+case class Method(name: String, grpcName: String, inputType: Descriptor, inputStreaming: Boolean, outputType: Descriptor, outputStreaming: Boolean) {
+  import Method._
+
+  def deserializer = Serializer(inputType)
+  def serializer = Serializer(outputType)
+
+  def unmarshal =
+    if (inputStreaming) "GrpcMarshalling.unmarshalStream"
+    else "GrpcMarshalling.unmarshal"
+
+  def marshal =
+    if (outputStreaming) "GrpcMarshalling.marshalStream"
+    else "GrpcMarshalling.marshal"
+
+  def parameterType =
+    if (inputStreaming) s"Source[${messageType(inputType)}, _]"
+    else messageType(inputType)
+
+  def returnType =
+    if (outputStreaming) s"Source[${messageType(outputType)}, Any]"
+    else s"Future[${messageType(outputType)}]"
+}
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
     Method(
       name = methodName(descriptor.getName),
-      parameterType(descriptor.toProto.getClientStreaming, descriptor.getInputType),
-      returnType(descriptor.toProto.getServerStreaming, descriptor.getOutputType),
+      grpcName = descriptor.getName,
+      descriptor.getInputType,
+      descriptor.toProto.getClientStreaming,
+      descriptor.getOutputType,
+      descriptor.toProto.getServerStreaming,
     )
   }
 
   private def methodName(name: String) =
     name.head.toLower +: name.tail
 
-  private def parameterType(streaming: Boolean, t: Descriptor) =
-    if (streaming) s"Source[${messageType(t)}, _]"
-    else messageType(t)
-
-  private def returnType(streaming: Boolean, t: Descriptor) =
-    if (streaming) s"Source[${messageType(t)}, Any]"
-    else s"Future[${messageType(t)}]"
-
-  private def messageType(t: Descriptor) =
+  def messageType(t: Descriptor) =
     "_root_." + t.getFile.getOptions.getJavaPackage + "." + t.getFile.getName.replaceAll("\\.proto", "").split("/").last + "." + t.getName
 }
 
-case class Service(packageName: String, name: String, methods: Seq[Method]) {
-  def filename = s"${packageName.replace('.', '/')}/$name.scala"
+case class Service(packageName: String, name: String, grpcName: String, methods: Seq[Method]) {
+  def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
 }
 object Service {
   def apply(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
@@ -39,6 +63,10 @@ object Service {
 
     val serviceClassName = serviceDescriptor.getName + "Service"
 
-    Service(packageName, serviceClassName, serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)))
+    Service(
+      packageName,
+      serviceClassName,
+      fileDesc.getPackage + "." + serviceDescriptor.getName,
+      serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)))
   }
 }

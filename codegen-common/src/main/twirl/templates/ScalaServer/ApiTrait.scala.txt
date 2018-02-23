@@ -14,3 +14,7 @@ trait @service.name
             (in: @method.parameterType): @method.returnType
     }
 }
+object @service.name
+{
+    val name = "@service.grpcName"
+}

@@ -16,21 +16,7 @@ import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.test.TestServiceService
 import io.grpc.testing.integration.messages._
 
-// TODO this descriptor would be generated from the proto file at https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/proto/io/grpc/testing/integration/test.proto
-// and move to the 'server' project
-object TestServiceImpl {
-  val descriptor = {
-    val builder = new ServerInvokerBuilder[TestServiceService]
-    Descriptor[TestServiceService]("grpc.testing.TestService", Seq(
-      CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
-      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall)),
-      CallDescriptor.named("StreamingInputCall", builder.streamToUnary(_.streamingInputCall)),
-    ))
-  }
-}
-
-// TODO this implementation should eventually be independent of the GoogleTestServiceImpl
-// and move to the 'server' project
+// Implementation of the generated interface
 class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestServiceService {
   override def emptyCall(req: Empty) = Future.successful(Empty())
   override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = Future.successful(

@@ -1,0 +1,39 @@
+@(service: akka.http.grpc.Service)
+
+package @service.packageName
+
+import scala.concurrent.{ ExecutionContext, Future }
+
+import akka.http.grpc.{ GrpcMarshalling, ScalapbProtobufSerializer }
+
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+
+import akka.stream.Materializer
+
+object @{service.name}Handler {
+    def apply(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+        implicit val ec: ExecutionContext = mat.executionContext
+
+        @for(serializer <- service.serializers) {
+            val @serializer.name = @serializer.init
+        }
+
+        def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
+            @for(method <- service.methods) {
+                case "@method.grpcName" =>
+                    @{method.unmarshal}(request, @method.deserializer.name, mat)
+                        .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
+                        .map(e => @{method.marshal}(e, @method.serializer.name, mat))
+            }
+            case _ =>
+                Future.successful(HttpResponse(StatusCodes.NotFound))
+        }
+
+        Function.unlift((req: HttpRequest) => req.uri.path match {
+            case Path.Slash(Segment(@{service.name}.name, Path.Slash(Segment(method, Path.Empty)))) ⇒ Some(handle(req, method))
+            case _ => None
+        })
+    }
+}
