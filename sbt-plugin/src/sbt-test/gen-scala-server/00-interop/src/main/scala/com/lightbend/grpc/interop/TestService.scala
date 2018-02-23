@@ -7,6 +7,7 @@ import scala.reflect.ClassTag
 import akka.NotUsed
 import akka.http.grpc._
 import akka.stream.scaladsl.Source
+import akka.stream.Materializer
 
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
@@ -22,13 +23,15 @@ object TestServiceImpl {
     val builder = new ServerInvokerBuilder[TestServiceService]
     Descriptor[TestServiceService]("grpc.testing.TestService", Seq(
       CallDescriptor.named("EmptyCall", builder.unaryToUnary(_.emptyCall)),
-      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall))))
+      CallDescriptor.named("UnaryCall", builder.unaryToUnary(_.unaryCall)),
+      CallDescriptor.named("StreamingInputCall", builder.streamToUnary(_.streamingInputCall)),
+    ))
   }
 }
 
 // TODO this implementation should eventually be independent of the GoogleTestServiceImpl
 // and move to the 'server' project
-class TestServiceImpl(implicit ec: ExecutionContext) extends TestServiceService {
+class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestServiceService {
   override def emptyCall(req: Empty) = Future.successful(Empty())
   override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = Future.successful(
     SimpleResponse(
@@ -36,9 +39,16 @@ class TestServiceImpl(implicit ec: ExecutionContext) extends TestServiceService 
     )
   )
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
-  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse,Any] = ???
-  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse,Any] = ???
-  override def streamingInputCall(in: Source[StreamingInputCallRequest,NotUsed]): Future[StreamingInputCallResponse] = ???
+  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse,Any] = ???
+  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse,Any] = ???
+  override def streamingInputCall(in: Source[StreamingInputCallRequest, _]): Future[StreamingInputCallResponse] = {
+    in
+      .map(_.payload.map(_.body.size).getOrElse(0))
+      .runFold(0)(_ + _)
+      .map { sum ⇒
+        StreamingInputCallResponse(sum)
+      }
+  }
   override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, Any] = ???
   override def unimplementedCall(in: Empty): Future[Empty] = ???
 }
