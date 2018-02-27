@@ -1,12 +1,12 @@
 package com.lightbend.grpc.interop
 
 import akka.http.grpc._
-import akka.stream.{ Materializer, javadsl }
 import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.{ Materializer, javadsl }
 import com.google.protobuf.EmptyProtos.Empty
 import com.google.protobuf.{ ByteString, EmptyProtos }
 import io.grpc.testing.integration.Messages
-import io.grpc.testing.integration.Messages.{ Payload }
+import io.grpc.testing.integration.Messages.Payload
 import io.grpc.testing.integration.test.TestServiceService
 
 import scala.concurrent.{ ExecutionContext, Future }
