@@ -1,0 +1,18 @@
+@(service: akka.http.grpc.Service)
+
+package @service.packageName;
+
+import java.util.concurrent.CompletableFuture;
+
+import akka.NotUsed;
+import akka.stream.javadsl.Source;
+
+interface @service.name
+{
+    @for(method <- service.methods) {
+        @method.getReturnType @method.name
+            (@method.getParameterType in);
+    }
+
+    static String name = "@service.grpcName";
+}
