@@ -40,8 +40,14 @@ val interopTests = Project(
   .enablePlugins(JavaAgent)
   .settings(Seq(
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test",
+    // needed explicitly as we don't directly depend on the codegen project
+    watchSources ++= (watchSources in codegenCommon).value
   ))
   .dependsOn(server)
+  .enablePlugins(akka.ReflectiveCodeGen)
+  // needed to be able to override the PB.generate task reliably
+  .disablePlugins(ProtocPlugin)
+  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
 
 lazy val sbtPlugin = Project(
     id = "akka-grpc-sbt-plugin",

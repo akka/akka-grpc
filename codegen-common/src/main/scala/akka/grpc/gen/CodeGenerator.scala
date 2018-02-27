@@ -14,7 +14,6 @@ trait CodeGenerator {
 
   final def run(request: Array[Byte]): Array[Byte] = {
     val req = CodeGeneratorRequest.parseFrom(request)
-    println(s"Generating from: ${req.getProtoFileList.asScala.toList}")
 
     val res = run(req)
     res.toByteArray
