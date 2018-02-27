@@ -3,3 +3,5 @@ target
 *.iml
 /plugin-tester-java/.gradle
 /plugin-tester-java/build
+/plugin-tester-scala/.gradle
+/plugin-tester-scala/build
