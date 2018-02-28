@@ -238,7 +238,6 @@ trait AkkaClientTestProvider extends ClientTesterProvider {
   val label: String = "akka-grpc client tester"
   val pendingCases =
     Set(
-      "large_unary",
       "ping_pong",
       "empty_stream",
       "client_streaming",

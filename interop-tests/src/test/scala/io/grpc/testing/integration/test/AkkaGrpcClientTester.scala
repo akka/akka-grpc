@@ -1,16 +1,16 @@
 package io.grpc.testing.integration.test
 
-import io.grpc.testing.integration2.ClientTester
 import java.io.InputStream
 
+import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import io.grpc.ManagedChannel
-import io.grpc.testing.integration2.{ ChannelBuilder, Settings }
+import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
+import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
 import org.junit.Assert.assertEquals
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import org.junit.Assert.assertEquals
 class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
 
   private var channel: ManagedChannel = null
@@ -37,7 +37,16 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def largeUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val request =
+      SimpleRequest(
+        PayloadType.COMPRESSABLE,
+        responseSize = 314159,
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
+
+    val goldenResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+
+    val response = Await.result(stub.unaryCall(request), awaitTimeout)
+    assertEquals(goldenResponse, response)
   }
 
   def clientCompressedUnary(): Unit = {

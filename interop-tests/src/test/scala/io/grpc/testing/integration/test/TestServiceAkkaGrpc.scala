@@ -2,21 +2,20 @@ package io.grpc.testing.integration.test
 
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
-import _root_.com.trueaccord.scalapb.grpc.{ConcreteProtoFileDescriptorSupplier, Grpc}
-import _root_.io.grpc.stub.{ClientCalls, ServerCalls, StreamObserver}
-import _root_.io.grpc.{CallOptions, Channel, MethodDescriptor, ServerServiceDefinition}
+import _root_.com.trueaccord.scalapb.grpc.{ ConcreteProtoFileDescriptorSupplier, Grpc }
+import _root_.io.grpc.stub.{ ClientCalls, ServerCalls, StreamObserver }
+import _root_.io.grpc.{ CallOptions, Channel, MethodDescriptor, ServerServiceDefinition }
 import akka.http.grpc.GrpcMarshalling.Marshaller
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 
 import _root_.scala.concurrent.Future
-import _root_.scala.util.{Failure, Success}
+import _root_.scala.util.{ Failure, Success }
 
 /**
  * Hard-coded client stub to help us define what needs to be the final generated stub.
  */
 object TestServiceAkkaGrpc {
-
 
   def stub(channel: Channel): TestServiceStub = new TestServiceStub(channel)
 
@@ -111,20 +110,4 @@ object TestServiceAkkaGrpc {
       .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.EmptySerializer))
       .build()
 
-  val SERVICE: _root_.io.grpc.ServiceDescriptor = _root_.io.grpc.ServiceDescriptor.newBuilder("grpc.testing.TestService")
-    .setSchemaDescriptor(new ConcreteProtoFileDescriptorSupplier(io.grpc.testing.integration.messages.MessagesProto.javaDescriptor))
-    .addMethod(METHOD_EMPTY_CALL)
-    .addMethod(METHOD_UNARY_CALL)
-    .addMethod(METHOD_CACHEABLE_UNARY_CALL)
-    .addMethod(METHOD_STREAMING_OUTPUT_CALL)
-    .addMethod(METHOD_STREAMING_INPUT_CALL)
-    .addMethod(METHOD_FULL_DUPLEX_CALL)
-    .addMethod(METHOD_HALF_DUPLEX_CALL)
-    .addMethod(METHOD_UNIMPLEMENTED_CALL)
-    .build()
-
-
-
-
 }
-
