@@ -33,6 +33,16 @@ case class Method(name: String, grpcName: String, inputType: Descriptor, inputSt
   def returnType =
     if (outputStreaming) s"Source[${messageType(outputType)}, Any]"
     else s"Future[${messageType(outputType)}]"
+
+  /** Java API */
+  def getParameterType =
+    if (inputStreaming) s"Source<${getMessageType(inputType)}, Object>"
+    else getMessageType(inputType)
+
+  /** Java API */
+  def getReturnType =
+    if (outputStreaming) s"Source<${getMessageType(outputType)}, Object>"
+    else s"CompletableFuture<${getMessageType(outputType)}>"
 }
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
@@ -51,6 +61,10 @@ object Method {
 
   def messageType(t: Descriptor) =
     "_root_." + t.getFile.getOptions.getJavaPackage + "." + t.getFile.getName.replaceAll("\\.proto", "").split("/").last + "." + t.getName
+
+  /** Java API */
+  def getMessageType(t: Descriptor) =
+    t.getFile.getOptions.getJavaPackage + "." + t.getName
 }
 
 case class Service(packageName: String, name: String, grpcName: String, methods: Seq[Method]) {

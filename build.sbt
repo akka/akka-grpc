@@ -16,18 +16,24 @@ val commonSettings = Seq(
   resolvers += Resolver.bintrayRepo("akka", "maven"),
 )
 
-lazy val codegenCommon = Project(
-    id = "akka-grpc-codegen-common",
-    base = file("codegen-common")
+lazy val codegen = Project(
+    id = "akka-grpc-codegen",
+    base = file("codegen")
   )
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
-  .settings(Dependencies.common)
+  .settings(Dependencies.codegen)
   .settings(commonSettings)
   .settings(Seq(
-    buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
-    buildInfoKeys += BuildInfoKey.map(projectID in server) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
-    buildInfoPackage := "akka.grpc.gen",
-  ))
+      buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
+      buildInfoKeys += BuildInfoKey.map(projectID in server) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
+      buildInfoPackage := "akka.grpc.gen",
+      artifact in (Compile, assembly) := {
+        val art = (artifact in (Compile, assembly)).value
+        art.withClassifier(Some("assembly"))
+      },
+      mainClass in assembly := Some("akka.grpc.gen.Main"),
+    ) ++ addArtifact(artifact in (Compile, assembly), assembly)
+  )
 
 lazy val server = Project(
     id = "akka-grpc-server",
@@ -45,7 +51,7 @@ lazy val sbtPlugin = Project(
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
     scriptedDependencies := {
       val p1 = publishLocal.value
-      val p2 = (publishLocal in codegenCommon).value
+      val p2 = (publishLocal in codegen).value
 
       // 00-interop scripted test dependency
       val p3 = (publishLocal in server).value
@@ -54,19 +60,19 @@ lazy val sbtPlugin = Project(
     scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"),
   )
-  .dependsOn(codegenCommon)
+  .dependsOn(codegen)
 
 lazy val interopTests = Project(
-  id = "akka-grpc-interop-tests",
-  base = file("interop-tests")
-)
+    id = "akka-grpc-interop-tests",
+    base = file("interop-tests")
+  )
   .settings(Dependencies.interopTests)
   .settings(commonSettings)
   .enablePlugins(JavaAgent)
   .settings(
     javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
     // needed explicitly as we don't directly depend on the codegen project
-    watchSources ++= (watchSources in codegenCommon).value,
+    watchSources ++= (watchSources in codegen).value,
     // yeah ugly, but otherwise, there's a circular dependency between the project values
     watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
   )
@@ -80,7 +86,7 @@ lazy val root = Project(
     id = "akka-grpc",
     base = file(".")
   )
-  .aggregate(server, codegenCommon, sbtPlugin, interopTests)
+  .aggregate(server, codegen, sbtPlugin, interopTests)
   .settings(
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
   )

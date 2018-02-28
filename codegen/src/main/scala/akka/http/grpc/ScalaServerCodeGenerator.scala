@@ -9,7 +9,7 @@ import templates.ScalaServer.txt.{ ApiTrait, Handler }
 import scala.collection.JavaConverters._
 
 object ScalaServerCodeGenerator extends CodeGenerator {
-  def name = "grpc-akka-scaladsl"
+  def name = "akka-grpc-scaladsl"
 
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder

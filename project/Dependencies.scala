@@ -44,7 +44,7 @@ object Dependencies {
     Test.scalaTest
   )
 
-  val common = l ++= Seq(
+  val codegen = l ++= Seq(
     Compile.scalapbCompilerPlugin,
     Compile.scalapbRuntimeGrpc
   ) ++ testing

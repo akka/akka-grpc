@@ -1,3 +1,5 @@
 target
 .idea/
 *.iml
+/plugin-tester-java/.gradle
+/plugin-tester-java/build
