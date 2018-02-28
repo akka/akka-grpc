@@ -1,9 +1,15 @@
 package io.grpc.testing.integration.test
 
+import akka.stream.scaladsl.Source
+import com.google.protobuf.EmptyProtos
+import com.lightbend.grpc.interop.GoogleProtobufSerializer._
+import io.grpc.testing.integration.Messages
+
 import scala.concurrent.Future
 
-import akka.stream.scaladsl.Source
-
+/**
+ * Hard-coded service trait to help us define what needs to be the final generated trait.
+ */
 trait TestServiceService {
 
   def emptyCall(in: _root_.com.google.protobuf.EmptyProtos.Empty): Future[_root_.com.google.protobuf.EmptyProtos.Empty]
@@ -23,6 +29,21 @@ trait TestServiceService {
   def unimplementedCall(in: _root_.com.google.protobuf.EmptyProtos.Empty): Future[_root_.com.google.protobuf.EmptyProtos.Empty]
 
 }
+
 object TestServiceService {
   val name = "grpc.testing.TestService"
+
+  val SimpleRequestSerializer = googlePbSerializer[Messages.SimpleRequest]
+
+  val StreamingOutputCallRequestSerializer = googlePbSerializer[Messages.StreamingOutputCallRequest]
+
+  val EmptySerializer = googlePbSerializer[EmptyProtos.Empty]
+
+  val SimpleResponseSerializer = googlePbSerializer[Messages.SimpleResponse]
+
+  val StreamingInputCallRequestSerializer = googlePbSerializer[Messages.StreamingInputCallRequest]
+
+  val StreamingInputCallResponseSerializer = googlePbSerializer[Messages.StreamingInputCallResponse]
+
+  val StreamingOutputCallResponseSerializer = googlePbSerializer[Messages.StreamingOutputCallResponse]
 }
