@@ -4,9 +4,7 @@ organization := "com.lightbend.akka.grpc"
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
 libraryDependencies ++= Seq(
-  "com.lightbend.akka.grpc" %% "akka-grpc-server"        % sys.props("project.version"),
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
-  "io.grpc"                  % "grpc-interop-testing"    % "1.10.0",
   "org.scalatest"           %% "scalatest" % "3.0.4"     % "test" // ApacheV2
   )
 
@@ -22,3 +20,4 @@ javaAgents ++= Seq(
 )
 
 enablePlugins(JavaAgent)
+enablePlugins(AkkaGrpcPlugin)

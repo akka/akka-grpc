@@ -6,7 +6,7 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
-    val akka = "2.5.9"
+    val akka = "2.5.11"
     // snapshot from https://github.com/akka/akka-http/pull/1882
     val akkaHttp = "10.1.0-RC2+19-8e20bb26"
 
@@ -30,6 +30,10 @@ object Dependencies {
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
   }
 
+  object Agents {
+    val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
+  }
+
   object Test {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
   }
@@ -46,7 +50,6 @@ object Dependencies {
   ) ++ testing
 
   val server = l ++= Seq(
-    Compile.scalapbCompilerPlugin,
     Compile.scalapbRuntimeGrpc,
 
     Compile.grpcCore,

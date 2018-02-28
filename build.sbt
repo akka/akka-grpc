@@ -20,9 +20,14 @@ lazy val codegenCommon = Project(
     id = "akka-grpc-codegen-common",
     base = file("codegen-common")
   )
-  .enablePlugins(SbtTwirl)
+  .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .settings(Dependencies.common)
   .settings(commonSettings)
+  .settings(Seq(
+    buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
+    buildInfoKeys += BuildInfoKey.map(projectID in server) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
+    buildInfoPackage := "akka.grpc.gen",
+  ))
 
 lazy val server = Project(
     id = "akka-grpc-server",
@@ -38,11 +43,11 @@ val interopTests = Project(
   .settings(Dependencies.interopTests)
   .settings(commonSettings)
   .enablePlugins(JavaAgent)
-  .settings(Seq(
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test",
+  .settings(
+    javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
     // needed explicitly as we don't directly depend on the codegen project
-    watchSources ++= (watchSources in codegenCommon).value
-  ))
+    watchSources ++= (watchSources in codegenCommon).value ++ (watchSources in sbtPlugin).value
+  )
   .dependsOn(server)
   .enablePlugins(akka.ReflectiveCodeGen)
   // needed to be able to override the PB.generate task reliably

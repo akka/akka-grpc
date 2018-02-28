@@ -1,13 +1,14 @@
 package akka.http.grpc
 
-import akka.grpc.gen.CodeGenerator
+import akka.grpc.gen.{ CodeGenerator, BuildInfo }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
+import protocbridge.Artifact
 import templates.ScalaServer.txt.{ ApiTrait, Handler }
 
 import scala.collection.JavaConverters._
 
-class ScalaServerCodeGenerator extends CodeGenerator {
+object ScalaServerCodeGenerator extends CodeGenerator {
   def name = "grpc-akka-scaladsl"
 
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
@@ -49,4 +50,5 @@ class ScalaServerCodeGenerator extends CodeGenerator {
     b.build
   }
 
+  override val suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
 }
