@@ -7,14 +7,14 @@ import org.scalatest._
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
-  override val pendingAkkaServerTestCases = Seq(
+  override val pendingAkkaServerTestCases = Set(
     "custom_metadata",
     "status_code_and_message",
     "client_compressed_unary",
     "client_compressed_streaming")
 
-  override val pendingAkkaClientTestCases: Seq[String] =
-    Seq(
+  override val pendingAkkaClientTestCases: Set[String] =
+    Set(
       "large_unary",
       "empty_unary",
       "ping_pong",

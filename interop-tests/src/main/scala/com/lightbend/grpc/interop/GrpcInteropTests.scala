@@ -26,7 +26,7 @@ trait GrpcInteropTests { self: WordSpec =>
   import org.scalatest.Matchers._
 
   // see https://github.com/grpc/grpc/blob/master/tools/run_tests/run_interop_tests.py#L543
-  val testCases = Seq(
+  val testCases = Set(
     "large_unary",
     "empty_unary",
     "ping_pong",
@@ -46,21 +46,21 @@ trait GrpcInteropTests { self: WordSpec =>
     "unimplemented_service",
   )
 
-  val pendingJavaTestCases = Seq(
+  val pendingJavaTestCases = Set(
     "client_compressed_unary",
     "client_compressed_streaming"
   )
 
-  val pendingAkkaServerTestCases: Seq[String]
-  val pendingAkkaClientTestCases: Seq[String]
+  val pendingAkkaServerTestCases: Set[String]
+  val pendingAkkaClientTestCases: Set[String]
 
   def javaGrpcTests() =
     "java grpc server" should {
       testCases.foreach { testCaseName =>
         s"pass the $testCaseName integration test" in {
-          pendingTestCaseSupport(pendingJavaTestCases.contains(testCaseName)) {
+          pendingTestCaseSupport(pendingJavaTestCases(testCaseName)) {
             withGrpcJavaServer() {
-              runGrcpClient(testCaseName)(settings => new GrpcJavaClientTester(settings))
+              runGrpcClient(testCaseName)(settings => new GrpcJavaClientTester(settings))
             }
           }
         }
@@ -71,9 +71,9 @@ trait GrpcInteropTests { self: WordSpec =>
     "akka-http grpc server" should {
       testCases.foreach { testCaseName =>
         s"pass the $testCaseName integration test" in {
-          pendingTestCaseSupport(pendingAkkaServerTestCases.contains(testCaseName)) {
+          pendingTestCaseSupport(pendingAkkaServerTestCases(testCaseName)) {
             withGrpcAkkaServer(testServiceFactory) {
-              runGrcpClient(testCaseName)(settings => new GrpcJavaClientTester(settings))
+              runGrpcClient(testCaseName)(settings => new GrpcJavaClientTester(settings))
             }
           }
         }
@@ -81,25 +81,26 @@ trait GrpcInteropTests { self: WordSpec =>
     }
 
 
-  def akkaHttpGrpcTestsWithAkkaGrpcClient(testerFactory: Settings => ClientTester)(testServiceFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]])=
+  def akkaHttpGrpcTestsWithAkkaGrpcClient(clientTesterFactory: Settings => ClientTester)(serverHandlerFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]])=
     "akka-http grpc server with akka-grpc client" should {
       testCases.foreach { testCaseName =>
         s"pass the $testCaseName integration test" in {
-          pendingTestCaseSupport(pendingAkkaServerTestCases.contains(testCaseName) || pendingAkkaClientTestCases.contains(testCaseName)) {
-            withGrpcAkkaServer(testServiceFactory) {
-              runGrcpClient(testCaseName)(testerFactory)
+          val allPending = pendingAkkaServerTestCases ++ pendingAkkaClientTestCases
+          pendingTestCaseSupport(allPending(testCaseName)) {
+            withGrpcAkkaServer(serverHandlerFactory) {
+              runGrpcClient(testCaseName)(clientTesterFactory)
             }
           }
         }
       }
     }
 
-  private def runGrcpClient(testCaseName: String)(testerFactory: Settings => ClientTester): Unit = {
+  private def runGrpcClient(testCaseName: String)(clientTesterFactory: Settings => ClientTester): Unit = {
     val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
 
     Util.installConscryptIfAvailable()
     val settings = Settings.parseArgs(args)
-    val client = new TestServiceClient(testerFactory(settings))
+    val client = new TestServiceClient(clientTesterFactory(settings))
     client.setUp()
 
     try

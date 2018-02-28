@@ -12,12 +12,14 @@ import org.scalatest.WordSpec
 import io.grpc.testing.integration.test.TestServiceServiceHandler
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
-  override val pendingAkkaTestCases = Seq(
+
+  val pendingAkkaServerTestCases: Set[String] = Set(
     "custom_metadata",
     "status_code_and_message",
     "client_compressed_unary",
     "client_compressed_streaming"
   )
+  val pendingAkkaClientTestCases: Set[String] = Set.empty
 
   akkaHttpGrpcTests(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
 }
