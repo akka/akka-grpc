@@ -13,26 +13,25 @@ import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.stream.Materializer
 
 object @{service.name}Handler {
-    def apply(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
-        implicit val ec: ExecutionContext = mat.executionContext
-        import @{service.name}.Serializers._
+  def apply(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+    implicit val ec: ExecutionContext = mat.executionContext
+    import @{service.name}.Serializers._
 
-        def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
-            @for(method <- service.methods) {
-                case "@method.grpcName" =>
-                    @{method.unmarshal}(request, @method.deserializer.name, mat)
-                        .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
-                        .map(e => @{method.marshal}(e, @method.serializer.name, mat))
-            }
-            case m =>
-                Future.failed(new NotImplementedError(s"Not implemented: $m"))
-        }
-
-        Function.unlift((req: HttpRequest) => req.uri.path match {
-            case Path.Slash(Segment(@{service.name}.name, Path.Slash(Segment(method, Path.Empty)))) ⇒
-                Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
-            case _ =>
-                None
-        })
+    def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
+      @for(method <- service.methods) {
+      case "@method.grpcName" =>
+        @{method.unmarshal}(request, @method.deserializer.name, mat)
+          .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
+          .map(e => @{method.marshal}(e, @method.serializer.name, mat))
+      }
+      case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
     }
+
+    Function.unlift((req: HttpRequest) => req.uri.path match {
+      case Path.Slash(Segment(@{service.name}.name, Path.Slash(Segment(method, Path.Empty)))) ⇒
+        Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
+      case _ =>
+        None
+    })
+  }
 }

@@ -7,23 +7,22 @@ import scala.concurrent.Future
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 
-trait @service.name
-{
-    @for(method <- service.methods) {
-        def @method.name
-            (in: @method.parameterType): @method.returnType
-    }
+trait @{service.name} {
+  @for(method <- service.methods) {
+  def @{method.name}(
+    in: @method.parameterType
+  ):
+    @method.returnType
+  }
 }
 
-object @service.name
-{
+object @{service.name} {
   val name = "@service.grpcName"
 
-  object Serializers
-  {
-    import akka.http.grpc.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
+  object Serializers {
+    import akka.http.grpc.ScalapbProtobufSerializer
     @for(serializer <- service.serializers) {
-      val @serializer.name = @serializer.init
+    val @serializer.name = @serializer.init
     }
   }
 }
