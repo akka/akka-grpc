@@ -20,3 +20,4 @@ javaAgents ++= Seq(
 )
 
 enablePlugins(JavaAgent)
+enablePlugins(AkkaGrpcPlugin)
