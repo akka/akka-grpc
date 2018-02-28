@@ -1,42 +1,28 @@
 package com.lightbend.grpc.interop
 
-import akka.http.grpc.Grpc
-import io.grpc.testing.integration.test
-import io.grpc.testing.integration.test.{AkkaGrpcClientTester, TestServiceServiceHandler}
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.stream.Materializer
+import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceServiceHandler }
+import io.grpc.testing.integration2.{ ClientTester, Settings }
 import org.scalatest._
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
-  override val pendingAkkaServerTestCases = Set(
-    "custom_metadata",
-    "status_code_and_message",
-    "client_compressed_unary",
-    "client_compressed_streaming")
+  javaGrpcTests(GrpcJavaClientTesterProvider)
+  javaGrpcTests(AkkaHttpClientProvider)
 
-  override val pendingAkkaClientTestCases: Set[String] =
-    Set(
-      "large_unary",
-      "empty_unary",
-      "ping_pong",
-      "empty_stream",
-      "client_streaming",
-      "server_streaming",
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "status_code_and_message",
-      "unimplemented_method",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary",
-      "server_compressed_streaming",
-      "unimplemented_service",
-    )
+  akkaGrpcTests(AkkaHttpServerProvider, GrpcJavaClientTesterProvider)
+  akkaGrpcTests(AkkaHttpServerProvider, AkkaHttpClientProvider)
 
-  javaGrpcTests()
+  object AkkaHttpServerProvider extends AkkaHttpServerProvider {
+    val serverHandlerFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]] =
+      implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl())
+  }
 
-  akkaHttpGrpcTests(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
+  object AkkaHttpClientProvider extends AkkaClientTestProvider {
+    val clientTesterFactory: Settings => ClientTester = settings => new AkkaGrpcClientTester(settings)
+  }
 
-  akkaHttpGrpcTestsWithAkkaGrpcClient(settings => new AkkaGrpcClientTester(settings))(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
 }

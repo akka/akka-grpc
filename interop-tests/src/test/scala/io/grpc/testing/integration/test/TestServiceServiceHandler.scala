@@ -12,8 +12,8 @@ import io.grpc.testing.integration.test.TestServiceService._
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
-  * Hard-coded service handler to help us define what needs to be the final generated service handler.
-  */
+ * Hard-coded service handler to help us define what needs to be the final generated service handler.
+ */
 object TestServiceServiceHandler {
   def apply(implementation: TestServiceService)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     implicit val ec: ExecutionContext = mat.executionContext

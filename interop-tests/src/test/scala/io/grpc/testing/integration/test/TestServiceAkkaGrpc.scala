@@ -13,8 +13,8 @@ import _root_.scala.concurrent.Future
 import _root_.scala.util.{ Failure, Success }
 
 /**
-  * Hard-coded client stub to help us define what needs to be the final generated stub.
-  */
+ * Hard-coded client stub to help us define what needs to be the final generated stub.
+ */
 object TestServiceAkkaGrpc {
 
   val METHOD_EMPTY_CALL: MethodDescriptor[EmptyProtos.Empty, EmptyProtos.Empty] =
