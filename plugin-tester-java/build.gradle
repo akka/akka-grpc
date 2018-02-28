@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
   compile 'com.google.protobuf:protobuf-java:3.5.1'
-  compile 'com.typesafe.akka:akka-stream_2.12:2.5.10'
+  compile 'com.typesafe.akka:akka-stream_2.12:2.5.11'
 }
 
 protobuf {
