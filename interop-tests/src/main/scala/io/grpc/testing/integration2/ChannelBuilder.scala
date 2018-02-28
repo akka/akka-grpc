@@ -1,12 +1,13 @@
 package io.grpc.testing.integration2
 
+import io.grpc.ManagedChannel
 import io.grpc.internal.testing.TestUtils
 import io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.netty.handler.ssl.SslContext
 
 object ChannelBuilder {
 
-  def buildChannel(settings: Settings) = {
+  def buildChannel(settings: Settings): ManagedChannel = {
 
     if (settings.useAkkaHttp) {
       // TODO: here comes the akka-http based channel (when ready)
