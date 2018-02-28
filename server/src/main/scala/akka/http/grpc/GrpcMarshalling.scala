@@ -49,7 +49,7 @@ object GrpcMarshalling {
     LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _)))
 
   // TODO move to client part once ProtobufSerializer is moved to "runtime" library
-  class Marshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+  class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
     override def parse(stream: InputStream): T = {
       val coded = CodedInputStream.newInstance(stream)
       u.deserialize(akka.util.ByteString(coded.readByteArray()))
