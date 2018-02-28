@@ -9,7 +9,7 @@ object Main extends App {
 
   val inBytes: Array[Byte] = {
     val baos = new ByteArrayOutputStream(math.max(64, System.in.available()))
-    val buffer = Array.ofDim[Byte](32 * 1024)
+    val buffer = new Array[Byte](32 * 1024)
 
     var bytesRead = System.in.read(buffer)
     while (bytesRead >= 0) {
