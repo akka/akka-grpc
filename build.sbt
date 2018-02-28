@@ -24,22 +24,22 @@ lazy val codegen = Project(
   .settings(Dependencies.codegen)
   .settings(commonSettings)
   .settings(Seq(
-      buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
-      buildInfoKeys += BuildInfoKey.map(projectID in server) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
-      buildInfoPackage := "akka.grpc.gen",
-      artifact in (Compile, assembly) := {
-        val art = (artifact in (Compile, assembly)).value
-        art.withClassifier(Some("assembly"))
-      },
-      mainClass in assembly := Some("akka.grpc.gen.Main"),
+    buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
+    buildInfoKeys += BuildInfoKey.map(projectID in runtime) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
+    buildInfoPackage := "akka.grpc.gen",
+    artifact in (Compile, assembly) := {
+      val art = (artifact in (Compile, assembly)).value
+      art.withClassifier(Some("assembly"))
+    },
+    mainClass in assembly := Some("akka.grpc.gen.Main"),
     ) ++ addArtifact(artifact in (Compile, assembly), assembly)
   )
 
-lazy val server = Project(
-    id = "akka-grpc-server",
-    base = file("server")
+lazy val runtime = Project(
+    id = "akka-grpc-runtime",
+    base = file("runtime")
   )
-  .settings(Dependencies.server)
+  .settings(Dependencies.runtime)
   .settings(commonSettings)
 
 lazy val sbtPlugin = Project(
@@ -54,7 +54,7 @@ lazy val sbtPlugin = Project(
       val p2 = (publishLocal in codegen).value
 
       // 00-interop scripted test dependency
-      val p3 = (publishLocal in server).value
+      val p3 = (publishLocal in runtime).value
       val p4 = (publishLocal in interopTests).value
     },
     scriptedBufferLog := false,
@@ -76,7 +76,7 @@ lazy val interopTests = Project(
     // yeah ugly, but otherwise, there's a circular dependency between the project values
     watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
   )
-  .dependsOn(server)
+  .dependsOn(runtime)
   .enablePlugins(akka.ReflectiveCodeGen)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
@@ -86,7 +86,12 @@ lazy val root = Project(
     id = "akka-grpc",
     base = file(".")
   )
-  .aggregate(server, codegen, sbtPlugin, interopTests)
+  .aggregate(
+    runtime,
+    codegen,
+    sbtPlugin,
+    interopTests,
+  )
   .settings(
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
   )
