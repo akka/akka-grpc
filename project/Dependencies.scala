@@ -49,7 +49,7 @@ object Dependencies {
     Compile.scalapbRuntimeGrpc
   ) ++ testing
 
-  val server = l ++= Seq(
+  val runtime = l ++= Seq(
     Compile.scalapbRuntimeGrpc,
 
     Compile.grpcCore,
