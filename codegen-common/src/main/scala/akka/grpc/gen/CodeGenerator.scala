@@ -13,15 +13,10 @@ trait CodeGenerator {
   /** Generator name; example: `akka-grpc-scala` */
   def name: String
 
-  final def run(request: Array[Byte]): Array[Byte] = {
-    val req = CodeGeneratorRequest.parseFrom(request)
-
-    val res = run(req)
-    res.toByteArray
-  }
-
   def run(request: CodeGeneratorRequest): CodeGeneratorResponse
 
   def suggestedDependencies: Seq[Artifact]
 
+  final def run(request: Array[Byte]): Array[Byte] =
+    run(CodeGeneratorRequest.parseFrom(request)).toByteArray
 }
