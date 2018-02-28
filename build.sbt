@@ -20,9 +20,13 @@ lazy val codegenCommon = Project(
     id = "akka-grpc-codegen-common",
     base = file("codegen-common")
   )
-  .enablePlugins(SbtTwirl)
+  .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .settings(Dependencies.common)
   .settings(commonSettings)
+  .settings(Seq(
+    buildInfoKeys := BuildInfoKey.ofN(name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "akka.grpc.gen",
+  ))
 
 lazy val server = Project(
     id = "akka-grpc-server",
