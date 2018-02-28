@@ -68,8 +68,7 @@ object Settings {
       System.exit(-1)
     }
 
-    args.foldLeft(defaultSettings) { (settings, arg) =>
-
+    def extractKeyValue(arg: String) = {
       if (!arg.startsWith("--")) {
         System.err.println("All arguments must start with '--': " + arg)
         showUsageAndExit()
@@ -85,8 +84,13 @@ object Settings {
         System.err.println("All arguments must be of the form --arg=value")
         showUsageAndExit()
       }
-
       val value = parts(1)
+      (key, value)
+    }
+
+    args.foldLeft(defaultSettings) { (settings, arg) =>
+
+      val (key, value) = extractKeyValue(arg)
 
       key match {
         case "server_host" => settings.copy(serverHost = value)
@@ -102,7 +106,7 @@ object Settings {
         case _ =>
           System.err.println("Unknown argument: " + key)
           showUsageAndExit()
-          settings // not really retuning it since exiting, need for compile check
+          settings // not really returning it because exiting, we need it for compile check
       }
     }
 
