@@ -50,12 +50,5 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(
-    Artifact("com.typesafe.akka", "akka-stream_2.12", "2.5.10"),
-    Artifact("com.typesafe.akka", "akka-http_2.12", "10.1.0-RC2"),
-    Artifact("com.trueaccord.scalapb", "scalapb-runtime_2.12", com.trueaccord.scalapb.compiler.Version.scalapbVersion),
-    Artifact("io.grpc", "grpc-core", com.trueaccord.scalapb.compiler.Version.grpcJavaVersion),
-    Artifact("io.grpc", "grpc-netty", com.trueaccord.scalapb.compiler.Version.grpcJavaVersion),
-    Artifact("com.lightbend.akka.grpc", "akka-grpc-server_2.12", BuildInfo.version))
-
+  override val suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
 }

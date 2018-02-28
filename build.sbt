@@ -24,7 +24,8 @@ lazy val codegenCommon = Project(
   .settings(Dependencies.common)
   .settings(commonSettings)
   .settings(Seq(
-    buildInfoKeys := BuildInfoKey.ofN(name, version, scalaVersion, sbtVersion),
+    buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
+    buildInfoKeys += BuildInfoKey.map(projectID in server) { case (_, id) => "runtimeArtifactName" -> CrossVersion(scalaVersion.value, scalaBinaryVersion.value)(id).name },
     buildInfoPackage := "akka.grpc.gen",
   ))
 
