@@ -1,17 +1,22 @@
 package io.grpc.testing.integration.test
 
 import io.grpc.testing.integration2.ClientTester
-
 import java.io.InputStream
 
+import com.google.protobuf.empty.Empty
 import io.grpc.ManagedChannel
 import io.grpc.testing.integration2.{ ChannelBuilder, Settings }
+import org.junit.Assert.assertEquals
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import org.junit.Assert.assertEquals
 class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
 
   private var channel: ManagedChannel = null
   private var stub: TestServiceAkkaGrpc.TestServiceStub = null
 
+  private val awaitTimeout = 3.seconds
   def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
 
   def setUp(): Unit = {
@@ -24,7 +29,7 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def emptyUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    assertEquals(Empty(), Await.result(stub.emptyCall(Empty()), awaitTimeout))
   }
 
   def cacheableUnary(): Unit = {

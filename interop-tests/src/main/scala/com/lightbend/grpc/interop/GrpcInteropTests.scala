@@ -239,7 +239,6 @@ trait AkkaClientTestProvider extends ClientTesterProvider {
   val pendingCases =
     Set(
       "large_unary",
-      "empty_unary",
       "ping_pong",
       "empty_stream",
       "client_streaming",

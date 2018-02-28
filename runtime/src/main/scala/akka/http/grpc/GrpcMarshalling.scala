@@ -51,8 +51,8 @@ object GrpcMarshalling {
   // TODO move to client part once ProtobufSerializer is moved to "runtime" library
   class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
     override def parse(stream: InputStream): T = {
-      val coded = CodedInputStream.newInstance(stream)
-      u.deserialize(akka.util.ByteString(coded.readByteArray()))
+      val bytes = Stream.continually(stream.read).takeWhile(_ != -1).map(_.toByte).toArray
+      u.deserialize(akka.util.ByteString(bytes))
     }
     override def stream(value: T): InputStream = new ByteArrayInputStream(value.toByteArray)
   }
