@@ -15,10 +15,7 @@ import akka.stream.Materializer
 object @{service.name}Handler {
     def apply(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
         implicit val ec: ExecutionContext = mat.executionContext
-
-        @for(serializer <- service.serializers) {
-            val @serializer.name = @serializer.init
-        }
+        import @{service.name}.Serializers._
 
         def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
             @for(method <- service.methods) {

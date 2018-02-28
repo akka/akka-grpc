@@ -14,7 +14,16 @@ trait @service.name
             (in: @method.parameterType): @method.returnType
     }
 }
+
 object @service.name
 {
-    val name = "@service.grpcName"
+  val name = "@service.grpcName"
+
+  object Serializers
+  {
+    import akka.http.grpc.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
+    @for(serializer <- service.serializers) {
+      val @serializer.name = @serializer.init
+    }
+  }
 }
