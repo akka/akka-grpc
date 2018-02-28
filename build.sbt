@@ -36,24 +36,6 @@ lazy val server = Project(
   .settings(Dependencies.server)
   .settings(commonSettings)
 
-val interopTests = Project(
-    id = "akka-grpc-interop-tests",
-    base = file("interop-tests")
-  )
-  .settings(Dependencies.interopTests)
-  .settings(commonSettings)
-  .enablePlugins(JavaAgent)
-  .settings(
-    javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
-    // needed explicitly as we don't directly depend on the codegen project
-    watchSources ++= (watchSources in codegenCommon).value ++ (watchSources in sbtPlugin).value
-  )
-  .dependsOn(server)
-  .enablePlugins(akka.ReflectiveCodeGen)
-  // needed to be able to override the PB.generate task reliably
-  .disablePlugins(ProtocPlugin)
-  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
-
 lazy val sbtPlugin = Project(
     id = "akka-grpc-sbt-plugin",
     base = file("sbt-plugin")
@@ -74,17 +56,31 @@ lazy val sbtPlugin = Project(
   )
   .dependsOn(codegenCommon)
 
-val aggregatedProjects: Seq[ProjectReference] = Seq(
-  server, interopTests,
-  codegenCommon,
-  sbtPlugin
+lazy val interopTests = Project(
+  id = "akka-grpc-interop-tests",
+  base = file("interop-tests")
 )
+  .settings(Dependencies.interopTests)
+  .settings(commonSettings)
+  .enablePlugins(JavaAgent)
+  .settings(
+    javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
+    // needed explicitly as we don't directly depend on the codegen project
+    watchSources ++= (watchSources in codegenCommon).value,
+    // yeah ugly, but otherwise, there's a circular dependency between the project values
+    watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
+  )
+  .dependsOn(server)
+  .enablePlugins(akka.ReflectiveCodeGen)
+  // needed to be able to override the PB.generate task reliably
+  .disablePlugins(ProtocPlugin)
+  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
 
 lazy val root = Project(
     id = "akka-grpc",
     base = file(".")
   )
-  .aggregate(aggregatedProjects: _*)
+  .aggregate(server, codegenCommon, sbtPlugin, interopTests)
   .settings(
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
   )

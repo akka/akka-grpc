@@ -6,8 +6,7 @@ import _root_.com.trueaccord.scalapb.grpc.{ ConcreteProtoFileDescriptorSupplier,
 import _root_.io.grpc.stub.{ ClientCalls, ServerCalls, StreamObserver }
 import _root_.io.grpc.{ CallOptions, Channel, MethodDescriptor, ServerServiceDefinition }
 import akka.http.grpc.GrpcMarshalling.Marshaller
-import com.google.protobuf.EmptyProtos
-import io.grpc.testing.integration.Messages
+import com.google.protobuf.empty.Empty
 
 import _root_.scala.concurrent.Future
 import _root_.scala.util.{ Failure, Success }
@@ -17,72 +16,72 @@ import _root_.scala.util.{ Failure, Success }
  */
 object TestServiceAkkaGrpc {
 
-  val METHOD_EMPTY_CALL: MethodDescriptor[EmptyProtos.Empty, EmptyProtos.Empty] =
+  val METHOD_EMPTY_CALL: MethodDescriptor[Empty, Empty] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.UNARY)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "EmptyCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.EmptySerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.EmptySerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.EmptySerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.EmptySerializer))
       .build()
 
-  val METHOD_UNARY_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.SimpleRequest, io.grpc.testing.integration.Messages.SimpleResponse] =
+  val METHOD_UNARY_CALL: MethodDescriptor[io.grpc.testing.integration.messages.SimpleRequest, io.grpc.testing.integration.messages.SimpleResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.UNARY)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "UnaryCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.SimpleRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.SimpleResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.SimpleRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.SimpleResponseSerializer))
       .build()
 
-  val METHOD_CACHEABLE_UNARY_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.SimpleRequest, io.grpc.testing.integration.Messages.SimpleResponse] =
+  val METHOD_CACHEABLE_UNARY_CALL: MethodDescriptor[io.grpc.testing.integration.messages.SimpleRequest, io.grpc.testing.integration.messages.SimpleResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.UNARY)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "CacheableUnaryCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.SimpleRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.SimpleResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.SimpleRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.SimpleResponseSerializer))
       .build()
 
-  val METHOD_STREAMING_OUTPUT_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.StreamingOutputCallRequest, io.grpc.testing.integration.Messages.StreamingOutputCallResponse] =
+  val METHOD_STREAMING_OUTPUT_CALL: MethodDescriptor[io.grpc.testing.integration.messages.StreamingOutputCallRequest, io.grpc.testing.integration.messages.StreamingOutputCallResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.SERVER_STREAMING)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "StreamingOutputCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.StreamingOutputCallRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.StreamingOutputCallResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallResponseSerializer))
       .build()
 
-  val METHOD_STREAMING_INPUT_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.StreamingInputCallRequest, io.grpc.testing.integration.Messages.StreamingInputCallResponse] =
+  val METHOD_STREAMING_INPUT_CALL: MethodDescriptor[io.grpc.testing.integration.messages.StreamingInputCallRequest, io.grpc.testing.integration.messages.StreamingInputCallResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.CLIENT_STREAMING)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "StreamingInputCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.StreamingInputCallRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.StreamingInputCallResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.StreamingInputCallRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.StreamingInputCallResponseSerializer))
       .build()
 
-  val METHOD_FULL_DUPLEX_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.StreamingOutputCallRequest, io.grpc.testing.integration.Messages.StreamingOutputCallResponse] =
+  val METHOD_FULL_DUPLEX_CALL: MethodDescriptor[io.grpc.testing.integration.messages.StreamingOutputCallRequest, io.grpc.testing.integration.messages.StreamingOutputCallResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.BIDI_STREAMING)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "FullDuplexCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.StreamingOutputCallRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.StreamingOutputCallResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallResponseSerializer))
       .build()
 
-  val METHOD_HALF_DUPLEX_CALL: MethodDescriptor[io.grpc.testing.integration.Messages.StreamingOutputCallRequest, io.grpc.testing.integration.Messages.StreamingOutputCallResponse] =
+  val METHOD_HALF_DUPLEX_CALL: MethodDescriptor[io.grpc.testing.integration.messages.StreamingOutputCallRequest, io.grpc.testing.integration.messages.StreamingOutputCallResponse] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.BIDI_STREAMING)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "HalfDuplexCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.StreamingOutputCallRequestSerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.StreamingOutputCallResponseSerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallRequestSerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.StreamingOutputCallResponseSerializer))
       .build()
 
-  val METHOD_UNIMPLEMENTED_CALL: MethodDescriptor[EmptyProtos.Empty, EmptyProtos.Empty] =
+  val METHOD_UNIMPLEMENTED_CALL: MethodDescriptor[Empty, Empty] =
     MethodDescriptor.newBuilder()
       .setType(MethodDescriptor.MethodType.UNARY)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("grpc.testing.TestService", "UnimplementedCall"))
-      .setRequestMarshaller(new Marshaller(TestServiceService.EmptySerializer))
-      .setResponseMarshaller(new Marshaller(TestServiceService.EmptySerializer))
+      .setRequestMarshaller(new Marshaller(TestServiceService.Serializers.EmptySerializer))
+      .setResponseMarshaller(new Marshaller(TestServiceService.Serializers.EmptySerializer))
       .build()
 
   val SERVICE: _root_.io.grpc.ServiceDescriptor = _root_.io.grpc.ServiceDescriptor.newBuilder("grpc.testing.TestService")
-    .setSchemaDescriptor(new ConcreteProtoFileDescriptorSupplier(io.grpc.testing.integration.Messages.getDescriptor))
+    .setSchemaDescriptor(new ConcreteProtoFileDescriptorSupplier(io.grpc.testing.integration.messages.MessagesProto.javaDescriptor))
     .addMethod(METHOD_EMPTY_CALL)
     .addMethod(METHOD_UNARY_CALL)
     .addMethod(METHOD_CACHEABLE_UNARY_CALL)
@@ -95,27 +94,27 @@ object TestServiceAkkaGrpc {
 
   class TestServiceStub(channel: Channel, options: CallOptions = CallOptions.DEFAULT) extends TestServiceService {
 
-    override def emptyCall(in: EmptyProtos.Empty): Future[EmptyProtos.Empty] =
+    override def emptyCall(in: Empty): Future[Empty] =
       Grpc.guavaFuture2ScalaFuture(
         ClientCalls.futureUnaryCall(channel.newCall(METHOD_EMPTY_CALL, options), in))
 
-    override def unaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse] =
+    override def unaryCall(in: io.grpc.testing.integration.messages.SimpleRequest): Future[io.grpc.testing.integration.messages.SimpleResponse] =
       Grpc.guavaFuture2ScalaFuture(
         ClientCalls.futureUnaryCall(channel.newCall(METHOD_UNARY_CALL, options), in))
 
-    override def cacheableUnaryCall(in: Messages.SimpleRequest): Future[Messages.SimpleResponse] =
+    override def cacheableUnaryCall(in: io.grpc.testing.integration.messages.SimpleRequest): Future[io.grpc.testing.integration.messages.SimpleResponse] =
       Grpc.guavaFuture2ScalaFuture(
         ClientCalls.futureUnaryCall(channel.newCall(METHOD_CACHEABLE_UNARY_CALL, options), in))
 
-    override def streamingOutputCall(in: Messages.StreamingOutputCallRequest): Source[Messages.StreamingOutputCallResponse, _] = ???
+    override def streamingOutputCall(in: io.grpc.testing.integration.messages.StreamingOutputCallRequest): Source[io.grpc.testing.integration.messages.StreamingOutputCallResponse, _] = ???
 
-    override def streamingInputCall(in: Source[Messages.StreamingInputCallRequest, _]): Future[Messages.StreamingInputCallResponse] = ???
+    override def streamingInputCall(in: Source[io.grpc.testing.integration.messages.StreamingInputCallRequest, _]): Future[io.grpc.testing.integration.messages.StreamingInputCallResponse] = ???
 
-    override def fullDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, _] = ???
+    override def fullDuplexCall(in: Source[io.grpc.testing.integration.messages.StreamingOutputCallRequest, _]): Source[io.grpc.testing.integration.messages.StreamingOutputCallResponse, _] = ???
 
-    override def halfDuplexCall(in: Source[Messages.StreamingOutputCallRequest, _]): Source[Messages.StreamingOutputCallResponse, _] = ???
+    override def halfDuplexCall(in: Source[io.grpc.testing.integration.messages.StreamingOutputCallRequest, _]): Source[io.grpc.testing.integration.messages.StreamingOutputCallResponse, _] = ???
 
-    override def unimplementedCall(in: EmptyProtos.Empty): Future[EmptyProtos.Empty] =
+    override def unimplementedCall(in: Empty): Future[Empty] =
       Grpc.guavaFuture2ScalaFuture(
         ClientCalls.futureUnaryCall(channel.newCall(METHOD_UNIMPLEMENTED_CALL, options), in))
   }
@@ -129,8 +128,8 @@ object TestServiceAkkaGrpc {
       .addMethod(
         METHOD_EMPTY_CALL,
         ServerCalls.asyncUnaryCall(
-          new ServerCalls.UnaryMethod[EmptyProtos.Empty, EmptyProtos.Empty] {
-            override def invoke(in: EmptyProtos.Empty, responseObserver: StreamObserver[EmptyProtos.Empty]) =
+          new ServerCalls.UnaryMethod[Empty, Empty] {
+            override def invoke(in: Empty, responseObserver: StreamObserver[Empty]) =
               serviceImpl
                 .emptyCall(in)
                 .onComplete {
@@ -144,8 +143,8 @@ object TestServiceAkkaGrpc {
       .addMethod(
         METHOD_UNARY_CALL,
         ServerCalls.asyncUnaryCall(
-          new ServerCalls.UnaryMethod[Messages.SimpleRequest, Messages.SimpleResponse] {
-            override def invoke(in: Messages.SimpleRequest, responseObserver: StreamObserver[Messages.SimpleResponse]) =
+          new ServerCalls.UnaryMethod[io.grpc.testing.integration.messages.SimpleRequest, io.grpc.testing.integration.messages.SimpleResponse] {
+            override def invoke(in: io.grpc.testing.integration.messages.SimpleRequest, responseObserver: StreamObserver[io.grpc.testing.integration.messages.SimpleResponse]) =
               serviceImpl
                 .unaryCall(in)
                 .onComplete {
@@ -159,8 +158,8 @@ object TestServiceAkkaGrpc {
       .addMethod(
         METHOD_CACHEABLE_UNARY_CALL,
         ServerCalls.asyncUnaryCall(
-          new ServerCalls.UnaryMethod[Messages.SimpleRequest, Messages.SimpleResponse] {
-            override def invoke(in: Messages.SimpleRequest, responseObserver: StreamObserver[Messages.SimpleResponse]) =
+          new ServerCalls.UnaryMethod[io.grpc.testing.integration.messages.SimpleRequest, io.grpc.testing.integration.messages.SimpleResponse] {
+            override def invoke(in: io.grpc.testing.integration.messages.SimpleRequest, responseObserver: StreamObserver[io.grpc.testing.integration.messages.SimpleResponse]) =
               serviceImpl
                 .cacheableUnaryCall(in)
                 .onComplete {
