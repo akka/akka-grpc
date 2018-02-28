@@ -1,40 +1,8 @@
 package io.grpc.testing.integration2;
 
-import com.google.common.base.Throwables;
-import com.google.common.io.Files;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.EmptyProtos;
-import io.grpc.*;
-import io.grpc.internal.GrpcUtil;
-import io.grpc.internal.testing.StatsTestUtils;
-import io.grpc.internal.testing.StreamRecorder;
-import io.grpc.stub.MetadataUtils;
-import io.grpc.stub.StreamObserver;
-import io.grpc.testing.integration.AbstractInteropTest;
-import io.grpc.testing.integration.Messages;
-import io.grpc.testing.integration.TestCases;
-import io.grpc.testing.integration.TestServiceGrpc;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Test;
+import io.grpc.ManagedChannel;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.google.common.truth.Truth.assertThat;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
-import static io.grpc.testing.integration.Messages.PayloadType.COMPRESSABLE;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public interface ClientTester {
 
