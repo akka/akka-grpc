@@ -6,6 +6,10 @@ import com.lightbend.grpc.interop.GoogleProtobufSerializer._
 import io.grpc.testing.integration.Messages
 
 import scala.concurrent.Future
+
+/**
+  * Hard-coded service trait to help us define what needs to be the final generated trait.
+  */
 trait TestServiceService {
 
   def emptyCall(in: _root_.com.google.protobuf.EmptyProtos.Empty): Future[_root_.com.google.protobuf.EmptyProtos.Empty]
