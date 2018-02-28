@@ -26,7 +26,7 @@ trait GrpcInteropTests { self: WordSpec =>
   import org.scalatest.Matchers._
 
   // see https://github.com/grpc/grpc/blob/master/tools/run_tests/run_interop_tests.py#L543
-  val testCases = Set(
+  val testCases = Seq(
     "large_unary",
     "empty_unary",
     "ping_pong",
