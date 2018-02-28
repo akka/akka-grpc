@@ -44,7 +44,7 @@ val interopTests = Project(
   .settings(commonSettings)
   .enablePlugins(JavaAgent)
   .settings(Seq(
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test",
+    javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
   ))
   .dependsOn(server)
 
