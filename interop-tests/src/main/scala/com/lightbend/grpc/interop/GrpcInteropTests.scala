@@ -236,21 +236,5 @@ trait AkkaHttpServerProvider extends ServerHandlerProvider {
 trait AkkaClientTestProvider extends ClientTesterProvider {
 
   val label: String = "akka-grpc client tester"
-  val pendingCases =
-    Set(
-      "ping_pong",
-      "empty_stream",
-      "client_streaming",
-      "server_streaming",
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "status_code_and_message",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary",
-      "server_compressed_streaming",
-      "unimplemented_service",
-    )
+
 }
