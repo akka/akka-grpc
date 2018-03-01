@@ -4,13 +4,14 @@ import java.io.InputStream
 
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
-import io.grpc.ManagedChannel
+import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
 import org.junit.Assert.assertEquals
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
 class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
 
   private var channel: ManagedChannel = null
@@ -110,7 +111,21 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def unimplementedMethod(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val resFuture =
+      stub.unimplementedCall(Empty())
+        .map {
+          // this call is expect to fail, map in order to make a Future[Status]
+          _ => Status.OK
+        }
+        .recover {
+          // this is the expected outcome
+          case e: StatusRuntimeException => e.getStatus
+        }
+
+    val response = Await.result(resFuture, awaitTimeout)
+
+    assertEquals(Status.UNIMPLEMENTED.getCode, response.getCode)
+
   }
 
   def unimplementedService(): Unit = {

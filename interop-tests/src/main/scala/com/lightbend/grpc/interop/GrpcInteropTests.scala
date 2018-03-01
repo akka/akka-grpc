@@ -96,7 +96,7 @@ trait GrpcInteropTests { self: WordSpec =>
       block
       Succeeded
     } catch {
-      case e if expectedToFail => pending
+      case NonFatal(_) if expectedToFail => pending
     }
 
     result match {
@@ -247,7 +247,6 @@ trait AkkaClientTestProvider extends ClientTesterProvider {
       "timeout_on_sleeping_server",
       "custom_metadata",
       "status_code_and_message",
-      "unimplemented_method",
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",
