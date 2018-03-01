@@ -44,10 +44,10 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
         responseSize = 314159,
         payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
 
-    val goldenResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+    val expectedResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
 
     val response = Await.result(stub.unaryCall(request), awaitTimeout)
-    assertEquals(goldenResponse, response)
+    assertEquals(expectedResponse, response)
   }
 
   def clientCompressedUnary(): Unit = {
