@@ -7,10 +7,12 @@ import com.google.protobuf.empty.Empty
 import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
-import org.junit.Assert.assertEquals
+import org.junit.Assert._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 
 class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
 
@@ -111,21 +113,12 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def unimplementedMethod(): Unit = {
-    val resFuture =
-      stub.unimplementedCall(Empty())
-        .map {
-          // this call is expect to fail, map in order to make a Future[Status]
-          _ => Status.OK
-        }
-        .recover {
-          // this is the expected outcome
-          case e: StatusRuntimeException => e.getStatus
-        }
-
-    val response = Await.result(resFuture, awaitTimeout)
-
-    assertEquals(Status.UNIMPLEMENTED.getCode, response.getCode)
-
+    Await.ready(stub.unimplementedCall(Empty()), awaitTimeout)
+      .onComplete {
+        case Failure(e: StatusRuntimeException) =>
+          assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
+        case _ => fail(s"Expected to fail with ${Status.UNIMPLEMENTED.getCode}")
+      }
   }
 
   def unimplementedService(): Unit = {
