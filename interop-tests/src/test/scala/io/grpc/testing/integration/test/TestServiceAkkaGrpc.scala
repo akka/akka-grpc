@@ -1,11 +1,13 @@
 package io.grpc.testing.integration.test
 
+import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
+
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
 import _root_.com.trueaccord.scalapb.grpc.{ ConcreteProtoFileDescriptorSupplier, Grpc }
 import _root_.io.grpc.stub.{ ClientCalls, ServerCalls, StreamObserver }
 import _root_.io.grpc.{ CallOptions, Channel, MethodDescriptor, ServerServiceDefinition }
-import akka.http.grpc.GrpcMarshalling.Marshaller
+import akka.http.grpc.ProtobufSerializer
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 
@@ -44,6 +46,21 @@ object TestServiceAkkaGrpc {
     override def unimplementedCall(in: Empty): Future[Empty] =
       Grpc.guavaFuture2ScalaFuture(
         ClientCalls.futureUnaryCall(channel.newCall(METHOD_UNIMPLEMENTED_CALL, options), in))
+  }
+
+  class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+    override def parse(stream: InputStream): T = {
+      val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
+      val buffer = new Array[Byte](32 * 1024)
+
+      var bytesRead = stream.read(buffer)
+      while (bytesRead >= 0) {
+        baos.write(buffer, 0, bytesRead)
+        bytesRead = stream.read(buffer)
+      }
+      u.deserialize(akka.util.ByteString(baos.toByteArray))
+    }
+    override def stream(value: T): InputStream = new ByteArrayInputStream(value.toByteArray)
   }
 
   val METHOD_EMPTY_CALL: MethodDescriptor[Empty, Empty] =
