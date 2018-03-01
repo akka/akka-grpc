@@ -6,8 +6,9 @@ import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
 import _root_.com.trueaccord.scalapb.grpc.{ ConcreteProtoFileDescriptorSupplier, Grpc }
 import _root_.io.grpc.stub.{ ClientCalls, ServerCalls, StreamObserver }
-import _root_.io.grpc.{ CallOptions, Channel, MethodDescriptor, ServerServiceDefinition }
+import _root_.io.grpc._
 import akka.http.grpc.ProtobufSerializer
+import com.google.protobuf.Message
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 
@@ -49,6 +50,7 @@ object TestServiceAkkaGrpc {
   }
 
   class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+
     override def parse(stream: InputStream): T = {
       val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
       val buffer = new Array[Byte](32 * 1024)
@@ -60,7 +62,15 @@ object TestServiceAkkaGrpc {
       }
       u.deserialize(akka.util.ByteString(baos.toByteArray))
     }
-    override def stream(value: T): InputStream = new ByteArrayInputStream(value.toByteArray)
+
+    override def stream(value: T): InputStream = {
+      new InputStream with KnownLength {
+        val bytes = value.toByteArray
+        val bais: ByteArrayInputStream = new ByteArrayInputStream(bytes)
+        override def read(): Int = bais.read()
+        override def available(): Int = bytes.length
+      }
+    }
   }
 
   val METHOD_EMPTY_CALL: MethodDescriptor[Empty, Empty] =
