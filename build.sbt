@@ -42,6 +42,23 @@ lazy val runtime = Project(
   .settings(Dependencies.runtime)
   .settings(commonSettings)
 
+/** This could be an independent project - or does upstream provide this already? didn't find it.. */
+lazy val scalapbProtocPlugin = Project(
+    id = "akka-grpc-scalapb-protoc-plugin",
+    base = file("scalapb-protoc-plugin")
+  )
+  /** TODO we only really need to depend on scalapb */
+  .dependsOn(codegen)
+  .settings(commonSettings)
+  .settings(Seq(
+    artifact in (Compile, assembly) := {
+      val art = (artifact in (Compile, assembly)).value
+      art.withClassifier(Some("assembly"))
+    },
+    mainClass in assembly := Some("akka.grpc.scalapb.Main"),
+  ) ++ addArtifact(artifact in (Compile, assembly), assembly)
+)
+
 lazy val sbtPlugin = Project(
     id = "akka-grpc-sbt-plugin",
     base = file("sbt-plugin")
@@ -90,6 +107,7 @@ lazy val root = Project(
     runtime,
     codegen,
     sbtPlugin,
+    scalapbProtocPlugin,
     interopTests,
   )
   .settings(

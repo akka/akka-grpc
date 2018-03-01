@@ -1,16 +1,18 @@
-package akka.grpc.gen
+package akka.grpc.scalapb
 
 import java.io.{ BufferedOutputStream, ByteArrayOutputStream }
 
-import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
-
+import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.http.grpc._
+import com.google.protobuf.compiler.plugin.CodeGeneratorResponse
+
+import scalapb.ScalaPbCodeGenerator
 
 object Main extends App {
 
   val inBytes: Array[Byte] = {
     val baos = new ByteArrayOutputStream(math.max(64, System.in.available()))
-    val buffer = new Array[Byte](32 * 1024)
+    val buffer = Array.ofDim[Byte](32 * 1024)
 
     var bytesRead = System.in.read(buffer)
     while (bytesRead >= 0) {
@@ -20,12 +22,9 @@ object Main extends App {
     baos.toByteArray
   }
 
-  val req = CodeGeneratorRequest.parseFrom(inBytes)
-  val out =
-    if (req.getParameter.toLowerCase.contains("language=scala")) ScalaServerCodeGenerator.run(req)
-    else JavaServerCodeGenerator.run(req)
+  val outBytes = ScalaPbCodeGenerator.run(inBytes)
 
   val bos = new BufferedOutputStream(System.out)
-  bos.write(out.toByteArray)
+  bos.write(outBytes)
   bos.flush()
 }

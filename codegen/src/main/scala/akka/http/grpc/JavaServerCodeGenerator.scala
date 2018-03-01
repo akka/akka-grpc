@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 
 import protocbridge.Artifact
 
-class JavaServerCodeGenerator extends CodeGenerator {
+object JavaServerCodeGenerator extends CodeGenerator {
   def name = "akka-grpc-javadsl"
 
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
