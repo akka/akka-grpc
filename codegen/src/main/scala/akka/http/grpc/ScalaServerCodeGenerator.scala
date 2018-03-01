@@ -4,7 +4,7 @@ import akka.grpc.gen.{ CodeGenerator, BuildInfo }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
-import templates.ScalaServer.txt.{ ApiTrait, Handler }
+import templates.ScalaServer.txt.{ ApiTrait, Handler, Stub }
 
 import scala.collection.JavaConverters._
 
@@ -28,7 +28,7 @@ object ScalaServerCodeGenerator extends CodeGenerator {
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
       service = Service(fileDesc, serviceDesc)
-      file ← Seq(generateServiceFile(service), generateHandler(service))
+      file ← Seq(generateServiceFile(service), generateHandler(service), generateStub(service))
     } {
       b.addFile(file)
     }
@@ -47,6 +47,13 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Handler.scala")
+    b.build
+  }
+
+  def generateStub(service: Service): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(Stub(service).body)
+    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Stub.scala")
     b.build
   }
 

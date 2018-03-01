@@ -12,7 +12,28 @@ object Serializer {
   )
 }
 
-case class Method(name: String, grpcName: String, inputType: Descriptor, inputStreaming: Boolean, outputType: Descriptor, outputStreaming: Boolean) {
+
+sealed trait MethodType
+case object Unary extends MethodType {
+  override def toString: String = "UNARY"
+}
+case object ClientStreaming extends MethodType {
+  override def toString: String = "CLIENT_STREAMING"
+}
+case object ServerStreaming extends MethodType{
+  override def toString: String = "SERVER_STREAMING"
+}
+case object BidiStreaming extends MethodType{
+  override def toString: String = "BIDI_STREAMING"
+}
+
+
+case class Method(name: String,
+                  grpcName: String,
+                  inputType: Descriptor,
+                  inputStreaming: Boolean,
+                  outputType: Descriptor,
+                  outputStreaming: Boolean) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -30,9 +51,23 @@ case class Method(name: String, grpcName: String, inputType: Descriptor, inputSt
     if (inputStreaming) s"Source[${messageType(inputType)}, _]"
     else messageType(inputType)
 
+  def inputTypeUnboxed = messageType(inputType)
+  def outputTypeUnboxed = messageType(outputType)
+
   def returnType =
     if (outputStreaming) s"Source[${messageType(outputType)}, Any]"
     else s"Future[${messageType(outputType)}]"
+
+
+  val methodType: MethodType = {
+    (inputStreaming, outputStreaming) match {
+      case (false, false) => Unary
+      case (true, false)  => ClientStreaming
+      case (false, true)  => ServerStreaming
+      case (true, true)   => BidiStreaming
+    }
+  }
+
 
   /** Java API */
   def getParameterType =
@@ -44,6 +79,8 @@ case class Method(name: String, grpcName: String, inputType: Descriptor, inputSt
     if (outputStreaming) s"Source<${getMessageType(outputType)}, Object>"
     else s"CompletableFuture<${getMessageType(outputType)}>"
 }
+
+
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
     Method(
@@ -65,6 +102,7 @@ object Method {
   /** Java API */
   def getMessageType(t: Descriptor) =
     t.getFile.getOptions.getJavaPackage + "." + t.getName
+
 }
 
 case class Service(packageName: String, name: String, grpcName: String, methods: Seq[Method]) {
