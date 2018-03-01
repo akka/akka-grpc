@@ -1,6 +1,6 @@
 package akka.http.grpc
 
-import java.io.{ ByteArrayInputStream, InputStream }
+import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
 
 import scala.concurrent.Future
 import akka.NotUsed
@@ -48,12 +48,4 @@ object GrpcMarshalling {
   private def trailer(status: Status): LastChunk =
     LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _)))
 
-  // TODO move to client part once ProtobufSerializer is moved to "runtime" library
-  class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
-    override def parse(stream: InputStream): T = {
-      val coded = CodedInputStream.newInstance(stream)
-      u.deserialize(akka.util.ByteString(coded.readByteArray()))
-    }
-    override def stream(value: T): InputStream = new ByteArrayInputStream(value.toByteArray)
-  }
 }

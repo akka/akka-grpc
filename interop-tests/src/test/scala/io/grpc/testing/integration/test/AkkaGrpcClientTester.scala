@@ -1,17 +1,25 @@
 package io.grpc.testing.integration.test
 
-import io.grpc.testing.integration2.ClientTester
-
 import java.io.InputStream
 
-import io.grpc.ManagedChannel
-import io.grpc.testing.integration2.{ ChannelBuilder, Settings }
+import com.google.protobuf.ByteString
+import com.google.protobuf.empty.Empty
+import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
+import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
+import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
+import org.junit.Assert._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 
 class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
 
   private var channel: ManagedChannel = null
   private var stub: TestServiceAkkaGrpc.TestServiceStub = null
 
+  private val awaitTimeout = 3.seconds
   def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
 
   def setUp(): Unit = {
@@ -24,7 +32,7 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def emptyUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    assertEquals(Empty(), Await.result(stub.emptyCall(Empty()), awaitTimeout))
   }
 
   def cacheableUnary(): Unit = {
@@ -32,7 +40,16 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def largeUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val request =
+      SimpleRequest(
+        PayloadType.COMPRESSABLE,
+        responseSize = 314159,
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
+
+    val expectedResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+
+    val response = Await.result(stub.unaryCall(request), awaitTimeout)
+    assertEquals(expectedResponse, response)
   }
 
   def clientCompressedUnary(): Unit = {
@@ -96,7 +113,12 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
   }
 
   def unimplementedMethod(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    Await.ready(stub.unimplementedCall(Empty()), awaitTimeout)
+      .onComplete {
+        case Failure(e: StatusRuntimeException) =>
+          assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
+        case _ => fail(s"Expected to fail with ${Status.UNIMPLEMENTED.getCode}")
+      }
   }
 
   def unimplementedService(): Unit = {
