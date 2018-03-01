@@ -59,6 +59,8 @@ object Dependencies {
     Compile.akkaHttp2Support
   ) ++ testing
 
+  val sbtPlugin = l += "com.trueaccord.scalapb" %% "compilerplugin" % Versions.scalapb
+
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting
   ) ++ testing.map(_.withConfigurations(Some("compile")))
