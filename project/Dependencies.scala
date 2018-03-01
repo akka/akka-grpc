@@ -38,6 +38,10 @@ object Dependencies {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
   }
 
+  object Plugins {
+    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.12"
+  }
+
   private val l = libraryDependencies
 
   val testing = Seq(
@@ -59,7 +63,11 @@ object Dependencies {
     Compile.akkaHttp2Support
   ) ++ testing
 
-  val sbtPlugin = l += "com.trueaccord.scalapb" %% "compilerplugin" % Versions.scalapb
+  val sbtPlugin = Seq(
+    l += Compile.scalapbCompilerPlugin,
+    // we depend on it in the settings of the plugin since we set keys of the sbt-protoc plugin
+    addSbtPlugin(Plugins.sbtProtoc),
+  )
 
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting

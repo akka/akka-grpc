@@ -69,8 +69,6 @@ lazy val sbtPlugin = Project(
     Keys.sbtPlugin := true,
     publishTo := Some(Classpaths.sbtPluginReleases),
     publishMavenStyle := false,
-    // we depend on it in the settings of the plugin since we set keys of the sbt-protoc plugin
-    addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.12"),
 
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
