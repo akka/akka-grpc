@@ -2,18 +2,15 @@ package io.grpc.testing.integration.test
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
 
-import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
-import _root_.com.trueaccord.scalapb.grpc.{ ConcreteProtoFileDescriptorSupplier, Grpc }
-import _root_.io.grpc.stub.{ ClientCalls, ServerCalls, StreamObserver }
+import _root_.com.trueaccord.scalapb.grpc.Grpc
 import _root_.io.grpc._
+import _root_.io.grpc.stub.ClientCalls
 import akka.http.grpc.ProtobufSerializer
-import com.google.protobuf.Message
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 
 import _root_.scala.concurrent.Future
-import _root_.scala.util.{ Failure, Success }
 
 /**
  * Hard-coded client stub to help us define what needs to be the final generated stub.
