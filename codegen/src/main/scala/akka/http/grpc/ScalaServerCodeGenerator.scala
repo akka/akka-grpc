@@ -4,7 +4,7 @@ import akka.grpc.gen.{ CodeGenerator, BuildInfo }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
-import templates.ScalaServer.txt.{ ApiTrait, Handler }
+import templates.ScalaServer.txt._
 
 import scala.collection.JavaConverters._
 
@@ -28,11 +28,13 @@ object ScalaServerCodeGenerator extends CodeGenerator {
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
       service = Service(fileDesc, serviceDesc)
-      file ← Seq(generateServiceFile(service), generateHandler(service))
+      file ← Seq(generateServiceFile(service), generateHandler(service), generateStub(service))
     } {
       b.addFile(file)
     }
 
+    b.addFile(generateGuavaConverters())
+    b.addFile(generateClientMarshaller())
     b.build()
   }
 
@@ -47,6 +49,29 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Handler.scala")
+    b.build
+  }
+
+  def generateStub(service: Service): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(Client(service).body)
+    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Client.scala")
+    b.build
+  }
+
+  def generateGuavaConverters(): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    val packageName = "akka.http.grpc"
+    b.setContent(GuavaConverters().body)
+    b.setName(s"${packageName.replace('.', '/')}/GuavaConverters.scala")
+    b.build
+  }
+
+  def generateClientMarshaller(): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    val packageName = "akka.http.grpc"
+    b.setContent(Marshaller().body)
+    b.setName(s"${packageName.replace('.', '/')}/Marshaller.scala")
     b.build
   }
 
