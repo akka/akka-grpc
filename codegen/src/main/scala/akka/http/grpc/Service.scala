@@ -14,19 +14,10 @@ object Serializer {
 
 
 sealed trait MethodType
-case object Unary extends MethodType {
-  override def toString: String = "UNARY"
-}
-case object ClientStreaming extends MethodType {
-  override def toString: String = "CLIENT_STREAMING"
-}
-case object ServerStreaming extends MethodType{
-  override def toString: String = "SERVER_STREAMING"
-}
-case object BidiStreaming extends MethodType{
-  override def toString: String = "BIDI_STREAMING"
-}
-
+case object Unary extends MethodType
+case object ClientStreaming extends MethodType
+case object ServerStreaming extends MethodType
+case object BidiStreaming extends MethodType
 
 case class Method(name: String,
                   grpcName: String,

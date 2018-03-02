@@ -11,43 +11,63 @@ import akka.http.grpc.ProtobufSerializer
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 import scala.concurrent.Future
-
-
 import akka.stream.Materializer
+import @{service.name}Stub._
 
-object @{service.name}AkkaGrpc {
+
+class @{service.name}Stub(channel: Channel, options: CallOptions = CallOptions.DEFAULT) extends @{service.name} {
+
+  @for(method <- service.methods) {
+  def @{method.name}(in: @method.parameterType): @method.returnType = {
+  @if(method.methodType == akka.http.grpc.Unary) {
+    Grpc.guavaFuture2ScalaFuture(
+      ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in)
+    )
+  } else {
+    ???
+  }
+  }
+  }
+}
+
+
+@mapMethodType(methodType: akka.http.grpc.MethodType) = {
+  @if(methodType == akka.http.grpc.Unary) {
+  MethodDescriptor.MethodType.UNARY
+  }
+  @if(methodType == akka.http.grpc.ClientStreaming) {
+  MethodDescriptor.MethodType.CLIENT_STREAMING
+  }
+  @if(methodType == akka.http.grpc.ServerStreaming) {
+  MethodDescriptor.MethodType.SERVER_STREAMING
+  }
+  @if(methodType == akka.http.grpc.BidiStreaming) {
+  MethodDescriptor.MethodType.BIDI_STREAMING
+  }
+}
+
+object @{service.name}Stub {
 
   import @{service.name}.Serializers._
 
-  def stub(channel: Channel): @{service.name}Stub = new @{service.name}Stub(channel)
-
-  class @{service.name}Stub(channel: Channel, options: CallOptions = CallOptions.DEFAULT) extends @{service.name} {
-    @for(method <- service.methods) {
-    val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
-      MethodDescriptor.newBuilder()
-        .setType(MethodDescriptor.MethodType.@{method.methodType.toString})
-        .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-        .setRequestMarshaller(new Marshaller(@method.deserializer.name))
-        .setResponseMarshaller(new Marshaller(@method.serializer.name))
-        .build()
-
-    def @{method.name}(in: @method.parameterType): @method.returnType = {
-      @if(method.methodType == akka.http.grpc.Unary) {
-        Grpc.guavaFuture2ScalaFuture(
-                ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in))
-      } else {
-        ???
-      }
-    }
-    }
+  @for(method <- service.methods) {
+  val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
+    MethodDescriptor.newBuilder()
+      .setType(@mapMethodType(method.methodType))
+      .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
+      .setRequestMarshaller(new Marshaller(@method.deserializer.name))
+      .setResponseMarshaller(new Marshaller(@method.serializer.name))
+      .build()
   }
 
- class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+  class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
 
     override def parse(stream: InputStream): T = {
       val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
       val buffer = new Array[Byte](32 * 1024)
 
+      // Blocking calls underneath...
+      // we can't avoid it for the moment because we are relying on the Netty's Channel API
       var bytesRead = stream.read(buffer)
       while (bytesRead >= 0) {
         baos.write(buffer, 0, bytesRead)
