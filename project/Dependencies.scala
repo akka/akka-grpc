@@ -20,13 +20,13 @@ object Dependencies {
     val akkaStream       = "com.typesafe.akka" %% "akka-stream"        % Versions.akka
     val akkaHttp         = "com.typesafe.akka" %% "akka-http"          % Versions.akkaHttp
     val akkaHttpCore     = "com.typesafe.akka" %% "akka-http-core"     % Versions.akkaHttp
-    val akkaHttp2Support ="com.typesafe.akka"  %% "akka-http2-support" % Versions.akkaHttp
+    val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
 
-    val scalapbCompilerPlugin = "com.trueaccord.scalapb" %% "compilerplugin"       % Versions.scalapb
-    val scalapbRuntimeGrpc =    "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % Versions.scalapb
+    val scalapbCompilerPlugin = "com.trueaccord.scalapb" %% "compilerplugin"  % Versions.scalapb
+    val scalapbRuntime        = "com.trueaccord.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
 
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
-    val grpcNetty          = "io.grpc" % "grpc-netty"           % Versions.grpc
+    val grpcNetty          = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
   }
 
@@ -50,11 +50,11 @@ object Dependencies {
 
   val codegen = l ++= Seq(
     Compile.scalapbCompilerPlugin,
-    Compile.scalapbRuntimeGrpc
+    Compile.scalapbRuntime
   ) ++ testing
 
   val runtime = l ++= Seq(
-    Compile.scalapbRuntimeGrpc,
+    Compile.scalapbRuntime,
 
     Compile.grpcCore,
     Compile.grpcNetty,
