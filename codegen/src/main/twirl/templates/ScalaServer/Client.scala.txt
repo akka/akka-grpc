@@ -2,17 +2,16 @@
 
 package @service.packageName
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
 import akka.stream.scaladsl.Source
 import akka.http.grpc.GuavaConverters
 import io.grpc._
 import io.grpc.stub.ClientCalls
-import akka.http.grpc.ProtobufSerializer
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
 import @{service.name}Client._
+import akka.http.grpc.Marshaller
 
 class @{service.name}Client(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
 
@@ -63,24 +62,4 @@ object @{service.name}Client {
       .build()
   }
 
-  private class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
-
-    override def parse(stream: InputStream): T = {
-      val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
-      val buffer = new Array[Byte](32 * 1024)
-
-      // Blocking calls underneath...
-      // we can't avoid it for the moment because we are relying on the Netty's Channel API
-      var bytesRead = stream.read(buffer)
-      while (bytesRead >= 0) {
-        baos.write(buffer, 0, bytesRead)
-        bytesRead = stream.read(buffer)
-      }
-      u.deserialize(akka.util.ByteString(baos.toByteArray))
-    }
-
-    override def stream(value: T): InputStream = {
-      new ByteArrayInputStream(value.toByteArray) with KnownLength
-    }
-  }
 }

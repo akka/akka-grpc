@@ -34,6 +34,7 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     }
 
     b.addFile(generateGuavaConverters())
+    b.addFile(generateClientMarshaller())
     b.build()
   }
 
@@ -63,6 +64,14 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     val packageName = "akka.http.grpc"
     b.setContent(GuavaConverters().body)
     b.setName(s"${packageName.replace('.', '/')}/GuavaConverters.scala")
+    b.build
+  }
+
+  def generateClientMarshaller(): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    val packageName = "akka.http.grpc"
+    b.setContent(Marshaller().body)
+    b.setName(s"${packageName.replace('.', '/')}/Marshaller.scala")
     b.build
   }
 
