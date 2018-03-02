@@ -12,10 +12,9 @@ import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
-import @{service.name}Stub._
+import @{service.name}Client._
 
-
-class @{service.name}Stub(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
+class @{service.name}Client(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
 
   @for(method <- service.methods) {
   def @{method.name}(in: @method.parameterType): @method.returnType = {
@@ -46,12 +45,12 @@ class @{service.name}Stub(channel: Channel, options: CallOptions)(implicit ex: E
   }
 }
 
-object @{service.name}Stub {
+object @{service.name}Client {
 
   import @{service.name}.Serializers._
 
   def apply(channel: Channel)(implicit ex: ExecutionContext) =
-    new @{service.name}Stub(channel, CallOptions.DEFAULT)(ex)
+    new @{service.name}Client(channel, CallOptions.DEFAULT)(ex)
 
 
   @for(method <- service.methods) {
@@ -64,7 +63,7 @@ object @{service.name}Stub {
       .build()
   }
 
-  class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+  private class Marshaller[T <: com.trueaccord.scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
 
     override def parse(stream: InputStream): T = {
       val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
@@ -81,12 +80,7 @@ object @{service.name}Stub {
     }
 
     override def stream(value: T): InputStream = {
-      new InputStream with KnownLength {
-        val bytes = value.toByteArray
-        val bais: ByteArrayInputStream = new ByteArrayInputStream(bytes)
-        override def read(): Int = bais.read()
-        override def available(): Int = bytes.length
-      }
+      new ByteArrayInputStream(value.toByteArray) with KnownLength
     }
   }
 }

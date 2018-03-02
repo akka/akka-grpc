@@ -53,8 +53,8 @@ object ScalaServerCodeGenerator extends CodeGenerator {
 
   def generateStub(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(Stub(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Stub.scala")
+    b.setContent(Client(service).body)
+    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Client.scala")
     b.build
   }
 

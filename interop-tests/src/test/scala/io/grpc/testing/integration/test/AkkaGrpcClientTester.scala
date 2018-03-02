@@ -16,14 +16,14 @@ import scala.util.Failure
 class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
-  private var stub: TestServiceServiceStub = null
+  private var stub: TestServiceServiceClient = null
 
   private val awaitTimeout = 3.seconds
   def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
 
   def setUp(): Unit = {
     channel = createChannel()
-    stub = TestServiceServiceStub(channel)
+    stub = TestServiceServiceClient(channel)
   }
 
   def tearDown(): Unit = {
