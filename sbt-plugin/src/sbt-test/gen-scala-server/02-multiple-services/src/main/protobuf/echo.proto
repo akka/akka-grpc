@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.akka.grpc";
+
+package echo;
+
+// The greeting service definition.
+service Echo {
+    rpc Echo (EchoMessage) returns (EchoMessage) {}
+}
+
+message EchoMessage {
+    string payload = 1;
+}
