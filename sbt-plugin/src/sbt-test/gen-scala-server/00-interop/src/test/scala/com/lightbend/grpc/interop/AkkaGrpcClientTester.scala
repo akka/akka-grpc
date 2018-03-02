@@ -122,7 +122,7 @@ class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
       .onComplete {
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
-        case _ => fail(s"Expected to fail with ${Status.UNIMPLEMENTED.getCode}")
+        case _ => fail(s"Expected to fail with UNIMPLEMENTED")
       }
   }
 
