@@ -22,7 +22,8 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
   }
 
   object AkkaHttpClientProvider extends AkkaClientTestProvider {
-    val clientTesterFactory: Settings => ClientTester = settings => new AkkaGrpcClientTester(settings)
+    val clientTesterFactory: Settings => ExecutionContext => ClientTester =
+      settings => implicit ec => new AkkaGrpcClientTester(settings)
   }
 
 }

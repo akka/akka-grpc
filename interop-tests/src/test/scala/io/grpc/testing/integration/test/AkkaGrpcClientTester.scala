@@ -4,17 +4,16 @@ import java.io.InputStream
 
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
-import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
+import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import org.junit.Assert._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{ Failure, Success }
+import scala.concurrent.{ Await, ExecutionContext }
+import scala.util.Failure
 
-class AkkaGrpcClientTester(val settings: Settings) extends ClientTester {
+class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
   private var stub: TestServiceServiceStub = null

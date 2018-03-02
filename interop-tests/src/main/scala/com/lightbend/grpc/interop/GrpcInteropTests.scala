@@ -76,12 +76,12 @@ trait GrpcInteropTests { self: WordSpec =>
     }
 
 
-  private def runGrpcClient(testCaseName: String)(clientTesterFactory: Settings => ClientTester): Unit = {
+  private def runGrpcClient(testCaseName: String)(clientTesterFactory: Settings => ExecutionContext => ClientTester): Unit = {
     val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
 
     Util.installConscryptIfAvailable()
     val settings = Settings.parseArgs(args)
-    val client = new TestServiceClient(clientTesterFactory(settings))
+    val client = new TestServiceClient(clientTesterFactory(settings)(ExecutionContext.global))
     client.setUp()
 
     try
@@ -199,7 +199,7 @@ trait ServerHandlerProvider extends PendingCases {
 }
 
 trait  ClientTesterProvider extends PendingCases {
-  def clientTesterFactory: Settings => ClientTester
+  def clientTesterFactory: Settings => ExecutionContext => ClientTester
 }
 
 trait GrpcJavaPendingCases extends PendingCases {
@@ -218,7 +218,7 @@ object GrpcJavaServer extends GrpcJavaPendingCases {
 object GrpcJavaClientTesterProvider extends ClientTesterProvider with GrpcJavaPendingCases {
 
   val label: String = "grpc-java client tester"
-  val clientTesterFactory: Settings => ClientTester = settings => new GrpcJavaClientTester(settings)
+  val clientTesterFactory: Settings => ExecutionContext => ClientTester = settings => ExecutionContext => new GrpcJavaClientTester(settings)
 }
 
 trait AkkaHttpServerProvider extends ServerHandlerProvider {

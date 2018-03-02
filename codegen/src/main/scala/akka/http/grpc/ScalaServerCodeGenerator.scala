@@ -4,7 +4,7 @@ import akka.grpc.gen.{ CodeGenerator, BuildInfo }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
-import templates.ScalaServer.txt.{ ApiTrait, Handler, Stub }
+import templates.ScalaServer.txt._
 
 import scala.collection.JavaConverters._
 
@@ -33,6 +33,7 @@ object ScalaServerCodeGenerator extends CodeGenerator {
       b.addFile(file)
     }
 
+    b.addFile(generateGuavaConverters())
     b.build()
   }
 
@@ -54,6 +55,14 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Stub(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Stub.scala")
+    b.build
+  }
+
+  def generateGuavaConverters(): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    val packageName = "akka.http.grpc"
+    b.setContent(GuavaConverters().body)
+    b.setName(s"${packageName.replace('.', '/')}/GuavaConverters.scala")
     b.build
   }
 

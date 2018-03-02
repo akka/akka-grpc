@@ -4,23 +4,23 @@ package @service.packageName
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
 import akka.stream.scaladsl.Source
-import com.trueaccord.scalapb.grpc.Grpc
+import akka.http.grpc.GuavaConverters
 import io.grpc._
 import io.grpc.stub.ClientCalls
 import akka.http.grpc.ProtobufSerializer
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration.messages._
-import scala.concurrent.Future
 import akka.stream.Materializer
+import scala.concurrent.{ ExecutionContext, Future }
 import @{service.name}Stub._
 
 
-class @{service.name}Stub(channel: Channel, options: CallOptions = CallOptions.DEFAULT) extends @{service.name} {
+class @{service.name}Stub(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
 
   @for(method <- service.methods) {
   def @{method.name}(in: @method.parameterType): @method.returnType = {
   @if(method.methodType == akka.http.grpc.Unary) {
-    Grpc.guavaFuture2ScalaFuture(
+    GuavaConverters.toScalaFuture(
       ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in)
     )
   } else {
@@ -49,6 +49,10 @@ class @{service.name}Stub(channel: Channel, options: CallOptions = CallOptions.D
 object @{service.name}Stub {
 
   import @{service.name}.Serializers._
+
+  def apply(channel: Channel)(implicit ex: ExecutionContext) =
+    new @{service.name}Stub(channel, CallOptions.DEFAULT)(ex)
+
 
   @for(method <- service.methods) {
   val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
