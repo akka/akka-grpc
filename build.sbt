@@ -64,7 +64,13 @@ lazy val sbtPlugin = Project(
     base = file("sbt-plugin")
   )
   .settings(commonSettings)
+  .settings(Dependencies.sbtPlugin)
   .settings(
+    Keys.sbtPlugin := true,
+    publishTo := Some(Classpaths.sbtPluginReleases),
+    publishMavenStyle := false,
+
+    /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
     scriptedDependencies := {
       val p1 = publishLocal.value
