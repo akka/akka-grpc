@@ -1,8 +1,7 @@
 package akka.grpc.sbt
 
 import akka.http.grpc.ScalaServerCodeGenerator
-import protocbridge.JvmGenerator
-import protocbridge.Target
+import protocbridge.{ Generator, JvmGenerator, Target }
 import sbt._
 import Keys._
 import sbtprotoc.ProtocPlugin
@@ -17,6 +16,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
   trait Keys { _: autoImport.type =>
     // these are on purpose not just sbt source generators, we plug them into the existing infrastructure of sbt-protoc
     val akkaGrpcCodeGenerators = settingKey[Seq[GeneratorAndSettings]]("The configured source generator")
+    val akkaGrpcModelGenerators = settingKey[Seq[Target]]("The configured source generator for model classes")
+
   }
   object autoImport extends Keys {
     case class GeneratorAndSettings(generator: akka.grpc.gen.CodeGenerator, settings: Seq[String] = Nil)
@@ -25,14 +26,16 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   override def projectSettings = configSettings(Compile) ++ configSettings(Test)
 
-  def configSettings(config: Configuration): Seq[Setting[_]] =
+  def configSettings(config: Configuration): Seq[Setting[_]] = {
     inConfig(config)(Seq(
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator) :: Nil,
+      akkaGrpcModelGenerators := Seq[Target](scalapb.gen(grpc = false) -> sourceManaged.value),
 
       // we configure the proto gen automatically by adding our codegen:
       PB.targets :=
-        Seq[Target](scalapb.gen(grpc = false) -> sourceManaged.value) ++
+        akkaGrpcModelGenerators.value ++
         akkaGrpcCodeGenerators.value.map(adaptAkkaGenerator(sourceManaged.value))))
+  }
 
   def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
     val adapted = new ProtocBridgeSbtPluginCodeGenerator(generatorAndSettings.generator)
