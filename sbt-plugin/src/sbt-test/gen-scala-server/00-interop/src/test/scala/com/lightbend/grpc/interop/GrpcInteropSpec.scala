@@ -10,6 +10,7 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import io.grpc.{ManagedChannel, Status, StatusRuntimeException}
 import io.grpc.testing.integration.messages.{Payload, PayloadType, SimpleRequest, SimpleResponse}
+import io.grpc.testing.integration.test.TestServiceServiceHandler
 import io.grpc.testing.integration2.{ChannelBuilder, ClientTester, Settings}
 import org.scalatest.WordSpec
 
@@ -20,13 +21,13 @@ import io.grpc.testing.integration.test.TestServiceServiceHandler
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
-  javaGrpcTests(AkkaHttpClientProvider)
-  akkaGrpcTests(AkkaHttpServerProvider, GrpcJavaClientTesterProvider)
-  akkaGrpcTests(AkkaHttpServerProvider, AkkaHttpClientProvider)
+  grpcTests(IoGrpcJavaServer, AkkaHttpClientProvider)
+
+  grpcTests(AkkaHttpServerProvider, GrpcJavaClientTesterProvider)
+  grpcTests(AkkaHttpServerProvider, AkkaHttpClientProvider)
 
   object AkkaHttpServerProvider extends AkkaHttpServerProvider {
-    val serverHandlerFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]] =
-      implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl())
+    val server = AkkaGrpcServerScala(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
   }
 
   object AkkaHttpClientProvider extends AkkaClientTestProvider {
