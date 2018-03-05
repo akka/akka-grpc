@@ -9,6 +9,3 @@ Provides the server code necessary to implement gRPC protocol, and provides a wa
 
 There's a test class that creates a gRPC client (using scalapb) to then test the server. In order to run it, you need to make sure that `akka.example.org` resolves to `127.0.0.1`.
 
-# Compatibility Tests
-
-See [grpc-interop-tests](https://github.com/lightbend/grpc-interop-tests)
