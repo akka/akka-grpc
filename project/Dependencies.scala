@@ -26,7 +26,7 @@ object Dependencies {
     val scalapbRuntime        = "com.trueaccord.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
 
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
-    val grpcNetty          = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
+    val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
   }
 
@@ -57,7 +57,7 @@ object Dependencies {
     Compile.scalapbRuntime,
 
     Compile.grpcCore,
-    Compile.grpcNetty,
+    Compile.grpcNettyShaded,
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp2Support
