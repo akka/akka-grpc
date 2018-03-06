@@ -3,10 +3,11 @@ package com.lightbend.grpc.interop
 
 import java.io.InputStream
 
+import akka.stream.scaladsl.Sink
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import io.grpc.{ManagedChannel, Status, StatusRuntimeException}
-import io.grpc.testing.integration.messages.{Payload, PayloadType, SimpleRequest, SimpleResponse}
+import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ChannelBuilder, ClientTester, Settings}
 import org.junit.Assert._
 
@@ -71,12 +72,56 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext
     throw new RuntimeException("Not implemented!")
   }
 
+
   def serverStreaming(): Unit = {
-    throw new RuntimeException("Not implemented!")
+
+    val request =
+      StreamingOutputCallRequest(
+        responseType = PayloadType.COMPRESSABLE,
+        responseParameters = Seq(
+          ResponseParameters(31415),
+          ResponseParameters(9),
+          ResponseParameters(2653),
+          ResponseParameters(58979)))
+
+    val expected: Seq[StreamingOutputCallResponse] = Seq(
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
+
+    val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
+
+    assertEquals(expected.size, actual.size)
+    expected.zip(actual).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
   def serverCompressedStreaming(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val request =
+      StreamingOutputCallRequest(
+        responseType = PayloadType.COMPRESSABLE,
+        responseParameters = Seq(
+          ResponseParameters(size = 31415, compressed = Some(true)),
+          ResponseParameters(size = 92653, compressed = Some(true))))
+
+    val expected: Seq[StreamingOutputCallResponse] = Seq(
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
+
+    val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
+
+    assertEquals(expected.size, actual.size)
+    expected.zip(actual).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
   def pingPong(): Unit = {
