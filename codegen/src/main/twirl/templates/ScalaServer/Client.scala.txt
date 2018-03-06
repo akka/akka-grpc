@@ -2,31 +2,60 @@
 
 package @service.packageName
 
-import akka.stream.scaladsl.Source
-import akka.http.grpc.GuavaConverters
-import io.grpc._
-import io.grpc.stub.ClientCalls
-import com.google.protobuf.empty.Empty
+import akka.NotUsed
+import akka.http.grpc.{ ChannelApiHelpers, Marshaller }
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
+
+import io.grpc._
+import io.grpc.stub.{ ClientCalls, StreamObserver }
 import @{service.name}Client._
-import akka.http.grpc.Marshaller
+
 
 class @{service.name}Client(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
 
   @for(method <- service.methods) {
   def @{method.name}(in: @method.parameterType): @method.returnType = {
   @if(method.methodType == akka.http.grpc.Unary) {
-    GuavaConverters.toScalaFuture(
+    ChannelApiHelpers.toScalaFuture(
       ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in)
     )
-  } else {
+  }
+  @if(method.methodType == akka.http.grpc.ServerStreaming){
+      val name = "@{service.grpcName}.@{method.grpcName}"
+      val flow =
+        ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { outputObserver =>
+          new StreamObserver[@method.inputTypeUnboxed] {
+            override def onError(t: Throwable): Unit = outputObserver.onError(t)
+            override def onCompleted(): Unit = ()
+            override def onNext(request: @method.inputTypeUnboxed): Unit =
+              ClientCalls.asyncServerStreamingCall(
+                channel.newCall(@{method.name}Descriptor, options),
+                request,
+                outputObserver)
+          }
+        }
+
+
+
+    val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
+    Source
+      .single(in)
+      // channel calls don't support back-pressure so we need to buffered it
+      // and eventually fail the stream
+      .via(flow.buffer(bufferSize, OverflowStrategy.fail))
+  }
+  @if(method.methodType == akka.http.grpc.ClientStreaming){
+    ???
+  }
+  @if(method.methodType == akka.http.grpc.BidiStreaming){
     ???
   }
   }
   }
 }
-
 
 @mapMethodType(methodType: akka.http.grpc.MethodType) = {
   @if(methodType == akka.http.grpc.Unary) {
