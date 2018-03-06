@@ -75,5 +75,7 @@ object ScalaServerCodeGenerator extends CodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
+  override val suggestedDependencies = Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
+    Artifact("io.grpc", "grpc-stub", com.trueaccord.scalapb.compiler.Version.grpcJavaVersion))
 }
