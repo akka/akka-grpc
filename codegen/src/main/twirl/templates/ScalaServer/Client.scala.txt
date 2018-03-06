@@ -7,7 +7,6 @@ import akka.http.grpc.GuavaConverters
 import io.grpc._
 import io.grpc.stub.ClientCalls
 import com.google.protobuf.empty.Empty
-import io.grpc.testing.integration.messages._
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
 import @{service.name}Client._
