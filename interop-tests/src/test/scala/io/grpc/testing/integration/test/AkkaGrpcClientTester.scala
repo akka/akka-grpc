@@ -2,9 +2,11 @@ package io.grpc.testing.integration.test
 
 import java.io.InputStream
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.Sink
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
-import io.grpc.testing.integration.messages.{ Payload, PayloadType, SimpleRequest, SimpleResponse }
+import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
 import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import org.junit.Assert._
@@ -12,18 +14,20 @@ import org.junit.Assert._
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.util.Failure
+import scala.util.control.NonFatal
 
-class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext) extends ClientTester {
+class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
-  private var stub: TestServiceServiceClient = null
+  private var client: TestServiceServiceClient = null
 
   private val awaitTimeout = 3.seconds
+
   def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
 
   def setUp(): Unit = {
     channel = createChannel()
-    stub = TestServiceServiceClient(channel)
+    client = TestServiceServiceClient(channel)
   }
 
   def tearDown(): Unit = {
@@ -31,7 +35,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext
   }
 
   def emptyUnary(): Unit = {
-    assertEquals(Empty(), Await.result(stub.emptyCall(Empty()), awaitTimeout))
+    assertEquals(Empty(), Await.result(client.emptyCall(Empty()), awaitTimeout))
   }
 
   def cacheableUnary(): Unit = {
@@ -47,7 +51,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext
 
     val expectedResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
 
-    val response = Await.result(stub.unaryCall(request), awaitTimeout)
+    val response = Await.result(client.unaryCall(request), awaitTimeout)
     assertEquals(expectedResponse, response)
   }
 
@@ -68,11 +72,54 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext
   }
 
   def serverStreaming(): Unit = {
-    throw new RuntimeException("Not implemented!")
+
+    val request =
+      StreamingOutputCallRequest(
+        responseType = PayloadType.COMPRESSABLE,
+        responseParameters = Seq(
+          ResponseParameters(31415),
+          ResponseParameters(9),
+          ResponseParameters(2653),
+          ResponseParameters(58979)))
+
+    val expected: Seq[StreamingOutputCallResponse] = Seq(
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
+
+    val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
+
+    assertEquals(expected.size, actual.size)
+    expected.zip(actual).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
   def serverCompressedStreaming(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val request =
+      StreamingOutputCallRequest(
+        responseType = PayloadType.COMPRESSABLE,
+        responseParameters = Seq(
+          ResponseParameters(size = 31415, compressed = Some(true)),
+          ResponseParameters(size = 92653, compressed = Some(true))))
+
+    val expected: Seq[StreamingOutputCallResponse] = Seq(
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
+
+    val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
+
+    assertEquals(expected.size, actual.size)
+    expected.zip(actual).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
   def pingPong(): Unit = {
@@ -112,7 +159,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit ex: ExecutionContext
   }
 
   def unimplementedMethod(): Unit = {
-    Await.ready(stub.unimplementedCall(Empty()), awaitTimeout)
+    Await.ready(client.unimplementedCall(Empty()), awaitTimeout)
       .onComplete {
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)

@@ -21,9 +21,9 @@ import io.grpc.testing.integration.test.TestServiceServiceHandler
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
-  grpcTests(IoGrpcJavaServer, AkkaHttpClientProvider)
+  grpcTests(IoGrpcJavaServerProvider, AkkaHttpClientProvider)
 
-  grpcTests(AkkaHttpServerProvider, GrpcJavaClientTesterProvider)
+  grpcTests(AkkaHttpServerProvider, IoGrpcJavaClientProvider)
   grpcTests(AkkaHttpServerProvider, AkkaHttpClientProvider)
 
   object AkkaHttpServerProvider extends AkkaHttpServerProvider {
@@ -31,8 +31,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
   }
 
   object AkkaHttpClientProvider extends AkkaClientTestProvider {
-    val clientTesterFactory: Settings => ExecutionContext => ClientTester =
-      settings => implicit ec => new AkkaGrpcClientTester(settings)
+    def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcClientTester(settings))
   }
 
 }
