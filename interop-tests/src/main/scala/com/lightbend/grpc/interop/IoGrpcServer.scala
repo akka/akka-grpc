@@ -4,7 +4,7 @@ import io.grpc.testing.integration2.TestServiceServer
 
 object IoGrpcServer extends GrpcServer[TestServiceServer] {
 
-  val label: String = "grcp-java server"
+  val label: String = "grpc-java server"
 
   val pendingCases =
     Set(
