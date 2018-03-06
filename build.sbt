@@ -16,6 +16,7 @@ val commonSettings = Seq(
   resolvers += Resolver.bintrayRepo("akka", "maven"),
 )
 
+val akkaGrpcRuntimeName = "akka-grpc-runtime"
 lazy val codegen = Project(
     id = "akka-grpc-codegen",
     base = file("codegen")
@@ -25,7 +26,7 @@ lazy val codegen = Project(
   .settings(commonSettings)
   .settings(Seq(
     buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
-    buildInfoKeys += "runtimeArtifactName" -> s"akka-grpc-runtime_${scalaBinaryVersion.value}",
+    buildInfoKeys += "runtimeArtifactName" -> s"${akkaGrpcRuntimeName}_${scalaBinaryVersion.value}",
     buildInfoPackage := "akka.grpc.gen",
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
@@ -36,7 +37,7 @@ lazy val codegen = Project(
   )
 
 lazy val runtime = Project(
-    id = "akka-grpc-runtime",
+    id = akkaGrpcRuntimeName,
     base = file("runtime")
   )
   .settings(Dependencies.runtime)
