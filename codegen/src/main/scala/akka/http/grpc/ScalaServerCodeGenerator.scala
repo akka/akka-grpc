@@ -77,5 +77,6 @@ object ScalaServerCodeGenerator extends CodeGenerator {
 
   override val suggestedDependencies = Seq(
     Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
+    // TODO: remove grpc-stub dependency once we have a akka-http based client
     Artifact("io.grpc", "grpc-stub", com.trueaccord.scalapb.compiler.Version.grpcJavaVersion))
 }
