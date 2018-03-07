@@ -4,7 +4,7 @@ package @service.packageName
 
 import akka.NotUsed
 import akka.http.grpc.{ ChannelApiHelpers, Marshaller }
-import akka.stream.OverflowStrategy
+import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
@@ -14,7 +14,7 @@ import io.grpc.stub.{ ClientCalls, StreamObserver }
 import @{service.name}Client._
 
 
-class @{service.name}Client(channel: Channel, options: CallOptions)(implicit ex: ExecutionContext) extends @{service.name} {
+class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} {
 
   @for(method <- service.methods) {
   def @{method.name}(in: @method.parameterType): @method.returnType = {
@@ -48,10 +48,24 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit ex:
       .via(flow.buffer(bufferSize, OverflowStrategy.fail))
   }
   @if(method.methodType == akka.http.grpc.ClientStreaming){
-    ???
+    val name = "@{service.grpcName}.@{method.grpcName}"
+    val flow =
+      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name)  { outputObserver =>
+        ClientCalls.asyncClientStreamingCall(
+          channel.newCall(@{method.name}Descriptor, options),
+          outputObserver)
+      }
+    in.via(flow).runWith(Sink.head)
   }
   @if(method.methodType == akka.http.grpc.BidiStreaming){
-    ???
+    val name = "@{service.grpcName}.@{method.grpcName}"
+    val flow =
+      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { outputObserver =>
+        ClientCalls.asyncBidiStreamingCall(
+          channel.newCall(@{method.name}Descriptor, options),
+          outputObserver)
+      }
+    in.via(flow)
   }
   }
   }
@@ -76,8 +90,8 @@ object @{service.name}Client {
 
   import @{service.name}.Serializers._
 
-  def apply(channel: Channel)(implicit ex: ExecutionContext) =
-    new @{service.name}Client(channel, CallOptions.DEFAULT)(ex)
+  def apply(channel: Channel)(implicit mat: Materializer, ex: ExecutionContext) =
+    new @{service.name}Client(channel, CallOptions.DEFAULT)
 
 
   @for(method <- service.methods) {

@@ -14,9 +14,6 @@ case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => 
 
   val pendingCases =
     Set(
-      "ping_pong",
-      "empty_stream",
-      "client_streaming",
       "cancel_after_begin",
       "cancel_after_first_response",
       "timeout_on_sleeping_server",

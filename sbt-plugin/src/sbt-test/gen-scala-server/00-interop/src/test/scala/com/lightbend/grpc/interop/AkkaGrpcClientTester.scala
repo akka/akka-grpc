@@ -1,10 +1,9 @@
 package com.lightbend.grpc.interop
 
-
 import java.io.InputStream
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{Sink, Source}
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import io.grpc.{ManagedChannel, Status, StatusRuntimeException}
@@ -66,7 +65,22 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   }
 
   def clientStreaming(): Unit = {
-    throw new RuntimeException("Not implemented!")
+
+    val requests = Seq(
+      StreamingInputCallRequest(
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](27182))))),
+      StreamingInputCallRequest(
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](8))))),
+      StreamingInputCallRequest(
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](1828))))),
+      StreamingInputCallRequest(
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](45904))))))
+
+    val expected = StreamingInputCallResponse(aggregatedPayloadSize = 74922)
+
+    val requestSrc = Source.fromIterator(() => requests.toIterator)
+    val actual = Await.result(client.streamingInputCall(requestSrc), awaitTimeout)
+    assertEquals(expected, actual)
   }
 
   def clientCompressedStreaming(): Unit = {
@@ -126,11 +140,45 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   }
 
   def pingPong(): Unit = {
-    throw new RuntimeException("Not implemented!")
+
+    val requests = Seq(
+      StreamingOutputCallRequest(
+        responseParameters = Seq(ResponseParameters(31415)),
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](27182))))),
+      StreamingOutputCallRequest(
+        responseParameters = Seq(ResponseParameters(9)),
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](8))))),
+      StreamingOutputCallRequest(
+        responseParameters = Seq(ResponseParameters(2653)),
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](1828))))),
+      StreamingOutputCallRequest(
+        responseParameters = Seq(ResponseParameters(58979)),
+        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](45904))))))
+
+    val expectedResponses = Seq(
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
+      StreamingOutputCallResponse(
+        Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
+
+    val requestSrc = Source.fromIterator(() => requests.toIterator)
+    val actual = Await.result(client.fullDuplexCall(requestSrc).runWith(Sink.seq), awaitTimeout)
+
+    assertEquals(expectedResponses.size, actual.size)
+    expectedResponses.zip(actual).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
   def emptyStream(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    val req = Source.empty[StreamingOutputCallRequest]
+    val res = client.fullDuplexCall(req)
+    val actual = Await.result(res.runWith(Sink.seq), awaitTimeout)
+    assertEquals(actual.size, 0)
   }
 
   def computeEngineCreds(serviceAccount: String, oauthScope: String): Unit = {
