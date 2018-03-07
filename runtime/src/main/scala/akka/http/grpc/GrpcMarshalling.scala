@@ -1,17 +1,15 @@
 package akka.http.grpc
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
-
 import scala.concurrent.Future
+
+import io.grpc.Status
+
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import com.google.protobuf.CodedInputStream
-import com.trueaccord.scalapb.GeneratedMessage
-import io.grpc.Status
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): Future[T] =

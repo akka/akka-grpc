@@ -4,11 +4,19 @@ import scala.collection.JavaConverters._
 
 import com.google.protobuf.Descriptors._
 
-case class Serializer(name: String, init: String)
+case class Serializer(name: String, init: String, javaInit: String, javaMessageType: String) {
+  /** Java API */
+  def getInit() = javaInit
+
+  /** Java API */
+  def getMessageType() = javaMessageType
+}
 object Serializer {
   def apply(t: Descriptor): Serializer = Serializer(
     t.getName + "Serializer",
-    s"new ScalapbProtobufSerializer(${Method.messageType(t)}.messageCompanion)"
+    s"new ScalapbProtobufSerializer(${Method.messageType(t)}.messageCompanion)",
+    s"new GoogleProtobufSerializer<>(${Method.getMessageType(t)}.class)",
+    Method.getMessageType(t)
   )
 }
 
@@ -96,18 +104,23 @@ object Method {
 
 }
 
-case class Service(packageName: String, name: String, grpcName: String, methods: Seq[Method]) {
+case class Service(packageName: String, javaPackageName: String, name: String, grpcName: String, methods: Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
+
+  /** Java API */
+  def getPackageName() = javaPackageName
 }
 object Service {
   def apply(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
     // https://scalapb.github.io/generated-code.html for more subtleties
     val packageName = fileDesc.getOptions.getJavaPackage + "." + fileDesc.getName.replaceAll("\\.proto", "").split("/").last
+    val javaPackageName = fileDesc.getOptions.getJavaPackage
 
     val serviceClassName = serviceDescriptor.getName + "Service"
 
     Service(
       packageName,
+      javaPackageName,
       serviceClassName,
       fileDesc.getPackage + "." + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)))
