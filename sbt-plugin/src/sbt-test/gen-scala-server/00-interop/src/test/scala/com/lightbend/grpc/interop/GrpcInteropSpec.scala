@@ -30,7 +30,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
     val server = AkkaGrpcServerScala(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
   }
 
-  object AkkaHttpClientProvider extends AkkaClientTestProvider {
+  object AkkaHttpClientProvider extends AkkaHttpClientProvider {
     def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcClientTester(settings))
   }
 
