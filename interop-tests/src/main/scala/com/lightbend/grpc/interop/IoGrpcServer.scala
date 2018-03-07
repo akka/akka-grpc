@@ -4,13 +4,6 @@ import io.grpc.testing.integration2.TestServiceServer
 
 object IoGrpcServer extends GrpcServer[TestServiceServer] {
 
-  val label: String = "grpc-java server"
-
-  val pendingCases =
-    Set(
-      "client_compressed_unary",
-      "client_compressed_streaming")
-
   override def start() = {
     val server = new TestServiceServer
     if (server.useTls)
