@@ -1,12 +1,11 @@
 package akka.http.grpc
 
-import akka.grpc.gen.{ CodeGenerator, BuildInfo }
+import akka.grpc.gen.{BuildInfo, CodeGenerator}
 import com.google.protobuf.Descriptors._
-import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
-import templates.JavaServer.txt.ApiInterface
+import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
+import templates.JavaServer.txt.{ApiInterface, Handler}
 
 import scala.collection.JavaConverters._
-
 import protocbridge.Artifact
 
 object JavaServerCodeGenerator extends CodeGenerator {
@@ -29,7 +28,10 @@ object JavaServerCodeGenerator extends CodeGenerator {
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
       service = Service(fileDesc, serviceDesc)
-      file ← Seq(generateServiceInterface(service))
+      file ← Seq(
+        generateServiceInterface(service),
+        generateHandlerFactory(service),
+      )
     } {
       b.addFile(file)
     }
@@ -40,7 +42,14 @@ object JavaServerCodeGenerator extends CodeGenerator {
   def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ApiInterface(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}.java")
+    b.setName(s"${service.getPackageName.replace('.', '/')}/${service.name}.java")
+    b.build
+  }
+
+  def generateHandlerFactory(service: Service): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(Handler(service).body)
+    b.setName(s"${service.getPackageName.replace('.', '/')}/${service.name}HandlerFactory.java")
     b.build
   }
 

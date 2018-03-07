@@ -1,6 +1,6 @@
 @(service: akka.http.grpc.Service)
 
-package @service.packageName;
+package @service.getPackageName;
 
 import java.util.concurrent.CompletableFuture;
 

@@ -1,4 +1,4 @@
-package io.grpc.examples.helloworld;
+package io.grpc.examples;
 
 import java.util.concurrent.CompletableFuture;
 
