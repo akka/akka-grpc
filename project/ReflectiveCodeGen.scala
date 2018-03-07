@@ -35,24 +35,24 @@ object ReflectiveCodeGen extends AutoPlugin {
         }.value
     )) ++
     Seq(
-      mutableGenerator in Compile := createMutableGenerator(),
+      mutableGenerators in Compile := createMutableGenerators(),
       PB.targets in Compile := Seq(
         scalapb.gen(grpc = false) -> (sourceManaged in Compile).value,
-        (mutableGenerator in Compile).value.target -> (sourceManaged in Compile).value
       ),
-      setCodeGenerator := loadAndSetGenerator(
+      PB.targets in Compile ++= (mutableGenerators in Compile).value.map(g ⇒ g.target -> (sourceManaged in Compile).value),
+      setCodeGenerator := loadAndSetGenerators(
         // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generator from there
         (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
-        (mutableGenerator in Compile).value
+        (mutableGenerators in Compile).value
       ),
       PB.recompile in Compile ~= (_ => true)
     )
 
-  case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
+  case class MutableGeneratorAccess(clazz: String, setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
-  val mutableGenerator = settingKey[MutableGeneratorAccess]("mutable Gen for test")
+  val mutableGenerators = settingKey[Seq[MutableGeneratorAccess]]("mutable Gens for test")
 
-  def createMutableGenerator(): MutableGeneratorAccess = {
+  def createMutableGenerators(): Seq[MutableGeneratorAccess] = {
     class MutableProtocCodeGenerator extends protocbridge.ProtocCodeGenerator {
       private[this] var _underlying: protocbridge.ProtocCodeGenerator = _
 
@@ -69,15 +69,29 @@ object ReflectiveCodeGen extends AutoPlugin {
       def setUnderlying(generator: protocbridge.ProtocCodeGenerator): Unit = _underlying = generator
     }
 
-    // FIXME: mostly copied from AkkaScalaGrpcCodeGenerator, might be shared with a bit of restructuring
-    val adapted = new MutableProtocCodeGenerator
-    val generator = JvmGenerator("mutable", adapted)
-    val settings: Seq[String] = Seq(
-      "flat_package" -> false,
-      "java_conversions" -> false,
-      "single_line_to_string" -> false).collect { case (settingName, v) if v => settingName }
+    object MutableGeneratorAccess {
+      def apply(clazz: String): MutableGeneratorAccess = {
+        // FIXME: mostly copied from AkkaScalaGrpcCodeGenerator, might be shared with a bit of restructuring
+        val adapted = new MutableProtocCodeGenerator
+        val id = clazz.split("\\.").last
+        val generator = JvmGenerator(s"mutable-$id", adapted)
+        val settings: Seq[String] = Seq(
+          "flat_package" -> false,
+          "java_conversions" -> false,
+          "single_line_to_string" -> false).collect { case (settingName, v) if v => settingName }
 
-    MutableGeneratorAccess(adapted.setUnderlying _, (generator, settings))
+        new MutableGeneratorAccess(clazz, adapted.setUnderlying _, (generator, settings))
+      }
+    }
+
+    Seq(
+      MutableGeneratorAccess("akka.grpc.sbt.AkkaScalaServerGrpcCodeGenerator"),
+      MutableGeneratorAccess("akka.grpc.sbt.AkkaJavaServerGrpcCodeGenerator"),
+    )
+  }
+
+  def loadAndSetGenerators(classpath: Classpath, access: Seq[MutableGeneratorAccess]): Unit = {
+    access.foreach(access ⇒ loadAndSetGenerator(classpath, access))
   }
 
   def loadAndSetGenerator(classpath: Classpath, access: MutableGeneratorAccess): Unit = {
@@ -85,7 +99,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
     val loader = ClasspathUtilities.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
-    val instance = loader.loadClass("akka.grpc.sbt.AkkaScalaServerGrpcCodeGenerator").newInstance()
+    val instance = loader.loadClass(access.clazz).newInstance()
     type WithInstance = {
       def instance(): protocbridge.ProtocCodeGenerator
     }
