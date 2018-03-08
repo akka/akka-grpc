@@ -1,0 +1,88 @@
+@()
+package akka.http.grpc.internal
+
+import java.util.concurrent.Executor
+import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import akka.NotUsed
+import akka.stream.scaladsl.Flow
+import akka.stream.stage.{GraphStage, GraphStageLogic, _}
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
+import akka.annotation.InternalApi
+import io.grpc.stub.StreamObserver
+
+/**
+ * INTERNAL API
+ * Include some helpers to convert types from Channel API to Scala / Akka Streams API
+ */
+@@InternalApi
+object ChannelApiHelpers {
+
+  /**
+   * INTERNAL API
+   *
+   * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
+   */
+  @@InternalApi
+  def toScalaFuture[A](guavaFuture: ListenableFuture[A])(implicit ex: ExecutionContext): Future[A] = {
+
+    val p = Promise[A]()
+    val callback = new FutureCallback[A] {
+      override def onFailure(t: Throwable): Unit = p.failure(t)
+      override def onSuccess(a: A): Unit = p.success(a)
+    }
+
+    val javaExecutor = new Executor {
+      override def execute(command: Runnable): Unit = ex.execute(command)
+    }
+
+    Futures.addCallback(guavaFuture, callback, javaExecutor)
+    p.future
+  }
+
+ /**
+  * INTERNAL API
+  *
+  * Builds a akka stream [[Flow]] from a function `StreamObserver[O] => StreamObserver[I]`
+  */
+  @@InternalApi
+  def buildFlow[I, O](name: String)(operator: StreamObserver[O] => StreamObserver[I]): Flow[I, O, NotUsed] =
+    Flow.fromGraph(new AkkaGrpcGraphStage(name, operator))
+
+  @@InternalApi
+  private class AkkaGrpcGraphStage[I, O](name: String, operator: StreamObserver[O] => StreamObserver[I]) extends GraphStage[FlowShape[I, O]] {
+
+    val in = Inlet[I](name + ".in")
+    val out = Outlet[O](name + ".out")
+
+    override val shape: FlowShape[I, O] = FlowShape.of(in, out)
+
+    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+     new GraphStageLogic(shape) {
+
+       val outObs = new StreamObserver[O] {
+         override def onError(t: Throwable) = fail(out, t)
+         override def onCompleted() = getAsyncCallback[Unit](_ => complete(out)).invoke(())
+         override def onNext(value: O) = getAsyncCallback[O](value => emit(out, value)).invoke(value)
+       }
+
+       val inObs = operator(outObs)
+
+       setHandler(in, new InHandler {
+         override def onPush(): Unit = {
+           val input = grab(in)
+           inObs.onNext(input)
+           pull(in)
+         }
+         override def onUpstreamFinish(): Unit = inObs.onCompleted()
+         override def onUpstreamFailure(t: Throwable): Unit = inObs.onError(t)
+       })
+
+       setHandler(out, new OutHandler {
+         override def onPull(): Unit = ()
+       })
+
+       override def preStart(): Unit = pull(in)
+    }
+  }
+}

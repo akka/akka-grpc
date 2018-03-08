@@ -19,6 +19,16 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
 case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]]) extends GrpcServer[(ActorSystem, ServerBinding)] {
+
+  val label: String = "akka-grpc server scala"
+
+  val pendingCases =
+    Set(
+      "custom_metadata",
+      "status_code_and_message",
+      "client_compressed_unary",
+      "client_compressed_streaming")
+
   override def start() = {
     implicit val sys = ActorSystem()
     implicit val mat = ActorMaterializer()
