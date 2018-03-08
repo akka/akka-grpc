@@ -3,7 +3,7 @@
 package @service.packageName
 
 import akka.NotUsed
-import akka.http.grpc.{ ChannelApiHelpers, Marshaller }
+import akka.http.grpc.internal.{ ChannelApiHelpers, Marshaller }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer

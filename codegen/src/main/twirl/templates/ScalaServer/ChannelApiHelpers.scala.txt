@@ -1,5 +1,5 @@
 @()
-package akka.http.grpc
+package akka.http.grpc.internal
 
 import java.util.concurrent.Executor
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
