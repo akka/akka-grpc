@@ -106,6 +106,19 @@ lazy val interopTests = Project(
   .disablePlugins(ProtocPlugin)
   .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
 
+lazy val docs = Project(
+    id = "akka-grpc-docs",
+    base = file("docs"),
+  )
+  .enablePlugins(AkkaParadoxPlugin)
+  .settings(
+    paradoxGroups := Map(
+      "Language" -> Seq("Scala", "Java"),
+      "Buildtool" -> Seq("sbt", "Gradle"),
+    ),
+    paradoxProperties += ("projectversion" → version.value),
+  )
+
 lazy val root = Project(
     id = "akka-grpc",
     base = file(".")
@@ -116,6 +129,7 @@ lazy val root = Project(
     sbtPlugin,
     scalapbProtocPlugin,
     interopTests,
+    docs,
   )
   .settings(
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
