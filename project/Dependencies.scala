@@ -70,6 +70,7 @@ object Dependencies {
   )
 
   val interopTests = l ++= Seq(
-    Compile.grpcInteropTesting
+    Compile.grpcInteropTesting,
+    Compile.akkaHttp,
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }

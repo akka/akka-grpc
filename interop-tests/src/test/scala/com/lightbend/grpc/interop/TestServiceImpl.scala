@@ -22,8 +22,9 @@ object TestServiceImpl {
 }
 
 // Implementation of the generated interface
-class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestService {
+class TestServiceImpl(implicit mat: Materializer) extends TestService {
   import TestServiceImpl._
+  implicit private val ec: ExecutionContext = mat.executionContext
 
   override def emptyCall(req: Empty) = Future.successful(Empty())
 

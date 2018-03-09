@@ -134,7 +134,6 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 trait AkkaHttpServerProvider extends GrpcServerProvider {
   val pendingCases =
     Set(
-      "custom_metadata",
       "status_code_and_message",
       "client_compressed_unary",
       "client_compressed_streaming")

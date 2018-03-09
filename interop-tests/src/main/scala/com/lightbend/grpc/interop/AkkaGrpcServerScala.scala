@@ -10,7 +10,7 @@ import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
 import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.internal.testing.TestUtils
@@ -18,17 +18,17 @@ import io.grpc.internal.testing.TestUtils
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
-case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ExecutionContext => PartialFunction[HttpRequest, Future[HttpResponse]]) extends GrpcServer[(ActorSystem, ServerBinding)] {
+case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest ⇒ Future[HttpResponse]) extends GrpcServer[(ActorSystem, ServerBinding)] {
 
   override def start() = {
     implicit val sys = ActorSystem()
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val testService = serverHandlerFactory(mat)(ec)
+    val testService = serverHandlerFactory(mat)(sys)
 
     val bindingFuture = Http2().bindAndHandleAsync(
-      testService.orElse { case _: HttpRequest ⇒ Future.successful(HttpResponse(StatusCodes.NotFound)) },
+      testService,
       interface = "127.0.0.1",
       port = 8080,
       httpsContext = serverHttpContext())
