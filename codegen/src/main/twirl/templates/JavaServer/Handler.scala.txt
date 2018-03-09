@@ -1,0 +1,58 @@
+@(service: akka.http.grpc.Service)
+
+package @service.getPackageName;
+
+import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import akka.japi.Function;
+import akka.http.javadsl.model.*;
+import akka.stream.Materializer;
+
+import akka.http.grpc.ProtobufSerializer;
+import akka.http.grpc.GoogleProtobufSerializer;
+import akka.http.grpc.javadsl.GrpcMarshalling;
+import akka.http.grpc.javadsl.GrpcExceptionHandler;
+
+public class @{service.name}HandlerFactory {
+  @for(serializer <- service.serializers) {
+  static ProtobufSerializer<@{serializer.getMessageType}> @serializer.name = @serializer.getInit();
+  }
+
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
+    return (req -> {
+      Iterator<String> segments = req.getUri().pathSegments().iterator();
+      if (segments.hasNext() && segments.next().equals(@{service.name}.name) && segments.hasNext()) {
+        String method = segments.next();
+        return handle(req, method, implementation, mat).exceptionally(e -> GrpcExceptionHandler.standard(e));
+      }
+      else
+      {
+        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+        result.completeExceptionally(new UnsupportedOperationException("Unexpected path"));
+        return result;
+      }
+    });
+  }
+
+  public String getServiceName() {
+    return @{service.name}.name;
+  }
+
+  private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @{service.name} implementation, Materializer mat) {
+    switch(method) {
+      @for(method <- service.methods) {
+      case "@method.grpcName":
+        return @{method.unmarshal}(request, @method.deserializer.name, mat)
+          .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e))
+          .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat));
+      }
+      default:
+        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+        result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
+        return result;
+    }
+  }
+
+}

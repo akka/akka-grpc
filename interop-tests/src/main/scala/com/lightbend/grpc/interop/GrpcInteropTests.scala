@@ -37,10 +37,10 @@ trait GrpcInteropTests {
     val server = serverProvider.server
     val client = clientProvider.client
 
-    server.label + " with " + client.label should {
+    serverProvider.label + " with " + clientProvider.label should {
       testCases.foreach { testCaseName =>
         s"pass the $testCaseName integration test" in {
-          val allPending = server.pendingCases ++ client.pendingCases
+          val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
           pendingTestCaseSupport(allPending(testCaseName)) {
             withGrpcServer(server) {
               runGrpcClient(testCaseName)(client)
@@ -64,6 +64,7 @@ trait GrpcInteropTests {
       case e: StatusRuntimeException =>
         // 'Status' is not serializable, so we have to unpack the exception
         // to avoid trouble when running tests from sbt
+        e.printStackTrace()
         if (e.getCause == null) fail(e.getMessage)
         else fail(e.getMessage, e.getCause)
       case NonFatal(t) => fail(t)
@@ -92,27 +93,66 @@ trait GrpcInteropTests {
       case res => res
     }
   }
-
-
 }
 
-
 trait GrpcServerProvider {
+  def label: String
+  def pendingCases: Set[String]
+
   def server: GrpcServer[_]
 }
 
 trait GrpcClientProvider {
+  def label: String
+  def pendingCases: Set[String]
+
   def client: GrpcClient
 }
 
 object IoGrpcJavaServerProvider extends GrpcServerProvider {
+  val label: String = "grpc-java server"
+
+  val pendingCases =
+    Set(
+      "client_compressed_unary",
+      "client_compressed_streaming")
+
   val server = IoGrpcServer
 }
 
 object IoGrpcJavaClientProvider extends GrpcClientProvider {
+  val label: String = "grpc-java client tester"
+
+  val pendingCases =
+    Set(
+      "client_compressed_unary",
+      "client_compressed_streaming")
+
   val client = IoGrpcClient
 }
 
-trait AkkaHttpServerProvider extends GrpcServerProvider
+trait AkkaHttpServerProvider extends GrpcServerProvider {
+  val pendingCases =
+    Set(
+      "custom_metadata",
+      "status_code_and_message",
+      "client_compressed_unary",
+      "client_compressed_streaming")
+}
 
-trait AkkaHttpClientProvider extends GrpcClientProvider
+trait AkkaHttpClientProvider extends GrpcClientProvider {
+  val label: String = "akka-grpc client tester"
+
+  val pendingCases =
+    Set(
+      "cancel_after_begin",
+      "cancel_after_first_response",
+      "timeout_on_sleeping_server",
+      "custom_metadata",
+      "status_code_and_message",
+      "client_compressed_unary",
+      "client_compressed_streaming",
+      "server_compressed_unary",
+      "unimplemented_service",
+    )
+}

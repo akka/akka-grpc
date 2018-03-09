@@ -8,6 +8,7 @@ import akka.http.grpc.Grpc
 import akka.stream.Materializer
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
+import io.grpc.testing.integration.TestServiceServiceHandlerFactory
 import io.grpc.{ManagedChannel, Status, StatusRuntimeException}
 import io.grpc.testing.integration.messages.{Payload, PayloadType, SimpleRequest, SimpleResponse}
 import io.grpc.testing.integration.test.TestServiceServiceHandler
@@ -23,11 +24,22 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
   grpcTests(IoGrpcJavaServerProvider, AkkaHttpClientProvider)
 
-  grpcTests(AkkaHttpServerProvider, IoGrpcJavaClientProvider)
-  grpcTests(AkkaHttpServerProvider, AkkaHttpClientProvider)
+  grpcTests(AkkaHttpServerProviderScala, IoGrpcJavaClientProvider)
+  grpcTests(AkkaHttpServerProviderScala, AkkaHttpClientProvider)
 
-  object AkkaHttpServerProvider extends AkkaHttpServerProvider {
+  grpcTests(AkkaHttpServerProviderJava, IoGrpcJavaClientProvider)
+  grpcTests(AkkaHttpServerProviderJava, AkkaHttpClientProvider)
+
+  object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
+    val label: String = "akka-grpc server scala"
     val server = AkkaGrpcServerScala(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
+  }
+
+  object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
+    val label: String = "akka-grpc server java"
+    val server = new AkkaGrpcServerJava(mat ⇒ {
+      TestServiceServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)
+    })
   }
 
   object AkkaHttpClientProvider extends AkkaHttpClientProvider {

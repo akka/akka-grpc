@@ -1,3 +1,6 @@
+import akka.http.grpc.JavaServerCodeGenerator
+import protocbridge.Target
+
 organization := "com.lightbend.akka.grpc"
 
 // For the akka-http snapshot
@@ -21,3 +24,6 @@ javaAgents ++= Seq(
 
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
+
+(akkaGrpcCodeGenerators in Compile) += GeneratorAndSettings(JavaServerCodeGenerator)
+(akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value

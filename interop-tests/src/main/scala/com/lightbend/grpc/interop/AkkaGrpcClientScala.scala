@@ -9,22 +9,6 @@ import scala.concurrent.{ Await, ExecutionContext }
 
 case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ExecutionContext => ClientTester) extends GrpcClient {
 
-  val label: String = "akka-grpc client tester"
-
-
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "status_code_and_message",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary",
-      "unimplemented_service",
-    )
-
   override def run(args: Array[String]): Unit = {
     Util.installConscryptIfAvailable()
     val settings = Settings.parseArgs(args)
