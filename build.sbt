@@ -33,8 +33,8 @@ lazy val codegen = Project(
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.gen.Main"),
-    ) ++ addArtifact(artifact in (Compile, assembly), assembly)
-  )
+  ))
+  .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
 lazy val runtime = Project(
     id = akkaGrpcRuntimeName,
@@ -57,8 +57,8 @@ lazy val scalapbProtocPlugin = Project(
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
-  ) ++ addArtifact(artifact in (Compile, assembly), assembly)
-)
+  ))
+  .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
 lazy val sbtPlugin = Project(
     id = "akka-grpc-sbt-plugin",
@@ -117,6 +117,7 @@ lazy val docs = Project(
       "Buildtool" -> Seq("sbt", "Gradle"),
     ),
     paradoxProperties += ("projectversion" → version.value),
+    resolvers += Resolver.jcenterRepo,
   )
 
 lazy val root = Project(
