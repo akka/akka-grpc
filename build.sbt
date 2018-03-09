@@ -73,6 +73,7 @@ lazy val sbtPlugin = Project(
 
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
+    scriptedLaunchOpts ++= sys.props.collect { case (k @ "sbt.ivy.home", v) => s"-D$k=$v" }.toSeq,
     scriptedDependencies := {
       val p1 = publishLocal.value
       val p2 = (publishLocal in codegen).value
