@@ -117,7 +117,12 @@ lazy val docs = Project(
       "Language" -> Seq("Scala", "Java"),
       "Buildtool" -> Seq("sbt", "Gradle"),
     ),
-    paradoxProperties += ("projectversion" → version.value),
+    paradoxProperties ++= Map(
+      "projectversion" → version.value,
+      "scala.version" -> scalaVersion.value,
+      "scala.binary_version" -> scalaBinaryVersion.value,
+      "snip.code.base_dir" -> (sourceDirectory in Test).value.getAbsolutePath,
+      "snip.root.base_dir" -> (baseDirectory in ThisBuild).value.getAbsolutePath),
     resolvers += Resolver.jcenterRepo,
   )
 
