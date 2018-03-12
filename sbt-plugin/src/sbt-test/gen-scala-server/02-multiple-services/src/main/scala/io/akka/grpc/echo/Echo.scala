@@ -2,6 +2,6 @@ package io.akka.grpc.echo
 
 import scala.concurrent.Future
 
-class Echo extends EchoService {
+class EchoImpl extends Echo {
   def echo(in: EchoMessage): Future[EchoMessage] = Future.successful(in)
 }

@@ -131,7 +131,7 @@ object Service {
     val packageName = fileDesc.getOptions.getJavaPackage + "." + fileDesc.getName.replaceAll("\\.proto", "").split("/").last
     val javaPackageName = fileDesc.getOptions.getJavaPackage
 
-    val serviceClassName = serviceDescriptor.getName + "Service"
+    val serviceClassName = serviceDescriptor.getName
 
     Service(
       packageName,

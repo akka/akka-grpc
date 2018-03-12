@@ -7,15 +7,15 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
-import io.akka.grpc.echo.{Echo, EchoServiceHandler}
-import io.akka.grpc.helloworld.{GreeterImpl, GreeterServiceHandler}
+import io.akka.grpc.echo.{EchoImpl, EchoHandler}
+import io.akka.grpc.helloworld.{GreeterImpl, GreeterHandler}
 
 object Main extends App {
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
-  val echoHandler = EchoServiceHandler(new Echo)
-  val greeterHandler = GreeterServiceHandler(new GreeterImpl)
+  val echoHandler = EchoHandler(new EchoImpl)
+  val greeterHandler = GreeterHandler(new GreeterImpl)
 
   Http2().bindAndHandleAsync(
     echoHandler.orElse(greeterHandler),

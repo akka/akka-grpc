@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
 class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
-  private var client: TestServiceServiceClient = null
+  private var client: TestServiceClient = null
 
   private val awaitTimeout = 3.seconds
 
@@ -27,7 +27,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
 
   def setUp(): Unit = {
     channel = createChannel()
-    client = TestServiceServiceClient(channel)
+    client = TestServiceClient(channel)
   }
 
   def tearDown(): Unit = {

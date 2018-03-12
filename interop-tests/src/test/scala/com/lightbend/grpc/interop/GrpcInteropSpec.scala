@@ -1,7 +1,7 @@
 package com.lightbend.grpc.interop
 
-import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceServiceHandler }
-import io.grpc.testing.integration.TestServiceServiceHandlerFactory
+import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceHandler }
+import io.grpc.testing.integration.TestServiceHandlerFactory
 import io.grpc.testing.integration2.{ ClientTester, Settings }
 import org.scalatest._
 
@@ -18,13 +18,13 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests {
 
   object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
     val label: String = "akka-grpc server scala"
-    val server = AkkaGrpcServerScala(implicit mat => implicit ec => TestServiceServiceHandler(new TestServiceImpl()))
+    val server = AkkaGrpcServerScala(implicit mat => implicit ec => TestServiceHandler(new TestServiceImpl()))
   }
 
   object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
     val label: String = "akka-grpc server java"
     val server = new AkkaGrpcServerJava(mat ⇒ {
-      TestServiceServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)
+      TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)
     })
   }
 

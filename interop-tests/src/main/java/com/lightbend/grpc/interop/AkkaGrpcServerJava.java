@@ -23,10 +23,8 @@ import akka.japi.Function;
 import akka.stream.*;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.internal.testing.TestUtils;
-import io.grpc.testing.integration.TestServiceService;
+import io.grpc.testing.integration.TestService;
 import scala.Tuple2;
-import scala.concurrent.Await;
-import scala.concurrent.ExecutionContext;
 
 public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBinding>> {
   private final Function<Materializer, Function<HttpRequest, CompletionStage<HttpResponse>>> handlerFactory;
@@ -47,7 +45,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
       req -> {
         Iterator<String> segmentIterator = req.getUri().pathSegments().iterator();
         if (segmentIterator.hasNext()) {
-          if (segmentIterator.next().equals(TestServiceService.name)) {
+          if (segmentIterator.next().equals(TestService.name)) {
             return testService.apply(req);
           } else {
             return CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
