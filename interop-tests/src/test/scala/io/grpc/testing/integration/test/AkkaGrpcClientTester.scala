@@ -14,12 +14,12 @@ import org.junit.Assert._
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.util.Failure
-import scala.util.control.NonFatal
 
 class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
   private var client: TestServiceClient = null
+  private var clientUnimplementedService: UnimplementedServiceClient = null
 
   private val awaitTimeout = 3.seconds
 
@@ -28,6 +28,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   def setUp(): Unit = {
     channel = createChannel()
     client = TestServiceClient(channel)
+    clientUnimplementedService = UnimplementedServiceClient(channel)
   }
 
   def tearDown(): Unit = {
@@ -215,7 +216,12 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   }
 
   def unimplementedService(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    Await.ready(clientUnimplementedService.unimplementedCall(Empty()), awaitTimeout)
+      .onComplete {
+        case Failure(e: StatusRuntimeException) =>
+          assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
+        case _ => fail(s"Expected to fail with UNIMPLEMENTED")
+      }
   }
 
   def cancelAfterBegin(): Unit = {

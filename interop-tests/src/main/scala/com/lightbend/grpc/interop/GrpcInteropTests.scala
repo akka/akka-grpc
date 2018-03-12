@@ -153,6 +153,5 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",
-      "unimplemented_service",
     )
 }
