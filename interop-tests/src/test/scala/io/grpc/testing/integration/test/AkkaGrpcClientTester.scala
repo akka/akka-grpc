@@ -2,6 +2,7 @@ package io.grpc.testing.integration.test
 
 import java.io.InputStream
 
+import akka.http.grpc.GrpcServiceException
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
@@ -216,17 +217,21 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
           assertEquals(errorMessage, e.getStatus.getDescription)
-        case _ => fail(s"Expected to fail with UNIMPLEMENTED")
+        case _ => fail(s"Expected to fail with StatusRuntimeException")
       }
 
     // Assert streaming
+    val streamingRequest = StreamingOutputCallRequest(responseStatus = Some(echoStatus))
+    val requests = Source.single(streamingRequest)
+    val responses: Source[StreamingOutputCallResponse, Any] = client.fullDuplexCall(requests)
 
-    //    val streamingRequest = StreamingOutputCallRequest(responseStatus = Some(echoStatus))
-    //    val requests = Source.single(streamingRequest)
-    //    client.fullDuplexCall(requests)
-    //    assertEquals(Status.UNKNOWN.getCode(), /* TODO obtain error msg from the response */)
-    //    assertEquals(errorMessage, /* TODO obtain error msg from the response */)
-
+    try {
+      responses.runWith(Sink.ignore)
+    } catch {
+      case e: GrpcServiceException =>
+        assertEquals(Status.UNKNOWN.getCode(), e.status.getCode)
+        assertEquals(errorMessage, e.status.getDescription)
+    }
   }
 
   def unimplementedMethod(): Unit = {

@@ -23,6 +23,7 @@ trait GrpcInteropTests {
     "cancel_after_first_response",
     "timeout_on_sleeping_server",
     "custom_metadata",
+    "status_code_and_message",
     "unimplemented_method",
     "client_compressed_unary",
     "client_compressed_streaming",
@@ -130,7 +131,13 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
   val client = IoGrpcClient
 }
 
-trait AkkaHttpServerProvider extends GrpcServerProvider
+trait AkkaHttpServerProvider extends GrpcServerProvider {
+  val pendingCases =
+    Set(
+      "custom_metadata",
+      "client_compressed_unary",
+      "client_compressed_streaming")
+}
 
 trait AkkaHttpClientProvider extends GrpcClientProvider {
   val label: String = "akka-grpc client tester"
