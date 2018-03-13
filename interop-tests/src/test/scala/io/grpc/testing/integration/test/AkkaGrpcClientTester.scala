@@ -12,7 +12,7 @@ import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import org.junit.Assert._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Failure
 
 class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
@@ -203,7 +203,30 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   }
 
   def statusCodeAndMessage(): Unit = {
-    throw new RuntimeException("Not implemented!")
+
+    // Assert unary
+    val errorMessage = "test status message"
+    val echoStatus = EchoStatus(Status.UNKNOWN.getCode.value(), errorMessage)
+    val req: SimpleRequest = SimpleRequest(
+      responseStatus = Some(echoStatus))
+    val eventualResponse = client.unaryCall(req)
+
+    Await.ready(eventualResponse, awaitTimeout)
+      .onComplete {
+        case Failure(e: StatusRuntimeException) =>
+          assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
+          assertEquals(errorMessage, e.getStatus.getDescription)
+        case _ => fail(s"Expected to fail with UNIMPLEMENTED")
+      }
+
+    // Assert streaming
+
+    //    val streamingRequest = StreamingOutputCallRequest(responseStatus = Some(echoStatus))
+    //    val requests = Source.single(streamingRequest)
+    //    client.fullDuplexCall(requests)
+    //    assertEquals(Status.UNKNOWN.getCode(), /* TODO obtain error msg from the response */)
+    //    assertEquals(errorMessage, /* TODO obtain error msg from the response */)
+
   }
 
   def unimplementedMethod(): Unit = {
