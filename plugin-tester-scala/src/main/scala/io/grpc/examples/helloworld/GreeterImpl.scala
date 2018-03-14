@@ -5,7 +5,7 @@ import scala.concurrent.Future
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 
-class Greeter extends GreeterService {
+class GreeterImpl extends Greeter {
   override def sayHello(in: HelloRequest): Future[HelloReply] = ???
 
   override def streamHellos(in: Source[HelloRequest, _]): Source[HelloReply, Any] = ???
