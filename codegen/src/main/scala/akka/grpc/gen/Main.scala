@@ -2,8 +2,9 @@ package akka.grpc.gen
 
 import java.io.ByteArrayOutputStream
 
-import akka.http.grpc._
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
+import akka.http.grpc.javadsl.JavaServerCodeGenerator
+import akka.http.grpc.scaladsl.ScalaServerCodeGenerator
 
 object Main extends App {
 

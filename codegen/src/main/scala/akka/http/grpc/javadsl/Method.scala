@@ -1,31 +1,7 @@
-package akka.http.grpc
+package akka.http.grpc.javadsl
 
-import scala.collection.JavaConverters._
-
-import com.google.protobuf.Descriptors._
-
-case class Serializer(name: String, init: String, javaInit: String, javaMessageType: String) {
-  /** Java API */
-  def getInit() = javaInit
-
-  /** Java API */
-  def getMessageType() = javaMessageType
-}
-object Serializer {
-  def apply(t: Descriptor): Serializer = Serializer(
-    t.getName + "Serializer",
-    s"new ScalapbProtobufSerializer(${Method.messageType(t)}.messageCompanion)",
-    s"new GoogleProtobufSerializer<>(${Method.getMessageType(t)}.class)",
-    Method.getMessageType(t)
-  )
-}
-
-
-sealed trait MethodType
-case object Unary extends MethodType
-case object ClientStreaming extends MethodType
-case object ServerStreaming extends MethodType
-case object BidiStreaming extends MethodType
+import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
+import akka.http.grpc._
 
 case class Method(name: String,
                   grpcName: String,
@@ -46,17 +22,8 @@ case class Method(name: String,
     if (outputStreaming) "GrpcMarshalling.marshalStream"
     else "GrpcMarshalling.marshal"
 
-  def parameterType =
-    if (inputStreaming) s"Source[${messageType(inputType)}, NotUsed]"
-    else messageType(inputType)
-
   def inputTypeUnboxed = messageType(inputType)
   def outputTypeUnboxed = messageType(outputType)
-
-  def returnType =
-    if (outputStreaming) s"Source[${messageType(outputType)}, NotUsed]"
-    else s"Future[${messageType(outputType)}]"
-
 
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {
@@ -67,13 +34,10 @@ case class Method(name: String,
     }
   }
 
-
-  /** Java API */
   def getParameterType =
     if (inputStreaming) s"Source<${getMessageType(inputType)}, NotUsed>"
     else getMessageType(inputType)
 
-  /** Java API */
   def getReturnType =
     if (outputStreaming) s"Source<${getMessageType(outputType)}, NotUsed>"
     else s"CompletionStage<${getMessageType(outputType)}>"
@@ -117,27 +81,4 @@ object Method {
 
   private def protoName(t: Descriptor) =
     t.getFile.getName.replaceAll("\\.proto", "").split("/").last
-}
-
-case class Service(packageName: String, javaPackageName: String, name: String, grpcName: String, methods: Seq[Method]) {
-  def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
-
-  /** Java API */
-  def getPackageName() = javaPackageName
-}
-object Service {
-  def apply(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
-    // https://scalapb.github.io/generated-code.html for more subtleties
-    val packageName = fileDesc.getOptions.getJavaPackage + "." + fileDesc.getName.replaceAll("\\.proto", "").split("/").last
-    val javaPackageName = fileDesc.getOptions.getJavaPackage
-
-    val serviceClassName = serviceDescriptor.getName
-
-    Service(
-      packageName,
-      javaPackageName,
-      serviceClassName,
-      fileDesc.getPackage + "." + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)))
-  }
 }
