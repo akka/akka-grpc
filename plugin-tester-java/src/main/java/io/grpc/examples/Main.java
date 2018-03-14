@@ -31,10 +31,10 @@ class Main {
     ActorSystem sys = ActorSystem.create();
     Materializer mat = ActorMaterializer.create(sys);
 
-    GreeterService impl = new GreeterServiceImpl();
+    Greeter impl = new GreeterImpl();
 
     Http.get(sys).bindAndHandleAsync(
-      GreeterServiceHandlerFactory.create(impl, mat),
+      GreeterHandlerFactory.create(impl, mat),
       ConnectWithHttps.toHostHttps("127.0.0.1", 8080).withCustomHttpsContext(serverHttpContext()),
       mat);
   }
