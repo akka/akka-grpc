@@ -47,14 +47,14 @@ case class Method(name: String,
     else "GrpcMarshalling.marshal"
 
   def parameterType =
-    if (inputStreaming) s"Source[${messageType(inputType)}, _]"
+    if (inputStreaming) s"Source[${messageType(inputType)}, NotUsed]"
     else messageType(inputType)
 
   def inputTypeUnboxed = messageType(inputType)
   def outputTypeUnboxed = messageType(outputType)
 
   def returnType =
-    if (outputStreaming) s"Source[${messageType(outputType)}, Any]"
+    if (outputStreaming) s"Source[${messageType(outputType)}, NotUsed]"
     else s"Future[${messageType(outputType)}]"
 
 
@@ -70,12 +70,12 @@ case class Method(name: String,
 
   /** Java API */
   def getParameterType =
-    if (inputStreaming) s"Source<${getMessageType(inputType)}, Object>"
+    if (inputStreaming) s"Source<${getMessageType(inputType)}, NotUsed>"
     else getMessageType(inputType)
 
   /** Java API */
   def getReturnType =
-    if (outputStreaming) s"Source<${getMessageType(outputType)}, Object>"
+    if (outputStreaming) s"Source<${getMessageType(outputType)}, NotUsed>"
     else s"CompletionStage<${getMessageType(outputType)}>"
 }
 

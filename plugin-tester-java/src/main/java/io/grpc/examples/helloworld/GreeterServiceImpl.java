@@ -27,7 +27,7 @@ public class GreeterServiceImpl implements GreeterService {
   }
 
   @Override
-  public CompletionStage<HelloReply> itKeepsTalking(Source<HelloRequest, Object> in) {
+  public CompletionStage<HelloReply> itKeepsTalking(Source<HelloRequest, NotUsed> in) {
     System.out.println("sayHello to in stream...");
     return in.runWith(Sink.seq(), mat)
       .thenApply(elements -> {
@@ -38,19 +38,18 @@ public class GreeterServiceImpl implements GreeterService {
   }
 
   @Override
-  public Source<HelloReply, Object> itKeepsReplying(HelloRequest in) {
+  public Source<HelloReply, NotUsed> itKeepsReplying(HelloRequest in) {
     System.out.println("sayHello to " + in.getName() + " with stream of chars");
     List<Character> characters = ("Hello, " + in.getName())
         .chars().mapToObj(c -> (char) c).collect(Collectors.toList());
     return Source.from(characters)
       .map(character -> {
         return HelloReply.newBuilder().setMessage(String.valueOf(character)).build();
-      })
-      .mapMaterializedValue(m -> NotUsed.getInstance()); // FIXME would be nice without this
+      });
   }
 
   @Override
-  public Source<HelloReply, Object> streamHellos(Source<HelloRequest, Object> in) {
+  public Source<HelloReply, NotUsed> streamHellos(Source<HelloRequest, NotUsed> in) {
     System.out.println("sayHello to stream...");
     return in.map(request -> HelloReply.newBuilder().setMessage("Hello, " + request.getName()).build());
   }

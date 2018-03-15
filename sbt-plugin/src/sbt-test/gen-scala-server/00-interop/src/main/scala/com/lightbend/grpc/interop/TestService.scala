@@ -4,6 +4,9 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.collection.immutable
+
+import akka.NotUsed
+import akka.NotUsed
 import akka.NotUsed
 import akka.http.grpc._
 import akka.stream.scaladsl.{Flow, Source}
@@ -16,7 +19,7 @@ import io.grpc.testing.integration.test.TestService
 import io.grpc.testing.integration.messages._
 
 object TestServiceImpl {
-  val parametersToResponseFlow: Flow[ResponseParameters, StreamingOutputCallResponse, _] =
+  val parametersToResponseFlow: Flow[ResponseParameters, StreamingOutputCallResponse, NotUsed] =
     Flow[ResponseParameters]
       .map { parameters =>
         StreamingOutputCallResponse(
@@ -38,12 +41,12 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
   )
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
 
-  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse,Any] =
+  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
     in.mapConcat(_.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
 
-  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse,Any] = ???
+  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
-  override def streamingInputCall(in: Source[StreamingInputCallRequest, _]): Future[StreamingInputCallResponse] = {
+  override def streamingInputCall(in: Source[StreamingInputCallRequest, NotUsed]): Future[StreamingInputCallResponse] = {
     in
       .map(_.payload.map(_.body.size).getOrElse(0))
       .runFold(0)(_ + _)
@@ -51,7 +54,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
         StreamingInputCallResponse(sum)
       }
   }
-  override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, Any] =
+  override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, NotUsed] =
     Source(in.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
 
   override def unimplementedCall(in: Empty): Future[Empty] = ???

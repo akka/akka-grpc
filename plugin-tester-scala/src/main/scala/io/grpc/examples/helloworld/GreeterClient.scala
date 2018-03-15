@@ -10,6 +10,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 import akka.Done
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
@@ -81,15 +82,16 @@ object GreeterClient {
       }
 
       def streamingRequestReply(): Unit = {
-        val requestStream: Source[HelloRequest, _] =
+        val requestStream: Source[HelloRequest, NotUsed] =
           Source
             .tick(100.millis, 1.second, "tick")
             .zipWithIndex
             .map { case (_, i) => i }
             .map(i => HelloRequest(s"Alice-$i"))
             .take(10)
-        // FIXME mat value of streamHellos is Any?
-        val responseStream: Source[HelloReply, _] = client.streamHellos(requestStream)
+            .mapMaterializedValue(_ => NotUsed)
+
+        val responseStream: Source[HelloReply, NotUsed] = client.streamHellos(requestStream)
         val done: Future[Done] =
           responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
         Await.ready(done, 1.minute)
