@@ -1,19 +1,17 @@
 package akka.http.grpc
 
 import akka.NotUsed
-import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.stream.{ Attributes, Materializer }
+import akka.stream.Attributes
 import akka.stream.impl.io.ByteStringParser
-import akka.stream.impl.io.ByteStringParser.{ ParseResult, ParseStep }
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.impl.io.ByteStringParser.ParseResult
+import akka.stream.impl.io.ByteStringParser.ParseStep
+import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
-import com.trueaccord.scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Message }
-
-import scala.concurrent.{ ExecutionContext, Future }
+import com.trueaccord.scalapb.GeneratedMessage
+import com.trueaccord.scalapb.GeneratedMessageCompanion
+import com.trueaccord.scalapb.Message
 
 // TODO separate it into "runtime" library;
 // TODO go over ByteBuffers so we avoid copying?
@@ -47,11 +45,10 @@ object Grpc {
     }
   }
 
-  def grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] = {
+  val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] =
     Flow.fromGraph(new GrpcFramingDecoderStage)
-  }
 
-  class GrpcFramingDecoderStage extends ByteStringParser[ByteString] {
+  private class GrpcFramingDecoderStage extends ByteStringParser[ByteString] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new ParsingLogic {
       startWith(ReadFrameHeader)
 
