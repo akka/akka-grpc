@@ -17,28 +17,32 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http2
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
+import com.typesafe.config.ConfigFactory
 import io.grpc.internal.testing.TestUtils
 
 object GreeterServer {
 
   def main(args: Array[String]): Unit = {
-    implicit val sys: ActorSystem = ActorSystem()
+    // important to enable HTTP/2 in ActorSystem's config
+    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+      .withFallback(ConfigFactory.defaultApplication())
+    implicit val sys: ActorSystem = ActorSystem("HelloWorld", conf)
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
     val service: HttpRequest => Future[HttpResponse] = GreeterServiceHandler(new GreeterServiceImpl(mat))
 
-    Http2().bindAndHandleAsync(
+    Http().bindAndHandleAsync(
       service,
       interface = "127.0.0.1",
       port = 8080,
-      httpsContext = serverHttpContext()
+      connectionContext = serverHttpContext()
     )
     .foreach { binding =>
       println(s"GRPC server bound to: ${binding.localAddress}")

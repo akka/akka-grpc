@@ -69,14 +69,14 @@ Let's implement these 4 calls. Start by generating code from the `.proto` defini
 sbt
 :   @@@vars
 ```
-compile
+sbt compile
 ```
 @@@
 
 Gradle
 :   @@@vars
 ```
-TODO ???
+./gradlew build
 ```
 @@@
 
@@ -99,6 +99,11 @@ Scala
 Java
 :  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServer.java) { #full-server }
 
+Note that it's important to enable HTTP/2 in the configuration of the `ActorSystem`.
+
+```
+akka.http.server.preview.enable-http2 = on
+```
 
 
 

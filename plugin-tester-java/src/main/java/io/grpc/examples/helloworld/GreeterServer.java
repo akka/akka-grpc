@@ -8,6 +8,8 @@ import akka.http.javadsl.Http;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.grpc.internal.testing.TestUtils;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -26,7 +28,10 @@ import java.util.Base64;
 
 class GreeterServer {
   public static void main(String[] args) throws Exception {
-      ActorSystem sys = ActorSystem.create();
+      // important to enable HTTP/2 in ActorSystem's config
+      Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+        .withFallback(ConfigFactory.defaultApplication());
+      ActorSystem sys = ActorSystem.create("HelloWorld", conf);
       Materializer mat = ActorMaterializer.create(sys);
 
       GreeterService impl = new GreeterServiceImpl(mat);

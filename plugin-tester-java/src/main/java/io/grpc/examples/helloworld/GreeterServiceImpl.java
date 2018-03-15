@@ -31,7 +31,9 @@ public class GreeterServiceImpl implements GreeterService {
     System.out.println("sayHello to in stream...");
     return in.runWith(Sink.seq(), mat)
       .thenApply(elements -> {
-        return HelloReply.newBuilder().setMessage("Hello, " + elements).build();
+        String elementsStr = elements.stream().map(elem -> elem.getName())
+            .collect(Collectors.toList()).toString();
+        return HelloReply.newBuilder().setMessage("Hello, " + elementsStr).build();
       });
   }
 
