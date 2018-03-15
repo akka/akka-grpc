@@ -13,4 +13,6 @@ class GreeterImpl extends Greeter {
   override def streamHellos(in: Source[HelloRequest, _]): Future[HelloReply] = ???
 
   override def itKeepsTalking(in: Source[HelloRequest,_]): Future[HelloReply] = ???
+
+  override def itKeepsReplying(in: HelloRequest): Source[HelloReply, Any] = ???
 }
