@@ -5,3 +5,4 @@ target
 /plugin-tester-java/build
 /plugin-tester-scala/.gradle
 /plugin-tester-scala/build
+.DS_Store
