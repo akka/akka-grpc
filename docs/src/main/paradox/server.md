@@ -104,4 +104,18 @@ Java
 
 ## Running
 
+sbt
+:   @@@vars
+```
+runMain io.grpc.examples.helloworld.GreeterServer
+```
+@@@
+
+Gradle
+:   @@@vars
+```
+TODO ???
+```
+@@@
+
 TODO describe java-agent
