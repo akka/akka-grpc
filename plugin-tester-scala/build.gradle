@@ -1,6 +1,7 @@
 plugins {
   id 'com.google.protobuf' version '0.8.4'
   id 'scala'
+  id 'application'
 }
 
 ext {

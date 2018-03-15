@@ -119,7 +119,7 @@ runMain io.grpc.examples.helloworld.GreeterServer
 Gradle
 :   @@@vars
 ```
-TODO ???
+./gradlew run
 ```
 @@@
 
