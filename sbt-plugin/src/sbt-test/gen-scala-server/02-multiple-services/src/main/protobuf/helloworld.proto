@@ -13,6 +13,8 @@ service Greeter {
 
     rpc ItKeepsTalking (stream HelloRequest) returns (HelloReply) {}
 
+    rpc ItKeepsReplying (HelloRequest) returns (stream HelloReply) {}
+
     rpc StreamHellos (stream HelloRequest) returns (HelloReply) {}
 }
 
