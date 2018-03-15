@@ -106,3 +106,18 @@ Gradle
 @@@
 
 TODO describe java-agent
+
+### Debug logging
+
+To enable fine grained debug running the following logging configuration can be used.
+
+Put this in a file `grpc-debug-logging.properties`:
+
+```
+handlers=java.util.logging.ConsoleHandler
+io.grpc.netty.level=FINE
+java.util.logging.ConsoleHandler.level=FINE
+java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
+```
+
+Run with `-Djava.util.logging.config.file=/path/to/grpc-debug-logging.properties`.
