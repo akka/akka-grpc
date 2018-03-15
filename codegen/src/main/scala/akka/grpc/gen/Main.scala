@@ -1,10 +1,9 @@
 package akka.grpc.gen
 
-import java.io.{ BufferedOutputStream, ByteArrayOutputStream }
-
-import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
+import java.io.ByteArrayOutputStream
 
 import akka.http.grpc._
+import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 
 object Main extends App {
 
@@ -25,7 +24,6 @@ object Main extends App {
     if (req.getParameter.toLowerCase.contains("language=scala")) ScalaServerCodeGenerator.run(req)
     else JavaServerCodeGenerator.run(req)
 
-  val bos = new BufferedOutputStream(System.out)
-  bos.write(out.toByteArray)
-  bos.flush()
+  System.out.write(out.toByteArray)
+  System.out.flush()
 }
