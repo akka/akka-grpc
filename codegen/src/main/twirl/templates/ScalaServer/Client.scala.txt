@@ -72,18 +72,10 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
 }
 
 @mapMethodType(methodType: akka.http.grpc.MethodType) = {
-  @if(methodType == akka.http.grpc.Unary) {
-  MethodDescriptor.MethodType.UNARY
-  }
-  @if(methodType == akka.http.grpc.ClientStreaming) {
-  MethodDescriptor.MethodType.CLIENT_STREAMING
-  }
-  @if(methodType == akka.http.grpc.ServerStreaming) {
-  MethodDescriptor.MethodType.SERVER_STREAMING
-  }
-  @if(methodType == akka.http.grpc.BidiStreaming) {
-  MethodDescriptor.MethodType.BIDI_STREAMING
-  }
+  @if(methodType == akka.http.grpc.Unary) { MethodDescriptor.MethodType.UNARY }
+  @if(methodType == akka.http.grpc.ClientStreaming) {MethodDescriptor.MethodType.CLIENT_STREAMING }
+  @if(methodType == akka.http.grpc.ServerStreaming) { MethodDescriptor.MethodType.SERVER_STREAMING }
+  @if(methodType == akka.http.grpc.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
 object @{service.name}Client {

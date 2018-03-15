@@ -9,10 +9,7 @@ import akka.stream.scaladsl.Source
 
 trait @{service.name} {
   @for(method <- service.methods) {
-  def @{method.name}(
-    in: @method.parameterType
-  ):
-    @method.returnType
+  def @{method.name}(in: @method.parameterType): @method.returnType
   }
 }
 
