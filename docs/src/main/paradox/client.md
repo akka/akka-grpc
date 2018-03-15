@@ -77,7 +77,7 @@ compile
 Gradle
 :   @@@vars
 ```
-TODO ???
+./gradlew build
 ```
 @@@
 
@@ -101,7 +101,7 @@ runMain io.grpc.examples.helloworld.GreeterClient
 Gradle
 :   @@@vars
 ```
-TODO ???
+./gradlew run
 ```
 @@@
 
