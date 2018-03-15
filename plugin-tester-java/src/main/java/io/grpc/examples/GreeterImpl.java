@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 
 import akka.stream.javadsl.Source;
 
-public class GreeterServiceImpl implements GreeterService {
+public class GreeterImpl implements Greeter {
   @Override
   public CompletableFuture<io.grpc.examples.HelloReply> sayHello(io.grpc.examples.HelloRequest in) {
     throw new UnsupportedOperationException();
