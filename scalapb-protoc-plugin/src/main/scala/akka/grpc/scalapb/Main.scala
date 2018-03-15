@@ -1,10 +1,6 @@
 package akka.grpc.scalapb
 
-import java.io.{ BufferedOutputStream, ByteArrayOutputStream }
-
-import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
-import akka.http.grpc._
-import com.google.protobuf.compiler.plugin.CodeGeneratorResponse
+import java.io.ByteArrayOutputStream
 
 import scalapb.ScalaPbCodeGenerator
 
@@ -24,7 +20,6 @@ object Main extends App {
 
   val outBytes = ScalaPbCodeGenerator.run(inBytes)
 
-  val bos = new BufferedOutputStream(System.out)
-  bos.write(outBytes)
-  bos.flush()
+  System.out.write(outBytes)
+  System.out.flush()
 }
