@@ -6,6 +6,8 @@ import Keys._
 import akka.http.grpc.scaladsl.ScalaServerCodeGenerator
 import sbtprotoc.ProtocPlugin
 
+import scalapb.ScalaPbCodeGenerator
+
 object AkkaGrpcPlugin extends AutoPlugin {
   import sbtprotoc.ProtocPlugin.autoImport._
 
@@ -14,7 +16,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   override def requires = ProtocPlugin
 
   trait Keys { _: autoImport.type =>
-    // these are on purpose not just sbt source generators, we plug them into the existing infrastructure of sbt-protoc
+    val codeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
     val akkaGrpcCodeGenerators = settingKey[Seq[GeneratorAndSettings]]("The configured source generator")
     val akkaGrpcModelGenerators = settingKey[Seq[Target]]("The configured source generator for model classes")
 
@@ -28,8 +30,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   def configSettings(config: Configuration): Seq[Setting[_]] = {
     inConfig(config)(Seq(
-      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator) :: Nil,
-      akkaGrpcModelGenerators := Seq[Target](scalapb.gen(grpc = false) -> sourceManaged.value),
+      codeGeneratorSettings := Seq.empty,
+      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, codeGeneratorSettings.value) :: Nil,
+      akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings.value) -> sourceManaged.value),
 
       // we configure the proto gen automatically by adding our codegen:
       PB.targets :=

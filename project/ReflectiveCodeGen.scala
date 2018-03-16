@@ -36,7 +36,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       mutableGenerator in Compile := createMutableGenerator(),
       PB.targets in Compile := Seq(
         // Scala model classes:
-        scalapb.gen(grpc = false) -> (sourceManaged in Compile).value,
+        scalapb.gen(grpc = false, flatPackage = false) -> (sourceManaged in Compile).value,
         // Java model classes:
         PB.gens.java -> (sourceManaged in Compile).value,
         // akka-grpc code:
