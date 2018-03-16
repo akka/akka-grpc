@@ -50,7 +50,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       PB.recompile in Compile ~= (_ => true)
     )
 
-  case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
+  final case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
   val mutableGenerator = settingKey[MutableGeneratorAccess]("mutable Gens for test")
 

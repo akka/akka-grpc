@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
 
-case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
+final case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
 }
 object Service {

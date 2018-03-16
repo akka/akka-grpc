@@ -3,7 +3,7 @@ package akka.http.grpc.javadsl
 import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
 import akka.http.grpc._
 
-case class Method(name: String,
+final case class Method(name: String,
                   grpcName: String,
                   inputType: Descriptor,
                   inputStreaming: Boolean,

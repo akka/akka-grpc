@@ -20,7 +20,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   }
   object autoImport extends Keys {
-    case class GeneratorAndSettings(generator: akka.grpc.gen.CodeGenerator, settings: Seq[String] = Nil)
+    final case class GeneratorAndSettings(generator: akka.grpc.gen.CodeGenerator, settings: Seq[String] = Nil)
   }
   import autoImport._
 
