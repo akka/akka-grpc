@@ -18,7 +18,7 @@ object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] =
     (req.entity.getDataBytes via Grpc.grpcFramingDecoder).map(u.deserialize).runWith(Sink.head[T], mat)
 
-  def unmarshalStream[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[Source[T, Object]] = {
+  def unmarshalStream[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
     CompletableFuture.completedFuture(
       req.entity.getDataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)

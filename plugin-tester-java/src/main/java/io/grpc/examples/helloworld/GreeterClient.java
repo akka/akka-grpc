@@ -90,15 +90,14 @@ class GreeterClient {
     List<HelloRequest> requests = Arrays.asList("Alice", "Bob", "Peter")
         .stream().map(name -> HelloRequest.newBuilder().setName(name).build())
         .collect(Collectors.toList());
-    CompletionStage<HelloReply> reply = client.itKeepsTalking(Source.from(requests)
-        .mapMaterializedValue(m -> NotUsed.getInstance()));// FIXME not nice, issue #84
+    CompletionStage<HelloReply> reply = client.itKeepsTalking(Source.from(requests));
     System.out.println("got single reply for streaming requests: " +
         reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
   }
 
   private static void streamingReply(GreeterService client, Materializer mat) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
-    Source<HelloReply, Object> responseStream = client.itKeepsReplying(request);
+    Source<HelloReply, NotUsed> responseStream = client.itKeepsReplying(request);
     CompletionStage<Done> done =
       responseStream.runForeach(reply ->
         System.out.println("got streaming reply: " + reply.getMessage()), mat);
@@ -108,15 +107,15 @@ class GreeterClient {
 
   private static void streamingRequestReply(GreeterService client, Materializer mat) throws Exception {
     FiniteDuration interval = Duration.create(100, TimeUnit.SECONDS);
-    Source<HelloRequest, Object> requestStream = Source
+    Source<HelloRequest, NotUsed> requestStream = Source
       .tick(interval, interval, "tick")
       .zipWithIndex()
       .map(pair -> pair.second())
       .map(i -> HelloRequest.newBuilder().setName("Alice-" + i).build())
       .take(10)
-      .mapMaterializedValue(m -> NotUsed.getInstance()); //issue #84
+      .mapMaterializedValue(m -> NotUsed.getInstance());
 
-    Source<HelloReply, Object> responseStream = client.streamHellos(requestStream);
+    Source<HelloReply, NotUsed> responseStream = client.streamHellos(requestStream);
     CompletionStage<Done> done =
       responseStream.runForeach(reply ->
         System.out.println("got streaming reply: " + reply.getMessage()), mat);

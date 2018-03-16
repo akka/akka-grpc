@@ -3,6 +3,8 @@ package com.lightbend.grpc.interop
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.collection.immutable
+
+import akka.NotUsed
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.stream.Materializer
 import com.google.protobuf.ByteString
@@ -33,12 +35,12 @@ class TestServiceImpl(implicit mat: Materializer) extends TestService {
       Some(Payload(req.responseType, ByteString.copyFrom(new Array[Byte](req.responseSize))))))
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
 
-  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse, Any] =
+  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
     in.mapConcat(_.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
 
-  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, _]): Source[StreamingOutputCallResponse, Any] = ???
+  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
-  override def streamingInputCall(in: Source[StreamingInputCallRequest, _]): Future[StreamingInputCallResponse] = {
+  override def streamingInputCall(in: Source[StreamingInputCallRequest, NotUsed]): Future[StreamingInputCallResponse] = {
     in
       .map(_.payload.map(_.body.size).getOrElse(0))
       .runFold(0)(_ + _)
@@ -46,7 +48,7 @@ class TestServiceImpl(implicit mat: Materializer) extends TestService {
         StreamingInputCallResponse(sum)
       }
   }
-  override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, Any] =
+  override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, NotUsed] =
     Source(in.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
 
   override def unimplementedCall(in: Empty): Future[Empty] = ???

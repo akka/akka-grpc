@@ -3,6 +3,7 @@ package com.lightbend.grpc.interop;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletableFuture;
 
+import akka.NotUsed;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Source;
@@ -17,7 +18,7 @@ import io.grpc.testing.integration.TestService;
 public class JavaTestServiceImpl implements TestService {
   private final Materializer mat;
 
-  private static final Flow<ResponseParameters, StreamingOutputCallResponse, ?> parametersToResponseFlow =
+  private static final Flow<ResponseParameters, StreamingOutputCallResponse, NotUsed> parametersToResponseFlow =
     Flow.<ResponseParameters>create()
       .map(parameters ->
       StreamingOutputCallResponse.newBuilder()
@@ -56,14 +57,14 @@ public class JavaTestServiceImpl implements TestService {
   }
 
   @Override
-  public Source<StreamingOutputCallResponse, Object> streamingOutputCall(StreamingOutputCallRequest in) {
+  public Source<StreamingOutputCallResponse, NotUsed> streamingOutputCall(StreamingOutputCallRequest in) {
     return Source.from(in.getResponseParametersList())
       .via(parametersToResponseFlow)
       .mapMaterializedValue(x -> x);
   }
 
   @Override
-  public CompletionStage<StreamingInputCallResponse> streamingInputCall(Source<StreamingInputCallRequest, Object> in) {
+  public CompletionStage<StreamingInputCallResponse> streamingInputCall(Source<StreamingInputCallRequest, NotUsed> in) {
     return in
       .map(i -> i.getPayload().getBody().size())
       .runFold(0, (Integer x, Integer y)->x+y, mat)
@@ -72,7 +73,7 @@ public class JavaTestServiceImpl implements TestService {
 
 
   @Override
-  public Source<StreamingOutputCallResponse, Object> fullDuplexCall(Source<StreamingOutputCallRequest, Object> in) {
+  public Source<StreamingOutputCallResponse, NotUsed> fullDuplexCall(Source<StreamingOutputCallRequest, NotUsed> in) {
     return in
       .mapConcat(r -> r.getResponseParametersList())
       .via(parametersToResponseFlow);
@@ -80,7 +81,7 @@ public class JavaTestServiceImpl implements TestService {
 
 
   @Override
-  public Source<StreamingOutputCallResponse, Object> halfDuplexCall(Source<StreamingOutputCallRequest, Object> in) {
+  public Source<StreamingOutputCallResponse, NotUsed> halfDuplexCall(Source<StreamingOutputCallRequest, NotUsed> in) {
     return null;
   }
 
