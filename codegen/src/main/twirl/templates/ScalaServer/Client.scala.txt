@@ -1,4 +1,4 @@
-@(service: akka.http.grpc.Service)
+@(service: akka.http.grpc.scaladsl.Service)
 
 package @service.packageName
 

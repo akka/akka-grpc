@@ -1,6 +1,6 @@
-@(service: akka.http.grpc.Service)
+@(service: akka.http.grpc.javadsl.Service)
 
-package @service.getPackageName;
+package @service.packageName;
 
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
@@ -17,7 +17,7 @@ import akka.http.grpc.javadsl.GrpcExceptionHandler;
 
 public class @{service.name}HandlerFactory {
   @for(serializer <- service.serializers) {
-  static ProtobufSerializer<@{serializer.getMessageType}> @serializer.name = @serializer.getInit();
+  static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
   }
 
   public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {

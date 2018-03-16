@@ -1,6 +1,6 @@
-@(service: akka.http.grpc.Service)
+@(service: akka.http.grpc.javadsl.Service)
 
-package @service.getPackageName;
+package @service.packageName;
 
 import java.util.concurrent.CompletionStage;
 

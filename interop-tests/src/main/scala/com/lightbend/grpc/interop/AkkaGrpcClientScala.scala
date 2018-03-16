@@ -7,7 +7,7 @@ import io.grpc.testing.integration2.{ ClientTester, Settings, TestServiceClient 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 
-case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ExecutionContext => ClientTester) extends GrpcClient {
+final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ExecutionContext => ClientTester) extends GrpcClient {
 
   override def run(args: Array[String]): Unit = {
     Util.installConscryptIfAvailable()

@@ -1,6 +1,8 @@
 package akka.http.grpc
 
 import akka.grpc.gen.CodeGenerator
+import akka.http.grpc.javadsl.JavaServerCodeGenerator
+import akka.http.grpc.scaladsl.ScalaServerCodeGenerator
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact

@@ -65,7 +65,7 @@ object Grpc {
         }
       }
 
-      case class ReadFrame(compression: Boolean, length: Int) extends Step {
+      final case class ReadFrame(compression: Boolean, length: Int) extends Step {
         override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] = {
           // todo handle compression
           ParseResult(Some(reader.take(length)), ReadFrameHeader)

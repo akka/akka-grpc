@@ -2,7 +2,7 @@ package io.grpc.testing.integration2
 
 import io.grpc.testing.integration.TestCases
 
-case class Settings(
+final case class Settings(
   serverHost: String,
   serverHostOverride: String,
   serverPort: Int,

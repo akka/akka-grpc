@@ -1,6 +1,6 @@
 package akka.grpc.sbt
 
-import akka.http.grpc.ScalaServerCodeGenerator
+import akka.http.grpc.scaladsl.ScalaServerCodeGenerator
 
 /** An easy to use accessor to be used reflectively in the main sbt project */
 class AkkaScalaServerGrpcCodeGenerator {

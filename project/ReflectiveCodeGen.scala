@@ -36,7 +36,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       mutableGenerator in Compile := createMutableGenerator(),
       PB.targets in Compile := Seq(
         // Scala model classes:
-        scalapb.gen(grpc = false) -> (sourceManaged in Compile).value,
+        scalapb.gen(grpc = false, flatPackage = false) -> (sourceManaged in Compile).value,
         // Java model classes:
         PB.gens.java -> (sourceManaged in Compile).value,
         // akka-grpc code:
@@ -50,7 +50,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       PB.recompile in Compile ~= (_ => true)
     )
 
-  case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
+  final case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
   val mutableGenerator = settingKey[MutableGeneratorAccess]("mutable Gens for test")
 
