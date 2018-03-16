@@ -25,5 +25,11 @@ javaAgents ++= Seq(
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
+// By default we enable the 'flat_package' option by default to get package names
+// that are more consistent between Scala and Java.
+// Because the interop tests generate both Scala and Java code, however, here we disable this
+// option to avoid name clashes in the generated classes:
+(codeGeneratorSettings in Compile) := Seq.empty
+
 (akkaGrpcCodeGenerators in Compile) += GeneratorAndSettings(JavaServerCodeGenerator)
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value

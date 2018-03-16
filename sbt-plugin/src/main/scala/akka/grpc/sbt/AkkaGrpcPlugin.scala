@@ -30,7 +30,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   def configSettings(config: Configuration): Seq[Setting[_]] = {
     inConfig(config)(Seq(
-      codeGeneratorSettings := Seq.empty,
+      codeGeneratorSettings := Seq("flat_package"),
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, codeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings.value) -> sourceManaged.value),
 
