@@ -131,14 +131,7 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
   val client = IoGrpcClient
 }
 
-trait AkkaHttpServerProvider extends GrpcServerProvider {
-  val pendingCases =
-    Set(
-      "custom_metadata",
-      "status_code_and_message",
-      "client_compressed_unary",
-      "client_compressed_streaming")
-}
+trait AkkaHttpServerProvider extends GrpcServerProvider
 
 trait AkkaHttpClientProvider extends GrpcClientProvider {
   val label: String = "akka-grpc client tester"
