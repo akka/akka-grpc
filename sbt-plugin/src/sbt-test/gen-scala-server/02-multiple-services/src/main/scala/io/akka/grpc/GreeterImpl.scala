@@ -1,11 +1,9 @@
-package io.akka.grpc.helloworld
+package io.akka.grpc
 
 import scala.concurrent.Future
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-
-import io.akka.grpc.helloworld._
 
 class GreeterImpl extends Greeter {
   override def sayHello(in: HelloRequest): Future[HelloReply] = ???
@@ -15,5 +13,4 @@ class GreeterImpl extends Greeter {
   override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = ???
 
   override def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = ???
-
 }

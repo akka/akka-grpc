@@ -7,8 +7,16 @@ import ProtocPlugin.autoImport.PB
 import protocbridge.{Artifact, Generator, JvmGenerator, Target}
 import sbt.internal.inc.classpath.ClasspathUtilities
 
+import scalapb.ScalaPbCodeGenerator
+
 /** A plugin that allows to use a code generator compiled in one subproject to be used in a test project */
 object ReflectiveCodeGen extends AutoPlugin {
+  // In the 'real' plugin we enable the 'flat_package' option by default to get package names
+  // that are more consistent between Scala and Java.
+  // Because the interop tests generate both Scala and Java code, however, here we disable this
+  // option to avoid name clashes in the generated classes:
+  val codeGeneratorSettings = Seq.empty
+
   override def projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(Seq(
       PB.generate :=
@@ -36,7 +44,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       mutableGenerator in Compile := createMutableGenerator(),
       PB.targets in Compile := Seq(
         // Scala model classes:
-        scalapb.gen(grpc = false, flatPackage = false) -> (sourceManaged in Compile).value,
+        (JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings) -> (sourceManaged in Compile).value,
         // Java model classes:
         PB.gens.java -> (sourceManaged in Compile).value,
         // akka-grpc code:
@@ -62,7 +70,7 @@ object ReflectiveCodeGen extends AutoPlugin {
         if (_underlying ne null)
           try _underlying.run(request)
           finally { _underlying = null }
-        else throw new IllegalStateException(s"Didn't set mutable generator")
+        else throw new IllegalStateException("Didn't set mutable generator")
 
       override def suggestedDependencies: Seq[Artifact] =
         if (_underlying ne null) _underlying.suggestedDependencies
@@ -72,13 +80,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     }
 
     val adapted = new MutableProtocCodeGenerator
-    val generator = JvmGenerator(s"mutable", adapted)
-    val settings: Seq[String] = Seq(
-      "flat_package" -> false,
-      "java_conversions" -> false,
-      "single_line_to_string" -> false).collect { case (settingName, v) if v => settingName }
-
-    MutableGeneratorAccess(adapted.setUnderlying _, (generator, settings))
+    MutableGeneratorAccess(adapted.setUnderlying _, (JvmGenerator("mutable", adapted), codeGeneratorSettings))
   }
 
   def loadAndSetGenerator(classpath: Classpath, access: MutableGeneratorAccess): Unit = {

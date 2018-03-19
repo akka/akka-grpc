@@ -1,4 +1,4 @@
-package io.akka.grpc.echo
+package io.akka.grpc
 
 import scala.concurrent.Future
 
