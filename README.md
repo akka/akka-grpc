@@ -4,8 +4,18 @@ Support for building streaming gRPC servers and clients on top
 of Akka Streams.
 
 This library is meant to be used as a building block in projects using the Akka
-toolkit. A play-grpc module to make this easy to use in a web application based
-on the Play framework is in the works.
+toolkit.
+
+## Status
+
+This library is in preview mode: basic functionality is in place, but API's and
+build system plugins are still expected to be improved. The client side is
+currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
+we plan to replace this by [io.grpc:grpc-core](https://mvnrepository.com/artifact/io.grpc/grpc-core) and Akka HTTP.
+
+As for performance, we are currently relying on the JVM TLS implementation,
+which is sufficient for many use cases, but is planned to be replaced with
+[conscrypt](https://github.com/google/conscrypt) or [netty-tcnative](https://netty.io/wiki/forked-tomcat-native.html).
 
 ## General overview
 
