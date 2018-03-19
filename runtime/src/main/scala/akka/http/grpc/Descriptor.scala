@@ -29,20 +29,21 @@ class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion
 object Grpc {
   val contentType = MediaType.applicationBinary("grpc+proto", MediaType.NotCompressible).toContentType
 
+  // Flag to signal the start of an uncompressed frame
   val notCompressed = ByteString(0)
 
   def grpcFramingEncoder: Flow[ByteString, ByteString, NotUsed] = {
-    Flow[ByteString].map { frame =>
+    Flow[ByteString].map(encodeFrame)
+  }
 
-      // todo handle compression
-
-      val length = frame.size
-      notCompressed ++ ByteString(
-        (length >> 24).toByte,
-        (length >> 16).toByte,
-        (length >> 8).toByte,
-        length.toByte) ++ frame
-    }
+  def encodeFrame(frame: ByteString): ByteString = {
+    // TODO handle compression
+    val length = frame.size
+    notCompressed ++ ByteString(
+      (length >> 24).toByte,
+      (length >> 16).toByte,
+      (length >> 8).toByte,
+      length.toByte) ++ frame
   }
 
   val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] =
