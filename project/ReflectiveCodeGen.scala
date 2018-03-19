@@ -70,7 +70,7 @@ object ReflectiveCodeGen extends AutoPlugin {
         if (_underlying ne null)
           try _underlying.run(request)
           finally { _underlying = null }
-        else throw new IllegalStateException(s"Didn't set mutable generator")
+        else throw new IllegalStateException("Didn't set mutable generator")
 
       override def suggestedDependencies: Seq[Artifact] =
         if (_underlying ne null) _underlying.suggestedDependencies
@@ -80,7 +80,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     }
 
     val adapted = new MutableProtocCodeGenerator
-    MutableGeneratorAccess(adapted.setUnderlying _, (JvmGenerator(s"mutable", adapted), codeGeneratorSettings))
+    MutableGeneratorAccess(adapted.setUnderlying _, (JvmGenerator("mutable", adapted), codeGeneratorSettings))
   }
 
   def loadAndSetGenerator(classpath: Classpath, access: MutableGeneratorAccess): Unit = {
