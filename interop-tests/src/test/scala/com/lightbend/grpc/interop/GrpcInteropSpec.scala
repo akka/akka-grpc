@@ -38,8 +38,8 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
       val impl = TestServiceHandler(new TestServiceImpl())
 
-      val route: Route = (pathPrefix(TestService.name) & echoHeaders & extractRequest) { request ⇒
-        complete(impl(request))
+      val route: Route = (pathPrefix(TestService.name) & echoHeaders) {
+        handleWith(impl)
       }
 
       Route.asyncHandler(Route.seal(route))
