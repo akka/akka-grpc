@@ -28,17 +28,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   override def projectSettings = configSettings(Compile) ++ configSettings(Test)
 
-  def configSettings(config: Configuration): Seq[Setting[_]] = {
+  def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
       codeGeneratorSettings := Seq("flat_package"),
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, codeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings.value) -> sourceManaged.value),
-
       // we configure the proto gen automatically by adding our codegen:
       PB.targets :=
         akkaGrpcModelGenerators.value ++
         akkaGrpcCodeGenerators.value.map(adaptAkkaGenerator(sourceManaged.value))))
-  }
 
   def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
     val adapted = new ProtocBridgeSbtPluginCodeGenerator(generatorAndSettings.generator)

@@ -1,4 +1,5 @@
 import akka.http.grpc.javadsl.JavaServerCodeGenerator
+import akka.http.grpc.scaladsl.ScalaBothCodeGenerator
 import protocbridge.Target
 
 organization := "com.lightbend.akka.grpc"
@@ -31,5 +32,5 @@ enablePlugins(AkkaGrpcPlugin)
 // option to avoid name clashes in the generated classes:
 (codeGeneratorSettings in Compile) := (codeGeneratorSettings in Compile).value.filterNot(_ == "flat_package")
 
-(akkaGrpcCodeGenerators in Compile) += GeneratorAndSettings(JavaServerCodeGenerator)
+(akkaGrpcCodeGenerators in Compile) := Seq(GeneratorAndSettings(JavaServerCodeGenerator, (codeGeneratorSettings in Compile).value), GeneratorAndSettings(ScalaBothCodeGenerator, (codeGeneratorSettings in Compile).value))
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value
