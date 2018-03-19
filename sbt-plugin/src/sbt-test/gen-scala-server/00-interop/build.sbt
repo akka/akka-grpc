@@ -29,7 +29,7 @@ enablePlugins(AkkaGrpcPlugin)
 // that are more consistent between Scala and Java.
 // Because the interop tests generate both Scala and Java code, however, here we disable this
 // option to avoid name clashes in the generated classes:
-(codeGeneratorSettings in Compile) := Seq.empty
+(codeGeneratorSettings in Compile) := (codeGeneratorSettings in Compile).value.filterNot(_ == "flat_package")
 
 (akkaGrpcCodeGenerators in Compile) += GeneratorAndSettings(JavaServerCodeGenerator)
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value
