@@ -18,7 +18,7 @@ import io.grpc.testing.integration.test.TestService
 import io.grpc.testing.integration.messages._
 
 object TestServiceImpl {
-  val parametersToResponseFlow: Flow[ResponseParameters, StreamingOutputCallResponse, _] =
+  val parametersToResponseFlow: Flow[ResponseParameters, StreamingOutputCallResponse, NotUsed] =
     Flow[ResponseParameters]
       .map { parameters =>
         StreamingOutputCallResponse(

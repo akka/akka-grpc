@@ -52,7 +52,13 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
 
   override def fullDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
-    in.mapConcat(_.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
+    in.map(req => {
+      req.responseStatus.foreach(reqStatus =>
+        throw new GrpcServiceException(
+          Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
+      req
+    }).mapConcat(
+      _.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
 
   override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
