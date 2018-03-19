@@ -71,6 +71,7 @@ object Dependencies {
 
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting,
+    Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }

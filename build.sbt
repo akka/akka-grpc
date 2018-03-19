@@ -105,6 +105,16 @@ lazy val interopTests = Project(
   .enablePlugins(akka.ReflectiveCodeGen)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
+  // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
+  // * google/protobuf/empty.proto
+  // * io/grpc/testing/integration/empty.proto
+  // They have different "java_outer_classname" options, but scalapb does not look at it:
+  // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
+  // Therefore we exclude it here.
+  .settings(
+    excludeFilter in PB.generate := new SimpleFileFilter(
+      (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
+  )
   .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
 
 lazy val docs = Project(

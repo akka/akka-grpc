@@ -33,10 +33,14 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
-      // we configure the proto gen automatically by adding our codegen:
+
+      // configure the proto gen automatically by adding our codegen:
       PB.targets :=
         akkaGrpcModelGenerators.value ++
-        akkaGrpcCodeGenerators.value.map(adaptAkkaGenerator(sourceManaged.value))))
+        akkaGrpcCodeGenerators.value.map(adaptAkkaGenerator(sourceManaged.value)),
+
+      // include proto files extracted from the dependencies with "protobuf" configuration by default
+      PB.protoSources += PB.externalIncludePath.value))
 
   def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
     val adapted = new ProtocBridgeSbtPluginCodeGenerator(generatorAndSettings.generator)
