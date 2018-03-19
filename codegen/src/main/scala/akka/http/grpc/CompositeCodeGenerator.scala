@@ -16,12 +16,12 @@ object CompositeCodeGenerator extends CodeGenerator {
 
   override def run(request: PluginProtos.CodeGeneratorRequest): PluginProtos.CodeGeneratorResponse = {
     val javaResult = JavaServerCodeGenerator.run(request)
-    val scalaServerResult = ScalaBothCodeGenerator.run(request)
+    val scalaResult = ScalaBothCodeGenerator.run(request)
     println(javaResult.getFileList.asScala.map(_.getName))
-    println(scalaServerResult.getFileList.asScala.map(_.getName))
+    println(scalaResult.getFileList.asScala.map(_.getName))
     CodeGeneratorResponse.newBuilder()
       .addAllFile(javaResult.getFileList)
-      .addAllFile(scalaServerResult.getFileList)
+      .addAllFile(scalaResult.getFileList)
       .build()
   }
 
