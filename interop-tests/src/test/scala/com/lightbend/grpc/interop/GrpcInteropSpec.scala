@@ -38,24 +38,8 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
       val impl = TestServiceHandler(new TestServiceImpl())
 
-      val route: Route = (pathPrefix(TestService.name) & extractRequest) { request ⇒
-        val initalHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-initial")
-        val trailingHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-trailing-bin")
-
-        complete(impl(request).map(response ⇒
-          HttpResponse(
-            response.status,
-            response.headers ++ initalHeaderToEcho,
-            (trailingHeaderToEcho, response.entity) match {
-              case (Some(hdr), HttpEntity.Chunked(contentType, data)) ⇒
-                HttpEntity.Chunked(contentType, data.map {
-                  case chunk: HttpEntity.Chunk ⇒ chunk
-                  case last: HttpEntity.LastChunk ⇒ HttpEntity.LastChunk(last.extension, last.trailer ++ trailingHeaderToEcho)
-                })
-              case _ ⇒
-                response.entity
-            },
-            response.protocol)))
+      val route: Route = (pathPrefix(TestService.name) & echoHeaders & extractRequest) { request ⇒
+        complete(impl(request))
       }
 
       Route.asyncHandler(Route.seal(route))
