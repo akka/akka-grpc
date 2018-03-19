@@ -16,11 +16,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
   override def requires = ProtocPlugin
 
   trait Keys { _: autoImport.type =>
-    val codeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
+    val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
     val akkaGrpcCodeGenerators = settingKey[Seq[GeneratorAndSettings]]("The configured source generator")
     val akkaGrpcModelGenerators = settingKey[Seq[Target]]("The configured source generator for model classes")
-
   }
+
   object autoImport extends Keys {
     final case class GeneratorAndSettings(generator: akka.grpc.gen.CodeGenerator, settings: Seq[String] = Nil)
   }
@@ -30,9 +30,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
-      codeGeneratorSettings := Seq("flat_package"),
-      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, codeGeneratorSettings.value) :: Nil,
-      akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings.value) -> sourceManaged.value),
+      akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
+      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil,
+      akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
       // we configure the proto gen automatically by adding our codegen:
       PB.targets :=
         akkaGrpcModelGenerators.value ++
