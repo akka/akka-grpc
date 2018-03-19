@@ -10,8 +10,8 @@ toolkit.
 
 This library is in preview mode: basic functionality is in place, but API's and
 build system plugins are still expected to be improved. The client side is
-currently implemented on top of [io.grpc:grpc-netty-shaded](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22grpc-netty-shaded%22),
-we plan to replace this by [io.grpc:grpc-core](http://search.maven.org/#search|ga|1|a%3A%22grpc-core%22) and Akka HTTP.
+currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
+we plan to replace this by [io.grpc:grpc-core](https://mvnrepository.com/artifact/io.grpc/grpc-core) and Akka HTTP.
 
 As for performance, we are currently relying on the JVM TLS implementation,
 which is sufficient for many use cases, but is planned to be replaced with
