@@ -115,7 +115,8 @@ object IoGrpcJavaServerProvider extends GrpcServerProvider {
   val pendingCases =
     Set(
       "client_compressed_unary",
-      "client_compressed_streaming")
+      "client_compressed_streaming",
+    )
 
   val server = IoGrpcServer
 }
@@ -125,8 +126,8 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
   val pendingCases =
     Set(
-      "client_compressed_unary",
-      "client_compressed_streaming")
+      "client_compressed_streaming",
+    )
 
   val client = IoGrpcClient
 }

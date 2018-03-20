@@ -9,23 +9,7 @@ import akka.stream.impl.io.ByteStringParser.ParseStep
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
-import com.trueaccord.scalapb.GeneratedMessage
-import com.trueaccord.scalapb.GeneratedMessageCompanion
-import com.trueaccord.scalapb.Message
 
-// TODO separate it into "runtime" library;
-// TODO go over ByteBuffers so we avoid copying?
-trait ProtobufSerializer[T] {
-  def serialize(t: T): ByteString
-  def deserialize(bytes: ByteString): T
-}
-
-class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion: GeneratedMessageCompanion[T]) extends ProtobufSerializer[T] {
-  override def serialize(t: T) = ByteString(companion.toByteArray(t))
-  override def deserialize(bytes: ByteString): T = companion.parseFrom(bytes.iterator.asInputStream)
-}
-
-// TODO separate it into "runtime" library;
 object Grpc {
   val contentType = MediaType.applicationBinary("grpc+proto", MediaType.NotCompressible).toContentType
 

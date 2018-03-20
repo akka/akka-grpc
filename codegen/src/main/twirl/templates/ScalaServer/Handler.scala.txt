@@ -4,7 +4,7 @@ package @service.packageName
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-import akka.http.grpc.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
+import akka.http.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path

@@ -1,12 +1,11 @@
 package akka.http.grpc
 
 import akka.NotUsed
-import akka.http.grpc.GrpcMarshalling.trailer
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.scaladsl.Source
 import io.grpc.Status
 
 import scala.concurrent.Future

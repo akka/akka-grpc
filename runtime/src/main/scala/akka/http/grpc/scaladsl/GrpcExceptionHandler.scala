@@ -1,9 +1,12 @@
-package akka.http.grpc
-
-import akka.http.scaladsl.model.HttpResponse
-import io.grpc.Status
+package akka.http.grpc.scaladsl
 
 import scala.concurrent.{ ExecutionException, Future }
+
+import io.grpc.Status
+
+import akka.http.grpc.GrpcResponse
+import akka.http.grpc.GrpcServiceException
+import akka.http.scaladsl.model.HttpResponse
 
 object GrpcExceptionHandler {
   val default: PartialFunction[Throwable, Future[HttpResponse]] = {
@@ -25,6 +28,3 @@ object GrpcExceptionHandler {
   }
 }
 
-class GrpcServiceException(val status: Status) extends RuntimeException(status.getDescription) {
-  require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
-}

@@ -17,7 +17,7 @@ object @{service.name} {
   val name = "@service.grpcName"
 
   object Serializers {
-    import akka.http.grpc.ScalapbProtobufSerializer
+    import akka.http.grpc.scaladsl.ScalapbProtobufSerializer
     @for(serializer <- service.serializers) {
     val @serializer.name = @serializer.init
     }
