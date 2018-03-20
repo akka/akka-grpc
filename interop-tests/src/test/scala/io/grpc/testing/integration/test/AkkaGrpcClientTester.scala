@@ -227,10 +227,13 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
 
     try {
       responses.runWith(Sink.ignore)
+      fail("should throw a GrpcServiceException")
     } catch {
       case e: GrpcServiceException =>
-        assertEquals(Status.UNKNOWN.getCode(), e.status.getCode)
+        assertEquals(Status.UNKNOWN.getCode, e.status.getCode)
         assertEquals(errorMessage, e.status.getDescription)
+      case _ =>
+        fail("should throw a GrpcServiceException")
     }
   }
 
