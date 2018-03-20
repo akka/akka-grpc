@@ -2,26 +2,38 @@
 
 ## Setting up
 
-To get started, place the `.proto` file(s) that describe the interface you want to implement in your project's
-@sbt[src/main/protobuf]@gradle[src/main/proto].
+To get started, you must obtain the `.proto` file(s) that describe the interface you want to implement and add those files
+to your project. That can be done in two different ways:
 
-And add it to your build:
+1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`] directory.
+1. Add a dependency that contains `.proto` files under the `protobuf` configuration:
+
+    sbt
+    : ```scala
+    libraryDependencies +=
+      "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
+    ```
+
+    Gradle
+    : ```
+    TODO: https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies
+    ```
+
+Then add the following configuration to your build:
 
 sbt
 :   @@@vars
-```
-in project/plugins.sbt:
-  addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % "$projectversion$")
+```scala
+// in project/plugins.sbt:
+addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % "$projectversion$")
+// in build.sbt:
+enablePlugins(AkkaGrpcPlugin)
 ```
 @@@
-```
-in build.sbt:
-  enablePlugins(AkkaGrpcPlugin)
-```
 
 Gradle
 :   @@@vars
-```
+```gradle
 plugins {
   id 'com.google.protobuf' version '0.8.4'
 }
