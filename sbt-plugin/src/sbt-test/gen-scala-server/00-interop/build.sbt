@@ -8,8 +8,9 @@ organization := "com.lightbend.akka.grpc"
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
 libraryDependencies ++= Seq(
+  "io.grpc"                  % "grpc-interop-testing"    % "1.10.0"                     % "protobuf",
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
-  "org.scalatest"           %% "scalatest" % "3.0.4"     % "test" // ApacheV2
+  "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
   )
 
 scalacOptions ++= List(
@@ -30,7 +31,18 @@ enablePlugins(AkkaGrpcPlugin)
 // that are more consistent between Scala and Java.
 // Because the interop tests generate both Scala and Java code, however, here we disable this
 // option to avoid name clashes in the generated classes:
-(codeGeneratorSettings in Compile) := (codeGeneratorSettings in Compile).value.filterNot(_ == "flat_package")
+(akkaGrpcCodeGeneratorSettings in Compile) := (akkaGrpcCodeGeneratorSettings in Compile).value.filterNot(_ == "flat_package")
 
-(akkaGrpcCodeGenerators in Compile) := Seq(GeneratorAndSettings(JavaServerCodeGenerator, (codeGeneratorSettings in Compile).value), GeneratorAndSettings(ScalaBothCodeGenerator, (codeGeneratorSettings in Compile).value))
+// proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
+// * google/protobuf/empty.proto
+// * io/grpc/testing/integration/empty.proto
+// They have different "java_outer_classname" options, but scalapb does not look at it:
+// https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
+// Therefore we exclude it here.
+excludeFilter in PB.generate := new SimpleFileFilter(
+  (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
+
+(akkaGrpcCodeGenerators in Compile) := Seq(
+  GeneratorAndSettings(JavaServerCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value),
+  GeneratorAndSettings(ScalaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value))
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value

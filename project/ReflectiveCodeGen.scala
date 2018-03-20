@@ -38,11 +38,9 @@ object ReflectiveCodeGen extends AutoPlugin {
               generationResult
             }
           }
-        }.value
-    )) ++
-    Seq(
-      mutableGenerator in Compile := createMutableGenerator(),
-      PB.targets in Compile := Seq(
+        }.value,
+      mutableGenerator := createMutableGenerator(),
+      PB.targets := Seq(
         // Scala model classes:
         (JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings) -> (sourceManaged in Compile).value,
         // Java model classes:
@@ -55,8 +53,9 @@ object ReflectiveCodeGen extends AutoPlugin {
         (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
         (mutableGenerator in Compile).value
       ),
-      PB.recompile in Compile ~= (_ => true)
-    )
+      PB.recompile ~= (_ => true),
+      PB.protoSources := Seq(PB.externalIncludePath.value)
+    ))
 
   final case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")

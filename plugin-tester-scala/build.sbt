@@ -19,4 +19,4 @@ val grpcVersion = "1.10.0"
 // for loading of cert, issue #89
 libraryDependencies += "io.grpc" % "grpc-testing" % grpcVersion
 
-(akkaGrpcCodeGenerators in Compile) := Seq(GeneratorAndSettings(ScalaBothCodeGenerator, (codeGeneratorSettings in Compile).value))
+(akkaGrpcCodeGenerators in Compile) := Seq(GeneratorAndSettings(ScalaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value))
