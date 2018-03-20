@@ -1,6 +1,7 @@
 package akka.http.grpc
 
 import akka.NotUsed
+import akka.http.grpc.GrpcMarshalling.trailer
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
@@ -33,6 +34,8 @@ object GrpcResponse {
       .map(bytes ⇒ HttpEntity.Chunk(bytes))
       .concat(trail)
       .recover {
+        case e: GrpcServiceException =>
+          trailer(e.status)
         case e: Exception =>
           // TODO handle better
           e.printStackTrace()
