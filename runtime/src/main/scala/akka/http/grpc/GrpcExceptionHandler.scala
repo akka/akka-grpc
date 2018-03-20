@@ -25,6 +25,6 @@ object GrpcExceptionHandler {
   }
 }
 
-class GrpcServiceException(val status: Status) extends RuntimeException(status.getDescription){
+class GrpcServiceException(val status: Status) extends RuntimeException(status.getDescription) {
   require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
 }
