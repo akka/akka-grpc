@@ -44,6 +44,10 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
       val route: Route = (pathPrefix(TestService.name) & echoHeaders) {
         handleWith(testServiceHandler)
+        //  The "status_code_and_message" test can be solved either using the 'customStatusRoute' here or
+        //  throwing an exception on the service code  and handling it on the appropriate GrpcMarshalling
+        //  handler as demoed in 'TestServiceImpl'.
+        //  customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
       }
 
       Route.asyncHandler(Route.seal(route))
@@ -56,6 +60,53 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
       mapResponseHeaders(h ⇒ h ++ initialHeaderToEcho) & mapTrailingResponseHeaders(h ⇒ h ++ trailingHeaderToEcho)
     })
+
+    // Route to pass the 'status_code_and_message' test
+    def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer): Route = {
+      implicit val ec = mat.executionContext
+
+      // TODO provide these as easy-to-import implicits:
+      implicit val simpleRequestUnmarshaller: FromRequestUnmarshaller[SimpleRequest] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshal(req, TestService.Serializers.SimpleRequestSerializer, mat))
+      implicit val streamingOutputCallRequestUnmarshaller: FromRequestUnmarshaller[Source[StreamingOutputCallRequest, NotUsed]] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshalStream(req, TestService.Serializers.StreamingOutputCallRequestSerializer, mat))
+      implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response, TestService.Serializers.SimpleResponseSerializer, mat))
+      implicit val streamingOutputCallResponseSerializer = TestService.Serializers.StreamingOutputCallResponseSerializer
+
+      pathPrefix("UnaryCall") {
+        entity(as[SimpleRequest]) { req ⇒
+          val simpleResponse = testServiceImpl.unaryCall(req)
+
+          req.responseStatus match {
+            case None ⇒
+              complete(simpleResponse)
+            case Some(responseStatus) ⇒
+              mapTrailingResponseHeaders(_ ⇒ GrpcResponse.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+                complete(simpleResponse)
+              }
+          }
+
+        }
+      } ~ pathPrefix("FullDuplexCall") {
+        entity(as[Source[StreamingOutputCallRequest, NotUsed]]) { source ⇒
+
+          val status = Promise[Status]
+
+          val effectingSource = source.map { requestElement ⇒
+            requestElement.responseStatus match {
+              case None ⇒
+                status.trySuccess(Status.OK)
+              case Some(responseStatus) ⇒
+                status.trySuccess(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))
+            }
+            requestElement
+          }.watchTermination()((NotUsed, f) ⇒ {
+            f.foreach(_ ⇒ status.trySuccess(Status.OK))
+            NotUsed
+          })
+
+          complete(GrpcResponse(testServiceImpl.fullDuplexCall(effectingSource), status.future))
+        }
+      }
+    }
 
     // TODO move to runtime library or even akka-http
     def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] ⇒ immutable.Seq[HttpHeader]): Directive0 =
