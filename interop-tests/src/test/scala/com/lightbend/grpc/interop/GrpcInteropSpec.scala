@@ -2,7 +2,7 @@ package com.lightbend.grpc.interop
 
 import akka.NotUsed
 import akka.grpc.scaladsl.GrpcMarshalling
-import akka.grpc.GrpcResponse
+import akka.grpc.{ GrpcResponse, Identity }
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceHandler }
 import io.grpc.testing.integration.TestServiceHandlerFactory
@@ -65,11 +65,12 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     // Route to pass the 'status_code_and_message' test
     def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer): Route = {
       implicit val ec = mat.executionContext
+      implicit val codec = Identity
 
       // TODO provide these as easy-to-import implicits:
-      implicit val simpleRequestUnmarshaller: FromRequestUnmarshaller[SimpleRequest] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshal(req, TestService.Serializers.SimpleRequestSerializer, mat))
-      implicit val streamingOutputCallRequestUnmarshaller: FromRequestUnmarshaller[Source[StreamingOutputCallRequest, NotUsed]] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshalStream(req, TestService.Serializers.StreamingOutputCallRequestSerializer, mat))
-      implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response, TestService.Serializers.SimpleResponseSerializer, mat))
+      implicit val simpleRequestUnmarshaller: FromRequestUnmarshaller[SimpleRequest] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshal(req)(TestService.Serializers.SimpleRequestSerializer, mat))
+      implicit val streamingOutputCallRequestUnmarshaller: FromRequestUnmarshaller[Source[StreamingOutputCallRequest, NotUsed]] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshalStream(req)(TestService.Serializers.StreamingOutputCallRequestSerializer, mat))
+      implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response)(TestService.Serializers.SimpleResponseSerializer, mat, codec))
       implicit val streamingOutputCallResponseSerializer = TestService.Serializers.StreamingOutputCallResponseSerializer
 
       pathPrefix("UnaryCall") {

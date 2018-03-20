@@ -18,7 +18,7 @@ object GrpcExceptionHandler {
   }
   private val handling: PartialFunction[Throwable, Future[HttpResponse]] = {
     case grpcException: GrpcServiceException ⇒
-      Future.successful(GrpcMarshalling.status(grpcException.status))
+      Future.successful(GrpcResponse.status(grpcException.status))
     case _: NotImplementedError ⇒
       Future.successful(GrpcResponse.status(Status.UNIMPLEMENTED))
     case _: UnsupportedOperationException ⇒

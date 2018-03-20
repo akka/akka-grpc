@@ -14,10 +14,10 @@ import scala.concurrent.Future
  * Some helpers for creating HTTP responses for use with gRPC
  */
 object GrpcResponse {
-  def apply[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer): HttpResponse =
+  def apply[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
     GrpcResponse(e, Source.single(trailer(Status.OK)))
 
-  def apply[T](e: Source[T, NotUsed], status: Future[Status])(implicit m: ProtobufSerializer[T], mat: Materializer): HttpResponse = {
+  def apply[T](e: Source[T, NotUsed], status: Future[Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
     implicit val ec = mat.executionContext
     GrpcResponse(
       e,
@@ -26,10 +26,10 @@ object GrpcResponse {
         .mapMaterializedValue(_ ⇒ NotUsed))
   }
 
-  def apply[T](e: Source[T, NotUsed], trail: Source[HttpEntity.LastChunk, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer): HttpResponse = {
+  def apply[T](e: Source[T, NotUsed], trail: Source[HttpEntity.LastChunk, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
     val outChunks = e
       .map(m.serialize)
-      .via(Grpc.grpcFramingEncoder)
+      .via(Grpc.grpcFramingEncoder(codec))
       .map(bytes ⇒ HttpEntity.Chunk(bytes))
       .concat(trail)
       .recover {
