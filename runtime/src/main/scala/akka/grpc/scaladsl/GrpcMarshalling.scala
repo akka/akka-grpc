@@ -19,11 +19,11 @@ object GrpcMarshalling {
   }
 
   def unmarshalStream[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
-    // TODO decode compressed streams (similar to above but needs a test)
+    val messageEncoding = req.headers.find(_.is("grpc-encoding")).map(_.value())
     Future.successful(
       req.entity.dataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)
-        .via(Grpc.grpcFramingDecoder)
+        .via(Grpc.grpcFramingDecoder(uncompressor(messageEncoding)))
         .map(u.deserialize))
   }
 

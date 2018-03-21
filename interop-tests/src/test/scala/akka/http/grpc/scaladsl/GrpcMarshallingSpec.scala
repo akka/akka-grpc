@@ -10,6 +10,7 @@ import akka.http.grpc.{ Grpc, Gzip }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import io.grpc.{ Status, StatusException }
 import io.grpc.testing.integration.messages.{ PayloadType, SimpleRequest }
@@ -34,6 +35,17 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
       marshalled.responseType should be(PayloadType.RANDOM)
+    }
+
+    "correctly unmarshal a zipped stream" in {
+      val request = HttpRequest(
+        headers = immutable.Seq(RawHeader("grpc-encoding", "gzip")),
+        entity = HttpEntity.Strict(Grpc.contentType, zippedBytes ++ zippedBytes))
+
+      val stream = Await.result(GrpcMarshalling.unmarshalStream(request), 10.seconds)
+      val items = Await.result(stream.runWith(Sink.seq), 10.seconds)
+      items(0).responseType should be(PayloadType.RANDOM)
+      items(1).responseType should be(PayloadType.RANDOM)
     }
 
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
