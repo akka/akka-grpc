@@ -217,6 +217,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
 
     Await.ready(eventualResponse, awaitTimeout)
       .onComplete {
+        // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
           assertEquals(errorMessage, e.getStatus.getDescription)
@@ -229,7 +230,8 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
 
     Await.ready(client.fullDuplexCall(requests).runWith(Sink.head), awaitTimeout)
       .onComplete {
-        case Failure(e: GrpcServiceException) =>
+        // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
+        case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNKNOWN.getCode, e.status.getCode)
           assertEquals(errorMessage, e.status.getDescription)
         case x =>
@@ -240,6 +242,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   def unimplementedMethod(): Unit = {
     Await.ready(client.unimplementedCall(Empty()), awaitTimeout)
       .onComplete {
+        // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
         case _ => fail(s"Expected to fail with UNIMPLEMENTED")
@@ -249,6 +252,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   def unimplementedService(): Unit = {
     Await.ready(clientUnimplementedService.unimplementedCall(Empty()), awaitTimeout)
       .onComplete {
+        // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
         case _ => fail(s"Expected to fail with UNIMPLEMENTED")
