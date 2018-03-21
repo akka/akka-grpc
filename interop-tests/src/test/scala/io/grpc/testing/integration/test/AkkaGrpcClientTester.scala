@@ -232,8 +232,8 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
       .onComplete {
         // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
-          assertEquals(Status.UNKNOWN.getCode, e.status.getCode)
-          assertEquals(errorMessage, e.status.getDescription)
+          assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
+          assertEquals(errorMessage, e.getStatus.getDescription)
         case x =>
           fail(s"Expected [GrpcServiceException] but got ${x.getClass}")
       }
