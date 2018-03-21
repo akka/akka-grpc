@@ -66,25 +66,25 @@ object ChannelApiHelpers {
 
        val onNextCb = getAsyncCallback[O](value => emit(out, value))
 
-       val outObs = new StreamObserver[O] {
-         override def onError(t: Throwable) = fail(out, t)
+       val responseObserver = new StreamObserver[O] {
+         override def onError(t: Throwable) = fail(t)
          override def onCompleted() = getAsyncCallback[Unit](_ => complete(out)).invoke(())
          override def onNext(value: O) = onNextCb.invoke(value)
        }
 
-       val inObs = operator(outObs)
+       val requestObserver = operator(responseObserver)
 
        override def preStart(): Unit = pull(in)
 
        override def onPush(): Unit = {
          val input = grab(in)
-         inObs.onNext(input)
+         requestObserver.onNext(input)
          pull(in)
        }
 
-       override def onUpstreamFinish(): Unit = inObs.onCompleted()
+       override def onUpstreamFinish(): Unit = requestObserver.onCompleted()
 
-       override def onUpstreamFailure(t: Throwable): Unit = inObs.onError(t)
+       override def onUpstreamFailure(t: Throwable): Unit = requestObserver.onError(t)
 
        override def onPull(): Unit = ()
 
