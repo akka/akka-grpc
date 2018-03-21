@@ -1,4 +1,4 @@
-import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import protocbridge.Target
 

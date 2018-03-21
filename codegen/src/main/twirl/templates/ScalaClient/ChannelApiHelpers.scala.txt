@@ -1,7 +1,7 @@
 @()
 package akka.grpc.internal
 
-import java.util.concurrent.Executor
+import java.util.concurrent.{CompletableFuture, Executor}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import akka.NotUsed
@@ -42,6 +42,32 @@ object ChannelApiHelpers {
 
     Futures.addCallback(guavaFuture, callback, javaExecutor)
     p.future
+  }
+
+  /**
+  * INTERNAL API
+  *
+  * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
+  */
+  @@InternalApi
+  def toCompletableFuture[A](guavaFuture: ListenableFuture[A], ec: ExecutionContext): CompletableFuture[A] = {
+
+    val cf = new CompletableFuture[A]
+    val callback = new FutureCallback[A] {
+      override def onFailure(t: Throwable): Unit = cf.completeExceptionally(t)
+      override def onSuccess(a: A): Unit = cf.complete(a)
+    }
+
+   val javaExecutor = ec match {
+      case exc: Executor => exc // Akka Dispatcher is an Executor
+      case _ =>
+        new Executor {
+          override def execute(command: Runnable): Unit = ec.execute(command)
+        }
+    }
+
+    Futures.addCallback(guavaFuture, callback, javaExecutor)
+    cf
   }
 
  /**

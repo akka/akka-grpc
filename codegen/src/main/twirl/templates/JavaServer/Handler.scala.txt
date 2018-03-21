@@ -15,11 +15,9 @@ import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
 
-public class @{service.name}HandlerFactory {
-  @for(serializer <- service.serializers) {
-  static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
-  }
+import static @{service.packageName}.@{service.name}.Serializers.*;
 
+public class @{service.name}HandlerFactory {
   public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
     return (req -> {
       Iterator<String> segments = req.getUri().pathSegments().iterator();

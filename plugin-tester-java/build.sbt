@@ -1,4 +1,4 @@
-import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import protocbridge.Target
 
 enablePlugins(JavaAgent)
@@ -9,7 +9,7 @@ javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime
 inConfig(Compile)(Seq(
   // does not seem to work :( added a symlink for now.
   PB.includePaths += new File("src/main/proto"),
-  akkaGrpcCodeGenerators := GeneratorAndSettings(JavaServerCodeGenerator) :: Nil,
+  akkaGrpcCodeGenerators := GeneratorAndSettings(JavaBothCodeGenerator) :: Nil,
   akkaGrpcModelGenerators := Seq[Target](PB.gens.java -> sourceManaged.value),
 ))
 

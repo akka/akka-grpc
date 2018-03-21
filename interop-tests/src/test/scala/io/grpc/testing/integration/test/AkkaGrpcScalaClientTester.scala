@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.util.Failure
 
-class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
   private var channel: ManagedChannel = null
   private var client: TestServiceClient = null
