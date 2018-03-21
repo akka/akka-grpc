@@ -83,7 +83,9 @@ trait GrpcInteropTests {
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
     val result = try {
+      println("before test")
       block
+      println("after test")
       Succeeded
     } catch {
       case NonFatal(_) if expectedToFail => pending
@@ -139,8 +141,6 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 trait AkkaHttpServerProvider extends GrpcServerProvider
 
 trait AkkaHttpClientProvider extends GrpcClientProvider {
-  val label: String = "akka-grpc client tester"
-
   val pendingCases =
     Set(
       "cancel_after_begin",

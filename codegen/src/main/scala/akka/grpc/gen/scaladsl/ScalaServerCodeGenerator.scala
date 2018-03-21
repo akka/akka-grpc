@@ -8,7 +8,7 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt._
 
 trait ScalaServerCodeGenerator extends ScalaCodeGenerator {
-  def name = "akka-grpc-scaladsl-server"
+  override def name = "akka-grpc-scaladsl-server"
 
   override def perServiceContent = super.perServiceContent + generateHandler
 

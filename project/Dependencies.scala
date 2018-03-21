@@ -13,6 +13,7 @@ object Dependencies {
     val grpc = "1.10.1"
 
     val scalaTest = "3.0.4"
+    val scalaJava8Compat = "0.8.0"
   }
 
   object Compile {
@@ -35,6 +36,7 @@ object Dependencies {
 
   object Test {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
+    val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
   }
 
   object Plugins {
@@ -72,5 +74,6 @@ object Dependencies {
     Compile.grpcInteropTesting,
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
+    Test.scalaJava8Compat
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }

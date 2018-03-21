@@ -4,8 +4,8 @@
 
 package akka.grpc.gen.javadsl
 
-import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
 import akka.grpc.gen._
+import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
 
 final case class Method(name: String,
                   grpcName: String,
@@ -26,8 +26,8 @@ final case class Method(name: String,
     if (outputStreaming) "GrpcMarshalling.marshalStream"
     else "GrpcMarshalling.marshal"
 
-  def inputTypeUnboxed = messageType(inputType)
-  def outputTypeUnboxed = messageType(outputType)
+  def inputTypeUnboxed = getMessageType(inputType)
+  def outputTypeUnboxed = getMessageType(outputType)
 
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {

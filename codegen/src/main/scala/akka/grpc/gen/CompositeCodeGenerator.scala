@@ -4,7 +4,7 @@
 
 package akka.grpc.gen
 
-import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
@@ -19,7 +19,7 @@ object CompositeCodeGenerator extends CodeGenerator {
   override val name = "akka-composite"
 
   override def run(request: PluginProtos.CodeGeneratorRequest): PluginProtos.CodeGeneratorResponse = {
-    val javaResult = JavaServerCodeGenerator.run(request)
+    val javaResult = JavaBothCodeGenerator.run(request)
     val scalaResult = ScalaBothCodeGenerator.run(request)
     println(javaResult.getFileList.asScala.map(_.getName))
     println(scalaResult.getFileList.asScala.map(_.getName))
@@ -30,5 +30,5 @@ object CompositeCodeGenerator extends CodeGenerator {
   }
 
   override def suggestedDependencies: Seq[Artifact] =
-    JavaServerCodeGenerator.suggestedDependencies ++ ScalaBothCodeGenerator.suggestedDependencies
+    JavaBothCodeGenerator.suggestedDependencies ++ ScalaBothCodeGenerator.suggestedDependencies
 }
