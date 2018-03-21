@@ -4,18 +4,18 @@ import java.io.InputStream
 
 import akka.NotUsed
 import akka.http.grpc.GrpcServiceException
-import akka.stream.{ActorMaterializer, Materializer}
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
 import com.google.protobuf.empty.Empty
 import io.grpc.testing.integration._
 import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration2.{ChannelBuilder, ClientTester, Settings}
-import io.grpc.{ManagedChannel, Status, StatusRuntimeException}
+import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
+import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
 import org.junit.Assert._
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{ Await, ExecutionContext }
 import scala.util.Failure
 import scala.util.control.NonFatal
 
