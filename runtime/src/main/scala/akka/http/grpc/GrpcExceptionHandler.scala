@@ -14,6 +14,8 @@ object GrpcExceptionHandler {
       handling(other)
   }
   private val handling: PartialFunction[Throwable, Future[HttpResponse]] = {
+    case grpcException: GrpcServiceException ⇒
+      Future.successful(GrpcMarshalling.status(grpcException.status))
     case _: NotImplementedError ⇒
       Future.successful(GrpcResponse.status(Status.UNIMPLEMENTED))
     case _: UnsupportedOperationException ⇒
@@ -21,4 +23,8 @@ object GrpcExceptionHandler {
     case other ⇒
       Future.failed(other)
   }
+}
+
+class GrpcServiceException(val status: Status) extends RuntimeException(status.getDescription) {
+  require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
 }

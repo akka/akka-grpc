@@ -2,8 +2,9 @@ package akka.http.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import scala.concurrent.ExecutionException
+import akka.http.grpc.{ GrpcMarshalling, GrpcServiceException }
 
+import scala.concurrent.{ ExecutionException, Future }
 import akka.http.javadsl.model.HttpResponse
 import io.grpc.Status
 
@@ -19,6 +20,8 @@ object GrpcExceptionHandler {
       handling(other)
   }
   private def handling(t: Throwable): HttpResponse = t match {
+    case grpcException: GrpcServiceException ⇒
+      GrpcMarshalling.status(grpcException.status)
     case _: NotImplementedError ⇒
       GrpcMarshalling.status(Status.UNIMPLEMENTED)
     case _: UnsupportedOperationException ⇒

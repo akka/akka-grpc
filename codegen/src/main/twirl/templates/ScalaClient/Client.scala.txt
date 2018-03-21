@@ -26,15 +26,15 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
   @if(method.methodType == akka.http.grpc.ServerStreaming){
       val name = "@{service.grpcName}.@{method.grpcName}"
       val flow =
-        ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { outputObserver =>
+        ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
           new StreamObserver[@method.inputTypeUnboxed] {
-            override def onError(t: Throwable): Unit = outputObserver.onError(t)
+            override def onError(t: Throwable): Unit = responseObserver.onError(t)
             override def onCompleted(): Unit = ()
             override def onNext(request: @method.inputTypeUnboxed): Unit =
               ClientCalls.asyncServerStreamingCall(
                 channel.newCall(@{method.name}Descriptor, options),
                 request,
-                outputObserver)
+                responseObserver)
           }
         }
 
@@ -50,20 +50,20 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
   @if(method.methodType == akka.http.grpc.ClientStreaming){
     val name = "@{service.grpcName}.@{method.grpcName}"
     val flow =
-      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name)  { outputObserver =>
+      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name)  { responseObserver =>
         ClientCalls.asyncClientStreamingCall(
           channel.newCall(@{method.name}Descriptor, options),
-          outputObserver)
+          responseObserver)
       }
     in.via(flow).runWith(Sink.head)
   }
   @if(method.methodType == akka.http.grpc.BidiStreaming){
     val name = "@{service.grpcName}.@{method.grpcName}"
     val flow =
-      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { outputObserver =>
+      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
         ClientCalls.asyncBidiStreamingCall(
           channel.newCall(@{method.name}Descriptor, options),
-          outputObserver)
+          responseObserver)
       }
     in.via(flow)
   }

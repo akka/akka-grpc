@@ -29,4 +29,10 @@ object GrpcMarshalling {
   def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer): HttpResponse =
     GrpcResponse(e)(m, mat)
 
+  def status(status: Status): HttpResponse =
+    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
+
+  private def trailer(status: Status): LastChunk =
+    LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _)))
+
 }

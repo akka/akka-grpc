@@ -142,7 +142,6 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "cancel_after_first_response",
       "timeout_on_sleeping_server",
       "custom_metadata",
-      "status_code_and_message",
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",

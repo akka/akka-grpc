@@ -43,7 +43,11 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
       val testServiceHandler = TestServiceHandler(testServiceImpl)
 
       val route: Route = (pathPrefix(TestService.name) & echoHeaders) {
-        customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
+        handleWith(testServiceHandler)
+        //  The "status_code_and_message" test can be solved either using the 'customStatusRoute' here or
+        //  throwing an exception on the service code  and handling it on the appropriate GrpcMarshalling
+        //  handler as demoed in 'TestServiceImpl'.
+        //  customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
       }
 
       Route.asyncHandler(Route.seal(route))
@@ -126,7 +130,6 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     val pendingCases =
       Set(
         "custom_metadata",
-        "status_code_and_message",
         "client_compressed_unary",
         "client_compressed_streaming")
 
