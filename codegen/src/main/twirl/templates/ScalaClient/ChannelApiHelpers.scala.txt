@@ -66,8 +66,10 @@ object ChannelApiHelpers {
 
        val onNextCb = getAsyncCallback[O](value => emit(out, value))
 
+       val failCb = getAsyncCallback[Throwable](t ⇒ failStage(t))
+
        val responseObserver = new StreamObserver[O] {
-         override def onError(t: Throwable) = fail(t)
+         override def onError(t: Throwable) = failCb.invoke(t)
          override def onCompleted() = getAsyncCallback[Unit](_ => complete(out)).invoke(())
          override def onNext(value: O) = onNextCb.invoke(value)
        }
