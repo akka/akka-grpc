@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package io.grpc.testing.integration2;
 
 import io.grpc.ManagedChannel;
