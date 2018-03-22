@@ -1,13 +1,13 @@
-package akka.http.grpc
+package akka.grpc.gen
 
-import akka.grpc.gen.CodeGenerator
-import akka.http.grpc.javadsl.JavaServerCodeGenerator
-import akka.http.grpc.scaladsl.ScalaBothCodeGenerator
+import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 
 import scala.collection.JavaConverters._
+
 /**
  * Generate both Java and Scala server-side code, mainly for testing.
  */

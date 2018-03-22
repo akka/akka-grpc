@@ -1,4 +1,4 @@
-@(service: akka.http.grpc.javadsl.Service)
+@(service: akka.grpc.gen.javadsl.Service)
 
 package @service.packageName;
 

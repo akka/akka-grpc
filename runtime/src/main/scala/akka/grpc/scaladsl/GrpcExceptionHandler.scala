@@ -1,11 +1,11 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.scaladsl
 
 import scala.concurrent.{ ExecutionException, Future }
 
 import io.grpc.Status
 
-import akka.http.grpc.GrpcResponse
-import akka.http.grpc.GrpcServiceException
+import akka.grpc.GrpcResponse
+import akka.grpc.GrpcServiceException
 import akka.http.scaladsl.model.HttpResponse
 
 object GrpcExceptionHandler {

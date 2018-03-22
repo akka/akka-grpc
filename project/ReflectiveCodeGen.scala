@@ -87,7 +87,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
     val loader = ClasspathUtilities.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
-    val instance = loader.loadClass("akka.grpc.sbt.CompositeCodeGenerator").newInstance()
+    val instance = loader.loadClass("akka.grpc.sbt.AkkaCompositeCodeGenerator").newInstance()
     type WithInstance = {
       def instance(): protocbridge.ProtocCodeGenerator
     }

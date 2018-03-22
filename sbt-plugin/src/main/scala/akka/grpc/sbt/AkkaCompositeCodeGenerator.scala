@@ -1,9 +1,9 @@
 package akka.grpc.sbt
 
-import akka.http.grpc.CompositeCodeGenerator
+import akka.grpc.gen.CompositeCodeGenerator
 
 /** An easy to use accessor to be used reflectively in the main sbt project */
-class CompositeCodeGenerator {
+class AkkaCompositeCodeGenerator {
   def instance(): protocbridge.ProtocCodeGenerator =
     new ProtocBridgeSbtPluginCodeGenerator(CompositeCodeGenerator)
 }

@@ -1,4 +1,4 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.scaladsl
 
 import scala.collection.immutable
 
@@ -9,6 +9,7 @@ import com.trueaccord.scalapb.compiler.{ DescriptorPimps, GeneratorParams }
 case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
 }
+
 object Service {
   def apply(generatorParams: GeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
     implicit val ops = new DescriptorPimps() {

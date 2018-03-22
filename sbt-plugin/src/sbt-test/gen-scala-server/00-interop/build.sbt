@@ -1,5 +1,5 @@
-import akka.http.grpc.javadsl.JavaServerCodeGenerator
-import akka.http.grpc.scaladsl.ScalaBothCodeGenerator
+import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import protocbridge.Target
 
 organization := "com.lightbend.akka.grpc"

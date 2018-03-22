@@ -1,4 +1,4 @@
-@(service: akka.http.grpc.javadsl.Service)
+@(service: akka.grpc.gen.javadsl.Service)
 
 package @service.packageName;
 
@@ -10,10 +10,10 @@ import akka.japi.Function;
 import akka.http.javadsl.model.*;
 import akka.stream.Materializer;
 
-import akka.http.grpc.ProtobufSerializer;
-import akka.http.grpc.javadsl.GoogleProtobufSerializer;
-import akka.http.grpc.javadsl.GrpcMarshalling;
-import akka.http.grpc.javadsl.GrpcExceptionHandler;
+import akka.grpc.ProtobufSerializer;
+import akka.grpc.javadsl.GoogleProtobufSerializer;
+import akka.grpc.javadsl.GrpcMarshalling;
+import akka.grpc.javadsl.GrpcExceptionHandler;
 
 public class @{service.name}HandlerFactory {
   @for(serializer <- service.serializers) {

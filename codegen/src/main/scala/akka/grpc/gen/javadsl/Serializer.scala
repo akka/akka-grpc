@@ -1,8 +1,9 @@
-package akka.http.grpc.javadsl
+package akka.grpc.gen.javadsl
 
 import com.google.protobuf.Descriptors.Descriptor
 
 final case class Serializer(name: String, init: String, messageType: String)
+
 object Serializer {
   def apply(messageType: Descriptor): Serializer = Serializer(
     messageType.getName + "Serializer",

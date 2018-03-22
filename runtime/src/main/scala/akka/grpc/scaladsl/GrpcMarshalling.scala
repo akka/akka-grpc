@@ -1,7 +1,7 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.scaladsl
 
 import akka.NotUsed
-import akka.http.grpc.{ Grpc, GrpcResponse, ProtobufSerializer }
+import akka.grpc.{ Grpc, GrpcResponse, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }

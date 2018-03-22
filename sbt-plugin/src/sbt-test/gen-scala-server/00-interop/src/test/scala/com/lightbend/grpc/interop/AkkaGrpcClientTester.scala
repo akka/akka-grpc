@@ -2,7 +2,7 @@ package com.lightbend.grpc.interop
 
 import java.io.InputStream
 
-import akka.http.grpc.GrpcServiceException
+import akka.grpc.GrpcServiceException
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString

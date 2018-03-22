@@ -1,8 +1,8 @@
-package akka.http.grpc.javadsl
+package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import akka.http.grpc.GrpcServiceException
+import akka.grpc.GrpcServiceException
 
 import scala.concurrent.ExecutionException
 import akka.http.javadsl.model.HttpResponse

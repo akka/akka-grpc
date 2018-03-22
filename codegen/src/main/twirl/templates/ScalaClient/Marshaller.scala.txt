@@ -1,10 +1,10 @@
 @()
-package akka.http.grpc.internal
+package akka.grpc.internal
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
 import io.grpc.KnownLength
 import akka.annotation.InternalApi
-import akka.http.grpc.ProtobufSerializer
+import akka.grpc.ProtobufSerializer
 
 /**
  * INTERNAL API
