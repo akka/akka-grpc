@@ -2,9 +2,9 @@ package akka.http.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import akka.http.grpc.{ GrpcMarshalling, GrpcServiceException }
+import akka.http.grpc.GrpcServiceException
 
-import scala.concurrent.{ ExecutionException, Future }
+import scala.concurrent.ExecutionException
 import akka.http.javadsl.model.HttpResponse
 import io.grpc.Status
 

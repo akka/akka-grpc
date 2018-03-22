@@ -4,7 +4,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import io.grpc.Status
 import akka.NotUsed
-import akka.http.grpc.GrpcMarshalling.trailer
+import akka.http.grpc.GrpcServiceException
 import akka.http.scaladsl.model.HttpEntity.{ ChunkStreamPart, LastChunk }
 import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader

@@ -1,15 +1,15 @@
-package akka.http.grpc
-
-import scala.concurrent.Future
-
-import io.grpc.Status
+package akka.http.grpc.scaladsl
 
 import akka.NotUsed
+import akka.http.grpc.{ Grpc, GrpcResponse, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
+import io.grpc.Status
+
+import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): Future[T] =

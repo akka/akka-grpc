@@ -11,7 +11,7 @@ import akka.http.javadsl.model.*;
 import akka.stream.Materializer;
 
 import akka.http.grpc.ProtobufSerializer;
-import akka.http.grpc.GoogleProtobufSerializer;
+import akka.http.grpc.javadsl.GoogleProtobufSerializer;
 import akka.http.grpc.javadsl.GrpcMarshalling;
 import akka.http.grpc.javadsl.GrpcExceptionHandler;
 

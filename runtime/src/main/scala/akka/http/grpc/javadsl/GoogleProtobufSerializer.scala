@@ -1,4 +1,6 @@
-package akka.http.grpc
+package akka.http.grpc.javadsl
+
+import akka.http.grpc.ProtobufSerializer
 
 class GoogleProtobufSerializer[T <: com.google.protobuf.Message](clazz: Class[T]) extends ProtobufSerializer[T] {
   override def serialize(t: T) = akka.util.ByteString(t.toByteArray)
