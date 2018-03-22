@@ -1,4 +1,4 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.scaladsl
 
 import scala.collection.JavaConverters._
 

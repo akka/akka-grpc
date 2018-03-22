@@ -1,9 +1,9 @@
 package akka.grpc.sbt
 
-import protocbridge.{ Generator, JvmGenerator, Target }
+import protocbridge.{ JvmGenerator, Target }
 import sbt._
 import Keys._
-import akka.http.grpc.scaladsl.ScalaServerCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
 import sbtprotoc.ProtocPlugin
 
 import scalapb.ScalaPbCodeGenerator

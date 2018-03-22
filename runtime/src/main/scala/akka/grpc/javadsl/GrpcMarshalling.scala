@@ -1,10 +1,10 @@
-package akka.http.grpc.javadsl
+package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import io.grpc.Status
 import akka.NotUsed
-import akka.http.grpc.GrpcServiceException
+import akka.grpc.GrpcServiceException
 import akka.http.scaladsl.model.HttpEntity.{ ChunkStreamPart, LastChunk }
 import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
@@ -12,7 +12,7 @@ import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.stream.scaladsl.{ Source => SSource }
-import akka.http.grpc._
+import akka.grpc._
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] =

@@ -1,9 +1,9 @@
-@(service: akka.http.grpc.scaladsl.Service)
+@(service: akka.grpc.gen.scaladsl.Service)
 
 package @service.packageName
 
 import akka.NotUsed
-import akka.http.grpc.internal.{ ChannelApiHelpers, Marshaller }
+import akka.grpc.internal.{ ChannelApiHelpers, Marshaller }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
@@ -18,12 +18,12 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
 
   @for(method <- service.methods) {
   def @{method.name}(in: @method.parameterType): @method.returnType = {
-  @if(method.methodType == akka.http.grpc.Unary) {
+  @if(method.methodType == akka.grpc.gen.Unary) {
     ChannelApiHelpers.toScalaFuture(
       ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in)
     )
   }
-  @if(method.methodType == akka.http.grpc.ServerStreaming){
+  @if(method.methodType == akka.grpc.gen.ServerStreaming){
       val name = "@{service.grpcName}.@{method.grpcName}"
       val flow =
         ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
@@ -47,7 +47,7 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
       // and eventually fail the stream
       .via(flow.buffer(bufferSize, OverflowStrategy.fail))
   }
-  @if(method.methodType == akka.http.grpc.ClientStreaming){
+  @if(method.methodType == akka.grpc.gen.ClientStreaming){
     val name = "@{service.grpcName}.@{method.grpcName}"
     val flow =
       ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name)  { responseObserver =>
@@ -57,7 +57,7 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
       }
     in.via(flow).runWith(Sink.head)
   }
-  @if(method.methodType == akka.http.grpc.BidiStreaming){
+  @if(method.methodType == akka.grpc.gen.BidiStreaming){
     val name = "@{service.grpcName}.@{method.grpcName}"
     val flow =
       ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
@@ -71,11 +71,11 @@ class @{service.name}Client(channel: Channel, options: CallOptions)(implicit mat
   }
 }
 
-@mapMethodType(methodType: akka.http.grpc.MethodType) = {
-  @if(methodType == akka.http.grpc.Unary) { MethodDescriptor.MethodType.UNARY }
-  @if(methodType == akka.http.grpc.ClientStreaming) {MethodDescriptor.MethodType.CLIENT_STREAMING }
-  @if(methodType == akka.http.grpc.ServerStreaming) { MethodDescriptor.MethodType.SERVER_STREAMING }
-  @if(methodType == akka.http.grpc.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
+@mapMethodType(methodType: akka.grpc.gen.MethodType) = {
+  @if(methodType == akka.grpc.gen.Unary) { MethodDescriptor.MethodType.UNARY }
+  @if(methodType == akka.grpc.gen.ClientStreaming) {MethodDescriptor.MethodType.CLIENT_STREAMING }
+  @if(methodType == akka.grpc.gen.ServerStreaming) { MethodDescriptor.MethodType.SERVER_STREAMING }
+  @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
 object @{service.name}Client {

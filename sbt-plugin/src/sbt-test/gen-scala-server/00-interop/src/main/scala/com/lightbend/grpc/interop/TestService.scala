@@ -5,13 +5,13 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.collection.immutable
 
-import akka.http.grpc.scaladsl.GrpcMarshalling
-import akka.http.grpc.GrpcServiceException
+import akka.grpc.scaladsl.GrpcMarshalling
+import akka.grpc.GrpcServiceException
 
 import akka.NotUsed
 import akka.NotUsed
 import akka.NotUsed
-import akka.http.grpc._
+import akka.grpc._
 import akka.stream.scaladsl.{Flow, Source}
 import akka.stream.Materializer
 

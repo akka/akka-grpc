@@ -1,4 +1,4 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt._

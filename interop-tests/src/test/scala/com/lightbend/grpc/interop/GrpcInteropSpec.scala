@@ -1,8 +1,8 @@
 package com.lightbend.grpc.interop
 
 import akka.NotUsed
-import akka.http.grpc.scaladsl.GrpcMarshalling
-import akka.http.grpc.GrpcResponse
+import akka.grpc.scaladsl.GrpcMarshalling
+import akka.grpc.GrpcResponse
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceHandler }
 import io.grpc.testing.integration.TestServiceHandlerFactory

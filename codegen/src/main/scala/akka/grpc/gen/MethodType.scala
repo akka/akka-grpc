@@ -1,4 +1,4 @@
-package akka.http.grpc
+package akka.grpc.gen
 
 sealed trait MethodType
 case object Unary extends MethodType

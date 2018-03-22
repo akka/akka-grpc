@@ -4,7 +4,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletableFuture;
 
 import akka.NotUsed;
-import akka.http.grpc.GrpcServiceException;
+import akka.grpc.GrpcServiceException;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Source;

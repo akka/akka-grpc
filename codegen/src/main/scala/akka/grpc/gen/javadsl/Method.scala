@@ -1,15 +1,14 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.javadsl
 
 import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
-import akka.http.grpc._
-import com.trueaccord.scalapb.compiler.DescriptorPimps
+import akka.grpc.gen._
 
-case class Method(name: String,
+final case class Method(name: String,
                   grpcName: String,
                   inputType: Descriptor,
                   inputStreaming: Boolean,
                   outputType: Descriptor,
-                  outputStreaming: Boolean)(implicit ops: DescriptorPimps) {
+                  outputStreaming: Boolean) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -23,16 +22,8 @@ case class Method(name: String,
     if (outputStreaming) "GrpcMarshalling.marshalStream"
     else "GrpcMarshalling.marshal"
 
-  def parameterType =
-    if (inputStreaming) s"Source[${messageType(inputType)}, NotUsed]"
-    else messageType(inputType)
-
   def inputTypeUnboxed = messageType(inputType)
   def outputTypeUnboxed = messageType(outputType)
-
-  def returnType =
-    if (outputStreaming) s"Source[${messageType(outputType)}, NotUsed]"
-    else s"Future[${messageType(outputType)}]"
 
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {
@@ -42,11 +33,19 @@ case class Method(name: String,
       case (true, true)   => BidiStreaming
     }
   }
+
+  def getParameterType =
+    if (inputStreaming) s"Source<${getMessageType(inputType)}, NotUsed>"
+    else getMessageType(inputType)
+
+  def getReturnType =
+    if (outputStreaming) s"Source<${getMessageType(outputType)}, NotUsed>"
+    else s"CompletionStage<${getMessageType(outputType)}>"
 }
 
 
 object Method {
-  def apply(descriptor: MethodDescriptor)(implicit ops: DescriptorPimps): Method = {
+  def apply(descriptor: MethodDescriptor): Method = {
     Method(
       name = methodName(descriptor.getName),
       grpcName = descriptor.getName,
@@ -60,11 +59,13 @@ object Method {
   private def methodName(name: String) =
     name.head.toLower +: name.tail
 
-  def messageType(messageType: Descriptor)(implicit ops: DescriptorPimps) = {
-    import ops._
-    messageType.scalaTypeName
-  }
+  def messageType(t: Descriptor) =
+    "_root_." + t.getFile.getOptions.getJavaPackage + "." + protoName(t) + "." + t.getName
 
+  /** Java API */
+  def getMessageType(t: Descriptor) = {
+    t.getFile.getOptions.getJavaPackage + "." + outerClass(t) + t.getName
+  }
 
   private def outerClass(t: Descriptor) = {
     if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""

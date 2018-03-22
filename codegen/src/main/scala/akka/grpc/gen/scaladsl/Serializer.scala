@@ -1,4 +1,4 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.Descriptors.Descriptor
 import com.trueaccord.scalapb.compiler.DescriptorPimps

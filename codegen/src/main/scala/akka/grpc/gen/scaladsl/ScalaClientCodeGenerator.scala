@@ -1,4 +1,4 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import com.trueaccord.scalapb.compiler.GeneratorParams
@@ -20,7 +20,7 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   def generateGuavaConverters(): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
-    val packageName = "akka.http.grpc.internal"
+    val packageName = "akka.grpc.internal"
     b.setContent(ChannelApiHelpers().body)
     b.setName(s"${packageName.replace('.', '/')}/ChannelApiHelpers.scala")
     b.build
@@ -28,7 +28,7 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   def generateClientMarshaller(): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
-    val packageName = "akka.http.grpc.internal"
+    val packageName = "akka.grpc.internal"
     b.setContent(Marshaller().body)
     b.setName(s"${packageName.replace('.', '/')}/Marshaller.scala")
     b.build

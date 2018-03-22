@@ -1,6 +1,6 @@
-package akka.http.grpc.scaladsl
+package akka.grpc.scaladsl
 
-import akka.http.grpc.ProtobufSerializer
+import akka.grpc.ProtobufSerializer
 import akka.util.ByteString
 import com.trueaccord.scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Message }
 

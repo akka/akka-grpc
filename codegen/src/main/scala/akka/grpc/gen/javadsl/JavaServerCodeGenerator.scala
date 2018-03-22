@@ -1,4 +1,4 @@
-package akka.http.grpc.javadsl
+package akka.grpc.gen.javadsl
 
 import scala.collection.JavaConverters._
 import akka.grpc.gen.{BuildInfo, CodeGenerator}
