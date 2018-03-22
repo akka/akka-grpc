@@ -1,4 +1,4 @@
-package akka.http.grpc
+package akka.grpc
 
 import akka.util.ByteString
 

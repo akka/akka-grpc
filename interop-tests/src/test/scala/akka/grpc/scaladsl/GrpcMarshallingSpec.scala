@@ -1,24 +1,20 @@
-package akka.http.grpc.scaladsl
-
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
+package akka.grpc.scaladsl
 
 import scala.concurrent.duration._
 import scala.collection.immutable
 import akka.actor.ActorSystem
-import akka.http.grpc.{ Grpc, Gzip }
+import akka.grpc.{ Grpc, Gzip }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import akka.util.ByteString
 import io.grpc.{ Status, StatusException }
 import io.grpc.testing.integration.messages.{ PayloadType, SimpleRequest }
 import io.grpc.testing.integration.test.TestService
 import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.Await
-import scala.util.{ Failure, Success }
+import scala.util.Failure
 
 class GrpcMarshallingSpec extends WordSpec with Matchers {
   "The scaladsl GrpcMarshalling" should {

@@ -9,6 +9,7 @@ import akka.stream.scaladsl.Source
 import io.grpc.Status
 
 import scala.concurrent.Future
+import scala.collection.immutable
 
 /**
  * Some helpers for creating HTTP responses for use with gRPC
@@ -41,7 +42,10 @@ object GrpcResponse {
           trailer(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
       }
 
-    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
+    HttpResponse(
+      headers = immutable.Seq(RawHeader("grpc-encoding", codec.name)),
+      entity = HttpEntity.Chunked(Grpc.contentType, outChunks),
+    )
   }
 
   def status(status: Status): HttpResponse =

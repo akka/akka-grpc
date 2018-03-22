@@ -1,4 +1,4 @@
-package akka.http.grpc
+package akka.grpc
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream }
 import java.util.zip.{ GZIPInputStream, GZIPOutputStream }
@@ -10,7 +10,7 @@ object Gzip extends Codec {
 
   override def compress(uncompressed: ByteString): ByteString = {
     val baos = new ByteArrayOutputStream(uncompressed.size)
-    val gzos = new GZIPOutputStream(baos, uncompressed.size)
+    val gzos = new GZIPOutputStream(baos)
     gzos.write(uncompressed.toArray)
     gzos.flush()
     gzos.close()
