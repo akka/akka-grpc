@@ -13,26 +13,26 @@ import io.grpc.stub.StreamObserver
 
 /**
  * INTERNAL API
- * Include some helpers to convert types from Channel API to Scala / Akka Streams API
+ * Include some helpers to convert types from Channel API to Java JDK API
  */
 @@InternalApi
-object ChannelApiHelpers {
+object JavaChannelApiHelpers {
 
   /**
-   * INTERNAL API
-   *
-   * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
-   */
+  * INTERNAL API
+  *
+  * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
+  */
   @@InternalApi
-  def toScalaFuture[A](guavaFuture: ListenableFuture[A])(implicit ec: ExecutionContext): Future[A] = {
+  def toCompletableFuture[A](guavaFuture: ListenableFuture[A], ec: ExecutionContext): CompletableFuture[A] = {
 
-    val p = Promise[A]()
+    val cf = new CompletableFuture[A]
     val callback = new FutureCallback[A] {
-      override def onFailure(t: Throwable): Unit = p.failure(t)
-      override def onSuccess(a: A): Unit = p.success(a)
+      override def onFailure(t: Throwable): Unit = cf.completeExceptionally(t)
+      override def onSuccess(a: A): Unit = cf.complete(a)
     }
 
-    val javaExecutor = ec match {
+   val javaExecutor = ec match {
       case exc: Executor => exc // Akka Dispatcher is an Executor
       case _ =>
         new Executor {
@@ -41,15 +41,15 @@ object ChannelApiHelpers {
     }
 
     Futures.addCallback(guavaFuture, callback, javaExecutor)
-    p.future
+    cf
   }
 
- /**
-  * INTERNAL API
-  *
-  * Builds a akka stream [[Flow]] from a function `StreamObserver[O] => StreamObserver[I]`
-  */
-  @@InternalApi
-  def buildFlow[I, O](name: String)(operator: StreamObserver[O] => StreamObserver[I]): Flow[I, O, NotUsed] =
-    Flow.fromGraph(new AkkaGrpcGraphStage(name, operator))
+  /**
+    * INTERNAL API
+    *
+    * Builds a akka stream [[Flow]] from a function `StreamObserver[O] => StreamObserver[I]`
+    */
+    @@InternalApi
+    def buildFlow[I, O](name: String, operator: StreamObserver[O] => StreamObserver[I]): Flow[I, O, NotUsed] =
+      Flow.fromGraph(new AkkaGrpcGraphStage(name, operator))
 }
