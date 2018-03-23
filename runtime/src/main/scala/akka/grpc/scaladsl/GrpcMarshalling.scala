@@ -2,6 +2,7 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.grpc._
+import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }

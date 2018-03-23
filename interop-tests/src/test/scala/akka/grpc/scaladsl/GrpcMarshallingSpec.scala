@@ -3,8 +3,8 @@ package akka.grpc.scaladsl
 import scala.concurrent.duration._
 import scala.collection.immutable
 import akka.actor.ActorSystem
+import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.grpc.{ Grpc, Gzip }
-import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -26,7 +26,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
 
     "correctly unmarshal a zipped object" in {
       val request = HttpRequest(
-        headers = immutable.Seq(RawHeader("grpc-encoding", "gzip")),
+        headers = immutable.Seq(`Message-Encoding`("gzip")),
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
@@ -35,7 +35,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
 
     "correctly unmarshal a zipped stream" in {
       val request = HttpRequest(
-        headers = immutable.Seq(RawHeader("grpc-encoding", "gzip")),
+        headers = immutable.Seq(`Message-Encoding`("gzip")),
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes ++ zippedBytes))
 
       val stream = Await.result(GrpcMarshalling.unmarshalStream(request), 10.seconds)
@@ -48,7 +48,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
     // test case 6
     "fail with INTERNAL when the compressed bit is on but the encoding is identity" in {
       val request = HttpRequest(
-        headers = immutable.Seq(RawHeader("grpc-encoding", "identity")),
+        headers = immutable.Seq(`Message-Encoding`("identity")),
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       Await.ready(GrpcMarshalling.unmarshal(request), 10.seconds).value.get match {

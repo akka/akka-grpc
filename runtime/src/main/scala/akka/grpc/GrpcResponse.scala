@@ -1,8 +1,9 @@
 package akka.grpc
 
 import akka.NotUsed
+import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.{HttpEntity, HttpResponse}
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -43,7 +44,7 @@ object GrpcResponse {
       }
 
     HttpResponse(
-      headers = immutable.Seq(RawHeader("grpc-encoding", codec.name)),
+      headers = immutable.Seq(`Message-Encoding`(codec.name)),
       entity = HttpEntity.Chunked(Grpc.contentType, outChunks),
     )
   }
