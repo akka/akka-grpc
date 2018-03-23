@@ -9,7 +9,7 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-client"
 
   override val staticContent = super.staticContent + generateGuavaConverters() + generateClientMarshaller()
-  override val perServiceContent = super.perServiceContent + generateStub
+  override def perServiceContent = super.perServiceContent + generateStub
 
   def generateStub(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()

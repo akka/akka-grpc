@@ -1,4 +1,4 @@
-import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import protocbridge.Target
 
@@ -43,6 +43,6 @@ excludeFilter in PB.generate := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
 (akkaGrpcCodeGenerators in Compile) := Seq(
-  GeneratorAndSettings(JavaServerCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value),
+  GeneratorAndSettings(JavaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value),
   GeneratorAndSettings(ScalaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value))
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value

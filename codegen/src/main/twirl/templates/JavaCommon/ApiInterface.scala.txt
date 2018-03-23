@@ -7,10 +7,19 @@ import java.util.concurrent.CompletionStage;
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
 
+import akka.grpc.ProtobufSerializer;
+import akka.grpc.javadsl.GoogleProtobufSerializer;
+
 public interface @{service.name} {
   @for(method <- service.methods) {
   @{method.getReturnType} @{method.name}(@{method.getParameterType} in);
   }
 
   static String name = "@service.grpcName";
+
+  static class Serializers {
+    @for(serializer <- service.serializers) {
+      static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
+    }
+  }
 }

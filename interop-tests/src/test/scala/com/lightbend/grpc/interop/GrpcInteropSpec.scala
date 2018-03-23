@@ -4,34 +4,36 @@ import akka.NotUsed
 import akka.grpc.scaladsl.GrpcMarshalling
 import akka.grpc.GrpcResponse
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
-import io.grpc.testing.integration.test.{ AkkaGrpcClientTester, TestServiceHandler }
-import io.grpc.testing.integration.TestServiceHandlerFactory
+import io.grpc.testing.integration.test.{ AkkaGrpcScalaClientTester, TestService, TestServiceHandler }
+import io.grpc.testing.integration.{ AkkaGrpcJavaClientTester, TestServiceHandlerFactory }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.unmarshalling.{ FromRequestUnmarshaller, Unmarshaller }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
-import io.grpc.testing.integration.messages.{ SimpleRequest, SimpleResponse, StreamingOutputCallRequest, StreamingOutputCallResponse }
-import io.grpc.testing.integration.test.TestService
+import io.grpc.testing.integration.messages._
 import org.scalatest._
 
 import scala.collection.immutable
-import scala.concurrent.{ ExecutionContext, Promise }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
   grpcTests(IoGrpcJavaServerProvider, IoGrpcJavaClientProvider)
-  grpcTests(IoGrpcJavaServerProvider, AkkaHttpClientProvider)
+  grpcTests(IoGrpcJavaServerProvider, AkkaHttpClientProviderScala)
+  grpcTests(IoGrpcJavaServerProvider, AkkaHttpClientProviderJava)
 
   grpcTests(AkkaHttpServerProviderScala, IoGrpcJavaClientProvider)
-  grpcTests(AkkaHttpServerProviderScala, AkkaHttpClientProvider)
+  grpcTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderScala)
+  grpcTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderJava)
 
   grpcTests(AkkaHttpServerProviderJava, IoGrpcJavaClientProvider)
-  grpcTests(AkkaHttpServerProviderJava, AkkaHttpClientProvider)
+  grpcTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderScala)
+  grpcTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderJava)
 
   object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directives {
-    val label: String = "akka-grpc server scala"
+    val label: String = "akka-grpc scala server"
     val pendingCases =
       Set(
         "client_compressed_unary",
@@ -126,7 +128,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
   }
 
   object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
-    val label: String = "akka-grpc server java"
+    val label: String = "akka-grpc java server"
 
     val pendingCases =
       Set(
@@ -139,8 +141,16 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     })
   }
 
-  object AkkaHttpClientProvider extends AkkaHttpClientProvider {
-    def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcClientTester(settings))
+  object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
+    val label: String = "akka-grpc scala client tester"
+
+    def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcScalaClientTester(settings))
+  }
+
+  object AkkaHttpClientProviderJava extends AkkaHttpClientProvider {
+    val label: String = "akka-grpc java client tester"
+
+    def client = new AkkaGrpcClientJava((settings, mat, ec) => new AkkaGrpcJavaClientTester(settings, mat, ec))
   }
 
 }
