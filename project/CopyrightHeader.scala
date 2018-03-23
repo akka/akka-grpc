@@ -21,8 +21,9 @@ object CopyrightHeader extends AutoPlugin {
           headerMappings := headerMappings.value ++ Map(
             HeaderFileType.scala       -> cStyleComment,
             HeaderFileType.java        -> cStyleComment,
-            HeaderFileType("template") -> cStyleComment
-          )
+            HeaderFileType("txt") -> twirlStyleBlockComment,
+          ),
+          unmanagedResourceDirectories in headerCreate += baseDirectory.value / "src" / "main" / "twirl"
         )
       )
     }
@@ -35,8 +36,7 @@ object CopyrightHeader extends AutoPlugin {
   def headerFor(year: String): String =
     s"Copyright (C) $year Lightbend Inc. <https://www.lightbend.com>"
 
-  val cStyleComment = HeaderCommentStyle.cStyleBlockComment.copy(commentCreator = new CommentCreator() {
-    import HeaderCommentStyle.cStyleBlockComment.commentCreator
+  private def lightbendCommentCreator(commentCreator: CommentCreator) = new CommentCreator() {
 
     def updateLightbendHeader(header: String): String = header match {
       case CopyrightHeaderPattern(years, null, _) =>
@@ -56,5 +56,7 @@ object CopyrightHeader extends AutoPlugin {
         .getOrElse(commentCreator(text, existingText))
         .trim
     }
-  })
+  }
+  val cStyleComment = HeaderCommentStyle.cStyleBlockComment.copy(commentCreator = lightbendCommentCreator(HeaderCommentStyle.cStyleBlockComment.commentCreator))
+  val twirlStyleBlockComment = HeaderCommentStyle.twirlStyleBlockComment.copy(commentCreator = lightbendCommentCreator(HeaderCommentStyle.twirlStyleBlockComment.commentCreator))
 }
