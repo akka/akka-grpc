@@ -26,6 +26,7 @@ object Dependencies {
     val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
 
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
+    val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
   }
@@ -58,6 +59,7 @@ object Dependencies {
     Compile.scalapbRuntime,
 
     Compile.grpcCore,
+    Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,
     Compile.akkaStream,
     Compile.akkaHttpCore,

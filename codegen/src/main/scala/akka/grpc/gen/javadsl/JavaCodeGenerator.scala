@@ -12,6 +12,9 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
   def perServiceContent = Set[Service ⇒ CodeGeneratorResponse.File](generateServiceInterface)
 
+  // Override this to add service-independent generated files
+  def staticContent = Set.empty[CodeGeneratorResponse.File]
+
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
 
@@ -33,6 +36,8 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     } {
       b.addFile(generator(service))
     }
+
+    staticContent.map(b.addFile)
 
     b.build()
   }

@@ -48,32 +48,6 @@ object ChannelApiHelpers {
     p.future
   }
 
-  /**
-  * INTERNAL API
-  *
-  * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
-  */
-  @@InternalApi
-  def toCompletableFuture[A](guavaFuture: ListenableFuture[A], ec: ExecutionContext): CompletableFuture[A] = {
-
-    val cf = new CompletableFuture[A]
-    val callback = new FutureCallback[A] {
-      override def onFailure(t: Throwable): Unit = cf.completeExceptionally(t)
-      override def onSuccess(a: A): Unit = cf.complete(a)
-    }
-
-   val javaExecutor = ec match {
-      case exc: Executor => exc // Akka Dispatcher is an Executor
-      case _ =>
-        new Executor {
-          override def execute(command: Runnable): Unit = ec.execute(command)
-        }
-    }
-
-    Futures.addCallback(guavaFuture, callback, javaExecutor)
-    cf
-  }
-
  /**
   * INTERNAL API
   *
@@ -82,45 +56,4 @@ object ChannelApiHelpers {
   @@InternalApi
   def buildFlow[I, O](name: String)(operator: StreamObserver[O] => StreamObserver[I]): Flow[I, O, NotUsed] =
     Flow.fromGraph(new AkkaGrpcGraphStage(name, operator))
-
-  @@InternalApi
-  private class AkkaGrpcGraphStage[I, O](name: String, operator: StreamObserver[O] => StreamObserver[I]) extends GraphStage[FlowShape[I, O]] {
-
-    val in = Inlet[I](name + ".in")
-    val out = Outlet[O](name + ".out")
-
-    override val shape: FlowShape[I, O] = FlowShape.of(in, out)
-
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
-     new GraphStageLogic(shape) with InHandler with OutHandler {
-
-       val onNextCb = getAsyncCallback[O](value => emit(out, value))
-
-       val failCb = getAsyncCallback[Throwable](t ⇒ failStage(t))
-
-       val responseObserver = new StreamObserver[O] {
-         override def onError(t: Throwable) = failCb.invoke(t)
-         override def onCompleted() = getAsyncCallback[Unit](_ => complete(out)).invoke(())
-         override def onNext(value: O) = onNextCb.invoke(value)
-       }
-
-       val requestObserver = operator(responseObserver)
-
-       override def preStart(): Unit = pull(in)
-
-       override def onPush(): Unit = {
-         val input = grab(in)
-         requestObserver.onNext(input)
-         pull(in)
-       }
-
-       override def onUpstreamFinish(): Unit = requestObserver.onCompleted()
-
-       override def onUpstreamFailure(t: Throwable): Unit = requestObserver.onError(t)
-
-       override def onPull(): Unit = ()
-
-       setHandlers(in, out, this)
-    }
-  }
 }

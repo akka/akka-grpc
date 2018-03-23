@@ -3,7 +3,7 @@
 package @service.packageName;
 
 import akka.NotUsed;
-import akka.grpc.internal.ChannelApiHelpers;
+import akka.grpc.internal.JavaChannelApiHelpers;
 import akka.grpc.internal.ProtoMarshaller;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
@@ -42,7 +42,7 @@ public class @{service.name}Client implements @{service.name} {
   @for(method <- service.methods) {
   public @{method.getReturnType} @{method.name}(@{method.getParameterType} in) {
   @if(method.methodType == akka.grpc.gen.Unary) {
-    return ChannelApiHelpers.toCompletableFuture(
+    return JavaChannelApiHelpers.toCompletableFuture(
       ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in),
       ex
     );
@@ -50,7 +50,7 @@ public class @{service.name}Client implements @{service.name} {
   @if(method.methodType == akka.grpc.gen.ServerStreaming){
       final String name = "@{service.grpcName}.@{method.grpcName}";
       final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-        ChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
+        JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
           new StreamObserver<@method.inputTypeUnboxed>() {
             public void onError(Throwable t) { responseObserver.onError(t); }
             public void onCompleted() {}
@@ -75,7 +75,7 @@ public class @{service.name}Client implements @{service.name} {
   @if(method.methodType == akka.grpc.gen.ClientStreaming){
     final String name = "@{service.grpcName}.@{method.grpcName}";
     final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-      ChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
+      JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
         ClientCalls.asyncClientStreamingCall(
           channel.newCall(@{method.name}Descriptor, options),
           responseObserver)
@@ -85,7 +85,7 @@ public class @{service.name}Client implements @{service.name} {
   @if(method.methodType == akka.grpc.gen.BidiStreaming){
     final String name = "@{service.grpcName}.@{method.grpcName}";
     final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-      ChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
+      JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
         ClientCalls.asyncBidiStreamingCall(
           channel.newCall(@{method.name}Descriptor, options),
           responseObserver)
