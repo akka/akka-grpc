@@ -79,9 +79,7 @@ trait GrpcInteropTests {
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
     val result = try {
-      println("before test")
       block
-      println("after test")
       Succeeded
     } catch {
       case NonFatal(_) if expectedToFail => pending
