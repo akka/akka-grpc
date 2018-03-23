@@ -35,6 +35,18 @@ Pull Request validation states:
 
 - `validating => [tested | needs-attention]` - signify pull request validation status
 
+## Running the tests
+
+gRPC runs on HTTP/2 and all connections use HTTPS. Tests in this repo use the ALPN agent to create the ALPN/NPN connection. 
+The agent is included in all required configurations when running tests inside `sbt` but that's not the case when running tests inside your IDE. 
+If you want to run tests outside `sbt` setup your launcher to include the following JVM arguments:
+
+```
+-javaagent:/home/username/.ivy2/cache/org.mortbay.jetty.alpn/jetty-alpn-agent/jars/jetty-alpn-agent-2.0.7.jar
+``` 
+
+You will have to review the value of the path and replace `/home/username/.ivy2/cache/` with the actual location of your `.ivy2` cache repository (usually that's located on your `$HOME` folder) 
+
 # Akka GRPC contributing guidelines
 
 These guidelines apply to all Akka projects, by which we mean both the `akka/akka` repository,
