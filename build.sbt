@@ -11,9 +11,6 @@ val commonSettings = Seq(
     "-language:_",
     "-encoding", "UTF-8"
   ),
-
-  // For the akka-http snapshot
-  resolvers += Resolver.bintrayRepo("akka", "maven"),
 )
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
