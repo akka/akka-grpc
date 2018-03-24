@@ -10,7 +10,7 @@ import akka.grpc.gen.{ BuildInfo, CodeGenerator }
 
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
-import com.trueaccord.scalapb.compiler.GeneratorParams
+import scalapb.compiler.GeneratorParams
 
 import protocbridge.Artifact
 
@@ -65,7 +65,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
       case (p, "java_conversions") => p.copy(javaConversions = true)
       case (p, "flat_package") => p.copy(flatPackage = true)
       case (p, "grpc") => p.copy(grpc = true)
-      case (p, "single_line_to_string") => p.copy(singleLineToString = true)
+      case (p, "single_line_to_string") => p.copy(singleLineToProtoString = true)
       case (x, _) => x
     }
   }

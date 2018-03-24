@@ -9,8 +9,8 @@ object Dependencies {
     val akka = "2.5.11"
     val akkaHttp = "10.1.0"
 
-    val scalapb = "0.6.7"
-    val grpc = "1.10.0"
+    val scalapb = "0.7.1"
+    val grpc = "1.10.1"
 
     val scalaTest = "3.0.4"
   }
@@ -21,8 +21,8 @@ object Dependencies {
     val akkaHttpCore     = "com.typesafe.akka" %% "akka-http-core"     % Versions.akkaHttp
     val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
 
-    val scalapbCompilerPlugin = "com.trueaccord.scalapb" %% "compilerplugin"  % Versions.scalapb
-    val scalapbRuntime        = "com.trueaccord.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
+    val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % Versions.scalapb
+    val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
 
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
@@ -38,7 +38,7 @@ object Dependencies {
   }
 
   object Plugins {
-    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.12"
+    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.18"
   }
 
   private val l = libraryDependencies

@@ -5,7 +5,7 @@
 package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.Descriptors.Descriptor
-import com.trueaccord.scalapb.compiler.DescriptorPimps
+import scalapb.compiler.DescriptorPimps
 
 case class Serializer(name: String, init: String)
 
