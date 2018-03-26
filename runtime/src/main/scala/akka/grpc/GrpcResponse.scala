@@ -5,9 +5,9 @@
 package akka.grpc
 
 import akka.NotUsed
-import akka.grpc.scaladsl.headers.`Message-Encoding`
+import akka.grpc.scaladsl.headers
 import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.{HttpEntity, HttpResponse}
+import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpResponse}
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -48,7 +48,7 @@ object GrpcResponse {
       }
 
     HttpResponse(
-      headers = immutable.Seq(`Message-Encoding`(codec.name)),
+      headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
       entity = HttpEntity.Chunked(Grpc.contentType, outChunks),
     )
   }
@@ -59,7 +59,7 @@ object GrpcResponse {
   def trailer(status: Status): LastChunk =
     LastChunk(trailer = statusHeaders(status))
 
-  def statusHeaders(status: Status): List[RawHeader] =
-    List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _))
+  def statusHeaders(status: Status): List[HttpHeader] =
+    List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d ⇒ headers.`Status-Message`(d))
 
 }
