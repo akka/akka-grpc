@@ -13,31 +13,41 @@ import akka.stream.impl.io.ByteStringParser.ParseStep
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
+import io.grpc.{ Status, StatusException }
 
 object Grpc {
   val contentType = MediaType.applicationBinary("grpc+proto", MediaType.NotCompressible).toContentType
 
   // Flag to signal the start of an uncompressed frame
   val notCompressed = ByteString(0)
+  // Flag to signal the start of an frame compressed according to the Message-Encoding from the header
+  val compressed = ByteString(1)
 
-  def grpcFramingEncoder: Flow[ByteString, ByteString, NotUsed] = {
-    Flow[ByteString].map(encodeFrame)
+  val grpcFramingEncoder: Flow[ByteString, ByteString, NotUsed] = {
+    Flow[ByteString].map(frame ⇒ encodeFrame(notCompressed, frame))
   }
 
-  def encodeFrame(frame: ByteString): ByteString = {
-    // TODO handle compression
+  def grpcFramingEncoder(codec: Codec): Flow[ByteString, ByteString, NotUsed] = {
+    if (codec == Identity) Flow[ByteString].map(frame ⇒ encodeFrame(notCompressed, frame))
+    else Flow[ByteString].map(frame ⇒ encodeFrame(compressed, codec.compress(frame)))
+  }
+
+  @inline
+  def encodeFrame(compressedFlag: ByteString, frame: ByteString): ByteString = {
     val length = frame.size
-    notCompressed ++ ByteString(
+    compressedFlag ++ ByteString(
       (length >> 24).toByte,
       (length >> 16).toByte,
       (length >> 8).toByte,
       length.toByte) ++ frame
   }
 
-  val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] =
-    Flow.fromGraph(new GrpcFramingDecoderStage)
+  def grpcFramingDecoder(uncompressor: Option[ByteString ⇒ ByteString]): Flow[ByteString, ByteString, NotUsed] =
+    Flow.fromGraph(new GrpcFramingDecoderStage(uncompressor))
 
-  private class GrpcFramingDecoderStage extends ByteStringParser[ByteString] {
+  val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] = grpcFramingDecoder(uncompressor = None)
+
+  private class GrpcFramingDecoderStage(uncompressor: Option[ByteString ⇒ ByteString]) extends ByteStringParser[ByteString] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new ParsingLogic {
       startWith(ReadFrameHeader)
 
@@ -56,9 +66,19 @@ object Grpc {
 
       final case class ReadFrame(compression: Boolean, length: Int) extends Step {
         override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] = {
-          // todo handle compression
-          ParseResult(Some(reader.take(length)), ReadFrameHeader)
+          if (compression) uncompressor match {
+            case None ⇒
+              failStage(new StatusException(Status.INTERNAL.withDescription("Compressed-Flag bit is set, but encoding unknown")))
+              ParseResult(None, Failed)
+            case Some(uncompress) ⇒
+              ParseResult(Some(uncompress(reader.take(length))), ReadFrameHeader)
+          }
+          else ParseResult(Some(reader.take(length)), ReadFrameHeader)
         }
+      }
+
+      final case object Failed extends Step {
+        override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] = ParseResult(None, Failed)
       }
     }
   }

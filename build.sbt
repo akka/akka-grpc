@@ -113,6 +113,25 @@ lazy val interopTests = Project(
       (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
   )
   .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
+    .settings(
+      inConfig(Test)(Seq(
+        mainClass in reStart := (mainClass in run in Test).value,
+        {
+        import spray.revolver.Actions._
+        reStart := Def.inputTask{
+          restartApp(
+            streams.value,
+            reLogTag.value,
+            thisProjectRef.value,
+            reForkOptions.value,
+            (mainClass in reStart).value,
+            (fullClasspath in reStart).value,
+            reStartArgs.value,
+            startArgsParser.parsed
+          )
+        }.dependsOn(products in Compile).evaluated
+      }
+      )))
 
 lazy val docs = Project(
     id = "akka-grpc-docs",

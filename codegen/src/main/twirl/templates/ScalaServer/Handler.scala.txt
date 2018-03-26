@@ -9,6 +9,7 @@ package @service.packageName
 import scala.concurrent.{ ExecutionContext, Future }
 
 import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
+import akka.grpc.Codecs
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
@@ -24,9 +25,10 @@ object @{service.name}Handler {
     def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
       @for(method <- service.methods) {
       case "@method.grpcName" =>
-        @{method.unmarshal}(request, @method.deserializer.name, mat)
+        val responseCodec = Codecs.negotiate(request)
+        @{method.unmarshal}(request)(@method.deserializer.name, mat)
           .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
-          .map(e => @{method.marshal}(e, @method.serializer.name, mat))
+          .map(e => @{method.marshal}(e)(@method.serializer.name, mat, responseCodec))
       }
       case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
     }
