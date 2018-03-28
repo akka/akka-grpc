@@ -16,7 +16,7 @@ import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    val messageEncoding = req.headers.find(_.is("grpc-encoding")).map(_.value())
+    val messageEncoding = `Message-Encoding`.findIn(req.headers)
     req.entity.dataBytes
       .via(Grpc.grpcFramingDecoder(uncompressor(messageEncoding)))
       .map(u.deserialize)
@@ -24,7 +24,7 @@ object GrpcMarshalling {
   }
 
   def unmarshalStream[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
-    val messageEncoding = req.headers.find(_.is("grpc-encoding")).map(_.value())
+    val messageEncoding = `Message-Encoding`.findIn(req.headers)
     Future.successful(
       req.entity.dataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)
