@@ -6,7 +6,7 @@ package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
 import akka.grpc.gen._
-import com.trueaccord.scalapb.compiler.DescriptorPimps
+import scalapb.compiler.DescriptorPimps
 
 case class Method(name: String,
                   grpcName: String,

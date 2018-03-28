@@ -5,7 +5,7 @@
 package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
-import com.trueaccord.scalapb.compiler.GeneratorParams
+import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
 import templates.ScalaClient.txt._
 
@@ -40,14 +40,14 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   override val suggestedDependencies =
     // TODO: remove grpc-stub dependency once we have a akka-http based client
-    Artifact("io.grpc", "grpc-stub", com.trueaccord.scalapb.compiler.Version.grpcJavaVersion) +: super.suggestedDependencies
+    Artifact("io.grpc", "grpc-stub", scalapb.compiler.Version.grpcJavaVersion) +: super.suggestedDependencies
 
   private def parseParameters(params: String): GeneratorParams = {
     params.split(",").map(_.trim).filter(_.nonEmpty).foldLeft[GeneratorParams](GeneratorParams()) {
       case (p, "java_conversions") => p.copy(javaConversions = true)
       case (p, "flat_package") => p.copy(flatPackage = true)
       case (p, "grpc") => p.copy(grpc = true)
-      case (p, "single_line_to_string") => p.copy(singleLineToString = true)
+      case (p, "single_line_to_string") => p.copy(singleLineToProtoString = true)
       case (x, _) => x
     }
   }

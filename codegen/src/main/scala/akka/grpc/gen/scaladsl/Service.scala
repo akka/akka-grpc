@@ -8,7 +8,7 @@ import scala.collection.immutable
 
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
-import com.trueaccord.scalapb.compiler.{ DescriptorPimps, GeneratorParams }
+import scalapb.compiler.{ DescriptorPimps, GeneratorParams }
 
 case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
