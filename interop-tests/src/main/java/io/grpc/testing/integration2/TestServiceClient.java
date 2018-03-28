@@ -18,9 +18,9 @@ package io.grpc.testing.integration2;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
+import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration.TestCases;
 import io.grpc.testing.integration.TestServiceGrpc;
-import io.grpc.testing.integration.Util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +40,8 @@ public class TestServiceClient {
      * The main application allowing this client to be launched from the command line.
      */
     public static void main(String[] args) throws Exception {
-        // Let OkHttp use Conscrypt if it is available.
-        Util.installConscryptIfAvailable();
+        // Let Netty or OkHttp use Conscrypt if it is available.
+        TestUtils.installConscryptIfAvailable();
         Settings settings = Settings.parseArgs(args);
         final TestServiceClient client = new TestServiceClient(new GrpcJavaClientTester(settings));
         client.setUp();
@@ -118,6 +118,10 @@ public class TestServiceClient {
                 clientTester.clientCompressedUnary();
                 break;
 
+            case CLIENT_COMPRESSED_UNARY_NOPROBE:
+                clientTester.clientCompressedUnaryNoProbe();
+                break;
+
             case SERVER_COMPRESSED_UNARY:
                 clientTester.serverCompressedUnary();
                 break;
@@ -128,6 +132,10 @@ public class TestServiceClient {
 
             case CLIENT_COMPRESSED_STREAMING:
                 clientTester.clientCompressedStreaming();
+                break;
+
+            case CLIENT_COMPRESSED_STREAMING_NOPROBE:
+                clientTester.clientCompressedStreamingNoProbe();
                 break;
 
             case SERVER_STREAMING:

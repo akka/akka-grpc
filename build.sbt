@@ -11,6 +11,9 @@ val commonSettings = Seq(
     "-language:_",
     "-encoding", "UTF-8"
   ),
+
+  // for grpc-java 1.12.0-SNAPSHOT
+  resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository",
 )
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"

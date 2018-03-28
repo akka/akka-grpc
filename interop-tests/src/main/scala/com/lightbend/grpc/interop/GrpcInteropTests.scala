@@ -31,6 +31,8 @@ trait GrpcInteropTests {
     "unimplemented_method",
     "client_compressed_unary",
     "client_compressed_streaming",
+    "client_compressed_unary_noprobe",
+    "client_compressed_streaming_noprobe",
     "server_compressed_unary",
     "server_compressed_streaming",
     "unimplemented_service",
@@ -149,6 +151,8 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "custom_metadata",
       "client_compressed_unary",
       "client_compressed_streaming",
+      "client_compressed_unary_noprobe",
+      "client_compressed_streaming_noprobe",
       "server_compressed_unary",
     )
 }

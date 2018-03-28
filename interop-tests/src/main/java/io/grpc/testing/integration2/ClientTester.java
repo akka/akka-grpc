@@ -24,11 +24,15 @@ public interface ClientTester {
 
     void clientCompressedUnary() throws Exception;
 
+    void clientCompressedUnaryNoProbe() throws Exception;
+
     void serverCompressedUnary() throws Exception;
 
     void clientStreaming() throws Exception;
 
     void clientCompressedStreaming() throws Exception;
+
+    void clientCompressedStreamingNoProbe() throws Exception;
 
     void serverStreaming() throws Exception;
 

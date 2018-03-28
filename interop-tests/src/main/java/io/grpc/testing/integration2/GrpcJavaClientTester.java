@@ -57,6 +57,11 @@ public class GrpcJavaClientTester implements ClientTester {
     }
 
     @Override
+    public void clientCompressedUnaryNoProbe() throws Exception {
+        tester.clientCompressedUnaryNoProbe();
+    }
+
+    @Override
     public void serverCompressedUnary() throws Exception {
         tester.serverCompressedUnary();
     }
@@ -69,6 +74,11 @@ public class GrpcJavaClientTester implements ClientTester {
     @Override
     public void clientCompressedStreaming() throws Exception {
         tester.clientCompressedStreaming();
+    }
+
+    @Override
+    public void clientCompressedStreamingNoProbe() throws Exception {
+        tester.clientCompressedStreamingNoProbe();
     }
 
     @Override

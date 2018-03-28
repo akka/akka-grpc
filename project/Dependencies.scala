@@ -10,7 +10,8 @@ object Dependencies {
     val akkaHttp = "10.1.0"
 
     val scalapb = "0.6.7"
-    val grpc = "1.10.0"
+    // From https://github.com/grpc/grpc-java/pull/4279
+    val grpc = "1.12.0-SNAPSHOT"
 
     val scalaTest = "3.0.4"
   }

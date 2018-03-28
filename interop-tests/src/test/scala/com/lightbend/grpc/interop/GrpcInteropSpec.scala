@@ -41,7 +41,10 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
       Set(
         "custom_metadata",
         "client_compressed_unary",
-        "client_compressed_streaming")
+        "client_compressed_streaming",
+        "client_compressed_unary_noprobe",
+        "client_compressed_streaming_noprobe",
+      )
 
     val server = new AkkaGrpcServerJava(mat ⇒ {
       TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)
