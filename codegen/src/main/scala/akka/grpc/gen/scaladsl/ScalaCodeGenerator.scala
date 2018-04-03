@@ -5,6 +5,7 @@
 package akka.grpc.gen.scaladsl
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable
 
 import akka.grpc.gen.{ BuildInfo, CodeGenerator }
 
@@ -18,7 +19,7 @@ import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
-  def perServiceContent = Set[Service ⇒ CodeGeneratorResponse.File](generateServiceFile)
+  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set(generateServiceFile)
 
   // Override this to add service-independent generated files
   def staticContent = Set.empty[CodeGeneratorResponse.File]
@@ -28,8 +29,6 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
-
-    val generatorParams = parseParameters(request.getParameter)
 
     val fileDescByName: Map[String, FileDescriptor] =
       request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
@@ -42,7 +41,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
       file ← request.getFileToGenerateList.asScala
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
-      service = Service(generatorParams, fileDesc, serviceDesc)
+      service = Service(parseParameters(request.getParameter), fileDesc, serviceDesc)
       generator ← perServiceContent
     } {
       b.addFile(generator(service))
