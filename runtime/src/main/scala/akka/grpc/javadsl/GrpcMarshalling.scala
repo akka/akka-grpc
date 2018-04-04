@@ -34,24 +34,11 @@ object GrpcMarshalling {
         .map(u.deserialize))
   }
 
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer): HttpResponse =
-    marshalStream(Source.single(e), m, mat)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec)
 
-  def marshalStream[T](e: Source[T, _], m: ProtobufSerializer[T], mat: Materializer): HttpResponse = {
-    val outChunks = (e.asScala.map(m.serialize) via Grpc.grpcFramingEncoder)
-      .map(bytes ⇒ SHttpEntity.Chunk(bytes).asInstanceOf[ChunkStreamPart])
-      .concat(SSource.single(trailer(Status.OK)))
-      .recover {
-        case e: GrpcServiceException =>
-          trailer(e.status)
-        case e: Exception =>
-          // TODO handle better
-          e.printStackTrace()
-          trailer(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
-      }
-
-    SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, outChunks))
-  }
+  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
+    GrpcResponse(e.asScala)(m, mat, Identity)
 
   def status(status: Status): HttpResponse =
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))

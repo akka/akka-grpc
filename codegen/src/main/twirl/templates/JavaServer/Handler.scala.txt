@@ -14,6 +14,8 @@ import akka.japi.Function;
 import akka.http.javadsl.model.*;
 import akka.stream.Materializer;
 
+import akka.grpc.Codec;
+import akka.grpc.Codecs;
 import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.GrpcMarshalling;
@@ -43,12 +45,13 @@ public class @{service.name}HandlerFactory {
   }
 
   private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @{service.name} implementation, Materializer mat) {
+    Codec responseCodec = Codecs.negotiate(request);
     switch(method) {
       @for(method <- service.methods) {
       case "@method.grpcName":
         return @{method.unmarshal}(request, @method.deserializer.name, mat)
           .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e))
-          .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat));
+          .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, responseCodec));
       }
       default:
         CompletableFuture<HttpResponse> result = new CompletableFuture<>();
