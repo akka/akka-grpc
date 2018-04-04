@@ -1,4 +1,4 @@
-package akka
+package akka.grpc
 
 import sbt._
 import sbt.Keys._
@@ -29,6 +29,8 @@ object Dependencies {
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % "2.0" // Apache v2
   }
 
   object Agents {
@@ -64,6 +66,10 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp2Support
+  ) ++ testing
+
+  val mavenPlugin = l ++= Seq(
+    Compile.mavenPluginApi
   ) ++ testing
 
   val sbtPlugin = Seq(

@@ -2,7 +2,7 @@
  * Copyright (C) 2017-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka
+package akka.grpc
 
 import sbt._
 import com.typesafe.sbt.SbtScalariform

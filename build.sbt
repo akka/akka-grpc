@@ -1,4 +1,4 @@
-import akka.Dependencies
+import akka.grpc.Dependencies
 
 scalaVersion := "2.12.4"
 
@@ -58,6 +58,19 @@ lazy val scalapbProtocPlugin = Project(
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
+lazy val mavenPlugin = Project(
+    id = "akka-grpc-maven-plugin",
+    base = file("maven-plugin")
+  )
+  .settings(commonSettings)
+  .settings(Dependencies.mavenPlugin)
+  .enablePlugins(akka.grpc.SbtMavenPlugin)
+  .settings(Seq(
+    publishMavenStyle := true,
+    crossPaths := false,
+  ))
+  .dependsOn(codegen)
+
 lazy val sbtPlugin = Project(
     id = "akka-grpc-sbt-plugin",
     base = file("sbt-plugin")
@@ -100,7 +113,7 @@ lazy val interopTests = Project(
     watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
   )
   .dependsOn(runtime)
-  .enablePlugins(akka.ReflectiveCodeGen)
+  .enablePlugins(akka.grpc.ReflectiveCodeGen)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
@@ -160,6 +173,7 @@ lazy val root = Project(
   .aggregate(
     runtime,
     codegen,
+    mavenPlugin,
     sbtPlugin,
     scalapbProtocPlugin,
     interopTests,

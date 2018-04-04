@@ -2,7 +2,7 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka
+package akka.grpc
 
 import sbt._, Keys._
 import de.heikoseeberger.sbtheader.{ CommentCreator, HeaderPlugin }
