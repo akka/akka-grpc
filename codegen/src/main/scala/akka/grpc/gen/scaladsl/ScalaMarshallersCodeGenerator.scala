@@ -1,5 +1,6 @@
 package akka.grpc.gen.scaladsl
 
+import akka.grpc.gen.BuildInfo
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.ScalaCommon.txt._
@@ -14,8 +15,7 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
   override def perServiceContent = Set(generateMarshalling)
 
   override def suggestedDependencies: Seq[Artifact] =
-    // TODO put the akka-http version in BuildInfo
-    Artifact("com.typesafe.akka", "akka-http", "1.10.0") +: super.suggestedDependencies
+    Artifact("com.typesafe.akka", "akka-http", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies
 
   def generateMarshalling(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
