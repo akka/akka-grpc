@@ -2,6 +2,7 @@ package akka.grpc.scaladsl.headers
 
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
+import akka.http.javadsl.{ model ⇒ jm }
 
 import scala.collection.immutable
 import scala.util.Try
@@ -31,8 +32,14 @@ object `Message-Encoding` extends ModeledCustomHeaderCompanion[`Message-Encoding
   override val name = "grpc-encoding"
   override def parse(encoding: String) = Try(new `Message-Encoding`(encoding))
 
-  def findIn(headers: immutable.Seq[HttpHeader]): Option[String] =
+  def findIn(headers: Iterable[jm.HttpHeader]): Option[String] =
     headers.find(_.is(name)).map(_.value())
+
+  /** Java API */
+  def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Option[String] = {
+    import scala.collection.JavaConverters._
+    findIn(headers.asScala)
+  }
 }
 
 final class `Status`(code: Int) extends ModeledCustomHeader[`Status`] {

@@ -42,10 +42,16 @@ object Grpc {
       length.toByte) ++ frame
   }
 
-  def grpcFramingDecoder(uncompressor: Option[ByteString ⇒ ByteString]): Flow[ByteString, ByteString, NotUsed] =
-    Flow.fromGraph(new GrpcFramingDecoderStage(uncompressor))
+  def grpcFramingDecoder(encoding: Option[String]): Flow[ByteString, ByteString, NotUsed] =
+    Flow.fromGraph(new GrpcFramingDecoderStage(uncompressor(encoding)))
 
-  val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] = grpcFramingDecoder(uncompressor = None)
+  val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] = grpcFramingDecoder(encoding = None)
+
+  private def uncompressor(encoding: Option[String]): Option[ByteString ⇒ ByteString] = encoding match {
+    case None ⇒ None
+    case Some("identity") ⇒ None
+    case Some("gzip") ⇒ Some(Gzip.uncompress)
+  }
 
   private class GrpcFramingDecoderStage(uncompressor: Option[ByteString ⇒ ByteString]) extends ByteStringParser[ByteString] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new ParsingLogic {
