@@ -1,7 +1,7 @@
 package akka.grpc
 
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.javadsl.{ model ⇒ jm }
 
 import scala.collection.immutable
 
@@ -12,8 +12,8 @@ object Codecs {
   private val supported = supportedCodecs.map(_.name)
   private val byName = supportedCodecs.map(c ⇒ c.name → c).toMap
 
-  def negotiate(request: HttpRequest): Codec =
-    `Message-Accept-Encoding`.findIn(request.headers)
+  def negotiate(request: jm.HttpRequest): Codec =
+    `Message-Accept-Encoding`.findIn(request.getHeaders)
       .intersect(supported)
       .headOption
       .map(byName(_))

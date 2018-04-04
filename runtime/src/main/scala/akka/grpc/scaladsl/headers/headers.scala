@@ -18,8 +18,15 @@ object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-A
   override val name = "grpc-accept-encoding"
   override def parse(value: String) = Try(new `Message-Accept-Encoding`(value))
 
-  def findIn(headers: immutable.Seq[HttpHeader]): Array[String] =
+  def findIn(headers: Iterable[jm.HttpHeader]): Array[String] =
     headers.find(_.is(name)).map(_.value()).map(_.split(",")).getOrElse(Array.empty)
+
+  /** Java API */
+  def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Array[String] = {
+    import scala.collection.JavaConverters._
+    findIn(headers.asScala)
+  }
+
 }
 
 final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Message-Encoding`] {
