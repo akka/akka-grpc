@@ -10,23 +10,27 @@ import io.grpc.Status
 import akka.NotUsed
 import akka.grpc.GrpcServiceException
 import akka.http.scaladsl.model.HttpEntity.{ ChunkStreamPart, LastChunk }
-import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity ⇒ SHttpEntity, HttpResponse ⇒ SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
-import akka.stream.scaladsl.{ Source => SSource }
+import akka.stream.scaladsl.{ Source ⇒ SSource }
 import akka.grpc._
+import akka.grpc.scaladsl.headers.`Message-Encoding`
 
 object GrpcMarshalling {
-  def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] =
-    (req.entity.getDataBytes via Grpc.grpcFramingDecoder).map(u.deserialize).runWith(Sink.head[T], mat)
+  def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] = {
+    val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
+    (req.entity.getDataBytes via Grpc.grpcFramingDecoder(messageEncoding)).map(u.deserialize).runWith(Sink.head[T], mat)
+  }
 
   def unmarshalStream[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
+    val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
     CompletableFuture.completedFuture(
       req.entity.getDataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)
-        .via(Grpc.grpcFramingDecoder)
+        .via(Grpc.grpcFramingDecoder(messageEncoding))
         .map(u.deserialize))
   }
 
