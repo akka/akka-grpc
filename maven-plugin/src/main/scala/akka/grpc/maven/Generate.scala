@@ -2,16 +2,17 @@ package akka.grpc.maven
 
 import java.io.File
 
-import akka.grpc.gen.javadsl.{JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator}
-import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator}
-import akka.grpc.gen.{CodeGenerator, GeneratorAndSettings}
+import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
+import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator }
+import akka.grpc.gen.{ CodeGenerator, GeneratorAndSettings }
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
 import org.slf4j.LoggerFactory
-import protocbridge.{JvmGenerator, Target}
+import protocbridge.{ JvmGenerator, Target }
 import org.apache.maven.project.MavenProject
 import scalapb.ScalaPbCodeGenerator
 
+import scala.annotation.tailrec
 import scala.beans.BeanProperty
 
 class Generate @Inject() (project: MavenProject) extends AbstractMojo {
@@ -27,10 +28,7 @@ class Generate @Inject() (project: MavenProject) extends AbstractMojo {
   var generateServer: Boolean = _
 
   override def execute(): Unit = {
-    // TODO detect .proto files
-    val schemas = Set(
-      new File(protoPath + "/helloworld.proto").getAbsoluteFile,
-    )
+    val schemas = findProtoFiles(new File(protoPath))
 
     val sourceRoot = "target/main/" + language.name().toLowerCase
     val sourceManaged = new File(sourceRoot)
@@ -105,4 +103,18 @@ class Generate @Inject() (project: MavenProject) extends AbstractMojo {
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }
+
+  private def findProtoFiles(dir: File): Set[File] = {
+    @tailrec
+    def find(pending: Array[File], accumulator: Set[File]): Set[File] =
+      if (pending.isEmpty)
+        accumulator
+      else if (pending.head.isDirectory)
+        find(pending.head.listFiles(f ⇒ f.isDirectory || f.getName.endsWith(".proto")) ++ pending.tail, accumulator)
+      else
+        find(pending.tail, accumulator + pending.head)
+
+    find(dir.listFiles(f ⇒ f.isDirectory || f.getName.endsWith(".proto")), Set.empty)
+  }
+
 }
