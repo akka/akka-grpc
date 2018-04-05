@@ -1,7 +1,3 @@
-//PB.targets in Compile := Seq(
-//  scalapb.gen(grpc = false) -> (sourceManaged in Compile).value
-//)
-
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
