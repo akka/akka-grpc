@@ -14,6 +14,8 @@ jobs:
     - stage: tests
       script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-codegen/publishM2 && sbt akka-grpc-maven-plugin/publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
     - stage: tests
+      script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-codegen/publishM2 && sbt akka-grpc-maven-plugin/publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
+    - stage: tests
       script: cd plugin-tester-java && sbt compile
     - stage: tests
       script: cd plugin-tester-scala && sbt compile

@@ -2,13 +2,15 @@ package akka.grpc.maven
 
 import java.io.File
 
-import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import akka.grpc.gen.GeneratorAndSettings
+import akka.grpc.gen.javadsl.{JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator}
+import akka.grpc.gen.{CodeGenerator, GeneratorAndSettings}
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
 import org.slf4j.LoggerFactory
 import protocbridge.{JvmGenerator, Target}
 import org.apache.maven.project.MavenProject
+import scalapb.ScalaPbCodeGenerator
 
 import scala.beans.BeanProperty
 
@@ -30,22 +32,36 @@ class Generate @Inject() (project: MavenProject) extends AbstractMojo {
       new File(protoPath + "/helloworld.proto").getAbsoluteFile,
     )
 
-    // TODO create the generated protobuf folder in target
-    // TODO add the generated folder as a source
-    val sourceManaged = new File("target/main/java")
-    project.addCompileSourceRoot("target/main/java")
+    val sourceRoot = "target/main/" + language.name().toLowerCase
+    val sourceManaged = new File(sourceRoot)
+    project.addCompileSourceRoot(sourceRoot)
 
     val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
-    val akkaGrpcCodeGenerators = GeneratorAndSettings(JavaBothCodeGenerator, akkaGrpcCodeGeneratorSettings) :: Nil
-    val akkaGrpcModelGenerators = Seq[Target](protocbridge.gens.java -> sourceManaged)
-
+    val targets = language match {
+      case Language.JAVA ⇒
+        val glueGenerator =
+          if (generateServer)
+            if (generateClient) JavaBothCodeGenerator
+            else JavaServerCodeGenerator
+          else JavaClientCodeGenerator
+        Seq[Target](
+          protocbridge.gens.java -> sourceManaged,
+          adaptAkkaGenerator(sourceManaged, glueGenerator, akkaGrpcCodeGeneratorSettings))
+      case Language.SCALA ⇒
+        val glueGenerator =
+          if (generateServer)
+            if (generateClient) ScalaBothCodeGenerator
+            else ScalaServerCodeGenerator
+          else ScalaClientCodeGenerator
+        Seq[Target](
+          (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → sourceManaged,
+          adaptAkkaGenerator(sourceManaged, glueGenerator, akkaGrpcCodeGeneratorSettings))
+    }
     val protocVersion = "-v351"
     val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-    // TODO configuration options
     val includePaths = Seq(new File(protoPath).getAbsoluteFile)
     val dependentProjectsIncludePaths = Seq.empty
     val protocOptions = Seq.empty
-    val targets = akkaGrpcModelGenerators ++ akkaGrpcCodeGenerators.map(adaptAkkaGenerator(sourceManaged))
     compile(runProtoc, schemas, includePaths ++ dependentProjectsIncludePaths, protocOptions, targets)
   }
 
@@ -84,9 +100,9 @@ class Generate @Inject() (project: MavenProject) extends AbstractMojo {
     }
   }
 
-  def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
-    val adapted = new ProtocBridgeCodeGenerator(generatorAndSettings.generator)
-    val generator = JvmGenerator(generatorAndSettings.generator.name, adapted)
-    (generator, generatorAndSettings.settings) -> targetPath
+  def adaptAkkaGenerator(targetPath: File, generator: CodeGenerator, settings: Seq[String]): Target = {
+    val adapted = new ProtocBridgeCodeGenerator(generator)
+    val jvmGenerator = JvmGenerator(generator.name, adapted)
+    (jvmGenerator, settings) -> targetPath
   }
 }
