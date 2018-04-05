@@ -5,20 +5,29 @@ import java.io.File
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.GeneratorAndSettings
 import javax.inject.Inject
-import org.apache.maven.model.Dependency
 import org.apache.maven.plugin.AbstractMojo
 import org.slf4j.LoggerFactory
 import protocbridge.{JvmGenerator, Target}
-import scalapb.ScalaPbCodeGenerator
 import org.apache.maven.project.MavenProject
+
+import scala.beans.BeanProperty
 
 class Generate @Inject() (project: MavenProject) extends AbstractMojo {
   val log = LoggerFactory.getLogger(classOf[Generate])
 
+  @BeanProperty
+  var protoPath: String = _
+  @BeanProperty
+  var language: Language = _
+  @BeanProperty
+  var generateClient: Boolean = _
+  @BeanProperty
+  var generateServer: Boolean = _
+
   override def execute(): Unit = {
     // TODO detect .proto files
     val schemas = Set(
-      new File("src/main/proto/helloworld.proto").getAbsoluteFile,
+      new File(protoPath + "/helloworld.proto").getAbsoluteFile,
     )
 
     // TODO create the generated protobuf folder in target
@@ -33,7 +42,7 @@ class Generate @Inject() (project: MavenProject) extends AbstractMojo {
     val protocVersion = "-v351"
     val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
     // TODO configuration options
-    val includePaths = Seq(new File("src/main/proto").getAbsoluteFile)
+    val includePaths = Seq(new File(protoPath).getAbsoluteFile)
     val dependentProjectsIncludePaths = Seq.empty
     val protocOptions = Seq.empty
     val targets = akkaGrpcModelGenerators ++ akkaGrpcCodeGenerators.map(adaptAkkaGenerator(sourceManaged))
