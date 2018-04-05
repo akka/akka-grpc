@@ -6,14 +6,14 @@ scala:
 jobs:
   include:
     - stage: publishLocal
-    - script: sbt ++$TRAVIS_SCALA_VERSION publishLocal
+      script: sbt ++$TRAVIS_SCALA_VERSION publishLocal
     - stage: tests
-    - script: sbt test
+      script: sbt test
     - stage: tests
-    - script: sbt scripted
+      script: sbt scripted
     - stage: tests
-    - script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-runtime/publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=$COMMIT akka-gprc:generate compile
+      script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-runtime/publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=$COMMIT akka-gprc:generate compile
     - stage: tests
-    - script: cd plugin-tester-java && sbt compile
+      script: cd plugin-tester-java && sbt compile
     - stage: tests
-    - script: cd plugin-tester-scala && sbt compile
+      script: cd plugin-tester-scala && sbt compile
