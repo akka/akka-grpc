@@ -9,6 +9,21 @@
   <artifactId>grpc-plugin-tester-java</artifactId>
   <version>0.1-SNAPSHOT</version>
   
+  <dependencies>
+    <dependency>
+      <groupId>com.lightbend.akka.grpc</groupId>
+      <artifactId>akka-grpc-runtime_2.12</artifactId>
+      <version>${akka.grpc.project.version}</version>
+    </dependency>
+
+    <!-- for loading of cert, issue #89 -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-testing</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+
+  </dependencies>
   <build>
     <plugins>
       <plugin>
@@ -21,5 +36,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <grpc.version>1.11.0</grpc.version>
+    <project.encoding>UTF-8</project.encoding>
   </properties>
 </project>
