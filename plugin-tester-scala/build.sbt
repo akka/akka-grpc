@@ -1,5 +1,4 @@
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
-import akka.grpc.gen.GeneratorAndSettings
 
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)

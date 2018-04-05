@@ -1,5 +1,4 @@
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import akka.grpc.gen.GeneratorAndSettings
 import protocbridge.Target
 
 enablePlugins(JavaAgent)

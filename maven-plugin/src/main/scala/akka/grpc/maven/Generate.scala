@@ -4,7 +4,7 @@ import java.io.File
 
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator }
-import akka.grpc.gen.{ CodeGenerator, GeneratorAndSettings }
+import akka.grpc.gen.CodeGenerator
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
 import org.slf4j.LoggerFactory
