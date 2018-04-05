@@ -30,7 +30,9 @@ object Dependencies {
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
 
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.25"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % "2.0" // Apache v2
+    val protocJar = "com.github.os72" % "protoc-jar" % "3.5.1"
   }
 
   object Agents {
@@ -69,7 +71,9 @@ object Dependencies {
   ) ++ testing
 
   val mavenPlugin = l ++= Seq(
-    Compile.mavenPluginApi
+    Compile.slf4jApi,
+    Compile.mavenPluginApi,
+    Compile.protocJar,
   ) ++ testing
 
   val sbtPlugin = Seq(

@@ -8,6 +8,7 @@ import protocbridge.{ JvmGenerator, Target }
 import sbt._
 import Keys._
 import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
+import akka.grpc.gen.GeneratorAndSettings
 import sbtprotoc.ProtocPlugin
 
 import scalapb.ScalaPbCodeGenerator
@@ -25,9 +26,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     val akkaGrpcModelGenerators = settingKey[Seq[Target]]("The configured source generator for model classes")
   }
 
-  object autoImport extends Keys {
-    final case class GeneratorAndSettings(generator: akka.grpc.gen.CodeGenerator, settings: Seq[String] = Nil)
-  }
+  object autoImport extends Keys
   import autoImport._
 
   override def projectSettings = configSettings(Compile) ++ configSettings(Test)
