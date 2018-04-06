@@ -15,8 +15,8 @@ import scalapb.ScalaPbCodeGenerator
 import scala.annotation.tailrec
 import scala.beans.BeanProperty
 
-class Generate @Inject() (project: MavenProject) extends AbstractMojo {
-  val log = LoggerFactory.getLogger(classOf[Generate])
+class GenerateMojo @Inject()(project: MavenProject) extends AbstractMojo {
+  val log = LoggerFactory.getLogger(classOf[GenerateMojo])
 
   @BeanProperty
   var protoPath: String = _

@@ -10,7 +10,7 @@
     <mojo>
       <goal>generate</goal>
       <description>Generate Akka GRPC model and service code</description>
-      <implementation>akka.grpc.maven.Generate</implementation>
+      <implementation>akka.grpc.maven.GenerateMojo</implementation>
       <instantiationStrategy>singleton</instantiationStrategy>
       <phase>generate-sources</phase>
 
