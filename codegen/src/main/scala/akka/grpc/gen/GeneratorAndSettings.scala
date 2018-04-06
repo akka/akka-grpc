@@ -1,2 +1,0 @@
-package akka.grpc.gen
-
