@@ -1,0 +1,33 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.palantir.git-version' version '0.10.1'
+}
+
+group = "com.lightbend.akka.grpc"
+version versionDetails().gitHashFull.substring(0, 8)
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'com.lightbend.akka.grpc.gradle'
+            implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+dependencies {
+    // to bring in protobuf dependency trasitively
+    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.5'
+}
+
+repositories {
+    mavenCentral()
+}
