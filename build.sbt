@@ -155,10 +155,11 @@ lazy val docs = Project(
   .settings(
     paradoxGroups := Map(
       "Language" -> Seq("Scala", "Java"),
-      "Buildtool" -> Seq("sbt", "Gradle"),
+      "Buildtool" -> Seq("sbt", "Gradle", "Maven"),
     ),
     paradoxProperties ++= Map(
       "projectversion" → version.value,
+      "grpc.version" → Dependencies.Versions.grpc,
       "scala.version" -> scalaVersion.value,
       "scala.binary_version" -> scalaBinaryVersion.value,
       "snip.code.base_dir" -> (sourceDirectory in Test).value.getAbsolutePath,

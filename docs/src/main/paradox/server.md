@@ -5,7 +5,7 @@
 To get started, you must obtain the `.proto` file(s) that describe the interface you want to implement and add those files
 to your project. That can be done in two different ways:
 
-1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`] directory.
+1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[``] directory.
 1. Add a dependency that contains `.proto` files under the `protobuf` configuration:
 
     sbt
@@ -17,6 +17,11 @@ to your project. That can be done in two different ways:
     Gradle
     : ```
     TODO: https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies
+    ```
+
+    Maven
+    :   ```
+    This feature is not yet available for Maven, see https://github.com/akka/akka-grpc/issues/152
     ```
 
 Then add the following configuration to your build:
@@ -52,7 +57,50 @@ protobuf {
 ```
 @@@
 
-TODO settings for code generation: scala/java, client/server/both
+Maven
+:   @@@vars
+```
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Project name</name>
+  <groupId>com.example</groupId>
+  <artifactId>my-grpc-app</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <dependencies>
+    <dependency>
+      <groupId>com.lightbend.akka.grpc</groupId>
+      <artifactId>akka-grpc-runtime_2.12</artifactId>
+      <version>${akka.grpc.project.version}</version>
+    </dependency>
+    <!-- for loading of cert, issue #89 -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-testing</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.project.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <akka.grpc.project.version>$projectversion$</akka.grpc.project.version>
+    <grpc.version>$grpc.version$</grpc.version>
+    <project.encoding>UTF-8</project.encoding>
+  </properties>
+</project>
+```
+@@@
+
+
+TODO describe settings for code generation: scala/java, client/server/both
 
 ## Generate and implement
 
@@ -79,18 +127,19 @@ There are 4 different types of calls:
 Let's implement these 4 calls. Start by generating code from the `.proto` definition with:
 
 sbt
-:   @@@vars
-```
+:   ```
 sbt compile
 ```
-@@@
 
 Gradle
-:   @@@vars
-```
+:   ```
 ./gradlew build
 ```
-@@@
+
+Maven
+:   ```
+mvn akka-grpc:generate
+```
 
 Implement the methods of the service interface in a new class:
 
@@ -117,22 +166,21 @@ Note that it's important to enable HTTP/2 in the configuration of the `ActorSyst
 akka.http.server.preview.enable-http2 = on
 ```
 
-
-
 ## Running
 
 sbt
-:   @@@vars
-```
+:   ```
 runMain io.grpc.examples.helloworld.GreeterServer
 ```
-@@@
 
 Gradle
-:   @@@vars
-```
+:   ```
 ./gradlew run
 ```
-@@@
+
+Maven
+:   ```
+mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.helloworld.GreeterClient
+```
 
 TODO describe java-agent
