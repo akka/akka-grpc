@@ -1,8 +1,3 @@
-@*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
- *@
-
-@()
 package akka.grpc.internal
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
@@ -11,9 +6,9 @@ import akka.annotation.InternalApi
 import akka.grpc.ProtobufSerializer
 
 /**
-  * INTERNAL API
-  */
-@@InternalApi
+ * INTERNAL API
+ */
+@InternalApi
 class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
 
   override def parse(stream: InputStream): T = {

@@ -1,0 +1,16 @@
+language: scala
+
+scala:
+  - 2.12.5
+
+jobs:
+  include:
+    - stage: publishLocal
+      script: sbt ++$TRAVIS_SCALA_VERSION publishLocal
+    - stage: tests
+      script: sbt test
+    - script: sbt scripted
+    - script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-codegen/publishM2 && sbt akka-grpc-maven-plugin/publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
+    - script: sbt akka-grpc-runtime/publishM2 && sbt akka-grpc-codegen/publishM2 && sbt akka-grpc-maven-plugin/publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
+    - script: cd plugin-tester-java && sbt compile
+    - script: cd plugin-tester-scala && sbt compile

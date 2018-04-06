@@ -1,0 +1,55 @@
+<!-- Post-processed by SbtMavenPlugin -->
+<plugin xmlns="http://maven.apache.org/PLUGIN/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/PLUGIN/1.0.0 http://maven.apache.org/xsd/plugin-1.0.0.xsd">
+  <name>Akka GRPC</name>
+  <description>Generate GRPC client and/or server code</description>
+  <groupId>com.lightbend.akka.grpc</groupId>
+  <artifactId>akka-grpc-maven-plugin</artifactId>
+  <goalPrefix>akka-grpc</goalPrefix>
+  <mojos>
+    <mojo>
+      <goal>generate</goal>
+      <description>Generate Akka GRPC model and service code</description>
+      <implementation>akka.grpc.maven.GenerateMojo</implementation>
+      <instantiationStrategy>singleton</instantiationStrategy>
+      <phase>generate-sources</phase>
+
+      <parameters>
+        <parameter>
+          <name>language</name>
+          <type>enum</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Generate java or scala code</description>
+        </parameter>
+        <parameter>
+          <name>generateClient</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to generate client code</description>
+        </parameter>
+        <parameter>
+          <name>generateServer</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to generate server code</description>
+        </parameter>
+        <parameter>
+          <name>protoPath</name>
+          <type>string</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Where to look for proto files</description>
+        </parameter>
+      </parameters>
+      <configuration>
+        <language implementation="enum" default-value="JAVA">${akka-grpc.language}</language>
+        <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
+        <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
+        <protoPath implementation="string" default-value="src/main/proto">${akka-grpc.proto-path}</protoPath>
+      </configuration>
+    </mojo>
+  </mojos>
+</plugin>

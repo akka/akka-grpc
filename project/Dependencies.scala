@@ -1,4 +1,4 @@
-package akka
+package akka.grpc
 
 import sbt._
 import sbt.Keys._
@@ -14,6 +14,8 @@ object Dependencies {
 
     val scalaTest = "3.0.4"
     val scalaJava8Compat = "0.8.0"
+
+    val maven = "3.5.3"
   }
 
   object Compile {
@@ -29,6 +31,11 @@ object Dependencies {
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.25"
+    val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
+    val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
+    val protocJar = "com.github.os72" % "protoc-jar" % "3.5.1"
   }
 
   object Agents {
@@ -64,6 +71,13 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp2Support
+  ) ++ testing
+
+  val mavenPlugin = l ++= Seq(
+    Compile.slf4jApi,
+    Compile.mavenPluginApi,
+    Compile.mavenCore,
+    Compile.protocJar,
   ) ++ testing
 
   val sbtPlugin = Seq(

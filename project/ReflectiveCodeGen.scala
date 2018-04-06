@@ -1,7 +1,7 @@
-package akka
+package akka.grpc
 
 import sbt._
-import Keys._
+import sbt.Keys._
 import sbtprotoc.ProtocPlugin
 import ProtocPlugin.autoImport.PB
 import protocbridge.{Artifact, Generator, JvmGenerator, Target}
