@@ -5,14 +5,21 @@ scala:
 
 jobs:
   include:
-    - stage: publishLocal
-      script: sbt ++$TRAVIS_SCALA_VERSION publishLocal publishM2
     - stage: tests
       script: sbt test
     - script: sbt scripted
-    - script: cd plugin-tester-java && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
-    - script: cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
-    - script: cd plugin-tester-java && sbt compile
-    - script: cd plugin-tester-scala && sbt compile
-    - script: cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
-    - script: cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
+    - script: sbt publishLocal && cd plugin-tester-java && sbt compile
+    - script: sbt publishLocal && cd plugin-tester-scala && sbt compile
+    - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
+    - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
+    - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
+    - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
+
+before_cache:
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt  -name "*.lock"               -print -delete
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot
