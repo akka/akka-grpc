@@ -5,7 +5,7 @@
 package akka.grpc.sbt
 
 import protocbridge.{ JvmGenerator, Target }
-import sbt._
+import sbt.{ GlobFilter, _ }
 import Keys._
 import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
 import akka.grpc.gen.CodeGenerator
@@ -38,13 +38,40 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
 
+      sourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
+      resourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
+
+      target in PB.recompile :=
+        crossTarget.value / "protobuf" / Defaults.nameForSrc(configuration.value.name),
+      // TODO: review managedSources
+      managedSourceDirectories += (target in PB.recompile).value,
+      unmanagedResourceDirectories += (resourceDirectory in PB.recompile).value,
+      watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
+
       // configure the proto gen automatically by adding our codegen:
       PB.targets :=
         akkaGrpcModelGenerators.value ++
         akkaGrpcCodeGenerators.value.map(adaptAkkaGenerator(sourceManaged.value)),
 
       // include proto files extracted from the dependencies with "protobuf" configuration by default
-      PB.protoSources += PB.externalIncludePath.value))
+      PB.protoSources += PB.externalIncludePath.value) ++
+      inTask(PB.recompile)(
+        Seq(
+          includeFilter := GlobFilter("*.proto"),
+
+          managedSourceDirectories := Nil,
+          unmanagedSourceDirectories := Seq(sourceDirectory.value),
+          sourceDirectories := unmanagedSourceDirectories.value ++ managedSourceDirectories.value,
+          unmanagedSources := { Defaults.collectFiles(sourceDirectories, includeFilter, excludeFilter).value },
+          managedSources := Nil,
+          sources := managedSources.value ++ unmanagedSources.value,
+
+          managedResourceDirectories := Nil,
+          unmanagedResourceDirectories := Seq(resourceDirectory.value),
+          resourceDirectories := unmanagedResourceDirectories.value ++ managedResourceDirectories.value,
+          unmanagedResources := { Defaults.collectFiles(resourceDirectories, includeFilter, excludeFilter).value },
+          managedResources := Nil,
+          resources := managedResources.value ++ unmanagedResources.value)))
 
   def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
     val adapted = new ProtocBridgeSbtPluginCodeGenerator(generatorAndSettings.generator)
