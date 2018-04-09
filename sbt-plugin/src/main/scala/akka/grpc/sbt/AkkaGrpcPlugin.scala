@@ -38,8 +38,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
 
-      PB.protoSources in Compile += target.value / "protobuf",
-
       sourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
       resourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
 
