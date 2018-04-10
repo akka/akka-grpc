@@ -31,7 +31,7 @@ enablePlugins(AkkaGrpcPlugin)
 // that are more consistent between Scala and Java.
 // Because the interop tests generate both Scala and Java code, however, here we disable this
 // option to avoid name clashes in the generated classes:
-(akkaGrpcCodeGeneratorSettings in Compile) := (akkaGrpcCodeGeneratorSettings in Compile).value.filterNot(_ == "flat_package")
+akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_ == "flat_package")
 
 // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
 // * google/protobuf/empty.proto
@@ -42,7 +42,7 @@ enablePlugins(AkkaGrpcPlugin)
 excludeFilter in PB.generate := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
-(akkaGrpcCodeGenerators in Compile) := Seq(
-  GeneratorAndSettings(JavaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value),
-  GeneratorAndSettings(ScalaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value))
+akkaGrpcCodeGenerators := Seq(
+  GeneratorAndSettings(JavaBothCodeGenerator, akkaGrpcCodeGeneratorSettings.value),
+  GeneratorAndSettings(ScalaBothCodeGenerator, akkaGrpcCodeGeneratorSettings.value))
 (akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value
