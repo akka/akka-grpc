@@ -65,11 +65,12 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                             akkaGrpc {
                                 if (isScala) {
                                     option "language=scala"
+                                    option "flat_package"
                                 }
                             }
                             if (isScala) {
                                 scalapb {
-
+                                    option "flat_package"
                                 }
                             }
                         }
