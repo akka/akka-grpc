@@ -41,7 +41,7 @@ class GreeterServer {
           ConnectWithHttps.toHostHttps("127.0.0.1", 8080).withCustomHttpsContext(serverHttpContext()),
           mat)
       .thenAccept(binding -> {
-        System.out.println("GRPC server bound to: " + binding.localAddress());
+        System.out.println("gRPC server bound to: " + binding.localAddress());
       });
   }
 

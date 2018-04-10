@@ -45,7 +45,7 @@ object GreeterServer {
       connectionContext = serverHttpContext()
     )
     .foreach { binding =>
-      println(s"GRPC server bound to: ${binding.localAddress}")
+      println(s"gRPC server bound to: ${binding.localAddress}")
     }
   }
 
