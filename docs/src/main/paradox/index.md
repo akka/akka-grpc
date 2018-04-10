@@ -15,9 +15,11 @@ connection.
 Based on a protobuf service definition, akka-grpc can generate:
 
 * Model classes (using plain protoc for Java or scalapb for Scala)
-* The API (as an interface for Java or a trait for Scala), expressed in Akka Streams `Source`s
+* The API @scala[trait]@java[interface], expressed in Akka Streams `Source`s
 * On the server side, code to create an Akka HTTP route based on your implementation of the API
 * On the client side, a client for the API.
+
+
 
 @@@ index
 

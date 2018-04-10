@@ -81,13 +81,12 @@ Maven
 ```
 @@@
 
-
-TODO describe settings for code generation: scala/java, client/server/both
+For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](sbt.md), Gradle or Maven. (TODO Gradle and Maven)
 
 ## Generate and implement
 
 Define the interfaces you want to implement in your project's
-@sbt[src/main/protobuf]@gradle[src/main/proto] file(s).
+@sbt[src/main/protobuf]@gradle[src/main/proto]@maven[src/main/proto] file(s).
 
 For example, a Hello World service:
 

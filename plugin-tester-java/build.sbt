@@ -6,12 +6,16 @@ enablePlugins(AkkaGrpcPlugin)
 
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime"
 
+//#protoSources
 inConfig(Compile)(Seq(
+  PB.protoSources += new File("src/main/proto"),
+  //#protoSources
   // does not seem to work :( added a symlink for now.
-  PB.includePaths += new File("src/main/proto"),
   akkaGrpcCodeGenerators := GeneratorAndSettings(JavaBothCodeGenerator) :: Nil,
   akkaGrpcModelGenerators := Seq[Target](PB.gens.java -> sourceManaged.value),
+//#protoSources
 ))
+//#protoSources
 
 val root = project.in(file("."))
   .dependsOn(

@@ -41,14 +41,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     inConfig(config)(Seq(
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
 
-      sourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
-      resourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
-
-      target in PB.recompile :=
-        crossTarget.value / "protobuf" / Defaults.nameForSrc(configuration.value.name),
-      // TODO: review managedSources
-      managedSourceDirectories += (target in PB.recompile).value,
-      unmanagedResourceDirectories += (resourceDirectory in PB.recompile).value,
+      unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
 
       // configure the proto gen automatically by adding our codegen:
@@ -65,15 +58,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
           managedSourceDirectories := Nil,
           unmanagedSourceDirectories := Seq(sourceDirectory.value),
           sourceDirectories := unmanagedSourceDirectories.value ++ managedSourceDirectories.value,
-          unmanagedSources := { Defaults.collectFiles(sourceDirectories, includeFilter, excludeFilter).value },
           managedSources := Nil,
+          unmanagedSources := { Defaults.collectFiles(unmanagedSourceDirectories, includeFilter, excludeFilter).value },
           sources := managedSources.value ++ unmanagedSources.value,
 
           managedResourceDirectories := Nil,
-          unmanagedResourceDirectories := Seq(resourceDirectory.value),
+          unmanagedResourceDirectories := resourceDirectory.value +: PB.protoSources.value,
           resourceDirectories := unmanagedResourceDirectories.value ++ managedResourceDirectories.value,
-          unmanagedResources := { Defaults.collectFiles(resourceDirectories, includeFilter, excludeFilter).value },
           managedResources := Nil,
+          unmanagedResources := { Defaults.collectFiles(unmanagedResourceDirectories, includeFilter, excludeFilter).value },
           resources := managedResources.value ++ unmanagedResources.value)))
 
   def adaptAkkaGenerator(targetPath: File)(generatorAndSettings: GeneratorAndSettings): Target = {
