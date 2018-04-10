@@ -8,7 +8,7 @@ javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime
 
 //#protoSources
 inConfig(Compile)(Seq(
-  PB.protoSources += new File("src/main/proto"),
+  PB.protoSources += sourceDirectory.value / "proto",
   //#protoSources
   // does not seem to work :( added a symlink for now.
   akkaGrpcCodeGenerators := GeneratorAndSettings(JavaBothCodeGenerator) :: Nil,
