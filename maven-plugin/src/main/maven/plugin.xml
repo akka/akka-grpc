@@ -1,15 +1,15 @@
 <!-- Post-processed by SbtMavenPlugin -->
 <plugin xmlns="http://maven.apache.org/PLUGIN/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/PLUGIN/1.0.0 http://maven.apache.org/xsd/plugin-1.0.0.xsd">
-  <name>Akka GRPC</name>
-  <description>Generate GRPC client and/or server code</description>
+  <name>Akka gRPC</name>
+  <description>Generate gRPC client and/or server code</description>
   <groupId>com.lightbend.akka.grpc</groupId>
   <artifactId>akka-grpc-maven-plugin</artifactId>
   <goalPrefix>akka-grpc</goalPrefix>
   <mojos>
     <mojo>
       <goal>generate</goal>
-      <description>Generate Akka GRPC model and service code</description>
+      <description>Generate Akka gRPC model and service code</description>
       <implementation>akka.grpc.maven.GenerateMojo</implementation>
       <instantiationStrategy>singleton</instantiationStrategy>
       <phase>generate-sources</phase>

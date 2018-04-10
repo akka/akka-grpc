@@ -4,7 +4,7 @@
 -->
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <name>Akka GRPC Scala example project</name>
+  <name>Akka gRPC Scala example project</name>
   <groupId>com.lightbend.akka.grpc</groupId>
   <artifactId>grpc-plugin-tester-java</artifactId>
   <version>0.1-SNAPSHOT</version>

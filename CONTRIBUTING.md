@@ -1,4 +1,4 @@
-# Welcome! Thank you for contributing to Akka GRPC!
+# Welcome! Thank you for contributing to Akka gRPC!
 
 We follow the standard GitHub [fork & pull](https://help.github.com/articles/using-pull-requests/#fork--pull) approach to pull requests. Just fork the official repo, develop in a branch, and submit a PR!
 
@@ -47,7 +47,7 @@ If you want to run tests outside `sbt` setup your launcher to include the follow
 
 You will have to review the value of the path and replace `/home/username/.ivy2/cache/` with the actual location of your `.ivy2` cache repository (usually that's located on your `$HOME` folder) 
 
-# Akka GRPC contributing guidelines
+# Akka gRPC contributing guidelines
 
 These guidelines apply to all Akka projects, by which we mean both the `akka/akka` repository,
 as well as any plugins or additional repos located under the Akka GitHub organisation, e.g. `akka/akka-grpc` and others.
@@ -94,7 +94,7 @@ Note that the akka-grpc sbt project is not as large as the Akka one, so `sbt` sh
 
 ## Binary compatibility
 
-Akka GRPC is still in experimental mode, so this section does not apply yet.
+Akka gRPC is still in experimental mode, so this section does not apply yet.
 However, once we declare the project stable, we will adhere to the following
 rules:
 
@@ -138,7 +138,7 @@ For a Pull Request to be considered at all it has to meet these requirements:
     1. All source files in the project must have a Lightbend copyright notice in the file header.
     1. The Notices file for the project includes the Lightbend copyright notice and no other files contain copyright notices.  See http://www.apache.org/legal/src-headers.html for instructions for managing this approach for copyrights.
 
-    Akka GRPC uses the first choice, having copyright notices in every file header.
+    Akka gRPC uses the first choice, having copyright notices in every file header.
 
 
 ### Additional guidelines
@@ -180,7 +180,7 @@ The rendered documentation will be available under `docs/target/paradox/site/mai
 
 ### JavaDoc
 
-Akka GRPC generates JavaDoc-style API documentation using the [genjavadoc](https://github.com/lightbend/genjavadoc) sbt plugin, since the sources are written mostly in Scala.
+Akka gRPC generates JavaDoc-style API documentation using the [genjavadoc](https://github.com/lightbend/genjavadoc) sbt plugin, since the sources are written mostly in Scala.
 
 Generating JavaDoc is not enabled by default, as it's not needed on day-to-day development as it's expected to just work.
 If you'd like to check if you links and formatting looks good in JavaDoc (and not only in ScalaDoc), you can generate it by running:
@@ -233,7 +233,7 @@ Example:
 
 ## Pull request validation workflow details
 
-Akka GRPC uses [Jenkins GitHub pull request builder plugin](https://wiki.jenkins-ci.org/display/JENKINS/GitHub+pull+request+builder+plugin)
+Akka gRPC uses [Jenkins GitHub pull request builder plugin](https://wiki.jenkins-ci.org/display/JENKINS/GitHub+pull+request+builder+plugin)
 that automatically merges the code, builds it, runs the tests and comments on the Pull Request in GitHub.
 
 Upon a submission of a Pull Request the GitHub pull request builder plugin will post a following comment:
@@ -251,7 +251,7 @@ Note, that `OK TO TEST` will only be picked up when the user asking for it is co
 
 ### Scala style 
 
-Akka GRPC uses [Scalariform](https://github.com/daniel-trinh/scalariform) to enforce some of the code style rules.
+Akka gRPC uses [Scalariform](https://github.com/daniel-trinh/scalariform) to enforce some of the code style rules.
 
 ### Java style
 
@@ -294,5 +294,5 @@ The cluster is made out of real bare-metal boxes, and maintained by the Akka tea
 ## Related links
 
 * [Lightbend Contributor License Agreement](http://www.lightbend.com/contribute/cla)
-* [Akka GRPC Issue Tracker](https://github.com/akka/akka-grpc/issues)
+* [Akka gRPC Issue Tracker](https://github.com/akka/akka-grpc/issues)
 * [Scalariform](https://github.com/daniel-trinh/scalariform)
