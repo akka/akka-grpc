@@ -1,5 +1,5 @@
 //#full-client
-package io.grpc.examples
+package io.grpc.examples.helloworld
 
 import java.util.concurrent.TimeUnit
 

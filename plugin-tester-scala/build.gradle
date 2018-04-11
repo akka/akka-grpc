@@ -1,79 +1,29 @@
+buildscript {
+  repositories {
+    mavenLocal()
+  }
+
+  dependencies {
+    // version here is a placeholder,
+    // it is replaced with a project dependency during integration tests
+    // by adding --include-build <path> to gradlew
+    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.0.1'
+  }
+}
+
 plugins {
-  id 'com.google.protobuf' version '0.8.4'
   id 'scala'
   id 'application'
 }
 
-ext {
-  akkaGrpcVersion = '15efbf87+20180228-1710'
+apply plugin: 'com.lightbend.akka.grpc.gradle'
+
+dependencies {
+  // for loading of cert, issue #89
+  compile 'io.grpc:grpc-testing:1.11.0'
 }
 
 repositories {
+  mavenLocal()
   mavenCentral()
-
-  ivy {
-    url "file:///home/aengelen/.ivy2/local"
-    layout "pattern", {
-      artifact "[organization]/[module]/[revision]/jars/[module][classifier].[ext]"
-    }
-  }
-  ivy {
-    url "file:///home/aengelen/.ivy2/local"
-    layout "pattern", {
-      artifact "[organization]/[module]/[revision]/jars/[module].[ext]"
-    }
-  }
-}
-
-dependencies {
-  compile 'org.scala-lang:scala-library:2.12.4'
-  compile 'com.google.protobuf:protobuf-java:3.5.1'
-  compile 'com.typesafe.akka:akka-stream_2.12:2.5.10'
-  compile 'com.typesafe.akka:akka-http_2.12:10.1.0-RC2'
-  compile "com.lightbend.akka.grpc:akka-grpc-server_2.12:${project.ext.akkaGrpcVersion}"
-  compile 'io.grpc:grpc-core:1.10.1'
-  compile 'io.grpc:grpc-netty:1.10.1'
-  compile 'com.thesamet.scalapb:scalapb-runtime_2.12:0.7.1'
-}
-
-sourceSets {
-  main {
-    proto {
-      srcDir 'src/main/protobuf'
-    }
-    scala {
-      srcDir 'build/generated/source/proto/main/akkaGrpc'
-      srcDir 'build/generated/source/proto/main/scalapb'
-    }
-  }
-}
-
-protobuf {
-  protoc {
-    // Get protobuf from maven central instead of
-    // using the installed version:
-    artifact = 'com.google.protobuf:protoc:3.4.0'
-  }
-  plugins {
-    akkaGrpc {
-      artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${project.ext.akkaGrpcVersion}:-assembly@jar"
-    }
-    scalapb {
-      artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${project.ext.akkaGrpcVersion}:-assembly@jar"
-    }
-  }
-
-  generateProtoTasks {
-    all().each { task ->
-      task.builtins {
-        remove java
-      }
-      task.plugins {
-        akkaGrpc {
-          option "language=scala"
-        }
-        scalapb { }
-      }
-    }
-  }
 }

@@ -31,6 +31,9 @@ lazy val codegen = Project(
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.gen.Main"),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(
+      prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
+    ),
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -55,6 +58,9 @@ lazy val scalapbProtocPlugin = Project(
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(
+      prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
+    ),
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 

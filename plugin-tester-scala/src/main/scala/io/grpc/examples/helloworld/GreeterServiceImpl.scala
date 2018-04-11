@@ -1,5 +1,5 @@
 //#full-service-impl
-package io.grpc.examples
+package io.grpc.examples.helloworld
 
 import scala.concurrent.Future
 

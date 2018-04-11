@@ -1,5 +1,5 @@
 //#full-server
-package io.grpc.examples
+package io.grpc.examples.helloworld
 
 import java.io.FileInputStream
 import java.nio.file.Files

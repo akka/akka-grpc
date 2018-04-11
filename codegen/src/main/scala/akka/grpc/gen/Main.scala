@@ -7,8 +7,8 @@ package akka.grpc.gen
 import java.io.ByteArrayOutputStream
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
-import akka.grpc.gen.javadsl.JavaServerCodeGenerator
-import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
+import akka.grpc.gen.javadsl.JavaBothCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 
 object Main extends App {
 
@@ -26,8 +26,8 @@ object Main extends App {
 
   val req = CodeGeneratorRequest.parseFrom(inBytes)
   val out =
-    if (req.getParameter.toLowerCase.contains("language=scala")) ScalaServerCodeGenerator.run(req)
-    else JavaServerCodeGenerator.run(req)
+    if (req.getParameter.toLowerCase.contains("language=scala")) ScalaBothCodeGenerator.run(req)
+    else JavaBothCodeGenerator.run(req)
 
   System.out.write(out.toByteArray)
   System.out.flush()

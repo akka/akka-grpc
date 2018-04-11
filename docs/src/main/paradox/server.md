@@ -144,7 +144,7 @@ mvn akka-grpc:generate
 Implement the methods of the service interface in a new class:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/GreeterServiceImpl.scala) { #full-service-impl }
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/helloworld/GreeterServiceImpl.scala) { #full-service-impl }
 
 Java
 :  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServiceImpl.java) { #full-service-impl }
@@ -155,7 +155,7 @@ which is a function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`C
 A main program that starts a Akka HTTP server with the `GreeterService` looks like this:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/GreeterServer.scala) { #full-server }
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/helloworld/GreeterServer.scala) { #full-server }
 
 Java
 :  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServer.java) { #full-server }
