@@ -32,7 +32,8 @@ There are a number of options that can be set in the .proto definition that infl
 
 @@snip [helloworld.proto]($root$/../plugin-tester-scala/src/main/protobuf/helloworld.proto) { #options }
 
-The 'package' in the `.proto` is used to resolve references from one `.proto` file to another.
+The (optional) ['package'](https://developers.google.com/protocol-buffers/docs/proto#packages)
+in the `.proto` is used to resolve references from one `.proto` file to another.
 It can also be used for the package name in the generated code, but it is
 common to use the separate `java_package` option to override it.
 
