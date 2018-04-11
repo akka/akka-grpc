@@ -7,7 +7,7 @@ package akka.grpc.sbt
 import protocbridge.{ JvmGenerator, Target }
 import sbt.{ GlobFilter, _ }
 import Keys._
-import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
+import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator }
 import akka.grpc.gen.CodeGenerator
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
@@ -30,12 +30,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
   import autoImport._
 
-  override def projectSettings = configSettings(Compile) ++ configSettings(Test)
+  override def projectSettings = defaultSettings ++ configSettings(Compile) ++ configSettings(Test)
+
+  private def defaultSettings =
+    Seq(
+      akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
+      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaBothCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil)
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
-      akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
-      akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaServerCodeGenerator, akkaGrpcCodeGeneratorSettings.value) :: Nil,
       akkaGrpcModelGenerators := Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings.value) -> sourceManaged.value),
 
       sourceDirectory in PB.recompile := sourceDirectory.value / "protobuf",
