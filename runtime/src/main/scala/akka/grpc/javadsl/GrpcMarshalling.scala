@@ -8,15 +8,15 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import io.grpc.Status
 import akka.NotUsed
-import akka.grpc.GrpcServiceException
-import akka.http.scaladsl.model.HttpEntity.{ ChunkStreamPart, LastChunk }
-import akka.http.scaladsl.model.{ HttpEntity ⇒ SHttpEntity, HttpResponse ⇒ SHttpResponse }
+import akka.http.scaladsl.model.HttpEntity.LastChunk
+import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
-import akka.stream.scaladsl.{ Source ⇒ SSource }
+import akka.stream.scaladsl.{ Source => SSource }
 import akka.grpc._
+import akka.grpc.internal.CancellationBarrierGraphStage
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 
 object GrpcMarshalling {
@@ -31,7 +31,10 @@ object GrpcMarshalling {
       req.entity.getDataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)
         .via(Grpc.grpcFramingDecoder(messageEncoding))
-        .map(u.deserialize))
+        .map(u.deserialize)
+        // In gRPC we signal failure by returning an error code, so we
+        // don't want the cancellation bubbled out
+        .via(new CancellationBarrierGraphStage))
   }
 
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
