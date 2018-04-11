@@ -20,6 +20,12 @@ Those messages can be used to define services:
 
 Both the request and the response consists of either a single message or a stream of messages.
 
+If you want to create an endpoint that takes no parameters or produces no
+response, a common convention is to use the `Empty` type as defined by
+Google in their [empty.proto](https://github.com/google/protobuf/blob/master/src/google/protobuf/empty.proto).
+You can either choose to include `empty.proto` in your project or @ref[include
+com.google.protobuf:protobuf-java as a dependency](sbt-plugin.md#loading-proto-files-from-the-classpath).
+
 ## Code generation options
 
 There are a number of options that can be set in the .proto definition that influence how the code is generated:
