@@ -2,7 +2,7 @@
 
 ## Setting up
 
-To get started, you must obtain the `.proto` file(s) that describe the interface you want to use and add those files to your project. That can be done in two different ways:
+To get started, you must obtain the @ref[`.proto`](proto.md) file(s) that describe the interface you want to use and add those files to your project. That can be done in two different ways:
 
 1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`] directory.
 1. Add a dependency that contains `.proto` files under the `protobuf` configuration:

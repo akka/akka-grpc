@@ -50,4 +50,6 @@ akkaGrpcCodeGenerators := Seq(GeneratorAndSettings(JavaServerCodeGenerator, akka
 
 ```
 
+## Loading proto files from artifacts
+
 TODO more stuff - generating from classpath rather than directory for example
