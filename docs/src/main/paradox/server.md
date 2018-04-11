@@ -168,6 +168,14 @@ akka.http.server.preview.enable-http2 = on
 
 ## Running
 
+To run the server with HTTP/2 enabled correctly, you will likely have to configure the Jetty ALPN
+agent as described @extref[in the Akka HTTP documentation](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-):
+
+sbt
+:   @@snip [build.sbt]($root$/../plugin-tester-scala/build.sbt) { #alpn }
+
+After that you can run it as usual:
+
 sbt
 :   ```
 runMain io.grpc.examples.helloworld.GreeterServer
@@ -182,5 +190,3 @@ Maven
 :   ```
 mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.helloworld.GreeterClient
 ```
-
-TODO describe java-agent

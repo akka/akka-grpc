@@ -169,7 +169,9 @@ lazy val docs = Project(
       "scala.version" -> scalaVersion.value,
       "scala.binary_version" -> scalaBinaryVersion.value,
       "snip.code.base_dir" -> (sourceDirectory in Test).value.getAbsolutePath,
-      "snip.root.base_dir" -> (baseDirectory in ThisBuild).value.getAbsolutePath),
+      "snip.root.base_dir" -> (baseDirectory in ThisBuild).value.getAbsolutePath,
+      "extref.akka-http.base_url" -> "https://doc.akka.io/docs/akka-http/current/%s",
+    ),
     resolvers += Resolver.jcenterRepo,
   )
 
