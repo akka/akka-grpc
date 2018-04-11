@@ -4,6 +4,9 @@ buildscript {
   }
 
   dependencies {
+    // version here is a placeholder,
+    // it is replaced with a project dependency during integration tests
+    // by adding --include-build <path> to gradlew
     classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.0.1'
   }
 }
