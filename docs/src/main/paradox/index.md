@@ -24,6 +24,8 @@ Based on a protobuf service definition, akka-grpc can generate:
 * [server](server.md)
 * [client](client.md)
 * [proto](proto.md)
-* [sbt plugin details](sbt-plugin.md)
+* [sbt](sbt.md)
+* [maven](maven.md)
+* [gradle](gradle.md)
 
 @@@

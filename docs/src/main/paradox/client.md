@@ -2,26 +2,10 @@
 
 ## Setting up
 
-To get started, you must obtain the @ref[`.proto`](proto.md) file(s) that describe the interface you want to use and add those files to your project. That can be done in two different ways:
+To get started, you must obtain the @ref[`.proto`](proto.md) file(s) that describe the interface you want to use and add those files to your project.
 
-1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`] directory.
-1. Add a dependency that contains `.proto` files under the `protobuf` configuration:
-
-    sbt
-    :   ```scala
-    libraryDependencies +=
-      "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
-    ```
-
-    Gradle
-    :   ```
-    TODO: https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies
-    ```
-
-    Maven
-    :   ```
-    This feature is not yet available for Maven, see https://github.com/akka/akka-grpc/issues/152
-    ```
+Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`] directory.
+(See the detailed chapters on @ref[sbt](sbt.md), @ref[Gradle](gradle.md) and @ref[Maven](maven.md) for information on taking .proto definitions from dependencies)
 
 Then add the following configuration to your build:
 
@@ -38,21 +22,21 @@ enablePlugins(AkkaGrpcPlugin)
 Gradle
 :   @@@vars
 ```gradle
+buildscript {
+  dependencies {
+    // version here is a placeholder,
+    // it is replaced with a project dependency during integration tests
+    // by adding --include-build <path> to gradlew
+    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
+  }
+}
+
 plugins {
-  id 'com.google.protobuf' version '0.8.4'
+  id 'java'
+  id 'application'
 }
-protobuf {
-  protoc {
-    // Get protobuf from maven central instead of
-    // using the installed version:
-    artifact = 'com.google.protobuf:protoc:3.4.0'
-  }
-  plugins {
-    akkaGrpc {
-      artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:$projectversion$:-assembly@jar"
-    }
-  }
-}
+
+apply plugin: 'com.lightbend.akka.grpc.gradle'
 ```
 @@@
 
