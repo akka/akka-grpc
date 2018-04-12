@@ -34,7 +34,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
     val bindingFuture = Http2().bindAndHandleAsync(
       testService,
       interface = "127.0.0.1",
-      port = 8080,
+      port = 0,
       httpsContext = serverHttpContext())
 
     val binding = Await.result(bindingFuture, 10.seconds)
@@ -79,4 +79,5 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
     new HttpsConnectionContext(context)
   }
 
+  override def getPort(binding: (ActorSystem, ServerBinding)): Int = binding._2.localAddress.getPort
 }

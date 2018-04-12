@@ -8,6 +8,8 @@ abstract class GrpcServer[T] {
   @throws[Exception]
   def start(): T
 
+  def getPort(binding: T): Int
+
   @throws[Exception]
   def stop(binding: T): Unit
 }

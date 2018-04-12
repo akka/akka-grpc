@@ -20,4 +20,6 @@ object IoGrpcServer extends GrpcServer[TestServiceServer] {
   }
 
   override def stop(binding: TestServiceServer) = binding.stop()
+
+  override def getPort(binding: TestServiceServer): Int = binding.port
 }
