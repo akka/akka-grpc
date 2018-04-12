@@ -7,8 +7,10 @@ enablePlugins(AkkaGrpcPlugin)
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime"
 
 //#protoSources
-// sourceDirectory in Compile is "src/main", so this is "src/main/proto":
-PB.protoSources in Compile += sourceDirectory.value / "proto"
+// "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto":
+inConfig(Compile)(Seq(
+  PB.protoSources += sourceDirectory.value / "proto"
+))
 //#protoSources
 
 inConfig(Compile)(Seq(
