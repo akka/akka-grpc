@@ -16,28 +16,26 @@ class CancellationBarrierGraphStage[T] extends GraphStage[FlowShape[T, T]] {
   override val shape: FlowShape[T, T] = FlowShape(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
-    new GraphStageLogic(shape) with InHandler with OutHandler {
-      var finished = false
-      var pulled = false
+    new GraphStageLogic(shape) {
 
-      override def onPush(): Unit = {
-        pulled = false
-        val value = grab(in)
-        if (!finished)
-          emit(out, value)
-      }
+      setHandler(in, new InHandler {
+        override def onPush(): Unit = emit(out, grab(in))
+      })
 
-      override def onPull(): Unit = {
-        pulled = true
-        pull(in)
-      }
+      setHandler(out, new OutHandler {
+        override def onPull(): Unit = pull(in)
 
-      override def onDownstreamFinish(): Unit = {
-        finished = true
-        if (!pulled)
-          pull(in)
-      }
+        override def onDownstreamFinish(): Unit = {
+          if (!hasBeenPulled(in))
+            pull(in)
 
-      setHandlers(in, out, this)
+          setHandler(in, new InHandler {
+            override def onPush(): Unit = {
+              grab(in)
+              pull(in)
+            }
+          })
+        }
+      })
     }
 }
