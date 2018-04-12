@@ -24,7 +24,7 @@ If you want to create an endpoint that takes no parameters or produces no
 response, a common convention is to use the `Empty` type as defined by
 Google in their [empty.proto](https://github.com/google/protobuf/blob/master/src/google/protobuf/empty.proto).
 You can either choose to include `empty.proto` in your project or @ref[include
-com.google.protobuf:protobuf-java as a dependency](sbt-plugin.md#loading-proto-files-from-the-classpath).
+com.google.protobuf:protobuf-java as a dependency](sbt.md#loading-proto-files-from-the-classpath).
 
 ## Code generation options
 

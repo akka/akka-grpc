@@ -3,28 +3,10 @@
 ## Setting up
 
 To get started, you must obtain or write the @ref[`.proto`](proto.md) file(s) that describe the interface you want to implement and add those files
-to your project. That can be done in two different ways:
+to your project. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`] directory.
+(See the detailed chapters on @ref[sbt](sbt.md), @ref[Gradle](gradle.md) and @ref[Maven](maven.md) for information on taking .proto definitions from dependencies)
 
-1. Add `.proto` files to your project's @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[``] directory.
-1. Add a dependency that contains `.proto` files under the `protobuf` configuration:
-
-    sbt
-    : ```scala
-    libraryDependencies +=
-      "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
-    ```
-
-    Gradle
-    : ```
-    TODO: https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies
-    ```
-
-    Maven
-    :   ```
-    This feature is not yet available for Maven, see https://github.com/akka/akka-grpc/issues/152
-    ```
-
-Then add the following configuration to your build:
+Then add the Akka gRPC plugin to your build:
 
 sbt
 :   @@@vars

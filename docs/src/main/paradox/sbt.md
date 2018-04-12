@@ -1,19 +1,8 @@
-# sbt plugin details
+# sbt
 
-The sbt plugin is added to a project like so:
+To get started with Akka gRPC read the [client](client.md) or [server](server.md) introductions.
 
-@@@vars
-```scala
-// in project/plugins.sbt:
-addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % "$projectversion$")
-// in build.sbt:
-enablePlugins(AkkaGrpcPlugin)
-```
-@@@
-
-It will then by default look for `.proto` files under `src/main/protobuf`.
-
-## Configuration
+## Only generating the server or client side
 
 By default the plugin generates both a client and a server stub for Scala. 
 
@@ -52,4 +41,20 @@ akkaGrpcCodeGenerators := Seq(GeneratorAndSettings(JavaServerCodeGenerator, akka
 
 ## Loading proto files from artifacts
 
-TODO more stuff - generating from classpath rather than directory for example
+Instead of duplicating the .proto definitions between server and client projects, you can add artifacts
+that contain proto definitions to your build:
+
+```scala
+libraryDependencies +=
+  "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
+```
+
+Gradle
+:   ```
+TODO: https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies
+```
+
+Maven
+:   ```
+This feature is not yet available for Maven, see https://github.com/akka/akka-grpc/issues/152
+```
