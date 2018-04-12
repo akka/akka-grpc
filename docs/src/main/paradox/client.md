@@ -82,7 +82,7 @@ Maven
 ```
 @@@
 
-TODO describe settings for code generation: scala/java, client/server/both
+For a complete overview of the configuration options see @ref[configuration](#Configuration) below.
 
 ## Generate and use
 
@@ -163,3 +163,15 @@ java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
 ```
 
 Run with `-Djava.util.logging.config.file=/path/to/grpc-debug-logging.properties`.
+
+## Configuration
+
+You can configure where your .proto files are located like this:
+
+sbt
+:   @@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
+
+TODO gradle, maven
+
+TODO describe settings for code generation: scala/java, client/server/both
+

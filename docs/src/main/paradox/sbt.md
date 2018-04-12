@@ -39,6 +39,13 @@ akkaGrpcCodeGenerators := Seq(GeneratorAndSettings(JavaServerCodeGenerator, akka
 
 ```
 
+## Proto source directory
+
+You can configure where your .proto files are located like this:
+
+sbt
+:   @@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
+
 ## Loading proto files from artifacts
 
 Instead of duplicating the .proto definitions between server and client projects, you can add artifacts
