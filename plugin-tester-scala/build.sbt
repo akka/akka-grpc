@@ -1,9 +1,12 @@
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 
-enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
+//#alpn
+enablePlugins(JavaAgent)
+
 javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime"
+//#alpn
 
 inConfig(Compile)(Seq(
   akkaGrpcCodeGenerators := GeneratorAndSettings(ScalaBothCodeGenerator, (akkaGrpcCodeGeneratorSettings in Compile).value) :: Nil
