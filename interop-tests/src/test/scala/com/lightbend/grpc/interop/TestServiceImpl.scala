@@ -43,8 +43,8 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
       case Some(requestStatus) =>
         val responseStatus = Status.fromCodeValue(requestStatus.code).withDescription(requestStatus.message)
         //  - Either one of the following works
-        // throw new GrpcServiceException(responseStatus)
-        Future.failed(throw new GrpcServiceException(responseStatus))
+        // Future.failed(new GrpcServiceException(responseStatus))
+        throw new GrpcServiceException(responseStatus)
     }
   }
 

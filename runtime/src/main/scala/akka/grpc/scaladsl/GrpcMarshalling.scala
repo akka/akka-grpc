@@ -6,11 +6,11 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.grpc._
+import akka.grpc.internal.CancellationBarrierGraphStage
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import akka.util.ByteString
 
 import scala.concurrent.Future
 
@@ -29,7 +29,10 @@ object GrpcMarshalling {
       req.entity.dataBytes
         .mapMaterializedValue(_ ⇒ NotUsed)
         .via(Grpc.grpcFramingDecoder(messageEncoding))
-        .map(u.deserialize))
+        .map(u.deserialize)
+        // In gRPC we signal failure by returning an error code, so we
+        // don't want the cancellation bubbled out
+        .via(new CancellationBarrierGraphStage))
   }
 
   def marshal[T](e: T = Identity)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
