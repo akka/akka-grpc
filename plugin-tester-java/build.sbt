@@ -8,7 +8,7 @@ javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime
 
 //#protoSources
 // sourceDirectory in Compile is "src/main", so this is "src/main/proto":
-PB.protoSources in Compile += sourceDirectory.value / "proto",
+PB.protoSources in Compile += sourceDirectory.value / "proto"
 //#protoSources
 
 inConfig(Compile)(Seq(
