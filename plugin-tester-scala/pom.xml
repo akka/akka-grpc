@@ -15,14 +15,6 @@
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
-
-    <!-- for loading of cert, issue #89 -->
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-testing</artifactId>
-      <version>${grpc.version}</version>
-    </dependency>
-
   </dependencies>
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
@@ -47,7 +39,6 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <grpc.version>1.11.0</grpc.version>
     <project.encoding>UTF-8</project.encoding>
   </properties>
 </project>
