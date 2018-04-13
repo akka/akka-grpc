@@ -10,8 +10,6 @@ import java.io.InputStream;
 
 public interface ClientTester {
 
-    ManagedChannel createChannel();
-
     void setUp();
 
     void tearDown() throws Exception;

@@ -44,13 +44,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   }
 
   @Override
-  public ManagedChannel createChannel() {
-    return ChannelBuilder.buildChannel(settings);
-  }
-
-  @Override
   public void setUp() {
-    channel = createChannel();
+    channel = ChannelBuilder.buildChannel(settings);;
     client = TestServiceClient.create(channel, CallOptions.DEFAULT, mat, ec);
     clientUnimplementedService = UnimplementedServiceClient.create(channel, CallOptions.DEFAULT, mat, ec);
   }
