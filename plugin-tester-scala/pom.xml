@@ -15,6 +15,12 @@
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
+    <!-- Needed for the generated client -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
@@ -39,6 +45,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <grpc.version>1.11.0</grpc.version>
     <project.encoding>UTF-8</project.encoding>
   </properties>
 </project>
