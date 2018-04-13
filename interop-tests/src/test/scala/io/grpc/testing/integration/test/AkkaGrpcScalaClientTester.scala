@@ -6,6 +6,7 @@ package io.grpc.testing.integration.test
 
 import java.io.InputStream
 
+import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
@@ -21,22 +22,23 @@ import scala.util.Failure
 
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
-  private var channel: ManagedChannel = null
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
 
   private val awaitTimeout = 3.seconds
 
-  def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
-
   def setUp(): Unit = {
-    channel = createChannel()
-    client = TestServiceClient(channel)
-    clientUnimplementedService = UnimplementedServiceClient(channel)
+    val grpcSettings = new GrpcClientSettings(
+      settings.serverHost,
+      settings.serverPort,
+      Option(settings.serverHostOverride),
+      certificate = Some("ca.pem"))
+    client = TestServiceClient(grpcSettings)
+    clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
 
   def tearDown(): Unit = {
-    if (channel != null) channel.shutdown()
+    if (client != null) client.close()
   }
 
   def emptyUnary(): Unit = {

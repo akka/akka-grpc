@@ -1,7 +1,7 @@
 //#full-server
 package io.grpc.examples.helloworld
 
-import java.io.FileInputStream
+import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyFactory
@@ -10,12 +10,12 @@ import java.security.SecureRandom
 import java.security.cert.CertificateFactory
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
+
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
@@ -24,7 +24,6 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
-import io.grpc.internal.testing.TestUtils
 
 object GreeterServer {
 
@@ -51,7 +50,7 @@ object GreeterServer {
 
   private def serverHttpContext(): HttpsConnectionContext = {
     // FIXME how would end users do this? TestUtils.loadCert? issue #89
-    val keyEncoded = new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath)), "UTF-8")
+    val keyEncoded = read(GreeterServer.getClass.getResourceAsStream("/certs/server1.key"))
       .replace("-----BEGIN PRIVATE KEY-----\n", "")
       .replace("-----END PRIVATE KEY-----\n", "")
       .replace("\n", "")
@@ -64,8 +63,8 @@ object GreeterServer {
     val privateKey = kf.generatePrivate(spec)
 
     val fact = CertificateFactory.getInstance("X.509")
-    val is = new FileInputStream(TestUtils.loadCert("server1.pem"))
-    val cer = fact.generateCertificate(is)
+//    val is = new FileInputStream(TestUtils.loadCert("server1.pem"))
+    val cer = fact.generateCertificate(GreeterServer.getClass.getResourceAsStream("/certs/server1.pem"))
 
     val ks = KeyStore.getInstance("PKCS12")
     ks.load(null)
@@ -78,6 +77,21 @@ object GreeterServer {
     context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
 
     new HttpsConnectionContext(context)
+  }
+
+  private def read(in: InputStream): String = {
+    val bytes: Array[Byte] = {
+      val baos = new ByteArrayOutputStream(math.max(64, in.available()))
+      val buffer = Array.ofDim[Byte](32 * 1024)
+
+      var bytesRead = in.read(buffer)
+      while (bytesRead >= 0) {
+        baos.write(buffer, 0, bytesRead)
+        bytesRead = in.read(buffer)
+      }
+      baos.toByteArray
+    }
+    new String(bytes, "UTF-8")
   }
 
 }

@@ -15,14 +15,12 @@
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
-
-    <!-- for loading of cert, issue #89 -->
+    <!-- Needed for the generated client -->
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-testing</artifactId>
+      <artifactId>grpc-stub</artifactId>
       <version>${grpc.version}</version>
     </dependency>
-
   </dependencies>
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>

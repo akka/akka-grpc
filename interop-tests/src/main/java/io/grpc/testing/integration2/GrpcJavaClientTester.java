@@ -21,11 +21,6 @@ public class GrpcJavaClientTester implements ClientTester {
 
 
     @Override
-    public ManagedChannel createChannel() {
-        return tester.createChannel();
-    }
-
-    @Override
     public void setUp() {
         tester.setUp();
     }

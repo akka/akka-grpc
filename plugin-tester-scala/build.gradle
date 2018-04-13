@@ -18,11 +18,6 @@ plugins {
 
 apply plugin: 'com.lightbend.akka.grpc.gradle'
 
-dependencies {
-  // for loading of cert, issue #89
-  compile 'io.grpc:grpc-testing:1.11.0'
-}
-
 repositories {
   mavenLocal()
   mavenCentral()
