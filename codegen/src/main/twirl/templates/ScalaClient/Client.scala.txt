@@ -24,8 +24,8 @@ class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Material
   val channel = {
     import io.grpc.ManagedChannel
     import io.grpc.internal.testing.TestUtils
-    import io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
-    import io.netty.handler.ssl.SslContext
+    import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
+    import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 
     var builder =
       NettyChannelBuilder
