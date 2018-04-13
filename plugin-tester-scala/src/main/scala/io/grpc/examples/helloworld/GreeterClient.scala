@@ -17,7 +17,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import io.grpc.CallOptions
 import io.grpc.StatusRuntimeException
-import io.grpc.internal.testing.TestUtils
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
