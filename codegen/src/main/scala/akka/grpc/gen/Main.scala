@@ -25,6 +25,8 @@ object Main extends App {
   }
 
   val req = CodeGeneratorRequest.parseFrom(inBytes)
+  // TODO #155 use a parameter to define whether to generate code for
+  // the client, the server, or both
   val out =
     if (req.getParameter.toLowerCase.contains("language=scala")) ScalaBothCodeGenerator.run(req)
     else JavaBothCodeGenerator.run(req)
