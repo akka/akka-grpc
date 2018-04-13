@@ -26,7 +26,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
 
-  private val awaitTimeout = 3.seconds
+  private val awaitTimeout = 7.seconds
 
   def createChannel(): ManagedChannel = ChannelBuilder.buildChannel(settings)
 
