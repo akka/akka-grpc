@@ -30,7 +30,7 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
   override def execute(): Unit = {
     val schemas = findProtoFiles(new File(protoPath))
 
-    val sourceRoot = "target/main/" + language.name().toLowerCase
+    val sourceRoot = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
     val sourceManaged = new File(sourceRoot)
     project.addCompileSourceRoot(sourceRoot)
 

@@ -67,6 +67,13 @@ Maven
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
