@@ -58,11 +58,16 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
           return CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
         }
       },
-      ConnectWithHttps.toHostHttps("127.0.0.1", 8080).withCustomHttpsContext(serverHttpContext()),
+      ConnectWithHttps.toHostHttps("127.0.0.1", 0).withCustomHttpsContext(serverHttpContext()),
       mat);
 
     ServerBinding serverBinding = binding.toCompletableFuture().get();
     return new Tuple2<>(sys, serverBinding);
+  }
+
+  @Override
+  public int getPort(Tuple2<ActorSystem, ServerBinding> binding) {
+    return binding._2.localAddress().getPort();
   }
 
   public void stop(Tuple2<ActorSystem, ServerBinding> binding) throws Exception {

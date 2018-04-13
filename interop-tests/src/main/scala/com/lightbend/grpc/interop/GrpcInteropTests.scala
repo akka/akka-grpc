@@ -46,8 +46,8 @@ trait GrpcInteropTests {
         s"pass the $testCaseName integration test" in {
           val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
           pendingTestCaseSupport(allPending(testCaseName)) {
-            withGrpcServer(server) {
-              runGrpcClient(testCaseName)(client)
+            withGrpcServer(server) { port =>
+              runGrpcClient(testCaseName, client, port)
             }
           }
         }
@@ -55,11 +55,11 @@ trait GrpcInteropTests {
     }
   }
 
-  private def withGrpcServer[T](server: GrpcServer[T])(block: => Unit): Assertion = {
+  private def withGrpcServer[T](server: GrpcServer[T])(block: Int => Unit): Assertion = {
     try {
       val binding = server.start()
       try {
-        block
+        block(server.getPort(binding))
       } finally {
         server.stop(binding)
       }
@@ -75,8 +75,12 @@ trait GrpcInteropTests {
     }
   }
 
-  private def runGrpcClient(testCaseName: String)(client: GrpcClient): Unit = {
-    val args: Array[String] = Array("--server_host_override=foo.test.google.fr", "--use_test_ca=true", s"--test_case=$testCaseName")
+  private def runGrpcClient(testCaseName: String, client: GrpcClient, port: Int): Unit = {
+    val args: Array[String] = Array(
+      "--server_host_override=foo.test.google.fr",
+      "--use_test_ca=true",
+      s"--test_case=$testCaseName",
+      s"--server_port=$port")
     client.run(args)
   }
 
