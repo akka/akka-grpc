@@ -88,7 +88,7 @@ Maven
 ```
 @@@
 
-For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](sbt.md), Gradle or Maven. (TODO Gradle and Maven)
+For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](sbt.md), @ref[Gradle](gradle.md) or @ref[Maven](maven.md).
 
 ## Generate and implement
 
@@ -108,7 +108,7 @@ There are 4 different types of calls:
   see `itKeepsTalking` in above example
 * **server streaming call** - single request that returns a `Source` (stream) of responses,
   see `itKeepsReplying` in above example
-* client and server streaming call - `Source` (stream) of requests from the client that returns a
+* **client and server streaming call** - `Source` (stream) of requests from the client that returns a
   `Source` (stream) of responses,
   see `streamHellos` in above example
 
@@ -138,7 +138,8 @@ Java
 :  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServiceImpl.java) { #full-service-impl }
 
 That service can then be handled by an Akka HTTP server via the generated `GreeterServiceHandler`,
-which is a function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
+which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
+@scala[The partial function should be made total before giving it to Akka HTTP by for example providing 404 as as default response].
 
 A main program that starts a Akka HTTP server with the `GreeterService` looks like this:
 

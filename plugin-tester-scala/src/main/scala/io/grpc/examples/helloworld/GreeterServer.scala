@@ -19,6 +19,7 @@ import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
@@ -36,6 +37,7 @@ object GreeterServer {
     implicit val ec: ExecutionContext = sys.dispatcher
 
     val service: HttpRequest => Future[HttpResponse] = GreeterServiceHandler(new GreeterServiceImpl(mat))
+      .orElse { case _  => Future.successful(HttpResponse(StatusCodes.NotFound)) }
 
     Http().bindAndHandleAsync(
       service,
