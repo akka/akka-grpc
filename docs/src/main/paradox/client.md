@@ -20,7 +20,7 @@ enablePlugins(AkkaGrpcPlugin)
 @@@
 
 Gradle
-:   @@@vars
+:  @@@vars
 ```gradle
 buildscript {
   dependencies {
@@ -30,12 +30,10 @@ buildscript {
     classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
   }
 }
-
 plugins {
   id 'java'
   id 'application'
 }
-
 apply plugin: 'com.lightbend.akka.grpc.gradle'
 ```
 @@@
@@ -110,7 +108,7 @@ There are 4 different types of calls:
   see `itKeepsTalking` in above example
 * **server streaming call** - single request that returns a `Source` (stream) of responses,
   see `itKeepsReplying` in above example
-* client and server streaming call - `Source` (stream) of requests from the client that returns a
+* **client and server streaming call** - `Source` (stream) of requests from the client that returns a
   `Source` (stream) of responses,
   see `streamHellos` in above example
 
