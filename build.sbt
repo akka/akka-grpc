@@ -78,7 +78,7 @@ lazy val mavenPlugin = Project(
   .dependsOn(codegen)
 
 lazy val sbtPlugin = Project(
-    id = "akka-grpc-sbt-plugin",
+    id = "sbt-akka-grpc",
     base = file("sbt-plugin")
   )
   .settings(commonSettings)
@@ -116,7 +116,7 @@ lazy val interopTests = Project(
     // needed explicitly as we don't directly depend on the codegen project
     watchSources ++= (watchSources in codegen).value,
     // yeah ugly, but otherwise, there's a circular dependency between the project values
-    watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
+    watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value,
   )
   .dependsOn(runtime)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
