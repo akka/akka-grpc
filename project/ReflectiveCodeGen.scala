@@ -50,7 +50,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       ),
       setCodeGenerator := loadAndSetGenerator(
         // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generator from there
-        (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-sbt-plugin")).value,
+        (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
         (mutableGenerator in Compile).value
       ),
       PB.recompile ~= (_ => true),

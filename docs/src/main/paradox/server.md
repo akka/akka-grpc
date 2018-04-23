@@ -12,7 +12,7 @@ sbt
 :   @@@vars
 ```scala
 // in project/plugins.sbt:
-addSbtPlugin("com.lightbend.akka.grpc" % "akka-grpc-sbt-plugin" % "$projectversion$")
+addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
 // in build.sbt:
 enablePlugins(AkkaGrpcPlugin)
 ```
