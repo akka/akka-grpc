@@ -6,3 +6,5 @@ target
 /plugin-tester-scala/.gradle
 /plugin-tester-scala/build
 .DS_Store
+/gradle-plugin/.gradle/
+/gradle-plugin/build/
