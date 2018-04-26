@@ -35,7 +35,9 @@ There are a number of options that can be set in the .proto definition that infl
 The (optional) ['package'](https://developers.google.com/protocol-buffers/docs/proto#packages)
 in the `.proto` is used to resolve references from one `.proto` file to another.
 It can also be used for the package name in the generated code, but it is
-common to use the separate `java_package` option to override it.
+common to use the separate `java_package` option to override it. For akka-grpc
+examples our convention is to choose a `java_package` ending in `.grpc` to
+easily distinguish between generated and regular code.
 
 For the Java code generation, by default all message classes are placed in a large class
 whose name is determined by the `java_outer_classname` setting. By setting the

@@ -1,5 +1,5 @@
 //#full-service-impl
-package io.grpc.examples.helloworld
+package example.myapp.helloworld
 
 import scala.concurrent.Future
 
@@ -7,6 +7,8 @@ import akka.NotUsed
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
+
+import example.myapp.helloworld.grpc._
 
 class GreeterServiceImpl(materializer: Materializer) extends GreeterService {
   import materializer.executionContext

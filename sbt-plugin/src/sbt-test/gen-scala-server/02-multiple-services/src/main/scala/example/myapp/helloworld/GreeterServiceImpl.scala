@@ -1,11 +1,11 @@
-package io.akka.grpc
+package example.myapp.helloworld
 
 import scala.concurrent.Future
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 
-import io.grpc.examples.helloworld._
+import example.myapp.helloworld.grpc._
 
 class GreeterServiceImpl extends GreeterService {
   override def sayHello(in: HelloRequest): Future[HelloReply] = ???

@@ -1,5 +1,5 @@
 //#full-client
-package io.grpc.examples.helloworld
+package example.myapp.helloworld
 
 import java.util.concurrent.TimeUnit
 
@@ -21,6 +21,8 @@ import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
+
+import example.myapp.helloworld.grpc._
 
 object GreeterClient {
 

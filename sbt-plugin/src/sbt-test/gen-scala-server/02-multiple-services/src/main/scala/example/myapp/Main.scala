@@ -1,4 +1,4 @@
-package io.akka.grpc
+package example.myapp
 
 import java.io.InputStream
 import java.security.{KeyStore, SecureRandom}
@@ -8,8 +8,11 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
 
-import io.grpc.examples.echo.EchoServiceHandler
-import io.grpc.examples.helloworld.GreeterServiceHandler
+import example.myapp.echo.EchoServiceImpl
+import example.myapp.echo.grpc.EchoServiceHandler
+
+import example.myapp.helloworld.GreeterServiceImpl
+import example.myapp.helloworld.grpc.GreeterServiceHandler
 
 object Main extends App {
   implicit val system = ActorSystem()

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 //#options
 option java_multiple_files = true;
-option java_package = "io.grpc.examples.helloworld";
+option java_package = "example.myapp.helloworld.grpc";
 option java_outer_classname = "HelloWorldProto";
 
 package helloworld;
