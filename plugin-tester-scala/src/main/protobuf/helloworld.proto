@@ -9,7 +9,7 @@ package helloworld;
 //#options
 
 //#services
-//// The greeting service definition.
+// The greeting service definition.
 service GreeterService {
     // Sends a greeting
     rpc SayHello (HelloRequest) returns (HelloReply) {}

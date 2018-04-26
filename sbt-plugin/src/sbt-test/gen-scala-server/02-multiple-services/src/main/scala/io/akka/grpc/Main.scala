@@ -8,15 +8,20 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
 
+import io.grpc.examples.echo.EchoServiceHandler
+import io.grpc.examples.helloworld.GreeterServiceHandler
+
 object Main extends App {
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
-  val echoHandler = EchoHandler(new EchoImpl)
-  val greeterHandler = GreeterHandler(new GreeterImpl)
+  val echoHandler = EchoServiceHandler(new EchoServiceImpl)
+  val greeterHandler = GreeterServiceHandler(new GreeterServiceImpl)
 
   Http2().bindAndHandleAsync(
-    echoHandler.orElse(greeterHandler),
+    echoHandler
+      .orElse(greeterHandler)
+    ,
     interface = "localhost",
     port = 8443,
     httpsContext = serverHttpContext())
