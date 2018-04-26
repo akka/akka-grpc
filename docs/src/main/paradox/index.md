@@ -35,7 +35,7 @@ Based on a protobuf service definition, akka-grpc can generate:
 
 ### gRPC vs Message Bus
 
-* Where gRPC requires both 'sides' of the communication to be available at the same time, when using a message bus only the producer and the bus must be up, the consumer does not need to be available.
+* While build on an efficient non-blocking implementation, gRPC is still 'synchonous' in the sense that it required both 'sides' of the communication to be available at the same time. When using a message bus only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
 * Where gRPC supports streaming in either direction, when using a message bus these streams are decoupled
 
 @@@ index
