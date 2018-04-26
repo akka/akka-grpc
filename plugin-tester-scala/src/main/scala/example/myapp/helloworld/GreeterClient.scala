@@ -40,6 +40,7 @@ object GreeterClient {
     ))
 
     def singleRequestReply(): Unit = {
+      sys.log.info("Performing request")
       val reply = client.sayHello(HelloRequest("Alice"))
       println(s"got single reply: ${Await.result(reply, 5.seconds).message}")
     }
@@ -78,9 +79,7 @@ object GreeterClient {
     streamingReply()
     streamingRequestReply()
 
-    // TODO await?
-    client.close()
-    sys.terminate()
+    sys.scheduler.schedule(1.second, 1.second, () => Try(singleRequestReply()))
   }
 
 }

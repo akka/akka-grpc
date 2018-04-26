@@ -23,6 +23,7 @@ Based on a protobuf service definition, akka-grpc can generate:
 
 @@@ index
 
+* [apidesign](apidesign.md)
 * [server](server.md)
 * [client](client.md)
 * [proto](proto.md)
