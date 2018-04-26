@@ -1,10 +1,14 @@
 # Akka gRPC
 
-Support for building streaming gRPC servers and clients on top
-of Akka Streams.
+[gRPC](https://grpc.io) is a transport mechanism for request/response
+and non-persistent streaming use cases. Use it for:
 
-This library is meant to be used as a building block in projects using the Akka
-toolkit.
+* connections between internal services
+* connecting to external services, even ones written in other languages.
+* connections with web or mobile front-ends
+
+This library provides support for building streaming gRPC servers and clients on top
+of Akka Streams.
 
 ## General overview
 
@@ -19,7 +23,15 @@ Based on a protobuf service definition, akka-grpc can generate:
 * On the server side, code to create an Akka HTTP route based on your implementation of the API
 * On the client side, a client for the API.
 
+### gRPC vs REST
 
+* Where REST is more flexible about transport and encoding, gRPC standardizes on HTTP/2 and Protobuf.
+* Where REST can be either schemaless or use a 3rd-party schema, gRPC always declares the service and messages in a Protobuf schema definition.
+
+### gRPC vs SOAP
+
+* Where SOAP is more flexible about transport and encoding, gRPC standardizes on HTTP/2 and Protobuf.
+* Where in SOAP protocols are often set in stone once defined, Protobuf is explicitly intended to support schema evolution.
 
 @@@ index
 
