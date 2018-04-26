@@ -3,6 +3,10 @@ language: scala
 scala:
   - 2.12.5
 
+before_install:
+  # make comparing to origin/master work (e.g. for whitesource)
+  - git remote set-branches --add origin master && git fetch
+
 jobs:
   include:
     - stage: tests
@@ -14,6 +18,18 @@ jobs:
     - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
+    - stage: whitesource-master
+      script: sbt whitesourceCheckPolicies whitesourceUpdate
+    - stage: whitesource-release
+      script: sbt whitesourceCheckPolicies whitesourceUpdate
+
+stages:
+  - name: tests
+    if: NOT tag =~ ^v
+  - name: whitesource-master
+    if: repo = akka/akka-grpc AND branch = master AND type = push
+  - name: whitesource-release
+    if: repo = akka/akka-grpc AND tag =~ ^v
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
@@ -23,3 +39,8 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot
+
+env:
+  global:
+    # encrypt with: travis encrypt WHITESOURCE_PASSWORD=...
+    - secure: "Xla2yMk15qjWY7bRzc/4dKUSIr8RhNzHSWZKF4qKzDbctxZcdeefH2r8YSn/STN9XH0/NgTBlYLn0Kfet3U/OU1ZoIPlH7NpSlWPl29KUHnECXGxItNgGA7XUapydJhItCWgswec7qnaeXjhwOrkrQeRdg/dLgQIcbMpdsCvkjP++xUevvS2OvP8dO4RSRDX/B6Q86NCT6zCwxm3MIaiYFY5t1topHcfHBP4n3G9L7FovhtGO/oTqagUe44YXLEY8PbXLLHECaK+KGjTsfH84aYWb8FhLL9va9dEO7tJXTQeRSu3d6o1Cty0aeK2hGZc0jr9Z+QbT9Hw+7wmAms7GL72/dMsBCHX5FAaCkkwt5dRqBeQu/uNF7iSBFnOatyWMc2zsHxbhLcIeLuIko/N7gLOOaTOiPedXKYjG6PxkTedZdmMe2nFTaeMR0d/e1+bSKxNDgshDu4JdBWlpvpAjH28aLG5sheoEXLIM8n+trp+rmLuNYoJVF+dHpGV+40ejTTR0YJAXp85Byit8xTw/MFEZvtWr4pzO2MvZy63zl4aaYlOzAoQ+sVApuCYz+OeR4nzAYoOZT/XycRxgtSh+HK8ymBElD11k7vKSZ8zxrs4MNcKxs7vi0FPUpWZXAxJO/Aa/9P37+KDoBEG+ygnWtwnSFl3i8rzfjvP3gJAvVY="
