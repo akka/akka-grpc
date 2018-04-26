@@ -1,5 +1,5 @@
 //#full-server
-package io.grpc.examples.helloworld;
+package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectWithHttps;
@@ -25,6 +25,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+
+import example.myapp.helloworld.grpc.*;
 
 class GreeterServer {
   public static void main(String[] args) throws Exception {

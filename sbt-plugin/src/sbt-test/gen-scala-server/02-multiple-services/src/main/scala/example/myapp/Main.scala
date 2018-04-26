@@ -1,4 +1,4 @@
-package io.akka.grpc
+package example.myapp
 
 import java.io.InputStream
 import java.security.{KeyStore, SecureRandom}
@@ -8,15 +8,23 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
 
+import example.myapp.echo.EchoServiceImpl
+import example.myapp.echo.grpc.EchoServiceHandler
+
+import example.myapp.helloworld.GreeterServiceImpl
+import example.myapp.helloworld.grpc.GreeterServiceHandler
+
 object Main extends App {
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
-  val echoHandler = EchoHandler(new EchoImpl)
-  val greeterHandler = GreeterHandler(new GreeterImpl)
+  val echoHandler = EchoServiceHandler(new EchoServiceImpl)
+  val greeterHandler = GreeterServiceHandler(new GreeterServiceImpl)
 
   Http2().bindAndHandleAsync(
-    echoHandler.orElse(greeterHandler),
+    echoHandler
+      .orElse(greeterHandler)
+    ,
     interface = "localhost",
     port = 8443,
     httpsContext = serverHttpContext())

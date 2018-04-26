@@ -1,5 +1,5 @@
 //#full-service-impl
-package io.grpc.examples.helloworld;
+package example.myapp.helloworld;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -10,6 +10,8 @@ import akka.NotUsed;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+
+import example.myapp.helloworld.grpc.*;
 
 public class GreeterServiceImpl implements GreeterService {
   private final Materializer mat;

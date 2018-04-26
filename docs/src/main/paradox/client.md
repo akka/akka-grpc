@@ -132,10 +132,10 @@ mvn akka-grpc:generate
 A main program that calls the server with the `GreeterService` looks like this:
 
 Scala
-:  @@snip [GreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/helloworld/GreeterClient.scala) { #full-client }
+:  @@snip [GreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterClient.scala) { #full-client }
 
 Java
-:  @@snip [GreeterClient.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterClient.java) { #full-client }
+:  @@snip [GreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterClient.java) { #full-client }
 
 ## Running
 

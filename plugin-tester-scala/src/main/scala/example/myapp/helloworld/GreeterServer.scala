@@ -1,5 +1,5 @@
 //#full-server
-package io.grpc.examples.helloworld
+package example.myapp.helloworld
 
 import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 import java.nio.file.Files
@@ -25,6 +25,8 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
+
+import example.myapp.helloworld.grpc._
 
 object GreeterServer {
 
