@@ -1,6 +1,6 @@
 > compile
 
 $ exists target/scala-2.12/src_managed
-$ exists target/scala-2.12/src_managed/main/io/grpc/examples/helloworld/HelloRequest.scala
-$ exists target/scala-2.12/src_managed/main/io/grpc/examples/helloworld/HelloworldProto.scala
-$ exists target/scala-2.12/src_managed/main/io/grpc/examples/helloworld/GreeterService.scala
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloRequest.scala
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloworldProto.scala
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala
