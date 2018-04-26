@@ -132,10 +132,10 @@ mvn akka-grpc:generate
 Implement the methods of the service interface in a new class:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/helloworld/GreeterServiceImpl.scala) { #full-service-impl }
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServiceImpl.scala) { #full-service-impl }
 
 Java
-:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServiceImpl.java) { #full-service-impl }
+:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServiceImpl.java) { #full-service-impl }
 
 That service can then be handled by an Akka HTTP server via the generated `GreeterServiceHandler`,
 which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
@@ -144,10 +144,10 @@ which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpRes
 A main program that starts a Akka HTTP server with the `GreeterService` looks like this:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/io/grpc/examples/helloworld/GreeterServer.scala) { #full-server }
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServer.scala) { #full-server }
 
 Java
-:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/io/grpc/examples/helloworld/GreeterServer.java) { #full-server }
+:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServer.java) { #full-server }
 
 Note that it's important to enable HTTP/2 in the configuration of the `ActorSystem`.
 
