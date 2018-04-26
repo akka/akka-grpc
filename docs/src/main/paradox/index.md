@@ -4,7 +4,7 @@
 and non-persistent streaming use cases. Use it for:
 
 * connections between internal services
-* connecting to external services, even ones written in other languages.
+* connecting to external services that expose a gRPC API, even ones written in other languages.
 * connections with web or mobile front-ends
 
 This library provides support for building streaming gRPC servers and clients on top
@@ -25,13 +25,18 @@ Based on a protobuf service definition, akka-grpc can generate:
 
 ### gRPC vs REST
 
-* Where REST is more flexible about transport and encoding, gRPC standardizes on HTTP/2 and Protobuf.
+* Where REST is more flexible about encoding, gRPC standardizes on HTTP/2 and Protobuf.
 * Where REST can be either schemaless or use a 3rd-party schema, gRPC always declares the service and messages in a Protobuf schema definition.
 
 ### gRPC vs SOAP
 
-* Where SOAP is more flexible about transport and encoding, gRPC standardizes on HTTP/2 and Protobuf.
-* Where in SOAP protocols are often set in stone once defined, Protobuf is explicitly intended to support schema evolution.
+* Where SOAP is more flexible about transport, gRPC standardizes on HTTP/2 and Protobuf.
+* Where in SOAP protocols are often set in stone once defined (often requiring a new path for every version of the service), Protobuf is explicitly intended to support schema evolution.
+
+### gRPC vs Message Bus
+
+* Where gRPC requires both 'sides' of the communication to be available at the same time, when using a message bus only the producer and the bus must be up, the consumer does not need to be available.
+* Where gRPC supports streaming in either direction, when using a message bus these streams are decoupled
 
 @@@ index
 
