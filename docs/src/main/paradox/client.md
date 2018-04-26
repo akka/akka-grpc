@@ -160,6 +160,9 @@ Instances of the generated client may be long-lived and can be used concurrently
 You can keep the client running until your system terminates, or close it earlier. To
 avoid leaking in the latter case, you should call `.close()` on the client.
 
+When the connection breaks, the client will start failing requests and try reconnecting
+to the server automatically.
+
 ### Debug logging
 
 To enable fine grained debug running the following logging configuration can be used.
