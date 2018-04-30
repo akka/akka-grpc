@@ -1,11 +1,11 @@
 # Akka gRPC
 
 [gRPC](https://grpc.io) is a transport mechanism for request/response
-and non-persistent streaming use cases. Use it for:
+and (non-persistent) streaming use cases. Use it for:
 
 * connections between internal services
-* connecting to external services that expose a gRPC API, even ones written in other languages.
-* connections with web or mobile front-ends
+* connecting to external services that expose a gRPC API (even ones written in other languages)
+* serving data to web or mobile front-ends
 
 This library provides support for building streaming gRPC servers and clients on top
 of Akka Streams.
@@ -25,18 +25,18 @@ Based on a protobuf service definition, akka-grpc can generate:
 
 ### gRPC vs REST
 
-* Where REST is more flexible about encoding, gRPC standardizes on HTTP/2 and Protobuf.
+* Where REST is more flexible about encoding, gRPC standardizes Protobuf.
 * Where REST can be either schemaless or use a 3rd-party schema, gRPC always declares the service and messages in a Protobuf schema definition.
 
 ### gRPC vs SOAP
 
-* Where SOAP is more flexible about transport, gRPC standardizes on HTTP/2 and Protobuf.
+* Where SOAP is more flexible about transport, gRPC standardizes on HTTP/2.
 * Where in SOAP protocols are often set in stone once defined (often requiring a new path for every version of the service), Protobuf is explicitly intended to support schema evolution.
 
 ### gRPC vs Message Bus
 
-* While built on an efficient non-blocking implementation, gRPC is still 'synchonous' in the sense that it requires both 'sides' of the communication to be available at the same time. When using a message bus only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
-* Where gRPC supports streaming in either direction, when using a message bus these streams are decoupled
+* While built on an efficient non-blocking implementation, gRPC is still 'synchonous' in the sense that it requires both 'sides' of the communication to be available at the same time. When using a (persistent) message bus only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
+* While gRPC supports bidirectional streaming for each request, when using a message bus the streams are decoupled
 
 @@@ index
 
