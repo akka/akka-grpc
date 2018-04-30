@@ -3,10 +3,6 @@ language: scala
 scala:
   - 2.12.5
 
-before_install:
-  # make comparing to origin/master work (e.g. for whitesource)
-  - git remote set-branches --add origin master && git fetch
-
 jobs:
   include:
     - stage: tests
@@ -19,9 +15,9 @@ jobs:
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
     - stage: whitesource-master
-      script: sbt whitesourceCheckPolicies whitesourceUpdate
+      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: whitesource-release
-      script: sbt whitesourceCheckPolicies whitesourceUpdate
+      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
 
 stages:
   - name: tests
