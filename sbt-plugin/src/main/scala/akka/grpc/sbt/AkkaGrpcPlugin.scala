@@ -51,13 +51,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
       // configure the proto gen automatically by adding our codegen:
       PB.targets :=
         targetsFor(
-          sourceManaged.value,
+          (sourceManaged in Compile).value,
           akkaGrpcCodeGeneratorSettings.value,
           akkaGrpcTargetStubs.value, akkaGrpcTargetLanguages.value))
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
-
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
 
