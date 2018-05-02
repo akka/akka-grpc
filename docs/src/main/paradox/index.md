@@ -25,7 +25,7 @@ Based on a protobuf service definition, akka-grpc can generate:
 
 ### gRPC vs REST
 
-* Where REST is more flexible about encoding, gRPC standardizes Protobuf.
+* Where REST is more flexible about encoding, gRPC standardizes on Protobuf.
 * Where REST can be either schemaless or use a 3rd-party schema, gRPC always declares the service and messages in a Protobuf schema definition.
 
 ### gRPC vs SOAP
