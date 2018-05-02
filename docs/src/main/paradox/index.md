@@ -38,6 +38,22 @@ Based on a protobuf service definition, akka-grpc can generate:
 * While built on an efficient non-blocking implementation, gRPC is still 'synchonous' in the sense that it requires both 'sides' of the communication to be available at the same time. When using a (persistent) message bus only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
 * While gRPC supports bidirectional streaming for each request, when using a message bus the streams are decoupled
 
+## Project Status
+
+This library is in preview mode: basic functionality is in place, but API's and
+build system plugins are still expected to be improved.
+
+The API on both sides (Client and Server) is a simple Akka Streams-based one.
+We plan to also provide a 'power user' API for each of these ([#191](https://github.com/akka/akka-grpc/issues/191), [#179](https://github.com/akka/akka-grpc/issues/179)).
+
+The client side is
+currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
+we plan to replace this by [io.grpc:grpc-core](https://mvnrepository.com/artifact/io.grpc/grpc-core) and Akka HTTP.
+
+As for performance, we are currently relying on the JVM TLS implementation,
+which is sufficient for many use cases, but is planned to be replaced with
+[conscrypt](https://github.com/google/conscrypt) or [netty-tcnative](https://netty.io/wiki/forked-tomcat-native.html).
+
 @@@ index
 
 * [apidesign](apidesign.md)
