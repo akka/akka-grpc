@@ -83,8 +83,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   private def targetsFor(targetPath: File, settings: Seq[String], stubs: Seq[AkkaGrpc.TargetStub], languages: Seq[AkkaGrpc.TargetLanguage]): Seq[protocbridge.Target] = {
     val generators = generatorsFor(stubs, languages)
-
-    println("GENERATORS: " + generators)
     // TODO no way to provide per language + stub settings/target dirs - not sure if needed
     generators.map(generator => protocbridge.Target(generator, targetPath, settings))
   }
