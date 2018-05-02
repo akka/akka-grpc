@@ -70,6 +70,7 @@ object Dependencies {
     Compile.grpcNettyShaded,
     Compile.akkaStream,
     Compile.akkaHttpCore,
+    Compile.akkaHttp,
     Compile.akkaHttp2Support
   ) ++ testing
 
