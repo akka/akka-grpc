@@ -1,6 +1,3 @@
-import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import protocbridge.Target
-
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
@@ -13,10 +10,8 @@ inConfig(Compile)(Seq(
 ))
 //#protoSources
 
-inConfig(Compile)(Seq(
-  akkaGrpcCodeGenerators := GeneratorAndSettings(JavaBothCodeGenerator) :: Nil,
-  akkaGrpcModelGenerators := Seq[Target](PB.gens.java -> sourceManaged.value),
-))
+// generate both client and server (default) in Java
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
 val root = project.in(file("."))
   .dependsOn(
@@ -24,7 +19,6 @@ val root = project.in(file("."))
     ProjectRef(file("../"), "akka-grpc-codegen"),
   )
 
-val grpcVersion = "1.11.0"
-
 // for loading of cert, issue #89
+val grpcVersion = "1.11.0"
 libraryDependencies += "io.grpc" % "grpc-testing" % grpcVersion

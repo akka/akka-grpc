@@ -1,7 +1,3 @@
-import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
-import protocbridge.Target
-
 organization := "com.lightbend.akka.grpc"
 
 // For the akka-http snapshot
@@ -42,7 +38,5 @@ akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_
 excludeFilter in PB.generate := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
-akkaGrpcCodeGenerators := Seq(
-  GeneratorAndSettings(JavaBothCodeGenerator, akkaGrpcCodeGeneratorSettings.value),
-  GeneratorAndSettings(ScalaBothCodeGenerator, akkaGrpcCodeGeneratorSettings.value))
-(akkaGrpcModelGenerators in Compile) += PB.gens.java -> sourceManaged.value
+akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala, AkkaGrpc.Java)
