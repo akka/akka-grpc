@@ -32,10 +32,11 @@ object GreeterClient {
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val client = new GreeterServiceClient(new GrpcClientSettings(
+    val client = new GreeterServiceClient(GrpcClientSettings(
       "127.0.0.1",
       8080,
       overrideAuthority = Some("foo.test.google.fr"),
+      None,
       certificate = Some("ca.pem"),
     ))
 

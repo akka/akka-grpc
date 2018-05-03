@@ -1,5 +1,6 @@
 package io.grpc.testing.integration;
 
+import akka.grpc.GrpcClientSettings;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
@@ -33,7 +34,6 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   private final Materializer mat;
   private final ExecutionContext ec;
 
-  private ManagedChannel channel;
   private TestServiceClient client;
   private UnimplementedServiceClient clientUnimplementedService;
 
@@ -45,14 +45,18 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void setUp() {
-    channel = ChannelBuilder.buildChannel(settings);;
-    client = TestServiceClient.create(channel, CallOptions.DEFAULT, mat, ec);
-    clientUnimplementedService = UnimplementedServiceClient.create(channel, CallOptions.DEFAULT, mat, ec);
+    final GrpcClientSettings grpcSettings = GrpcClientSettings.create(
+        settings.serverHost(),
+        settings.serverPort()
+    ).withOverrideAuthority(settings.serverHostOverride())
+     .withCertificate("ca.pem");
+    client = TestServiceClient.create(grpcSettings, mat, ec);
+    clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
   }
 
   @Override
   public void tearDown() throws Exception {
-    if (channel != null) channel.shutdown();
+    if (client != null) client.close();
   }
 
   @Override

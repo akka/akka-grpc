@@ -7,14 +7,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import io.grpc.CallOptions;
-import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.grpc.internal.testing.TestUtils;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
 
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -25,6 +19,7 @@ import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
+import akka.grpc.GrpcClientSettings;
 
 import example.myapp.helloworld.grpc.*;
 
@@ -33,44 +28,22 @@ class GreeterClient {
 
     String serverHost = "127.0.0.1";
     int serverPort = 8080;
-    boolean useTls = true;
-    boolean useTestCa = true;
-    String serverHostOverride = "foo.test.google.fr";
 
-    SslContext sslContext = null;
-    if (useTestCa) {
-      try {
-        // FIXME issue #89
-        sslContext = GrpcSslContexts.forClient().trustManager(TestUtils.loadCert("rootCA.crt")).build();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
+    GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
+      .withOverrideAuthority("foo.test.google.fr")
+      .withCertificate("rootCA.crt");
 
-    NettyChannelBuilder channelBuilder =
-      NettyChannelBuilder
-        .forAddress(serverHost, serverPort)
-        .flowControlWindow(65 * 1024)
-        .negotiationType(useTls ? NegotiationType.TLS : NegotiationType.PLAINTEXT)
-        .sslContext(sslContext);
+    ActorSystem system = ActorSystem.create();
+    Materializer materializer = ActorMaterializer.create(system);
 
-    if (useTls && serverHostOverride != null)
-      channelBuilder.overrideAuthority(serverHostOverride);
-
-    ManagedChannel channel = channelBuilder.build();
-
-    ActorSystem sys = ActorSystem.create();
-    Materializer mat = ActorMaterializer.create(sys);
-
+    GreeterServiceClient client = null;
     try {
-      CallOptions callOptions = CallOptions.DEFAULT;
-
-      GreeterService client = null; // FIXME not impl yet? new GreeterServiceClient(channel, callOptions);
+      client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
 
       singleRequestReply(client);
       streamingRequest(client);
-      streamingReply(client, mat);
-      streamingRequestReply(client, mat);
+      streamingReply(client, materializer);
+      streamingRequestReply(client, materializer);
 
 
     } catch (StatusRuntimeException e) {
@@ -78,8 +51,8 @@ class GreeterClient {
     } catch (Exception e)  {
       System.out.println(e);
     } finally {
-      channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
-      sys.terminate();
+      if (client != null) client.close();
+      system.terminate();
     }
 
   }
