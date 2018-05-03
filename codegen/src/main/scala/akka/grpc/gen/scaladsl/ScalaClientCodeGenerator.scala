@@ -39,7 +39,7 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   }
 
   override val suggestedDependencies =
-    // TODO: remove grpc-stub dependency once we have a akka-http based client
+    // TODO: remove grpc-stub dependency once we have a akka-http based client #193
     Artifact("io.grpc", "grpc-stub", scalapb.compiler.Version.grpcJavaVersion) +: super.suggestedDependencies
 
   private def parseParameters(params: String): GeneratorParams = {

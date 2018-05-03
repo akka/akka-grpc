@@ -23,17 +23,17 @@ object AkkaGrpcPlugin extends AutoPlugin {
   trait Keys { _: autoImport.type =>
 
     object AkkaGrpc {
-      sealed trait TargetStub
-      case object Client extends TargetStub
-      case object Server extends TargetStub
+      sealed trait GeneratedSource
+      case object Client extends GeneratedSource
+      case object Server extends GeneratedSource
 
-      sealed trait TargetLanguage
-      case object Scala extends TargetLanguage
-      case object Java extends TargetLanguage
+      sealed trait Language
+      case object Scala extends Language
+      case object Java extends Language
     }
 
-    val akkaGrpcTargetLanguages = settingKey[Seq[AkkaGrpc.TargetLanguage]]("Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
-    val akkaGrpcTargetStubs = settingKey[Seq[AkkaGrpc.TargetStub]]("Which of the stubs to generate (AkkaGrpc.Server, AkkaGrpc.Client)")
+    val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]]("Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
+    val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]]("Which of the stubs to generate (AkkaGrpc.Server, AkkaGrpc.Client)")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
   }
 
@@ -45,8 +45,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
   private def defaultSettings =
     Seq(
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
-      akkaGrpcTargetStubs := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
-      akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala))
+      akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
+      akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala))
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
@@ -54,12 +54,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
 
       // configure the proto gen automatically by adding our codegen:
-      // FIXME: actually specifying separate Compile and Test target stub and languages does not work
+      // FIXME: actually specifying separate Compile and Test target stub and languages does not work #194
       PB.targets :=
         targetsFor(
           sourceManaged.value,
           akkaGrpcCodeGeneratorSettings.value,
-          akkaGrpcTargetStubs.value, akkaGrpcTargetLanguages.value),
+          akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value),
 
       // include proto files extracted from the dependencies with "protobuf" configuration by default
       PB.protoSources += PB.externalIncludePath.value) ++
@@ -81,14 +81,13 @@ object AkkaGrpcPlugin extends AutoPlugin {
           unmanagedResources := { Defaults.collectFiles(unmanagedResourceDirectories, includeFilter, excludeFilter).value },
           resources := managedResources.value ++ unmanagedResources.value)))
 
-  private def targetsFor(targetPath: File, defaultSettings: Seq[String], stubs: Seq[AkkaGrpc.TargetStub], languages: Seq[AkkaGrpc.TargetLanguage]): Seq[protocbridge.Target] = {
-    val generators = generatorsFor(stubs, languages, defaultSettings)
-    // TODO no way to provide per language + stub settings/target dirs - not sure if needed
-    generators.map { case (generator, settings) => protocbridge.Target(generator, targetPath, settings) }
+  private def targetsFor(targetPath: File, settings: Seq[String], stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language]): Seq[protocbridge.Target] = {
+    val generators = generatorsFor(stubs, languages, settings)
+    generators.map { case (generator, generatorSettings) => protocbridge.Target(generator, targetPath, generatorSettings) }
   }
 
   // creates a seq of generator and per generator settings
-  private def generatorsFor(stubs: Seq[AkkaGrpc.TargetStub], languages: Seq[AkkaGrpc.TargetLanguage], defaultSettings: Seq[String]): Seq[(protocbridge.Generator, Seq[String])] = {
+  private def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], defaultSettings: Seq[String]): Seq[(protocbridge.Generator, Seq[String])] = {
     // these two are the model/message (protoc) generators
     def ScalaGenerator: (protocbridge.Generator, Seq[String]) = (protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator), defaultSettings)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
@@ -99,7 +98,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (protocbridge.JvmGenerator(codeGenerator.name, adapter), defaultSettings)
     }
 
-    (stubs match {
+    stubs match {
       case Seq(_, _) =>
         languages match {
           case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator), JavaGenerator, toGenerator(JavaBothCodeGenerator))
@@ -118,7 +117,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
           case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator))
           case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaServerCodeGenerator))
         }
-    })
+    }
   }
 
   /**

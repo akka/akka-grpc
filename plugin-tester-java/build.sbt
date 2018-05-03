@@ -10,8 +10,8 @@ inConfig(Compile)(Seq(
 ))
 //#protoSources
 
-// generate stubs for both client and server (default) in Java
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java)
+// generate both client and server (default) in Java
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
 val root = project.in(file("."))
   .dependsOn(

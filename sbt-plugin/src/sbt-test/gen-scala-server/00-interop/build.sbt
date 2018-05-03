@@ -38,5 +38,5 @@ akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_
 excludeFilter in PB.generate := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
-akkaGrpcTargetStubs := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala, AkkaGrpc.Java)
+akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala, AkkaGrpc.Java)
