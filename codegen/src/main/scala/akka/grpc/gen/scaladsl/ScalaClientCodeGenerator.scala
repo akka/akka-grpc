@@ -12,29 +12,12 @@ import templates.ScalaClient.txt._
 trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-client"
 
-  override val staticContent = super.staticContent + generateGuavaConverters() + generateClientMarshaller()
   override def perServiceContent = super.perServiceContent + generateStub
 
   def generateStub(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Client.scala")
-    b.build
-  }
-
-  def generateGuavaConverters(): CodeGeneratorResponse.File = {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    val packageName = "akka.grpc.internal"
-    b.setContent(ChannelApiHelpers().body)
-    b.setName(s"${packageName.replace('.', '/')}/ChannelApiHelpers.scala")
-    b.build
-  }
-
-  def generateClientMarshaller(): CodeGeneratorResponse.File = {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    val packageName = "akka.grpc.internal"
-    b.setContent(Marshaller().body)
-    b.setName(s"${packageName.replace('.', '/')}/Marshaller.scala")
     b.build
   }
 

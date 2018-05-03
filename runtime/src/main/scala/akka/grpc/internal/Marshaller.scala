@@ -1,8 +1,6 @@
-@*
+/**
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
- *@
-
-@()
+ */
 package akka.grpc.internal
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
@@ -13,8 +11,8 @@ import akka.grpc.ProtobufSerializer
 /**
  * INTERNAL API
  */
-@@InternalApi
-class Marshaller[T <: scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+@InternalApi
+final class Marshaller[T <: scalapb.GeneratedMessage](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
 
   override def parse(stream: InputStream): T = {
     val baos = new ByteArrayOutputStream(math.max(64, stream.available()))

@@ -2,7 +2,7 @@ package akka.grpc.internal
 
 import java.util.concurrent.{ CompletableFuture, Executor }
 import com.google.common.util.concurrent.{ FutureCallback, Futures, ListenableFuture }
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import akka.annotation.InternalApi
@@ -18,7 +18,7 @@ object JavaChannelApiHelpers {
   /**
    * INTERNAL API
    *
-   * Converts a Guava [[ListenableFuture]] to a Scala [[Future]]
+   * Converts a Guava [[com.google.common.util.concurrent.ListenableFuture]] to a Scala [[java.util.concurrent.CompletableFuture]]
    */
   @InternalApi
   def toCompletableFuture[A](guavaFuture: ListenableFuture[A], ec: ExecutionContext): CompletableFuture[A] = {
@@ -44,7 +44,7 @@ object JavaChannelApiHelpers {
   /**
    * INTERNAL API
    *
-   * Builds a akka stream [[Flow]] from a function `StreamObserver[O] => StreamObserver[I]`
+   * Builds a akka stream [[akka.stream.scaladsl.Flow]] from a function `StreamObserver[O] => StreamObserver[I]`
    */
   @InternalApi
   def buildFlow[I, O](name: String, operator: StreamObserver[O] => StreamObserver[I]): Flow[I, O, NotUsed] =

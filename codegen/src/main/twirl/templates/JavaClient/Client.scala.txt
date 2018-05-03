@@ -9,6 +9,8 @@ package @service.packageName;
 import akka.NotUsed;
 import akka.grpc.internal.JavaChannelApiHelpers;
 import akka.grpc.internal.ProtoMarshaller;
+import akka.grpc.internal.NettyClientUtils;
+import akka.grpc.GrpcClientSettings;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Flow;
@@ -21,26 +23,32 @@ import io.grpc.stub.*;
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
+
 import java.util.concurrent.CompletionStage;
 
 import scala.concurrent.ExecutionContext;
 
-public class @{service.name}Client implements @{service.name} {
+public final class @{service.name}Client implements @{service.name} {
 
-  private Channel channel;
-  private CallOptions options;
-  private Materializer mat;
-  private ExecutionContext ex;
+  private final Materializer mat;
+  private final ExecutionContext ex;
+  private final ManagedChannel channel;
+  private final CallOptions options;
 
-  private @{service.name}Client(Channel channel, CallOptions options, Materializer mat, ExecutionContext ex) {
-    this.channel = channel;
-    this.options = options;
+  private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
+    this.channel = NettyClientUtils.createChannel(settings);
+    if (settings.options().isDefined()) {
+      this.options = settings.options().get();
+    } else {
+      this.options = CallOptions.DEFAULT;
+    }
+
     this.mat = mat;
     this.ex = ex;
   }
 
-  public static @{service.name}Client create(Channel channel, CallOptions options, Materializer mat, ExecutionContext ex) {
-    return new @{service.name}Client(channel, options, mat, ex);
+  public static @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
+    return new @{service.name}Client(settings, mat, ex);
   }
 
   @for(method <- service.methods) {
@@ -108,6 +116,11 @@ public class @{service.name}Client implements @{service.name} {
         .setResponseMarshaller(new ProtoMarshaller(@method.serializer.name))
         .build();
     }
+
+  // TODO perhaps return CompletionStage[Done]?
+  public void close() {
+    channel.shutdown();
+  }
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
