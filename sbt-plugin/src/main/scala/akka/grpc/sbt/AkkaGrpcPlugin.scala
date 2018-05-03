@@ -33,7 +33,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     }
 
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]]("Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
-    val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]]("Which of the stubs to generate (AkkaGrpc.Server, AkkaGrpc.Client)")
+    val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]]("Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client)")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
   }
 
