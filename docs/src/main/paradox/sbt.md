@@ -4,20 +4,23 @@ To get started with Akka gRPC read the [client](client.md) or [server](server.md
 
 ## Only generating the server or client side
 
-By default the plugin generates both a client and a server stub for Scala. 
-
 It can be configured to just generate either server or client like so:
 
 ```scala
-// This is the default - both client and server, only Scala
+// This is the default - both client and server
 akkaGrpcTargetStubs := Seq(AkkaGrpc.Server, AkkaGrpc.Client)
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala)
 
 // only client
 akkaGrpcTargetStubs := Seq(AkkaGrpc.Client)
 
 // only server
 akkaGrpcTargetStubs := Seq(AkkaGrpc.Server)
+```
+
+What language to generate stubs for is also configurable:
+```
+// default is Scala only
+akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala)
 
 // Java version of the default - both client and server code generated
 akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java)
