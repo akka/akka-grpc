@@ -79,7 +79,9 @@ object GreeterClient {
     streamingReply()
     streamingRequestReply()
 
-    sys.scheduler.schedule(1.second, 1.second, () => Try(singleRequestReply()))
+    sys.scheduler.schedule(1.second, 1.second) {
+      Try(singleRequestReply())
+    }
   }
 
 }

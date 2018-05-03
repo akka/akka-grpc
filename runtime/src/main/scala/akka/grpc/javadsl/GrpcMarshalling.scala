@@ -29,12 +29,12 @@ object GrpcMarshalling {
     val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
     CompletableFuture.completedFuture(
       req.entity.getDataBytes
-        .mapMaterializedValue(_ ⇒ NotUsed)
         .via(Grpc.grpcFramingDecoder(messageEncoding))
         .map(u.deserialize)
         // In gRPC we signal failure by returning an error code, so we
         // don't want the cancellation bubbled out
-        .via(new CancellationBarrierGraphStage))
+        .via(new CancellationBarrierGraphStage)
+        .mapMaterializedValue(_ ⇒ NotUsed))
   }
 
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
