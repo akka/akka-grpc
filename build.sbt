@@ -1,6 +1,6 @@
 import akka.grpc.Dependencies
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.6"
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
