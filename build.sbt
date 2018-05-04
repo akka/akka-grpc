@@ -85,8 +85,9 @@ lazy val sbtPlugin = Project(
   .settings(Dependencies.sbtPlugin)
   .settings(
     Keys.sbtPlugin := true,
-    publishTo := Some(Classpaths.sbtPluginReleases),
     publishMavenStyle := false,
+    bintrayPackage := "sbt-akka-grpc",
+    bintrayRepository := "sbt-plugin-releases",
 
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
@@ -120,6 +121,7 @@ lazy val interopTests = Project(
   )
   .dependsOn(runtime)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
+  .enablePlugins(akka.grpc.NoPublish)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
@@ -158,6 +160,7 @@ lazy val docs = Project(
     base = file("docs"),
   )
   .enablePlugins(AkkaParadoxPlugin)
+  .enablePlugins(akka.grpc.NoPublish)
   .settings(
     paradoxGroups := Map(
       "Language" -> Seq("Scala", "Java"),
@@ -188,6 +191,7 @@ lazy val root = Project(
     interopTests,
     docs,
   )
+  .enablePlugins(akka.grpc.NoPublish)
   .settings(
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
   )
