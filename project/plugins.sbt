@@ -11,6 +11,7 @@ addSbtPlugin("com.lightbend.akka" % "sbt-paradox-akka" % "0.6")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.10")
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.4")
 
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
