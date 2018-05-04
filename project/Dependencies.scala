@@ -6,8 +6,8 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
-    val akka = "2.5.11"
-    val akkaHttp = "10.1.0"
+    val akka = "2.5.12"
+    val akkaHttp = "10.1.1"
 
     val scalapb = "0.7.1"
     val grpc = "1.11.0"
