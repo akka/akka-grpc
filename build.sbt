@@ -121,7 +121,6 @@ lazy val interopTests = Project(
   )
   .dependsOn(runtime)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
-  .enablePlugins(akka.grpc.NoPublish)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
