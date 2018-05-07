@@ -9,6 +9,7 @@ package @service.packageName
 import akka.NotUsed
 import akka.grpc.internal.{ ChannelApiHelpers, Marshaller, NettyClientUtils }
 import akka.grpc.GrpcClientSettings
+import akka.grpc.scaladsl.{ RequestBuilder, RequestBuilderImpl }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
@@ -25,56 +26,30 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   private val options = settings.options.getOrElse(CallOptions.DEFAULT)
 
   @for(method <- service.methods) {
+  /**
+   * Lower level version of the method, prefer @{method.name}(@method.parameterType) if possible.
+   */
+  def @{method.name}(): RequestBuilder[@method.parameterType, @method.returnType] = {
+    val descriptor = @{method.name}Descriptor
+    @if(method.methodType == akka.grpc.gen.Unary) {
+      RequestBuilderImpl.unary(descriptor, channel, options)
+    } else {
+      val fqName = "@{service.grpcName}.@{method.grpcName}"
+      @if(method.methodType == akka.grpc.gen.ServerStreaming) {
+        RequestBuilderImpl.serverStreaming(descriptor, fqName, channel, options)
+      } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
+        RequestBuilderImpl.clientStreaming(descriptor, fqName, channel, options)
+      } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
+        RequestBuilderImpl.bidirectional(descriptor, fqName, channel, options)
+      }
+    }
+  }
+
+  /**
+   * For access to method metadata use the parameter less version of ${method.name}
+   */
   def @{method.name}(in: @method.parameterType): @method.returnType = {
-  @if(method.methodType == akka.grpc.gen.Unary) {
-    ChannelApiHelpers.toScalaFuture(
-      ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in)
-    )
-  }
-  @if(method.methodType == akka.grpc.gen.ServerStreaming){
-      val name = "@{service.grpcName}.@{method.grpcName}"
-      val flow =
-        ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
-          new StreamObserver[@method.inputTypeUnboxed] {
-            override def onError(t: Throwable): Unit = responseObserver.onError(t)
-            override def onCompleted(): Unit = ()
-            override def onNext(request: @method.inputTypeUnboxed): Unit =
-              ClientCalls.asyncServerStreamingCall(
-                channel.newCall(@{method.name}Descriptor, options),
-                request,
-                responseObserver)
-          }
-        }
-
-
-
-    val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
-    Source
-      .single(in)
-      // channel calls don't support back-pressure so we need to buffered it
-      // and eventually fail the stream
-      .via(flow.buffer(bufferSize, OverflowStrategy.fail))
-  }
-  @if(method.methodType == akka.grpc.gen.ClientStreaming){
-    val name = "@{service.grpcName}.@{method.grpcName}"
-    val flow =
-      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name)  { responseObserver =>
-        ClientCalls.asyncClientStreamingCall(
-          channel.newCall(@{method.name}Descriptor, options),
-          responseObserver)
-      }
-    in.via(flow).runWith(Sink.head)
-  }
-  @if(method.methodType == akka.grpc.gen.BidiStreaming){
-    val name = "@{service.grpcName}.@{method.grpcName}"
-    val flow =
-      ChannelApiHelpers.buildFlow[@method.inputTypeUnboxed, @method.outputTypeUnboxed](name) { responseObserver =>
-        ClientCalls.asyncBidiStreamingCall(
-          channel.newCall(@{method.name}Descriptor, options),
-          responseObserver)
-      }
-    in.via(flow)
-  }
+    @{method.name}().execute(in)
   }
   }
 
