@@ -6,7 +6,8 @@ plugins {
 }
 
 group = "com.lightbend.akka.grpc"
-version versionDetails().lastTag.substring(1) + '+' + versionDetails().commitDistance + '-' + versionDetails().gitHash.substring(0, 8)
+// https://github.com/palantir/gradle-git-version/issues/97
+version "git describe --tags".execute().text.substring(1).split("-g")[0].replace('-', '+') + "-" + versionDetails().gitHash.substring(0, 8)
 
 gradlePlugin {
     plugins {
