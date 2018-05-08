@@ -26,36 +26,39 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   private val options = settings.options.getOrElse(CallOptions.DEFAULT)
 
   @for(method <- service.methods) {
-  /**
-   * Lower level version of the method, prefer @{method.name}(@method.parameterType) if possible.
-   */
-  def @{method.name}(): RequestBuilder[@method.parameterType, @method.returnType] = {
-    val descriptor = @{method.name}Descriptor
-    @if(method.methodType == akka.grpc.gen.Unary) {
-      RequestBuilderImpl.unary(descriptor, channel, options)
-    } else {
-      val fqName = "@{service.grpcName}.@{method.grpcName}"
-      @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-        RequestBuilderImpl.serverStreaming(descriptor, fqName, channel, options)
-      } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-        RequestBuilderImpl.clientStreaming(descriptor, fqName, channel, options)
-      } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-        RequestBuilderImpl.bidirectional(descriptor, fqName, channel, options)
+    private val @{method.name}RequestBuilder = {
+      @if(method.methodType == akka.grpc.gen.Unary) {
+        RequestBuilderImpl.unary(@{method.name}Descriptor, channel, options)
+      } else {
+        val fqName = "@{service.grpcName}.@{method.grpcName}"
+        @if(method.methodType == akka.grpc.gen.ServerStreaming) {
+          RequestBuilderImpl.serverStreaming(@{method.name}Descriptor, fqName, channel, options)
+        } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
+          RequestBuilderImpl.clientStreaming(@{method.name}Descriptor, fqName, channel, options)
+        } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
+          RequestBuilderImpl.bidirectional(@{method.name}Descriptor, fqName, channel, options)
+        }
       }
     }
   }
 
-  /**
-   * For access to method metadata use the parameter less version of ${method.name}
-   */
-  def @{method.name}(in: @method.parameterType): @method.returnType = {
-    @{method.name}().execute(in)
-  }
+  @for(method <- service.methods) {
+    /**
+     * Lower level "lifted" version of the method, giving access to request metadata etc.
+     * prefer @{method.name}(@method.parameterType) if possible.
+     */
+    def @{method.name}(): RequestBuilder[@method.parameterType, @method.returnType] =
+      @{method.name}RequestBuilder
+
+    /**
+     * For access to method metadata use the parameterless version of ${method.name}
+     */
+    def @{method.name}(in: @method.parameterType): @method.returnType =
+      @{method.name}().execute(in)
   }
 
   // TODO perhaps return Future[Done]?
   def close(): Unit = channel.shutdown()
-
 
 }
 
@@ -73,15 +76,13 @@ object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
     new @{service.name}Client(settings)
 
-
   @for(method <- service.methods) {
-  val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
-    MethodDescriptor.newBuilder()
-      .setType(@mapMethodType(method.methodType))
-      .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-      .setRequestMarshaller(new Marshaller(@method.deserializer.name))
-      .setResponseMarshaller(new Marshaller(@method.serializer.name))
-      .build()
+    private val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
+      MethodDescriptor.newBuilder()
+        .setType(@mapMethodType(method.methodType))
+        .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
+        .setRequestMarshaller(new Marshaller(@method.deserializer.name))
+        .setResponseMarshaller(new Marshaller(@method.serializer.name))
+        .build()
   }
-
 }
