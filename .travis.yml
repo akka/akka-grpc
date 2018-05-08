@@ -8,12 +8,19 @@ jobs:
     - stage: tests
       script: sbt test
     - script: sbt scripted
+      env: SCRIPTED
     - script: sbt publishLocal && cd plugin-tester-java && sbt compile
+      env: SBT-JAVA
     - script: sbt publishLocal && cd plugin-tester-scala && sbt compile
+      env: SBT-SCALA
     - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-/\\1+/"` akka-grpc:generate compile
+      env: MAVEN-JAVA
     - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-/\\1+/"` akka-grpc:generate scala:compile
+      env: MAVEN-SCALA
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
+      env: GRADLE-JAVA
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
+      env: GRADLE-SCALA
     - stage: whitesource-master
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: whitesource-release
