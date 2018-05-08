@@ -10,8 +10,8 @@ jobs:
     - script: sbt scripted
     - script: sbt publishLocal && cd plugin-tester-java && sbt compile
     - script: sbt publishLocal && cd plugin-tester-scala && sbt compile
-    - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
-    - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
+    - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-/\\1+/"` akka-grpc:generate compile
+    - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-/\\1+/"` akka-grpc:generate scala:compile
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
     - stage: whitesource-master
