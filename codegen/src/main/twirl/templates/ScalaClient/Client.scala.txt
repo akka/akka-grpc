@@ -7,9 +7,8 @@
 package @service.packageName
 
 import akka.NotUsed
-import akka.grpc.internal.{ ChannelApiHelpers, Marshaller, NettyClientUtils }
-import akka.grpc.GrpcClientSettings
-import akka.grpc.scaladsl.{ RequestBuilder, RequestBuilderImpl }
+import akka.grpc.internal.{ ChannelApiHelpers, Marshaller, NettyClientUtils, RequestBuilderImpl  }
+import akka.grpc.{ GrpcClientSettings, RequestBuilder }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
@@ -51,10 +50,10 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
       @{method.name}RequestBuilder
 
     /**
-     * For access to method metadata use the parameterless version of ${method.name}
+     * For access to method metadata use the parameterless version of @{method.name}
      */
     def @{method.name}(in: @method.parameterType): @method.returnType =
-      @{method.name}().execute(in)
+      @{method.name}().invoke(in)
   }
 
   // TODO perhaps return Future[Done]?

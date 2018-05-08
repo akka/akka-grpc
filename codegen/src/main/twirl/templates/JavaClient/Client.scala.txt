@@ -10,7 +10,9 @@ import akka.NotUsed;
 import akka.grpc.internal.JavaChannelApiHelpers;
 import akka.grpc.internal.ProtoMarshaller;
 import akka.grpc.internal.NettyClientUtils;
+import akka.grpc.internal.RequestBuilderImpl;
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.RequestBuilder;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Flow;
@@ -28,23 +30,49 @@ import java.util.concurrent.CompletionStage;
 
 import scala.concurrent.ExecutionContext;
 
+
 public final class @{service.name}Client implements @{service.name} {
 
-  private final Materializer mat;
-  private final ExecutionContext ex;
   private final ManagedChannel channel;
-  private final CallOptions options;
+  @for(method <- service.methods) {
+    @if(method.methodType == akka.grpc.gen.Unary) {
+      private final RequestBuilder<@method.inputTypeUnboxed, CompletionStage<@method.outputTypeUnboxed>> @{method.name}RequestBuilder;
+    } else if(method.methodType == akka.grpc.gen.ClientStreaming){
+      private final RequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, CompletionStage<@method.outputTypeUnboxed>> @{method.name}RequestBuilder;
+    } else if(method.methodType == akka.grpc.gen.ServerStreaming){
+      private final RequestBuilder<@method.inputTypeUnboxed, Source<@method.outputTypeUnboxed, NotUsed>> @{method.name}RequestBuilder;
+    } else if(method.methodType == akka.grpc.gen.BidiStreaming){
+      private final RequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, Source<@method.outputTypeUnboxed, NotUsed>> @{method.name}RequestBuilder;
+    }
+  }
 
-  private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
+  private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
     this.channel = NettyClientUtils.createChannel(settings);
+    final CallOptions defaultOptions;
     if (settings.options().isDefined()) {
-      this.options = settings.options().get();
+      defaultOptions = settings.options().get();
     } else {
-      this.options = CallOptions.DEFAULT;
+      defaultOptions = CallOptions.DEFAULT;
     }
 
-    this.mat = mat;
-    this.ex = ex;
+    @for(method <- service.methods) {
+      @if(method.methodType == akka.grpc.gen.Unary) {
+        @{method.name}RequestBuilder = RequestBuilderImpl.unaryJava(@{method.name}Descriptor, channel, defaultOptions, ec);
+      } else {
+        @defining(service.grpcName + "." + method.grpcName){ fqName =>
+          @if(method.methodType == akka.grpc.gen.ClientStreaming){
+            @{method.name}RequestBuilder = RequestBuilderImpl.clientStreamingJava(
+              @{method.name}Descriptor, "@fqName", channel, defaultOptions, mat);
+          } else if(method.methodType == akka.grpc.gen.ServerStreaming){
+            @{method.name}RequestBuilder = RequestBuilderImpl.serverStreamingJava(
+              @{method.name}Descriptor, "@fqName", channel, defaultOptions);
+          } else if(method.methodType == akka.grpc.gen.BidiStreaming){
+            @{method.name}RequestBuilder = RequestBuilderImpl.bidirectionalJava(
+              @{method.name}Descriptor, "@fqName", channel, defaultOptions);
+          }
+        }
+      }
+    }
   }
 
   public static @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
@@ -52,59 +80,30 @@ public final class @{service.name}Client implements @{service.name} {
   }
 
   @for(method <- service.methods) {
-  public @{method.getReturnType} @{method.name}(@{method.getParameterType} in) {
-  @if(method.methodType == akka.grpc.gen.Unary) {
-    return JavaChannelApiHelpers.toCompletableFuture(
-      ClientCalls.futureUnaryCall(channel.newCall(@{method.name}Descriptor, options), in),
-      ex
-    );
-  }
-  @if(method.methodType == akka.grpc.gen.ServerStreaming){
-      final String name = "@{service.grpcName}.@{method.grpcName}";
-      final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-        JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
-          new StreamObserver<@method.inputTypeUnboxed>() {
-            public void onError(Throwable t) { responseObserver.onError(t); }
-            public void onCompleted() {}
-            public void onNext(@method.inputTypeUnboxed request) {
-              ClientCalls.asyncServerStreamingCall(
-                channel.newCall(@{method.name}Descriptor, options),
-                request,
-                responseObserver);
-            }
-          }
-        ).asJava();
 
+    /**
+     * For access to method metadata use the parameterless version of @{method.name}
+     */
+    public @{method.getReturnType} @{method.name}(@{method.getParameterType} request) {
+      return @{method.name}().invoke(request);
+    }
 
-
-    final Integer bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000));
-    return Source
-      .single(in)
-      // channel calls don't support back-pressure so we need to buffered it
-      // and eventually fail the stream
-      .via(flow.buffer(bufferSize, OverflowStrategy.fail()));
-  }
-  @if(method.methodType == akka.grpc.gen.ClientStreaming){
-    final String name = "@{service.grpcName}.@{method.grpcName}";
-    final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-      JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
-        ClientCalls.asyncClientStreamingCall(
-          channel.newCall(@{method.name}Descriptor, options),
-          responseObserver)
-      ).asJava();
-    return in.via(flow).runWith(Sink.head(), mat);
-  }
-  @if(method.methodType == akka.grpc.gen.BidiStreaming){
-    final String name = "@{service.grpcName}.@{method.grpcName}";
-    final Flow<@method.inputTypeUnboxed, @method.outputTypeUnboxed, NotUsed> flow =
-      JavaChannelApiHelpers.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>buildFlow(name, responseObserver ->
-        ClientCalls.asyncBidiStreamingCall(
-          channel.newCall(@{method.name}Descriptor, options),
-          responseObserver)
-      ).asJava();
-    return in.via(flow);
-  }
-  }
+    /**
+     * Lower level "lifted" version of the method, giving access to request metadata etc.
+     * prefer @{method.name}(@method.inputTypeUnboxed) if possible.
+     */
+    @if(method.methodType == akka.grpc.gen.Unary) {
+      public RequestBuilder<@method.inputTypeUnboxed, CompletionStage<@method.outputTypeUnboxed>> @{method.name}()
+    }else if(method.methodType == akka.grpc.gen.ClientStreaming){
+      public RequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, CompletionStage<@method.outputTypeUnboxed>> @{method.name}()
+    }else if(method.methodType == akka.grpc.gen.ServerStreaming){
+      public RequestBuilder<@method.inputTypeUnboxed, Source<@method.outputTypeUnboxed, NotUsed>> @{method.name}()
+    }else if(method.methodType == akka.grpc.gen.BidiStreaming){
+      public RequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, Source<@method.outputTypeUnboxed, NotUsed>> @{method.name}()
+    }
+    {
+      return @{method.name}RequestBuilder;
+    }
   }
 
   @for(method <- service.methods) {
