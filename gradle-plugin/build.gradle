@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.lightbend.akka.grpc"
-version versionDetails().lastTag + '+' + versionDetails().commitDistance + '-' + versionDetails().gitHash.substring(0, 8)
+version versionDetails().lastTag.substring(1) + '+' + versionDetails().commitDistance + '-' + versionDetails().gitHash.substring(0, 8)
 
 gradlePlugin {
     plugins {
