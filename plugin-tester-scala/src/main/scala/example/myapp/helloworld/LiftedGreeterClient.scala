@@ -1,4 +1,3 @@
-//#full-client
 package example.myapp.helloworld
 
 import java.util.concurrent.TimeUnit
@@ -24,7 +23,7 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 
 import example.myapp.helloworld.grpc._
 
-object GreeterClient {
+object LiftedGreeterClient {
 
   def main(args: Array[String]): Unit = {
 
@@ -40,34 +39,41 @@ object GreeterClient {
       certificate = Some("ca.pem"),
     ))
 
-
-    singleRequestReply()
-    streamingRequest()
-    streamingReply()
-    streamingRequestReply()
+    singleRequestReply(client)
+    streamingRequest(client)
+    streamingReply(client)
+    streamingRequestReply(client)
 
     sys.scheduler.schedule(1.second, 1.second) {
       Try(singleRequestReply())
     }
   }
 
+  //#with-metadata
   def singleRequestReply(client: GreeterServiceClient): Unit = {
     sys.log.info("Performing request")
-    val reply = client.sayHello(HelloRequest("Alice"))
+    val reply = client.sayHello()
+      .addMetadata("key", "value")
+      .invoke(HelloRequest("Alice"))
     println(s"got single reply: ${Await.result(reply, 5.seconds).message}")
   }
+  //#with-metadata
 
   def streamingRequest(client: GreeterServiceClient): Unit = {
     val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
-    val reply = client.itKeepsTalking(Source(requests))
+    val reply = client.itKeepsTalking()
+      .addMetadata("key", "value")
+      .invoke(Source(requests))
     println(s"got single reply for streaming requests: ${Await.result(reply, 5.seconds).message}")
   }
 
   def streamingReply(client: GreeterServiceClient): Unit = {
-    val responseStream = client.itKeepsReplying(HelloRequest("Alice"))
+    val responseStream = client.itKeepsReplying()
+      .addMetadata("key", "value")
+      .invoke(HelloRequest("Alice"))
     val done: Future[Done] =
       responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
-    Await.ready(done, 1.minute) // just to keep sample simple - dont do Await.ready in actual code
+    Await.ready(done, 1.minute)
   }
 
   def streamingRequestReply(client: GreeterServiceClient): Unit = {
@@ -80,11 +86,12 @@ object GreeterClient {
         .take(10)
         .mapMaterializedValue(_ => NotUsed)
 
-    val responseStream: Source[HelloReply, NotUsed] = client.streamHellos(requestStream)
+    val responseStream: Source[HelloReply, NotUsed] = client.streamHellos()
+      .addMetadata("key", "value")
+      .invoke(requestStream)
     val done: Future[Done] =
       responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
     Await.ready(done, 1.minute)
   }
 
 }
-//#full-client

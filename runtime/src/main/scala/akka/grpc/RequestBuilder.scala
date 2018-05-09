@@ -4,6 +4,7 @@
 package akka.grpc
 
 import akka.annotation.DoNotInherit
+import akka.util.JavaDurationConverters
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -21,8 +22,16 @@ trait RequestBuilder[Req, Res] {
 
   /** FIXME docs */
   def addMetadata(key: String, value: String): RequestBuilder[Req, Res]
-  /** FIXME docs */
+  /**
+   * Scala API: FIXME docs
+   */
   def withDeadline(deadline: FiniteDuration): RequestBuilder[Req, Res]
+
+  /**
+   * Java API: FIXME docs
+   */
+  def withDeadline(deadline: java.time.Duration): RequestBuilder[Req, Res] =
+    withDeadline(JavaDurationConverters.asFiniteDuration(deadline))
 
   /**
    * Invoke the gRPC method with the additional metadata added

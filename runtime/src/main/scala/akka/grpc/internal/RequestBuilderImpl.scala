@@ -11,8 +11,9 @@ import akka.grpc.RequestBuilder
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.javadsl.{ Flow => JavaFlow, Sink => JavaSink, Source => JavaSource }
 import akka.stream.{ Materializer, OverflowStrategy }
+import akka.util.ByteString
 import io.grpc.stub.{ ClientCalls, StreamObserver }
-import io.grpc.{ CallOptions, Channel, Deadline, MethodDescriptor }
+import io.grpc._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
@@ -26,8 +27,9 @@ final case class RequestBuilderImpl[Req, Res, Ret](
   delegatedExecute: (Req, CallOptions) => Ret) extends RequestBuilder[Req, Ret]() {
 
   def addMetadata(key: String, value: String): RequestBuilderImpl[Req, Res, Ret] = {
-    // FIXME support values other than string values?
-    copy(options = options.withOption(CallOptions.Key.of(key, ""), value))
+    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
+    // values with the same name-key, not sure if it is important we support that
+    copy(options = options.withOption(CallOptions.Key.of[String](key, null), value))
   }
 
   def withDeadline(deadline: FiniteDuration): RequestBuilderImpl[Req, Res, Ret] = {

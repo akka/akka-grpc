@@ -1,4 +1,3 @@
-//#full-client
 package example.myapp.helloworld;
 
 import java.util.Arrays;
@@ -23,16 +22,16 @@ import akka.grpc.GrpcClientSettings;
 
 import example.myapp.helloworld.grpc.*;
 
-class GreeterClient {
+class LiftedGreeterClient {
   public static void main(String[] args) throws Exception {
 
     String serverHost = "127.0.0.1";
     int serverPort = 8080;
 
     GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
-      // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
-      .withOverrideAuthority("foo.test.google.fr")
-      .withCertificate("rootCA.crt");
+        // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
+        .withOverrideAuthority("foo.test.google.fr")
+        .withCertificate("rootCA.crt");
 
     ActorSystem system = ActorSystem.create();
     Materializer materializer = ActorMaterializer.create(system);
@@ -58,48 +57,57 @@ class GreeterClient {
 
   }
 
-  private static void singleRequestReply(GreeterService client) throws Exception {
+  //#with-metadata
+  private static void singleRequestReply(GreeterServiceClient client) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
-    CompletionStage<HelloReply> reply = client.sayHello(request);
+    CompletionStage<HelloReply> reply = client.sayHello()
+        .addMetadata("key", "value")
+        .invoke(request);
     System.out.println("got single reply: " + reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
   }
+  //#with-metadata
 
-  private static void streamingRequest(GreeterService client) throws Exception {
+  private static void streamingRequest(GreeterServiceClient client) throws Exception {
     List<HelloRequest> requests = Arrays.asList("Alice", "Bob", "Peter")
         .stream().map(name -> HelloRequest.newBuilder().setName(name).build())
         .collect(Collectors.toList());
-    CompletionStage<HelloReply> reply = client.itKeepsTalking(Source.from(requests));
+    CompletionStage<HelloReply> reply = client.itKeepsTalking()
+        .addMetadata("key", "value")
+        .invoke(Source.from(requests));
     System.out.println("got single reply for streaming requests: " +
         reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
   }
 
-  private static void streamingReply(GreeterService client, Materializer mat) throws Exception {
+  private static void streamingReply(GreeterServiceClient client, Materializer mat) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
-    Source<HelloReply, NotUsed> responseStream = client.itKeepsReplying(request);
+    Source<HelloReply, NotUsed> responseStream = client.itKeepsReplying()
+        .addMetadata("key", "value")
+        .invoke(request);
     CompletionStage<Done> done =
-      responseStream.runForeach(reply ->
-        System.out.println("got streaming reply: " + reply.getMessage()), mat);
+        responseStream.runForeach(reply ->
+            System.out.println("got streaming reply: " + reply.getMessage()), mat);
 
     done.toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
-  private static void streamingRequestReply(GreeterService client, Materializer mat) throws Exception {
+  private static void streamingRequestReply(GreeterServiceClient client, Materializer mat) throws Exception {
     FiniteDuration interval = Duration.create(100, TimeUnit.SECONDS);
     Source<HelloRequest, NotUsed> requestStream = Source
-      .tick(interval, interval, "tick")
-      .zipWithIndex()
-      .map(pair -> pair.second())
-      .map(i -> HelloRequest.newBuilder().setName("Alice-" + i).build())
-      .take(10)
-      .mapMaterializedValue(m -> NotUsed.getInstance());
+        .tick(interval, interval, "tick")
+        .zipWithIndex()
+        .map(pair -> pair.second())
+        .map(i -> HelloRequest.newBuilder().setName("Alice-" + i).build())
+        .take(10)
+        .mapMaterializedValue(m -> NotUsed.getInstance());
 
-    Source<HelloReply, NotUsed> responseStream = client.streamHellos(requestStream);
+    Source<HelloReply, NotUsed> responseStream = client.streamHellos()
+        .addMetadata("key", "value")
+        .invoke(requestStream);
     CompletionStage<Done> done =
-      responseStream.runForeach(reply ->
-        System.out.println("got streaming reply: " + reply.getMessage()), mat);
+        responseStream.runForeach(reply ->
+            System.out.println("got streaming reply: " + reply.getMessage()), mat);
 
     done.toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
 }
-//#full-client

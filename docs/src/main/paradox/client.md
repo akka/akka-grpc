@@ -187,5 +187,20 @@ sbt
 
 TODO gradle, maven
 
-TODO describe settings for code generation: scala/java, client/server/both
+### Request metadata
+
+Default request metadata, for example for authentication, can be provided through the
+`GrpcClientSettings` passed to the client when it is created, it will be the base metadata used for each request.
+
+In some cases you will want to provide specific metadata to a single request, this can be done through the "lifted"
+client API, each method of the service has an empty parameter list version on the client returning a `RequestBuilder`.
+
+After adding the required metadata the request is done by calling `invoke` with the request parameters.
+
+Scala
+:  @@snip [GreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
+
+Java
+:  @@snip [GreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
+
 
