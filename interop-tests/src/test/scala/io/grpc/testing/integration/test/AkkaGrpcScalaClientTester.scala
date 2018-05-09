@@ -12,8 +12,8 @@ import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
 import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
-import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
+import io.grpc.testing.integration2.{ ClientTester, Settings }
+import io.grpc.{ Status, StatusRuntimeException }
 import org.junit.Assert._
 
 import scala.concurrent.duration._
@@ -206,6 +206,27 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def customMetadata(): Unit = {
+    // unary call
+    val unaryResponse = client.unaryCall()
+      .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
+      .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+      .invoke(SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
+
+    // FIXME no assert yet - we need response headers for that
+    Await.result(unaryResponse, awaitTimeout)
+
+    // full duplex
+    val fullDuplexResponse = client.fullDuplexCall()
+      .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
+      .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+      .invoke(Source.single(
+        StreamingOutputCallRequest(
+          responseParameters = Seq(ResponseParameters(size = 314159)),
+          payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
+
+    val fullDuplexResult = Await.result(fullDuplexResponse.runWith(Sink.head), awaitTimeout)
+
+    // FIXME no assert yet - we need response headers and trailing headers for that
     throw new RuntimeException("Not implemented!")
   }
 

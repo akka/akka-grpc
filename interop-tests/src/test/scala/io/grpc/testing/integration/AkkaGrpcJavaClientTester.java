@@ -1,5 +1,6 @@
 package io.grpc.testing.integration;
 
+import akka.NotUsed;
 import akka.grpc.GrpcClientSettings;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Keep;
@@ -255,6 +256,39 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void customMetadata() throws Exception {
+    // unary call
+    CompletionStage<Messages.SimpleResponse> unaryResponse = client.unaryCall()
+        .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+        .invoke(Messages.SimpleRequest.newBuilder()
+            .setResponseSize(314159)
+            .setPayload(Messages.Payload.newBuilder()
+                .setBody(ByteString.copyFrom(new byte[271828]))
+                .build())
+            .build()
+        );
+
+    // FIXME no assert yet - we need response headers for that
+    unaryResponse.toCompletableFuture().get();
+
+
+
+    // full duplex
+    Source<Messages.StreamingOutputCallResponse, NotUsed> fullDuplexResponse = client.fullDuplexCall()
+        .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+        .invoke(Source.single(Messages.StreamingOutputCallRequest.newBuilder()
+            .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(314159).build())
+            .setPayload(Messages.Payload.newBuilder()
+                .setBody(ByteString.copyFrom(new byte[271828]))
+                .build())
+            .build()
+        ));
+
+    Messages.StreamingOutputCallResponse fullDuplexResult =
+        fullDuplexResponse.runWith(Sink.head(), mat).toCompletableFuture().get();
+
+    // FIXME no assert yet - we need response headers and trailing headers for that
     throw new RuntimeException("Not implemented!");
   }
 

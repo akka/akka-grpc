@@ -4,7 +4,7 @@
 package akka.grpc
 
 import akka.annotation.DoNotInherit
-import akka.util.JavaDurationConverters
+import akka.util.{ ByteString, JavaDurationConverters }
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -22,6 +22,10 @@ trait RequestBuilder[Req, Res] {
 
   /** FIXME docs */
   def addMetadata(key: String, value: String): RequestBuilder[Req, Res]
+
+  /** FIXME docs */
+  def addMetadata(key: String, value: ByteString): RequestBuilder[Req, Res]
+
   /**
    * Scala API: FIXME docs
    */

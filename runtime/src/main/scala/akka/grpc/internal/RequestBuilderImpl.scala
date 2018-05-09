@@ -32,6 +32,12 @@ final case class RequestBuilderImpl[Req, Res, Ret](
     copy(options = options.withOption(CallOptions.Key.of[String](key, null), value))
   }
 
+  def addMetadata(key: String, value: ByteString): RequestBuilderImpl[Req, Res, Ret] = {
+    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
+    // values with the same name-key, not sure if it is important we support that
+    copy(options = options.withOption(CallOptions.Key.of[Array[Byte]](key, null), value.toArray))
+  }
+
   def withDeadline(deadline: FiniteDuration): RequestBuilderImpl[Req, Res, Ret] = {
     copy(options = options.withDeadline(Deadline.after(deadline.length, deadline.unit)))
   }
