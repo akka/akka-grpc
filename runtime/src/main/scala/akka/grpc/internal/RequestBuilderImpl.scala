@@ -11,12 +11,12 @@ import akka.grpc.RequestBuilder
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.javadsl.{ Flow => JavaFlow, Sink => JavaSink, Source => JavaSource }
 import akka.stream.{ Materializer, OverflowStrategy }
-import akka.util.ByteString
+import akka.util.{ ByteString, OptionVal }
 import io.grpc.stub.{ ClientCalls, StreamObserver }
 import io.grpc._
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
  * INTERNAL API
@@ -60,8 +60,13 @@ object RequestBuilderImpl {
     options: CallOptions)(implicit ec: ExecutionContext): RequestBuilder[Req, Future[Res]] = {
 
     def invoke(req: Req, options: CallOptions): Future[Res] = {
-      ChannelApiHelpers.toScalaFuture(
-        ClientCalls.futureUnaryCall(channel.newCall(descriptor, options), req))
+      val listener = new UnaryCallFutureAdapter[Res]
+      val call = channel.newCall(descriptor, options)
+      call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+      call.sendMessage(req)
+      call.halfClose()
+      call.request(1)
+      listener.future
     }
 
     RequestBuilderImpl[Req, Res, Future[Res]](options, invoke)
@@ -73,8 +78,13 @@ object RequestBuilderImpl {
     options: CallOptions, ec: ExecutionContext): RequestBuilder[Req, CompletionStage[Res]] = {
 
     def invoke(req: Req, options: CallOptions): CompletionStage[Res] = {
-      JavaChannelApiHelpers.toCompletableFuture(
-        ClientCalls.futureUnaryCall(channel.newCall(descriptor, options), req), ec)
+      val listener = new UnaryCallCSAdapter[Res]
+      val call = channel.newCall(descriptor, options)
+      call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+      call.sendMessage(req)
+      call.halfClose()
+      call.request(1)
+      listener.cs
     }
 
     RequestBuilderImpl[Req, Res, CompletionStage[Res]](options, invoke)
