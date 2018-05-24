@@ -7,7 +7,6 @@
 package @service.packageName;
 
 import akka.NotUsed;
-import akka.grpc.internal.JavaChannelApiHelpers;
 import akka.grpc.internal.ProtoMarshaller;
 import akka.grpc.internal.NettyClientUtils;
 import akka.grpc.internal.RequestBuilderImpl;

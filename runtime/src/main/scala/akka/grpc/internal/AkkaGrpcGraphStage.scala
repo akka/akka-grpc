@@ -13,7 +13,7 @@ import io.grpc.stub.StreamObserver
 import scala.concurrent.{ Future, Promise }
 
 @InternalApi
-private object NewAkkaGrpcGraphStage {
+private object AkkaNettyGrpcClientGraphStage {
   sealed trait ControlMessage
   case object ReadyForSending extends ControlMessage
   case class Closed(status: Status, trailer: Metadata) extends ControlMessage
@@ -35,7 +35,7 @@ private object NewAkkaGrpcGraphStage {
  * @param streamingResponse Do we expect a stream of responses or does more than 1 response mean a faulty server?
  */
 @InternalApi
-private final class NewAkkaGrpcGraphStage[I, O](
+private final class AkkaNettyGrpcClientGraphStage[I, O](
   descriptor: MethodDescriptor[I, O],
   fqMethodName: String,
   channel: Channel,
@@ -48,7 +48,7 @@ private final class NewAkkaGrpcGraphStage[I, O](
   override val shape: FlowShape[I, O] = FlowShape.of(in, out)
 
   override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Any]) = {
-    import NewAkkaGrpcGraphStage._
+    import AkkaNettyGrpcClientGraphStage._
     val matVal = Promise[AnyRef]()
 
     val logic = new GraphStageLogic(shape) with InHandler with OutHandler {

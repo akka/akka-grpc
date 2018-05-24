@@ -7,7 +7,7 @@
 package @service.packageName
 
 import akka.NotUsed
-import akka.grpc.internal.{ ChannelApiHelpers, Marshaller, NettyClientUtils, RequestBuilderImpl  }
+import akka.grpc.internal.{ Marshaller, NettyClientUtils, RequestBuilderImpl  }
 import akka.grpc.{ GrpcClientSettings, RequestBuilder }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }

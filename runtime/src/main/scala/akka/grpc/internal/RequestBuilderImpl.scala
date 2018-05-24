@@ -99,7 +99,7 @@ object RequestBuilderImpl {
     materializer: Materializer): RequestBuilder[Source[Req, NotUsed], Future[Res]] = {
 
     def invoke(req: Source[Req, NotUsed], options: CallOptions): Future[Res] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, false))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
       req.via(flow).runWith(Sink.head)
     }
 
@@ -113,7 +113,7 @@ object RequestBuilderImpl {
     options: CallOptions,
     materializer: Materializer): RequestBuilder[JavaSource[Req, NotUsed], CompletionStage[Res]] = {
     def invoke(req: JavaSource[Req, NotUsed], options: CallOptions): CompletionStage[Res] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, false))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
         .mapMaterializedValue(future => future.toJava)
       req.via(flow).runWith(JavaSink.head[Res](), materializer)
     }
@@ -128,7 +128,7 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Req, Source[Res, NotUsed]] = {
 
     def invoke(req: Req, options: CallOptions): Source[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
       Source.single(req).via(flow)
     }
 
@@ -142,7 +142,7 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Req, JavaSource[Res, NotUsed]] = {
 
     def invoke(req: Req, options: CallOptions): JavaSource[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
         .mapMaterializedValue(future => future.toJava)
       val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
       JavaSource.single(req).via(flow)
@@ -158,7 +158,7 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Source[Req, NotUsed], Source[Res, NotUsed]] = {
 
     def invoke(reqs: Source[Req, NotUsed], options: CallOptions): Source[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
       reqs.via(flow)
     }
 
@@ -172,7 +172,7 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[JavaSource[Req, NotUsed], JavaSource[Res, NotUsed]] = {
 
     def invoke(reqs: JavaSource[Req, NotUsed], options: CallOptions): JavaSource[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
         .mapMaterializedValue(future => future.toJava)
       reqs.via(flow)
     }
