@@ -8,7 +8,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.grpc.RequestBuilder
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.javadsl.{ Flow => JavaFlow, Sink => JavaSink, Source => JavaSource }
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.util.{ ByteString, OptionVal }
@@ -17,7 +17,7 @@ import io.grpc._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-
+import scala.compat.java8.FutureConverters._
 /**
  * INTERNAL API
  */
@@ -99,13 +99,7 @@ object RequestBuilderImpl {
     materializer: Materializer): RequestBuilder[Source[Req, NotUsed], Future[Res]] = {
 
     def invoke(req: Source[Req, NotUsed], options: CallOptions): Future[Res] = {
-      // FIXME backpressure
-      val flow =
-        ChannelApiHelpers.buildFlow[Req, Res](fqMethodName) { responseObserver =>
-          ClientCalls.asyncClientStreamingCall(
-            channel.newCall(descriptor, options),
-            responseObserver)
-        }
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, false))
       req.via(flow).runWith(Sink.head)
     }
 
@@ -119,13 +113,8 @@ object RequestBuilderImpl {
     options: CallOptions,
     materializer: Materializer): RequestBuilder[JavaSource[Req, NotUsed], CompletionStage[Res]] = {
     def invoke(req: JavaSource[Req, NotUsed], options: CallOptions): CompletionStage[Res] = {
-      // FIXME backpressure
-      val flow =
-        JavaChannelApiHelpers.buildFlow[Req, Res](fqMethodName, responseObserver =>
-          ClientCalls.asyncClientStreamingCall(
-            channel.newCall(descriptor, options),
-            responseObserver))
-
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, false))
+        .mapMaterializedValue(future => future.toJava)
       req.via(flow).runWith(JavaSink.head[Res](), materializer)
     }
 
@@ -139,27 +128,8 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Req, Source[Res, NotUsed]] = {
 
     def invoke(req: Req, options: CallOptions): Source[Res, NotUsed] = {
-      val flow = ChannelApiHelpers.buildFlow[Req, Res](fqMethodName) { responseObserver =>
-        new StreamObserver[Req] {
-          override def onError(t: Throwable): Unit = responseObserver.onError(t)
-
-          override def onCompleted(): Unit = ()
-
-          override def onNext(request: Req): Unit =
-            ClientCalls.asyncServerStreamingCall(
-              channel.newCall(descriptor, options),
-              request,
-              responseObserver)
-        }
-      }
-
-      // FIXME backpressure
-      val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
-      Source.single(req)
-        // channel calls don't support back-pressure so we need to buffered it
-        // and eventually fail the stream
-        .via(flow.buffer(bufferSize, OverflowStrategy.fail))
-
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+      Source.single(req).via(flow)
     }
 
     RequestBuilderImpl[Req, Res, Source[Res, NotUsed]](options, invoke)
@@ -172,27 +142,10 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Req, JavaSource[Res, NotUsed]] = {
 
     def invoke(req: Req, options: CallOptions): JavaSource[Res, NotUsed] = {
-      val flow = JavaChannelApiHelpers.buildFlow[Req, Res](fqMethodName, { responseObserver =>
-        new StreamObserver[Req] {
-          override def onError(t: Throwable): Unit = responseObserver.onError(t)
-
-          override def onCompleted(): Unit = ()
-
-          override def onNext(request: Req): Unit =
-            ClientCalls.asyncServerStreamingCall(
-              channel.newCall(descriptor, options),
-              request,
-              responseObserver)
-        }
-      })
-
-      // FIXME backpressure
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+        .mapMaterializedValue(future => future.toJava)
       val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
-      JavaSource.single(req)
-        // channel calls don't support back-pressure so we need to buffered it
-        // and eventually fail the stream
-        .via(flow.buffer(bufferSize, OverflowStrategy.fail))
-
+      JavaSource.single(req).via(flow)
     }
 
     RequestBuilderImpl[Req, Res, JavaSource[Res, NotUsed]](options, invoke)
@@ -205,13 +158,7 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[Source[Req, NotUsed], Source[Res, NotUsed]] = {
 
     def invoke(reqs: Source[Req, NotUsed], options: CallOptions): Source[Res, NotUsed] = {
-      // FIXME backpressure
-      val flow =
-        ChannelApiHelpers.buildFlow[Req, Res](descriptor.getFullMethodName) { responseObserver =>
-          ClientCalls.asyncBidiStreamingCall(
-            channel.newCall(descriptor, options),
-            responseObserver)
-        }
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
       reqs.via(flow)
     }
 
@@ -225,12 +172,8 @@ object RequestBuilderImpl {
     options: CallOptions): RequestBuilder[JavaSource[Req, NotUsed], JavaSource[Res, NotUsed]] = {
 
     def invoke(reqs: JavaSource[Req, NotUsed], options: CallOptions): JavaSource[Res, NotUsed] = {
-      // FIXME backpressure
-      val flow =
-        JavaChannelApiHelpers.buildFlow[Req, Res](descriptor.getFullMethodName, responseObserver =>
-          ClientCalls.asyncBidiStreamingCall(
-            channel.newCall(descriptor, options),
-            responseObserver))
+      val flow = Flow.fromGraph(new NewAkkaGrpcGraphStage(descriptor, fqMethodName, channel, options, true))
+        .mapMaterializedValue(future => future.toJava)
       reqs.via(flow)
     }
 

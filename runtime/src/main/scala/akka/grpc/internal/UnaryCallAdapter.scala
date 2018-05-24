@@ -3,13 +3,13 @@
  */
 package akka.grpc.internal
 
-import java.util.concurrent.{CompletableFuture, CompletionStage}
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.annotation.InternalApi
 import akka.util.OptionVal
 import io.grpc._
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 
 @InternalApi
 private[akka] sealed abstract class UnaryCallAdapter[Res] extends ClientCall.Listener[Res] {
