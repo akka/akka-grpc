@@ -4,13 +4,18 @@
 
 package akka.grpc.internal
 
+import java.util.concurrent.CompletionStage
+
 import akka.annotation.InternalApi
-import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.grpc.GrpcResponseMetadata
+import akka.stream
+import akka.stream.{ Attributes => _, _ }
 import akka.stream.stage._
 import io.grpc._
 import io.grpc.stub.StreamObserver
 
 import scala.concurrent.{ Future, Promise }
+import scala.compat.java8.FutureConverters._
 
 @InternalApi
 private object AkkaNettyGrpcClientGraphStage {
@@ -40,16 +45,17 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
   fqMethodName: String,
   channel: Channel,
   options: CallOptions,
-  streamingResponse: Boolean) extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[Any]] {
+  streamingResponse: Boolean) extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
 
   val in = Inlet[I](fqMethodName + ".in")
   val out = Outlet[O](fqMethodName + ".out")
 
   override val shape: FlowShape[I, O] = FlowShape.of(in, out)
 
-  override def createLogicAndMaterializedValue(inheritedAttributes: Attributes): (GraphStageLogic, Future[Any]) = {
+  def createLogicAndMaterializedValue(inheritedAttributes: stream.Attributes): (GraphStageLogic, Future[GrpcResponseMetadata]) = {
     import AkkaNettyGrpcClientGraphStage._
-    val matVal = Promise[AnyRef]()
+    val matVal = Promise[GrpcResponseMetadata]()
+    val trailerPromise = Promise[Metadata]()
 
     val logic = new GraphStageLogic(shape) with InHandler with OutHandler {
 
@@ -81,13 +87,19 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         override def onReady(): Unit = {
           callback.invoke(ReadyForSending)
         }
-        override def onHeaders(headers: Metadata): Unit = {
-          matVal.success(headers) // FIXME a proper type here - also we need the trailers somehow
+        override def onHeaders(responseHeaders: Metadata): Unit = {
+          matVal.success(new GrpcResponseMetadata {
+            def headers: Metadata = responseHeaders
+            def getHeaders(): Metadata = responseHeaders
+            def trailers: Future[Metadata] = trailerPromise.future
+            def getTrailers: CompletionStage[Metadata] = trailerPromise.future.toJava
+          })
         }
         override def onMessage(message: O): Unit = {
           callback.invoke(message)
         }
         override def onClose(status: Status, trailers: Metadata): Unit = {
+          trailerPromise.success(trailers)
           callback.invoke(Closed(status, trailers))
         }
       }
@@ -157,6 +169,9 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         if (call != null) {
           call.cancel("Abrupt stream termination", null)
           call = null
+        }
+        if (!matVal.isCompleted) {
+          matVal.failure(new AbruptStageTerminationException(this))
         }
       }
 

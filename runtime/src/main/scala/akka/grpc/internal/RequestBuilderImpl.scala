@@ -3,181 +3,312 @@
  */
 package akka.grpc.internal
 
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.concurrent.{ CompletionStage, TimeUnit }
 
 import akka.NotUsed
 import akka.annotation.InternalApi
-import akka.grpc.RequestBuilder
-import akka.stream.scaladsl.{ Flow, Sink, Source }
-import akka.stream.javadsl.{ Flow => JavaFlow, Sink => JavaSink, Source => JavaSource }
-import akka.stream.{ Materializer, OverflowStrategy }
-import akka.util.{ ByteString, OptionVal }
-import io.grpc.stub.{ ClientCalls, StreamObserver }
+import akka.dispatch.ExecutionContexts
+import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
+import akka.stream.Materializer
+import akka.stream.javadsl.{ Source => JavaSource }
+import akka.stream.scaladsl.{ Flow, Keep, Sink, Source }
+import akka.util.ByteString
 import io.grpc._
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.compat.java8.FutureConverters._
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+
+// request builder implementations for the generated clients
+// note that these are created in generated code in arbitrary user packages
+// so must remain public even though internal
+
 /**
  * INTERNAL API
  */
 @InternalApi
-final case class RequestBuilderImpl[Req, Res, Ret](
-  options: CallOptions,
-  delegatedExecute: (Req, CallOptions) => Ret) extends RequestBuilder[Req, Ret]() {
+final class ScalaUnaryRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.scaladsl.SingleResponseRequestBuilder[I, O]
+  with OptionsModifications[ScalaUnaryRequestBuilder[I, O]] {
 
-  def addMetadata(key: String, value: String): RequestBuilderImpl[Req, Res, Ret] = {
-    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
-    // values with the same name-key, not sure if it is important we support that
-    copy(options = options.withOption(CallOptions.Key.of[String](key, null), value))
+  override def invoke(request: I): Future[O] = {
+    val listener = new UnaryCallAdapter[O]
+    val call = channel.newCall(descriptor, options)
+    call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+    call.sendMessage(request)
+    call.halfClose()
+    call.request(2)
+    listener.future
   }
 
-  def addMetadata(key: String, value: ByteString): RequestBuilderImpl[Req, Res, Ret] = {
-    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
-    // values with the same name-key, not sure if it is important we support that
-    copy(options = options.withOption(CallOptions.Key.of[Array[Byte]](key, null), value.toArray))
+  override def invokeWithMetadata(request: I): Future[GrpcSingleResponse[O]] = {
+    val listener = new UnaryCallWithMetadataAdapter[O]
+    val call = channel.newCall(descriptor, options)
+    call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+    call.sendMessage(request)
+    call.halfClose()
+    call.request(2)
+    listener.future
   }
 
-  def withDeadline(deadline: FiniteDuration): RequestBuilderImpl[Req, Res, Ret] = {
-    copy(options = options.withDeadline(Deadline.after(deadline.length, deadline.unit)))
-  }
-
-  def invoke(req: Req): Ret = delegatedExecute(req, options)
+  override def updated(options: CallOptions): ScalaUnaryRequestBuilder[I, O] =
+    new ScalaUnaryRequestBuilder[I, O](descriptor, channel, options)
 
 }
 
 /**
- * Factory methods for the generated client code to build requests
- *
  * INTERNAL API
  */
 @InternalApi
-object RequestBuilderImpl {
+final class JavaUnaryRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.javadsl.SingleResponseRequestBuilder[I, O]
+  with OptionsModifications[JavaUnaryRequestBuilder[I, O]] {
 
-  def unary[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    channel: Channel,
-    options: CallOptions)(implicit ec: ExecutionContext): RequestBuilder[Req, Future[Res]] = {
-
-    def invoke(req: Req, options: CallOptions): Future[Res] = {
-      val listener = new UnaryCallFutureAdapter[Res]
-      val call = channel.newCall(descriptor, options)
-      call.start(listener, new Metadata()) // actual metadata already passed through options (?)
-      call.sendMessage(req)
-      call.halfClose()
-      call.request(1)
-      listener.future
-    }
-
-    RequestBuilderImpl[Req, Res, Future[Res]](options, invoke)
+  override def invoke(request: I): CompletionStage[O] = {
+    val listener = new UnaryCallAdapter[O]
+    val call = channel.newCall(descriptor, options)
+    call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+    call.sendMessage(request)
+    call.halfClose()
+    call.request(2)
+    listener.cs
   }
 
-  def unaryJava[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    channel: Channel,
-    options: CallOptions, ec: ExecutionContext): RequestBuilder[Req, CompletionStage[Res]] = {
-
-    def invoke(req: Req, options: CallOptions): CompletionStage[Res] = {
-      val listener = new UnaryCallCSAdapter[Res]
-      val call = channel.newCall(descriptor, options)
-      call.start(listener, new Metadata()) // actual metadata already passed through options (?)
-      call.sendMessage(req)
-      call.halfClose()
-      call.request(1)
-      listener.cs
-    }
-
-    RequestBuilderImpl[Req, Res, CompletionStage[Res]](options, invoke)
+  override def invokeWithMetadata(request: I): CompletionStage[GrpcSingleResponse[O]] = {
+    val listener = new UnaryCallWithMetadataAdapter[O]
+    val call = channel.newCall(descriptor, options)
+    call.start(listener, new Metadata()) // actual metadata already passed through options (?)
+    call.sendMessage(request)
+    call.halfClose()
+    call.request(2)
+    listener.cs
   }
 
-  def clientStreaming[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions)(
-    implicit
-    materializer: Materializer): RequestBuilder[Source[Req, NotUsed], Future[Res]] = {
+  override def updated(options: CallOptions): JavaUnaryRequestBuilder[I, O] =
+    new JavaUnaryRequestBuilder[I, O](descriptor, channel, options)
 
-    def invoke(req: Source[Req, NotUsed], options: CallOptions): Future[Res] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
-      req.via(flow).runWith(Sink.head)
-    }
+}
 
-    RequestBuilderImpl[Source[Req, NotUsed], Res, Future[Res]](options, invoke)
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class ScalaClientStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions,
+  materializer: Materializer)
+  extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
+  with OptionsModifications[ScalaClientStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: Source[I, NotUsed]): Future[O] =
+    invokeWithMetadata(request).map(_.value)(ExecutionContexts.sameThreadExecutionContext)
+
+  override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
+    val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
+      source.viaMat(flow)(Keep.right)
+        .toMat(Sink.head)(Keep.both)
+        .run()(materializer)
+
+    metadataFuture.zip(resultFuture).map {
+      case (metadata, result) =>
+        new GrpcSingleResponse[O] {
+          def value: O = result
+          def getValue(): O = result
+          def headers: Metadata = metadata.headers
+          def getHeaders(): Metadata = metadata.getHeaders()
+          def trailers: Future[Metadata] = metadata.trailers
+          def getTrailers: CompletionStage[Metadata] = metadata.getTrailers()
+        }
+    }(ExecutionContexts.sameThreadExecutionContext)
   }
 
-  def clientStreamingJava[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions,
-    materializer: Materializer): RequestBuilder[JavaSource[Req, NotUsed], CompletionStage[Res]] = {
-    def invoke(req: JavaSource[Req, NotUsed], options: CallOptions): CompletionStage[Res] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
-        .mapMaterializedValue(future => future.toJava)
-      req.via(flow).runWith(JavaSink.head[Res](), materializer)
-    }
+  override def updated(options: CallOptions): ScalaClientStreamingRequestBuilder[I, O] =
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options, materializer)
 
-    RequestBuilderImpl[JavaSource[Req, NotUsed], Res, CompletionStage[Res]](options, invoke)
+}
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class JavaClientStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions,
+  materializer: Materializer)
+  extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
+  with OptionsModifications[JavaClientStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: JavaSource[I, NotUsed]): CompletionStage[O] =
+    invokeWithMetadata(request).thenApply(_.value)
+
+  override def invokeWithMetadata(source: JavaSource[I, NotUsed]): CompletionStage[GrpcSingleResponse[O]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false))
+    val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
+      source.asScala
+        .viaMat(flow)(Keep.right)
+        .toMat(Sink.head)(Keep.both)
+        .run()(materializer)
+
+    metadataFuture.zip(resultFuture).map {
+      case (metadata, result) =>
+        new GrpcSingleResponse[O] {
+          def value: O = result
+          def getValue(): O = result
+          def headers: Metadata = metadata.headers
+          def getHeaders(): Metadata = metadata.getHeaders()
+          def trailers: Future[Metadata] = metadata.trailers
+          def getTrailers: CompletionStage[Metadata] = metadata.getTrailers()
+        }
+    }(ExecutionContexts.sameThreadExecutionContext).toJava
   }
 
-  def serverStreaming[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions): RequestBuilder[Req, Source[Res, NotUsed]] = {
+  override def updated(options: CallOptions): JavaClientStreamingRequestBuilder[I, O] =
+    new JavaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options, materializer)
 
-    def invoke(req: Req, options: CallOptions): Source[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
-      Source.single(req).via(flow)
-    }
+}
 
-    RequestBuilderImpl[Req, Res, Source[Res, NotUsed]](options, invoke)
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class ScalaServerStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.scaladsl.StreamResponseRequestBuilder[I, O]
+  with OptionsModifications[ScalaServerStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: I): Source[O, NotUsed] =
+    invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
+
+  override def invokeWithMetadata(source: I): Source[O, Future[GrpcResponseMetadata]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
+    Source.single(source).viaMat(flow)(Keep.right)
   }
 
-  def serverStreamingJava[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions): RequestBuilder[Req, JavaSource[Res, NotUsed]] = {
+  override def updated(options: CallOptions): ScalaServerStreamingRequestBuilder[I, O] =
+    new ScalaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options)
 
-    def invoke(req: Req, options: CallOptions): JavaSource[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
-        .mapMaterializedValue(future => future.toJava)
-      val bufferSize = options.getOption(CallOptions.Key.of("buffer_size", 10000))
-      JavaSource.single(req).via(flow)
-    }
+}
 
-    RequestBuilderImpl[Req, Res, JavaSource[Res, NotUsed]](options, invoke)
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class JavaServerStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.javadsl.StreamResponseRequestBuilder[I, O]
+  with OptionsModifications[JavaServerStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: I): JavaSource[O, NotUsed] =
+    invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
+
+  override def invokeWithMetadata(source: I): JavaSource[O, CompletionStage[GrpcResponseMetadata]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
+    Source.single(source).viaMat(flow)(Keep.right).mapMaterializedValue(_.toJava).asJava
   }
 
-  def bidirectional[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions): RequestBuilder[Source[Req, NotUsed], Source[Res, NotUsed]] = {
+  override def updated(options: CallOptions): JavaServerStreamingRequestBuilder[I, O] =
+    new JavaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options)
 
-    def invoke(reqs: Source[Req, NotUsed], options: CallOptions): Source[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
-      reqs.via(flow)
-    }
+}
 
-    RequestBuilderImpl[Source[Req, NotUsed], Res, Source[Res, NotUsed]](options, invoke)
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class ScalaBidirectionalStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.scaladsl.StreamResponseRequestBuilder[Source[I, NotUsed], O]
+  with OptionsModifications[ScalaBidirectionalStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: Source[I, NotUsed]): Source[O, NotUsed] =
+    invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
+
+  override def invokeWithMetadata(source: Source[I, NotUsed]): Source[O, Future[GrpcResponseMetadata]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
+    source.viaMat(flow)(Keep.right)
   }
 
-  def bidirectionalJava[Req, Res](
-    descriptor: MethodDescriptor[Req, Res],
-    fqMethodName: String,
-    channel: Channel,
-    options: CallOptions): RequestBuilder[JavaSource[Req, NotUsed], JavaSource[Res, NotUsed]] = {
+  override def updated(options: CallOptions): ScalaBidirectionalStreamingRequestBuilder[I, O] =
+    new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options)
 
-    def invoke(reqs: JavaSource[Req, NotUsed], options: CallOptions): JavaSource[Res, NotUsed] = {
-      val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
-        .mapMaterializedValue(future => future.toJava)
-      reqs.via(flow)
-    }
+}
 
-    RequestBuilderImpl[JavaSource[Req, NotUsed], Res, JavaSource[Res, NotUsed]](options, invoke)
+/**
+ * INTERNAL API
+ */
+@InternalApi
+final class JavaBidirectionalStreamingRequestBuilder[I, O](
+  descriptor: MethodDescriptor[I, O],
+  fqMethodName: String,
+  channel: Channel,
+  val options: CallOptions)
+  extends akka.grpc.javadsl.StreamResponseRequestBuilder[JavaSource[I, NotUsed], O]
+  with OptionsModifications[JavaBidirectionalStreamingRequestBuilder[I, O]] {
+
+  override def invoke(request: JavaSource[I, NotUsed]): JavaSource[O, NotUsed] =
+    invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
+
+  override def invokeWithMetadata(source: JavaSource[I, NotUsed]): JavaSource[O, CompletionStage[GrpcResponseMetadata]] = {
+    // a bit much overhead here because we are using the flow to represent a single response
+    val flow = Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true))
+    source.asScala.viaMat(flow)(Keep.right).mapMaterializedValue(_.toJava).asJava
   }
 
+  override def updated(options: CallOptions): JavaBidirectionalStreamingRequestBuilder[I, O] =
+    new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, options)
+
+}
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
+trait OptionsModifications[T <: OptionsModifications[T]] {
+  def options: CallOptions
+  def updated(options: CallOptions): T
+
+  def addMetadata(key: String, value: String): T = {
+    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
+    // values with the same name-key, not sure if it is important we support that
+    updated(options = options.withOption(CallOptions.Key.of[String](key, null), value))
+  }
+
+  def addMetadata(key: String, value: ByteString): T = {
+    // FIXME Key is instance equal to allow for replacing of the same key but still also allowing multiple
+    // values with the same name-key, not sure if it is important we support that
+    updated(options = options.withOption(CallOptions.Key.of[Array[Byte]](key, null), value.toArray))
+  }
+
+  def withDeadline(deadline: FiniteDuration): T = {
+    updated(options = options.withDeadline(Deadline.after(deadline.length, deadline.unit)))
+  }
+
+  def withDeadline(deadline: java.time.Duration): T = {
+    updated(options = options.withDeadline(Deadline.after(deadline.toMillis, TimeUnit.MILLISECONDS)))
+  }
 }

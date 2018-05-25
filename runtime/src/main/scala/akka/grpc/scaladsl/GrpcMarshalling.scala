@@ -6,7 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.grpc._
-import akka.grpc.internal.CancellationBarrierGraphStage
+import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
@@ -39,6 +39,6 @@ object GrpcMarshalling {
     marshalStream(Source.single(e))
 
   def marshalStream[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    GrpcResponse(e)
+    GrpcResponseHelpers(e)
 
 }

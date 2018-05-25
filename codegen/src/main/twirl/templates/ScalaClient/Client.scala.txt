@@ -7,8 +7,11 @@
 package @service.packageName
 
 import akka.NotUsed
-import akka.grpc.internal.{ Marshaller, NettyClientUtils, RequestBuilderImpl  }
-import akka.grpc.{ GrpcClientSettings, RequestBuilder }
+import akka.grpc.internal.{ Marshaller, NettyClientUtils }
+import akka.grpc.internal.{ ScalaUnaryRequestBuilder, ScalaClientStreamingRequestBuilder }
+import akka.grpc.internal.{ ScalaServerStreamingRequestBuilder, ScalaBidirectionalStreamingRequestBuilder }
+import akka.grpc.scaladsl.{ SingleResponseRequestBuilder, StreamResponseRequestBuilder }
+import akka.grpc.GrpcClientSettings
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.Materializer
@@ -27,15 +30,15 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   @for(method <- service.methods) {
     private val @{method.name}RequestBuilder = {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        RequestBuilderImpl.unary(@{method.name}Descriptor, channel, options)
+        new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options)
       } else {
         val fqName = "@{service.grpcName}.@{method.grpcName}"
         @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-          RequestBuilderImpl.serverStreaming(@{method.name}Descriptor, fqName, channel, options)
+          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options)
         } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          RequestBuilderImpl.clientStreaming(@{method.name}Descriptor, fqName, channel, options)
+          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, mat)
         } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-          RequestBuilderImpl.bidirectional(@{method.name}Descriptor, fqName, channel, options)
+          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options)
         }
       }
     }
@@ -46,8 +49,13 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
      * Lower level "lifted" version of the method, giving access to request metadata etc.
      * prefer @{method.name}(@method.parameterType) if possible.
      */
-    def @{method.name}(): RequestBuilder[@method.parameterType, @method.returnType] =
-      @{method.name}RequestBuilder
+    @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
+      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+        @{method.name}RequestBuilder
+    } else {
+      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+        @{method.name}RequestBuilder
+    }
 
     /**
      * For access to method metadata use the parameterless version of @{method.name}
