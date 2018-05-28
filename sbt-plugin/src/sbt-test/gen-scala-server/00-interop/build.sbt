@@ -4,7 +4,6 @@ organization := "com.lightbend.akka.grpc"
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
 libraryDependencies ++= Seq(
-  "io.grpc"                  % "grpc-interop-testing"    % "1.11.0"                     % "protobuf",
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
   "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
   )

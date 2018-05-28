@@ -63,7 +63,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
     assertEquals(expectedResponse, response)
   }
 
-  def clientCompressedUnary(): Unit = {
+  def clientCompressedUnary(probe: Boolean): Unit = {
     throw new RuntimeException("Not implemented!")
   }
 
@@ -90,7 +90,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
     assertEquals(expected, actual)
   }
 
-  def clientCompressedStreaming(): Unit = {
+  def clientCompressedStreaming(probe: Boolean): Unit = {
     throw new RuntimeException("Not implemented!")
   }
 
