@@ -52,7 +52,7 @@ private[akka] final class UnaryCallAdapter[Res] extends ClientCall.Listener[Res]
  *
  * INTERNAL API
  */
-// needs to be a separate class because of CompletionStage error handling not bubling
+// needs to be a separate class because of CompletionStage error handling not bubbling
 // exceptions like Scala Futures do ;( flip side is that it saves some garbage
 @InternalApi
 private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.Listener[Res] {

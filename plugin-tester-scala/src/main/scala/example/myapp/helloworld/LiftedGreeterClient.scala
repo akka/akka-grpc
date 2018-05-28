@@ -35,7 +35,7 @@ object LiftedGreeterClient {
       "127.0.0.1",
       8080,
       overrideAuthority = Some("foo.test.google.fr"),
-      None,
+      options = None,
       certificate = Some("ca.pem"),
     ))
 
