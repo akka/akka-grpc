@@ -3,11 +3,9 @@
  */
 package akka.grpc
 
-import java.util.Optional
 import java.util.concurrent.CompletionStage
 
 import akka.annotation.DoNotInherit
-import io.grpc.Metadata
 
 import scala.concurrent.Future
 
@@ -23,20 +21,20 @@ trait GrpcResponseMetadata {
   /**
    * Scala API: The response metadata, the metadata is only for reading and must not be mutated.
    */
-  def headers: Metadata
+  def headers: akka.grpc.scaladsl.Metadata
   /**
    * Java API: The response metadata, the metadata is only for reading and must not be mutated.
    */
-  def getHeaders(): Metadata
+  def getHeaders(): akka.grpc.javadsl.Metadata
 
   /**
    * Scala API: Trailers from the server, is completed after the response stream completes
    */
-  def trailers: Future[Metadata]
+  def trailers: Future[akka.grpc.scaladsl.Metadata]
   /**
    * Java API: Trailers from the server, is completed after the response stream completes
    */
-  def getTrailers(): CompletionStage[Metadata]
+  def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata]
 }
 
 /**

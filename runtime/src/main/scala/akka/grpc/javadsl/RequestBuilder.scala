@@ -11,8 +11,6 @@ import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse 
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 
-import scala.concurrent.Future
-
 /**
  * Request builder for requests providing per call specific metadata capabilities in
  * addition to the client instance default options provided to it through [[GrpcClientSettings]] upon creation.
@@ -26,15 +24,10 @@ import scala.concurrent.Future
 trait SingleResponseRequestBuilder[Req, Res] {
 
   /** FIXME docs */
-  def addMetadata(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
 
   /** FIXME docs */
-  def addMetadata(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
-
-  /**
-   * FIXME docs
-   */
-  def withDeadline(deadline: java.time.Duration): SingleResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added
@@ -60,15 +53,10 @@ trait SingleResponseRequestBuilder[Req, Res] {
 trait StreamResponseRequestBuilder[Req, Res] {
 
   /** FIXME docs */
-  def addMetadata(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
 
   /** FIXME docs */
-  def addMetadata(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
-
-  /**
-   * FIXME docs
-   */
-  def withDeadline(deadline: java.time.Duration): StreamResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added

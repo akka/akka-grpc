@@ -7,6 +7,7 @@ package akka.grpc.internal
 import java.util.concurrent.CompletionStage
 
 import akka.annotation.InternalApi
+import akka.dispatch.ExecutionContexts
 import akka.grpc.GrpcResponseMetadata
 import akka.stream
 import akka.stream.{ Attributes => _, _ }
@@ -45,7 +46,8 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
   fqMethodName: String,
   channel: Channel,
   options: CallOptions,
-  streamingResponse: Boolean) extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
+  streamingResponse: Boolean,
+  headers: MetadataImpl) extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
 
   val in = Inlet[I](fqMethodName + ".in")
   val out = Outlet[O](fqMethodName + ".out")
@@ -89,10 +91,15 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         }
         override def onHeaders(responseHeaders: Metadata): Unit = {
           matVal.success(new GrpcResponseMetadata {
-            def headers: Metadata = responseHeaders
-            def getHeaders(): Metadata = responseHeaders
-            def trailers: Future[Metadata] = trailerPromise.future
-            def getTrailers: CompletionStage[Metadata] = trailerPromise.future.toJava
+            private lazy val sMetadata = MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(responseHeaders)
+            private lazy val jMetadata = MetadataImpl.javaMetadataFromGoogleGrpcMetadata(responseHeaders)
+            def headers = sMetadata
+            def getHeaders() = jMetadata
+
+            private lazy val sTrailers = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
+            private lazy val jTrailers = trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext).toJava
+            def trailers = sTrailers
+            def getTrailers = jTrailers
           })
         }
         override def onMessage(message: O): Unit = {
@@ -105,7 +112,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
       }
       override def preStart(): Unit = {
         call = channel.newCall(descriptor, options)
-        call.start(listener, new Metadata()) // actual request metadata is already in options above
+        call.start(listener, headers.toGoogleGrpcMetadata())
 
         // always pull early - pull 2 for non-streaming response "to trigger failure early"
         // duplicating behavior in io.grpc.stub.ClientCalls - not sure why this is a good idea

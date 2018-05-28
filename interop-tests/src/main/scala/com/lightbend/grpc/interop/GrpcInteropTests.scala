@@ -61,6 +61,13 @@ trait GrpcInteropTests {
       val binding = server.start()
       try {
         block(server.getPort(binding))
+      } catch {
+        case ex: AssertionError => throw ex // expected to see these
+        case ex: UnsupportedOperationException => throw ex // these as well
+        case ex: Throwable =>
+          // give us some hints what is wrong with everything else
+          println("Exception: " + ex.getClass.getName + ": " + ex.getMessage)
+          throw ex
       } finally {
         server.stop(binding)
       }
@@ -146,7 +153,7 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "cancel_after_begin",
       "cancel_after_first_response",
       "timeout_on_sleeping_server",
-      "custom_metadata",
+      // "custom_metadata",
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",

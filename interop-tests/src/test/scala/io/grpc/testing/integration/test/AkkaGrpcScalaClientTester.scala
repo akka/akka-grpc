@@ -6,18 +6,18 @@ package io.grpc.testing.integration.test
 
 import java.io.InputStream
 
-import akka.grpc.GrpcClientSettings
+import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata }
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.{ Keep, Sink, Source }
 import com.google.protobuf.ByteString
 import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ ClientTester, Settings }
-import io.grpc.{ Status, StatusRuntimeException }
+import io.grpc.{ Metadata, Status, StatusRuntimeException }
 import org.junit.Assert._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Failure
 
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
@@ -207,27 +207,46 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
   def customMetadata(): Unit = {
     // unary call
-    val unaryResponse = client.unaryCall()
-      .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
-      .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
-      .invoke(SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
+    val binaryHeaderValue = akka.util.ByteString.fromInts(0xababab)
+    val unaryResponseFuture = client.unaryCall()
+      .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+      // this one is returned as trailer
+      .withHeader("x-grpc-test-echo-trailing-bin", binaryHeaderValue)
+      .invokeWithMetadata(SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
 
-    // FIXME no assert yet - we need response headers for that
-    Await.result(unaryResponse, awaitTimeout)
+    val unaryResponse = Await.result(unaryResponseFuture, awaitTimeout)
+    assertEquals(
+      unaryResponse.headers.getText("x-grpc-test-echo-initial").get,
+      "test_initial_metadata_value")
+    val unaryTrailer = Await.result(unaryResponse.trailers, awaitTimeout)
+    assertEquals(
+      binaryHeaderValue,
+      unaryTrailer.getBinary("x-grpc-test-echo-trailing-bin").get)
 
     // full duplex
-    val fullDuplexResponse = client.fullDuplexCall()
-      .addMetadata("x-grpc-test-echo-initial", "test_initial_metadata_value")
-      .addMetadata("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
-      .invoke(Source.single(
-        StreamingOutputCallRequest(
-          responseParameters = Seq(ResponseParameters(size = 314159)),
-          payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
+    val fullDuplexResponseWithMetadata: Source[StreamingOutputCallResponse, Future[GrpcResponseMetadata]] =
+      client.fullDuplexCall()
+        .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        // this one is returned as trailer
+        .withHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+        .invokeWithMetadata(Source.single(
+          StreamingOutputCallRequest(
+            responseParameters = Seq(ResponseParameters(size = 314159)),
+            payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
 
-    val fullDuplexResult = Await.result(fullDuplexResponse.runWith(Sink.head), awaitTimeout)
+    val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.head)(Keep.both).run()
 
-    // FIXME no assert yet - we need response headers and trailing headers for that
-    throw new RuntimeException("Not implemented!")
+    Await.result(futureResponse, awaitTimeout) // just to see call was successful and fail early if not
+    val fullDuplexMetadata = Await.result(futureMetadata, awaitTimeout)
+
+    assertEquals(
+      "test_initial_metadata_value", fullDuplexMetadata.headers.getText("x-grpc-test-echo-initial").get)
+
+    val trailers = Await.result(fullDuplexMetadata.trailers, awaitTimeout)
+    assertEquals(
+      binaryHeaderValue,
+      trailers.getBinary("x-grpc-test-echo-trailing-bin").get)
+
   }
 
   def statusCodeAndMessage(): Unit = {

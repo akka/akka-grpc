@@ -25,15 +25,10 @@ import scala.concurrent.duration.FiniteDuration
 trait SingleResponseRequestBuilder[Req, Res] {
 
   /** FIXME docs */
-  def addMetadata(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
 
   /** FIXME docs */
-  def addMetadata(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
-
-  /**
-   * FIXME docs
-   */
-  def withDeadline(deadline: FiniteDuration): SingleResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added
@@ -59,15 +54,10 @@ trait SingleResponseRequestBuilder[Req, Res] {
 trait StreamResponseRequestBuilder[Req, Res] {
 
   /** FIXME docs */
-  def addMetadata(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
 
   /** FIXME docs */
-  def addMetadata(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
-
-  /**
-   * FIXME docs
-   */
-  def withDeadline(deadline: FiniteDuration): StreamResponseRequestBuilder[Req, Res]
+  def withHeader(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added

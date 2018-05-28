@@ -6,6 +6,7 @@ package akka.grpc.internal
 import java.util.concurrent.CompletionStage
 
 import akka.annotation.InternalApi
+import akka.dispatch.ExecutionContexts
 import akka.grpc.GrpcSingleResponse
 import akka.util.OptionVal
 import io.grpc._
@@ -65,16 +66,26 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
   }
 
   override def onMessage(message: Res): Unit = {
-    // close over var and make final
-    val headersOnMessage = headers.x
     val responseWithMetadata = new GrpcSingleResponse[Res] {
-      def headers: Metadata = headersOnMessage
-      def getHeaders() = headersOnMessage
+      // close over var and make final
+      private val headersOnMessage = UnaryCallWithMetadataAdapter.this.headers match {
+        case OptionVal.Some(h) => h
+        case OptionVal.None => throw new RuntimeException("Never got headers, this should not happen")
+      }
+
       def value: Res = message
       def getValue: Res = message
 
-      def trailers: Future[Metadata] = trailerPromise.future
-      def getTrailers: CompletionStage[Metadata] = trailerPromise.future.toJava
+      private lazy val sMetadata: akka.grpc.scaladsl.Metadata = MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(headersOnMessage)
+      private lazy val jMetadata: akka.grpc.javadsl.Metadata = MetadataImpl.javaMetadataFromGoogleGrpcMetadata(headersOnMessage)
+      def headers = sMetadata
+      def getHeaders() = jMetadata
+
+      private lazy val sTrailer = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
+      private lazy val jTrailer = trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext).toJava
+
+      def trailers = sTrailer
+      def getTrailers() = jTrailer
     }
     if (!responsePromise.trySuccess(responseWithMetadata)) {
       throw Status.INTERNAL.withDescription("More than one value received for unary call")
