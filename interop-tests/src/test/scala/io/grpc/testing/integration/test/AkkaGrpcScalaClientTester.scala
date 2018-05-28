@@ -10,7 +10,7 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
-import com.google.protobuf.empty.Empty
+import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
 import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }

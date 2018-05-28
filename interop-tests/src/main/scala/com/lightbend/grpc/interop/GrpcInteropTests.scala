@@ -30,7 +30,8 @@ trait GrpcInteropTests {
     "status_code_and_message",
     "unimplemented_method",
     "client_compressed_unary",
-    "client_compressed_streaming",
+    // hangs (https://github.com/akka/akka-grpc/issues/214)
+    // "client_compressed_streaming",
     "server_compressed_unary",
     "server_compressed_streaming",
     "unimplemented_service",
@@ -122,8 +123,6 @@ object IoGrpcJavaServerProvider extends GrpcServerProvider {
 
   val pendingCases =
     Set(
-      "client_compressed_unary",
-      "client_compressed_streaming",
     )
 
   val server = IoGrpcServer
@@ -134,7 +133,6 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
   val pendingCases =
     Set(
-      "client_compressed_streaming",
     )
 
   val client = IoGrpcClient

@@ -7,7 +7,6 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.EmptyProtos;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;

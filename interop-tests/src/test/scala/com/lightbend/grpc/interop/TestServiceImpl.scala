@@ -9,8 +9,8 @@ import akka.grpc.GrpcServiceException
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Flow, Source }
 import com.google.protobuf.ByteString
-import com.google.protobuf.empty.Empty
 import io.grpc.Status
+import io.grpc.testing.integration.empty.Empty
 
 import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
