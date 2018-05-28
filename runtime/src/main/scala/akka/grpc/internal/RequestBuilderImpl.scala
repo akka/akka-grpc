@@ -357,10 +357,10 @@ trait MetadataOperations[T <: MetadataOperations[T]] {
   def headers: MetadataImpl
   def withHeaders(headers: MetadataImpl): T
 
-  def withHeader(key: String, value: String): T =
-    withHeaders(headers = headers.withEntry(key, value))
+  def addHeader(key: String, value: String): T =
+    withHeaders(headers = headers.addEntry(key, value))
 
-  def withHeader(key: String, value: ByteString): T =
-    withHeaders(headers = headers.withEntry(key, value))
+  def addHeader(key: String, value: ByteString): T =
+    withHeaders(headers = headers.addEntry(key, value))
 
 }

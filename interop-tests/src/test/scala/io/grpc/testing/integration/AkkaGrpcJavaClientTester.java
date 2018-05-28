@@ -264,8 +264,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     // unary call
     akka.util.ByteString binaryValue = akka.util.ByteString.fromInts(0xababab);
     CompletionStage<GrpcSingleResponse<Messages.SimpleResponse>> unaryResponseCs = client.unaryCall()
-        .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
-        .withHeader("x-grpc-test-echo-trailing-bin", binaryValue)
+        .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        .addHeader("x-grpc-test-echo-trailing-bin", binaryValue)
         .invokeWithMetadata(Messages.SimpleRequest.newBuilder()
             .setResponseSize(314159)
             .setPayload(Messages.Payload.newBuilder()
@@ -285,8 +285,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     // full duplex
     Source<Messages.StreamingOutputCallResponse, CompletionStage<GrpcResponseMetadata>> fullDuplexSource =
         client.fullDuplexCall()
-          .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
-          .withHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+          .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+          .addHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
           .invokeWithMetadata(Source.single(Messages.StreamingOutputCallRequest.newBuilder()
               .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(314159).build())
               .setPayload(Messages.Payload.newBuilder()

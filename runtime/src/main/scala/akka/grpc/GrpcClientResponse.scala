@@ -9,8 +9,6 @@ import akka.annotation.DoNotInherit
 
 import scala.concurrent.Future
 
-// FIXME should we provide our own immutable/thread safe response metadata abstraction?
-
 /**
  * Represents the metadata related to a gRPC call with a streaming response
  *

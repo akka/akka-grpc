@@ -209,9 +209,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     // unary call
     val binaryHeaderValue = akka.util.ByteString.fromInts(0xababab)
     val unaryResponseFuture = client.unaryCall()
-      .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+      .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
       // this one is returned as trailer
-      .withHeader("x-grpc-test-echo-trailing-bin", binaryHeaderValue)
+      .addHeader("x-grpc-test-echo-trailing-bin", binaryHeaderValue)
       .invokeWithMetadata(SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
 
     val unaryResponse = Await.result(unaryResponseFuture, awaitTimeout)
@@ -226,9 +226,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     // full duplex
     val fullDuplexResponseWithMetadata: Source[StreamingOutputCallResponse, Future[GrpcResponseMetadata]] =
       client.fullDuplexCall()
-        .withHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
         // this one is returned as trailer
-        .withHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+        .addHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
         .invokeWithMetadata(Source.single(
           StreamingOutputCallRequest(
             responseParameters = Seq(ResponseParameters(size = 314159)),

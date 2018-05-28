@@ -23,11 +23,19 @@ import akka.util.ByteString
 @DoNotInherit
 trait SingleResponseRequestBuilder[Req, Res] {
 
-  /** FIXME docs */
-  def withHeader(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
+  /**
+   * Add a header, the value will be ASCII encoded, the same header key can be added multiple times with
+   * different values.
+   * @return A new request builder, that will pass the added header to the server when invoked
+   */
+  def addHeader(key: String, value: String): SingleResponseRequestBuilder[Req, Res]
 
-  /** FIXME docs */
-  def withHeader(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
+  /**
+   * Add a binary header, the same header key can be added multiple times with
+   * different values.
+   * @return A new request builder, that will pass the added header to the server when invoked
+   */
+  def addHeader(key: String, value: ByteString): SingleResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added
@@ -52,11 +60,19 @@ trait SingleResponseRequestBuilder[Req, Res] {
 @DoNotInherit
 trait StreamResponseRequestBuilder[Req, Res] {
 
-  /** FIXME docs */
-  def withHeader(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
+  /**
+   * Add a header, the value will be ASCII encoded, the same header key can be added multiple times with
+   * different values.
+   * @return A new request builder, that will pass the added header to the server when invoked
+   */
+  def addHeader(key: String, value: String): StreamResponseRequestBuilder[Req, Res]
 
-  /** FIXME docs */
-  def withHeader(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
+  /**
+   * Add a binary header, the same header key can be added multiple times with
+   * different values.
+   * @return A new request builder, that will pass the added header to the server when invoked
+   */
+  def addHeader(key: String, value: ByteString): StreamResponseRequestBuilder[Req, Res]
 
   /**
    * Invoke the gRPC method with the additional metadata added
