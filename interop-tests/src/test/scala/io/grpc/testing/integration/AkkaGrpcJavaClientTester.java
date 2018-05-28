@@ -88,7 +88,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   }
 
   @Override
-  public void clientCompressedUnary() throws Exception {
+  public void clientCompressedUnary(boolean probe) throws Exception {
     throw new RuntimeException("Not implemented!");
   }
 
@@ -119,7 +119,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   }
 
   @Override
-  public void clientCompressedStreaming() throws Exception {
+  public void clientCompressedStreaming(boolean probe) throws Exception {
     throw new RuntimeException("Not implemented!");
   }
 

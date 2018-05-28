@@ -18,9 +18,9 @@ package io.grpc.testing.integration2;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
+import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration.TestCases;
 import io.grpc.testing.integration.TestServiceGrpc;
-import io.grpc.testing.integration.Util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +41,7 @@ public class TestServiceClient {
      */
     public static void main(String[] args) throws Exception {
         // Let OkHttp use Conscrypt if it is available.
-        Util.installConscryptIfAvailable();
+        TestUtils.installConscryptIfAvailable();
         Settings settings = Settings.parseArgs(args);
         final TestServiceClient client = new TestServiceClient(new GrpcJavaClientTester(settings));
         client.setUp();
@@ -115,7 +115,7 @@ public class TestServiceClient {
                 break;
 
             case CLIENT_COMPRESSED_UNARY:
-                clientTester.clientCompressedUnary();
+                clientTester.clientCompressedUnary(false);
                 break;
 
             case SERVER_COMPRESSED_UNARY:
@@ -127,7 +127,7 @@ public class TestServiceClient {
                 break;
 
             case CLIENT_COMPRESSED_STREAMING:
-                clientTester.clientCompressedStreaming();
+                clientTester.clientCompressedStreaming(false);
                 break;
 
             case SERVER_STREAMING:
