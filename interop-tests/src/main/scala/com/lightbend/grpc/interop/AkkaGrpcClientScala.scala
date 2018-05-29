@@ -6,8 +6,10 @@ package com.lightbend.grpc.interop
 
 import akka.actor.ActorSystem
 import akka.stream.{ ActorMaterializer, Materializer }
+import io.grpc.internal.testing.TestUtils
 import io.grpc.testing.integration.Util
 import io.grpc.testing.integration2.{ ClientTester, Settings, TestServiceClient }
+
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 
@@ -15,7 +17,7 @@ import scala.concurrent.{ Await, ExecutionContext }
 final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ExecutionContext => ClientTester) extends GrpcClient {
 
   override def run(args: Array[String]): Unit = {
-    Util.installConscryptIfAvailable()
+    TestUtils.installConscryptIfAvailable()
     val settings = Settings.parseArgs(args)
 
     implicit val sys = ActorSystem()

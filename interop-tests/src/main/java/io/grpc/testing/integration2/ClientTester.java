@@ -20,13 +20,13 @@ public interface ClientTester {
 
     void largeUnary() throws Exception;
 
-    void clientCompressedUnary() throws Exception;
+    void clientCompressedUnary(boolean probe) throws Exception;
 
     void serverCompressedUnary() throws Exception;
 
     void clientStreaming() throws Exception;
 
-    void clientCompressedStreaming() throws Exception;
+    void clientCompressedStreaming(boolean probe) throws Exception;
 
     void serverStreaming() throws Exception;
 

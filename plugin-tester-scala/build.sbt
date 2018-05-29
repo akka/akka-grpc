@@ -12,4 +12,3 @@ val root = project.in(file("."))
     ProjectRef(file("../"), "akka-grpc-codegen"),
   )
 
-val grpcVersion = "1.11.0"

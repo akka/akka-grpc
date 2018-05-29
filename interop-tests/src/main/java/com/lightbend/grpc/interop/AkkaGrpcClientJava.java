@@ -7,7 +7,7 @@ package com.lightbend.grpc.interop;
 import akka.actor.ActorSystem;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
-import io.grpc.testing.integration.Util;
+import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration2.ClientTester;
 import io.grpc.testing.integration2.TestServiceClient;
 import io.grpc.testing.integration2.Settings;
@@ -27,7 +27,7 @@ public class AkkaGrpcClientJava extends GrpcClient {
   }
 
   public void run(String[] args) {
-    Util.installConscryptIfAvailable();
+    TestUtils.installConscryptIfAvailable();
     final Settings settings = Settings.parseArgs(args);
 
     final ActorSystem sys = ActorSystem.create();

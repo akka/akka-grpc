@@ -41,8 +41,8 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     val label: String = "akka-grpc server scala"
     val pendingCases =
       Set(
-        "client_compressed_unary",
-        "client_compressed_streaming")
+
+      )
 
     val server = AkkaGrpcServerScala(implicit mat => implicit sys => {
       implicit val ec = mat.executionContext
@@ -137,8 +137,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     val pendingCases =
       Set(
         "custom_metadata",
-        "client_compressed_unary",
-        "client_compressed_streaming")
+      )
 
     val server = new AkkaGrpcServerJava(mat ⇒ {
       TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)

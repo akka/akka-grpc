@@ -10,7 +10,7 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.ByteString
-import com.google.protobuf.empty.Empty
+import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ ChannelBuilder, ClientTester, Settings }
 import io.grpc.{ ManagedChannel, Status, StatusRuntimeException }
@@ -63,7 +63,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertEquals(expectedResponse, response)
   }
 
-  def clientCompressedUnary(): Unit = {
+  def clientCompressedUnary(probe: Boolean): Unit = {
     throw new RuntimeException("Not implemented!")
   }
 
@@ -90,7 +90,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertEquals(expected, actual)
   }
 
-  def clientCompressedStreaming(): Unit = {
+  def clientCompressedStreaming(probe: Boolean): Unit = {
     throw new RuntimeException("Not implemented!")
   }
 

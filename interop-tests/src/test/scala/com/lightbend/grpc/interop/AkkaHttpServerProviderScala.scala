@@ -19,9 +19,7 @@ import scala.concurrent.{ ExecutionContext, Promise }
 object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directives {
   val label: String = "akka-grpc server scala"
   val pendingCases =
-    Set(
-      "client_compressed_unary",
-      "client_compressed_streaming")
+    Set()
 
   val server = AkkaGrpcServerScala(implicit mat => implicit sys => {
     implicit val ec = mat.executionContext
