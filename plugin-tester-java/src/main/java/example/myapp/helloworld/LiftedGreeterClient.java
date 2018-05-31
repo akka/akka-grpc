@@ -61,7 +61,7 @@ class LiftedGreeterClient {
   private static void singleRequestReply(GreeterServiceClient client) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
     CompletionStage<HelloReply> reply = client.sayHello()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(request);
     System.out.println("got single reply: " + reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
   }
@@ -72,7 +72,7 @@ class LiftedGreeterClient {
         .stream().map(name -> HelloRequest.newBuilder().setName(name).build())
         .collect(Collectors.toList());
     CompletionStage<HelloReply> reply = client.itKeepsTalking()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(Source.from(requests));
     System.out.println("got single reply for streaming requests: " +
         reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
@@ -81,7 +81,7 @@ class LiftedGreeterClient {
   private static void streamingReply(GreeterServiceClient client, Materializer mat) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
     Source<HelloReply, NotUsed> responseStream = client.itKeepsReplying()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(request);
     CompletionStage<Done> done =
         responseStream.runForeach(reply ->
@@ -101,7 +101,7 @@ class LiftedGreeterClient {
         .mapMaterializedValue(m -> NotUsed.getInstance());
 
     Source<HelloReply, NotUsed> responseStream = client.streamHellos()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(requestStream);
     CompletionStage<Done> done =
         responseStream.runForeach(reply ->
