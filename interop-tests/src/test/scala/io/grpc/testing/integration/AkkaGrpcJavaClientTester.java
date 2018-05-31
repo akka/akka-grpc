@@ -11,7 +11,6 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.EmptyProtos;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.testing.integration2.ClientTester;
