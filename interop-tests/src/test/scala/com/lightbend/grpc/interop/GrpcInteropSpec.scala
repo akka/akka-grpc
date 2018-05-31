@@ -6,7 +6,8 @@ package com.lightbend.grpc.interop
 
 import akka.NotUsed
 import akka.grpc.scaladsl.GrpcMarshalling
-import akka.grpc.{ GrpcResponse, Identity }
+import akka.grpc.Identity
+import akka.grpc.internal.GrpcResponseHelpers
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import io.grpc.testing.integration.test.{ AkkaGrpcScalaClientTester, TestService, TestServiceHandler }
 import io.grpc.testing.integration.{ AkkaGrpcJavaClientTester, TestServiceHandlerFactory }
@@ -86,7 +87,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
             case None ⇒
               complete(simpleResponse)
             case Some(responseStatus) ⇒
-              mapTrailingResponseHeaders(_ ⇒ GrpcResponse.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+              mapTrailingResponseHeaders(_ ⇒ GrpcResponseHelpers.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
                 complete(simpleResponse)
               }
           }
@@ -110,7 +111,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
             NotUsed
           })
 
-          complete(GrpcResponse(testServiceImpl.fullDuplexCall(effectingSource), status.future))
+          complete(GrpcResponseHelpers(testServiceImpl.fullDuplexCall(effectingSource), status.future))
         }
       }
     }

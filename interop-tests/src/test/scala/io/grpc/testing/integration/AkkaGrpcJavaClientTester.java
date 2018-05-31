@@ -1,20 +1,19 @@
 package io.grpc.testing.integration;
 
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.GrpcResponseMetadata;
+import akka.grpc.GrpcSingleResponse;
+import akka.grpc.javadsl.Metadata;
+import akka.japi.Pair;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
-import io.grpc.CallOptions;
-import io.grpc.ManagedChannel;
+import com.google.protobuf.EmptyProtos;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.testing.integration.Messages;
-import io.grpc.testing.integration.TestServiceClient;
-import io.grpc.testing.integration.UnimplementedServiceClient;
-import io.grpc.testing.integration2.ChannelBuilder;
 import io.grpc.testing.integration2.ClientTester;
 import io.grpc.testing.integration2.Settings;
 import scala.concurrent.ExecutionContext;
@@ -22,7 +21,7 @@ import scala.concurrent.ExecutionContext;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 import static org.junit.Assert.assertEquals;
@@ -68,7 +67,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void cacheableUnary() {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
@@ -88,12 +87,12 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void clientCompressedUnary(boolean probe) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void serverCompressedUnary() throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
@@ -119,7 +118,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void clientCompressedStreaming(boolean probe) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
@@ -230,32 +229,79 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void computeEngineCreds(String serviceAccount, String oauthScope) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void serviceAccountCreds(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void jwtTokenCreds(InputStream serviceAccountJson) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void oauth2AuthToken(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void perRpcCreds(String jsonKey, InputStream credentialsStream, String oauthScope) throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void customMetadata() throws Exception {
-    throw new RuntimeException("Not implemented!");
+    // unary call
+    akka.util.ByteString binaryValue = akka.util.ByteString.fromInts(0xababab);
+    CompletionStage<GrpcSingleResponse<Messages.SimpleResponse>> unaryResponseCs = client.unaryCall()
+        .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+        .addHeader("x-grpc-test-echo-trailing-bin", binaryValue)
+        .invokeWithMetadata(Messages.SimpleRequest.newBuilder()
+            .setResponseSize(314159)
+            .setPayload(Messages.Payload.newBuilder()
+                .setBody(ByteString.copyFrom(new byte[271828]))
+                .build())
+            .build()
+        );
+
+    GrpcSingleResponse<Messages.SimpleResponse> unaryResponse = unaryResponseCs.toCompletableFuture().get();
+    Optional<String> unaryInitialMetadata = unaryResponse.getHeaders().getText("x-grpc-test-echo-initial");
+    assertEquals("test_initial_metadata_value", unaryInitialMetadata.get());
+    Metadata unaryTrailers = unaryResponse.getTrailers().toCompletableFuture().get();
+    assertEquals(
+        binaryValue,
+        unaryTrailers.getBinary("x-grpc-test-echo-trailing-bin").get());
+
+    // full duplex
+    Source<Messages.StreamingOutputCallResponse, CompletionStage<GrpcResponseMetadata>> fullDuplexSource =
+        client.fullDuplexCall()
+          .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
+          .addHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
+          .invokeWithMetadata(Source.single(Messages.StreamingOutputCallRequest.newBuilder()
+              .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(314159).build())
+              .setPayload(Messages.Payload.newBuilder()
+                  .setBody(ByteString.copyFrom(new byte[271828]))
+                  .build())
+              .build()
+          ));
+
+    Pair<CompletionStage<GrpcResponseMetadata>, CompletionStage<Messages.StreamingOutputCallResponse>> fullDuplexResult =
+      fullDuplexSource.toMat(Sink.head(), Keep.both()).run(mat);
+
+    Messages.StreamingOutputCallResponse response = fullDuplexResult.second().toCompletableFuture().get();
+
+    GrpcResponseMetadata fullDuplexMetadata = fullDuplexResult.first().toCompletableFuture().get();
+    assertEquals(
+        "test_initial_metadata_value",
+        fullDuplexMetadata.getHeaders().getText("x-grpc-test-echo-initial").get());
+
+    Metadata fullDuplexTrailer = fullDuplexMetadata.getTrailers().toCompletableFuture().get();
+    assertEquals(
+        binaryValue,
+        fullDuplexTrailer.getBinary("x-grpc-test-echo-trailing-bin").get());
   }
 
   @Override
@@ -339,16 +385,16 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void cancelAfterBegin() throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void cancelAfterFirstResponse() throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
   public void timeoutOnSleepingServer() throws Exception {
-    throw new RuntimeException("Not implemented!");
+    throw new UnsupportedOperationException("Not implemented!");
   }
 }

@@ -1,7 +1,8 @@
 package com.lightbend.grpc.interop
 
 import akka.NotUsed
-import akka.grpc.{ GrpcResponse, Identity }
+import akka.grpc.Identity
+import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcMarshalling
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpRequest }
@@ -65,7 +66,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           case None ⇒
             complete(simpleResponse)
           case Some(responseStatus) ⇒
-            mapTrailingResponseHeaders(_ ⇒ GrpcResponse.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+            mapTrailingResponseHeaders(_ ⇒ GrpcResponseHelpers.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
         }
@@ -89,7 +90,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           NotUsed
         })
 
-        complete(GrpcResponse(testServiceImpl.fullDuplexCall(effectingSource), status.future))
+        complete(GrpcResponseHelpers(testServiceImpl.fullDuplexCall(effectingSource), status.future))
       }
     }
   }

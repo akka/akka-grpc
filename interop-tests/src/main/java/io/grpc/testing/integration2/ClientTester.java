@@ -8,6 +8,9 @@ import io.grpc.ManagedChannel;
 
 import java.io.InputStream;
 
+/**
+ * Test requirements documentation: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
+ */
 public interface ClientTester {
 
     void setUp();

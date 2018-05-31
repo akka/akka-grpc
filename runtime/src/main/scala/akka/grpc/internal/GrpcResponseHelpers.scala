@@ -2,30 +2,34 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc
+package akka.grpc.internal
 
 import akka.NotUsed
+import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers
+import akka.grpc.{Codec, Grpc, GrpcServiceException, ProtobufSerializer}
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpResponse}
-import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 
-import scala.concurrent.Future
 import scala.collection.immutable
+import scala.concurrent.Future
 
 /**
  * Some helpers for creating HTTP responses for use with gRPC
+ *
+ * INTERNAL API
  */
-object GrpcResponse {
+@InternalApi // consumed from generated classes so cannot be private
+object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    GrpcResponse(e, Source.single(trailer(Status.OK)))
+    GrpcResponseHelpers(e, Source.single(trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
     implicit val ec = mat.executionContext
-    GrpcResponse(
+    GrpcResponseHelpers(
       e,
       Source
         .lazilyAsync(() ⇒ status.map(trailer(_)))
