@@ -52,7 +52,7 @@ object LiftedGreeterClient {
     def singleRequestReply(): Unit = {
       sys.log.info("Performing request")
       val reply = client.sayHello()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(HelloRequest("Alice"))
       println(s"got single reply: ${Await.result(reply, 5.seconds).message}")
     }
@@ -61,14 +61,14 @@ object LiftedGreeterClient {
     def streamingRequest(): Unit = {
       val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
       val reply = client.itKeepsTalking()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(Source(requests))
       println(s"got single reply for streaming requests: ${Await.result(reply, 5.seconds).message}")
     }
 
     def streamingReply(): Unit = {
       val responseStream = client.itKeepsReplying()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(HelloRequest("Alice"))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
@@ -86,7 +86,7 @@ object LiftedGreeterClient {
           .mapMaterializedValue(_ => NotUsed)
 
       val responseStream: Source[HelloReply, NotUsed] = client.streamHellos()
-        .addMetadata("key", "value")
+        .addHeader("key", "value")
         .invoke(requestStream)
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
