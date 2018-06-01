@@ -35,7 +35,6 @@ pluginBundle {
     vcsUrl = 'https://github.com/akka/akka-grpc'
     description = 'Building streaming gRPC servers and clients on top of Akka Streams'
     tags = ['akka', 'streams', 'reactive']
-    version "git describe --tags".execute().text.substring(1).trim()
 
     plugins {
         akkaGrpcPlugin {
