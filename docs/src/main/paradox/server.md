@@ -141,6 +141,10 @@ That service can then be handled by an Akka HTTP server via the generated `Greet
 which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
 @scala[The partial function should be made total before giving it to Akka HTTP by for example providing 404 as as default response].
 
+The server will run one instance of the implementation and that is then shared between requests,
+this mean that it must be thread safe. In the sample above there is no mutable state, for more about safely implementing
+servers with state see @link-ref-how-do-you-do-it?[stateful]
+
 A main program that starts a Akka HTTP server with the `GreeterService` looks like this:
 
 Scala
@@ -179,3 +183,31 @@ Maven
 :   ```
 mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.helloworld.GreeterClient
 ```
+
+
+## Stateful services
+
+More often than not, the whole point of the implementing a service is to keep state. Since the service implementation
+is shared between concurrent incoming requests any state must be thread safe.
+
+There are two recommended ways to deal with this:
+
+ * Make the state immutable – immutable state that is created before or when the service is instantiated and then never changes is safe
+ * Put the mutable state inside an actor and interact with it through `ask` from unary methods or `Flow.ask` from streams.
+
+This is an example based on the hello world above, but allowing users to change the greeting through a unary call:
+
+Scala
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterServiceImpl.scala) { #stateful-service }
+
+Java
+:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterServiceImpl.java) { #stateful-service }
+
+The `GreeterActor` is implemented like this:
+
+Scala
+:  @@snip [GreeterActor.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterActor.scala) { #actor }
+
+Java
+:  @@snip [GreeterActor.java]($root$/../plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterActor.java) { #actor }
+
