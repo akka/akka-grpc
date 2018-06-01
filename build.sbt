@@ -11,6 +11,10 @@ val commonSettings = Seq(
     "-language:_",
     "-encoding", "UTF-8"
   ),
+  javacOptions ++= List(
+    "-Xlint:unchecked",
+    "-Xlint:deprecation"
+  )
 )
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"

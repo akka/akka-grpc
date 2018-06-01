@@ -60,17 +60,17 @@ public final class @{service.name}Client implements @{service.name} {
 
     @for(method <- service.methods) {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder(@{method.name}Descriptor, channel, defaultOptions);
+        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, defaultOptions);
       } else {
         @defining(service.grpcName + "." + method.grpcName){ fqName =>
           @if(method.methodType == akka.grpc.gen.ClientStreaming){
-            @{method.name}RequestBuilder = new JavaClientStreamingRequestBuilder(
+            @{method.name}RequestBuilder = new JavaClientStreamingRequestBuilder<>(
               @{method.name}Descriptor, "@fqName", channel, defaultOptions, mat);
           } else if(method.methodType == akka.grpc.gen.ServerStreaming){
-            @{method.name}RequestBuilder = new JavaServerStreamingRequestBuilder(
+            @{method.name}RequestBuilder = new JavaServerStreamingRequestBuilder<>(
               @{method.name}Descriptor, "@fqName", channel, defaultOptions);
           } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-            @{method.name}RequestBuilder = new JavaBidirectionalStreamingRequestBuilder(
+            @{method.name}RequestBuilder = new JavaBidirectionalStreamingRequestBuilder<>(
               @{method.name}Descriptor, "@fqName", channel, defaultOptions);
           }
         }
@@ -111,11 +111,11 @@ public final class @{service.name}Client implements @{service.name} {
 
   @for(method <- service.methods) {
     private static MethodDescriptor<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}Descriptor =
-      MethodDescriptor.newBuilder()
+      MethodDescriptor.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>newBuilder()
         .setType(@mapMethodType(method.methodType))
         .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-        .setRequestMarshaller(new ProtoMarshaller(@method.deserializer.name))
-        .setResponseMarshaller(new ProtoMarshaller(@method.serializer.name))
+        .setRequestMarshaller(new ProtoMarshaller<@method.inputTypeUnboxed>(@method.deserializer.name))
+        .setResponseMarshaller(new ProtoMarshaller<@method.outputTypeUnboxed>(@method.serializer.name))
         .build();
     }
 
