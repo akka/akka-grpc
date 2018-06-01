@@ -40,6 +40,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
   def tearDown(): Unit = {
     if (client != null) client.close()
+    if (clientUnimplementedService != null) clientUnimplementedService.close()
   }
 
   def emptyUnary(): Unit = {
