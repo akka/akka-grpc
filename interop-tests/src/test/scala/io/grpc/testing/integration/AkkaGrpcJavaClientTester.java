@@ -300,8 +300,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     Metadata fullDuplexTrailer = fullDuplexMetadata.getTrailers().toCompletableFuture().get();
     assertEquals(
         "Trailer should contain binary header [" + fullDuplexTrailer + "]",
-        binaryValue,
-        fullDuplexTrailer.getBinary("x-grpc-test-echo-trailing-bin").get());
+        Optional.of(binaryValue),
+        fullDuplexTrailer.getBinary("x-grpc-test-echo-trailing-bin"));
   }
 
   @Override
