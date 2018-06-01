@@ -143,7 +143,7 @@ which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpRes
 
 The server will run one instance of the implementation and that is then shared between requests,
 this mean that it must be thread safe. In the sample above there is no mutable state, for more about safely implementing
-servers with state see @link-ref-how-do-you-do-it?[stateful]
+servers with state see [stateful](#stateful-services)
 
 A main program that starts a Akka HTTP server with the `GreeterService` looks like this:
 
