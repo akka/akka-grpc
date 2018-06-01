@@ -245,8 +245,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
     val trailers = Await.result(fullDuplexMetadata.trailers, awaitTimeout)
     assertEquals(
-      binaryHeaderValue,
-      trailers.getBinary("x-grpc-test-echo-trailing-bin").get)
+      s"Trailer should contain binary header [$trailers]",
+      Some(binaryHeaderValue),
+      trailers.getBinary("x-grpc-test-echo-trailing-bin"))
 
   }
 
