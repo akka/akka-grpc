@@ -54,6 +54,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   @Override
   public void tearDown() throws Exception {
     if (client != null) client.close();
+    if (clientUnimplementedService != null) clientUnimplementedService.close();
   }
 
   @Override
