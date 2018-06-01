@@ -19,7 +19,7 @@ plugins {
 
 group = "com.lightbend.akka.grpc"
 // https://github.com/palantir/gradle-git-version/issues/97
-version "git describe --tags".execute().text.substring(1).split("-g")[0].replace('-', '+').trim() + "-" + versionDetails().gitHash.substring(0, 8)
+version "git describe --tags".execute().text.substring(1).split("-g")[0].replace('-', '+') + "-" + versionDetails().gitHash.substring(0, 8)
 
 gradlePlugin {
     plugins {
