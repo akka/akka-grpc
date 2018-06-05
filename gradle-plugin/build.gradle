@@ -1,8 +1,20 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.10"
+  }
+}
+
 plugins {
     id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
     id 'com.palantir.git-version' version '0.10.1'
+    id 'com.gradle.plugin-publish' version '0.9.10'
 }
 
 group = "com.lightbend.akka.grpc"
@@ -11,9 +23,23 @@ version "git describe --tags".execute().text.substring(1).split("-g")[0].replace
 
 gradlePlugin {
     plugins {
-        simplePlugin {
+        akkaGrpcPlugin {
             id = 'com.lightbend.akka.grpc.gradle'
             implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://developer.lightbend.com/docs/akka-grpc/current/'
+    vcsUrl = 'https://github.com/akka/akka-grpc'
+    description = 'Building streaming gRPC servers and clients on top of Akka Streams'
+    tags = ['akka', 'streams', 'reactive']
+
+    plugins {
+        akkaGrpcPlugin {
+            id = 'com.lightbend.akka.grpc.gradle'
+            displayName = 'Akka gRPC'
         }
     }
 }
@@ -25,6 +51,9 @@ jar {
 }
 
 dependencies {
+    compile localGroovy()
+    compile gradleApi()
+
     // to bring in protobuf dependency trasitively
     implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.5'
 }

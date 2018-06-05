@@ -1,13 +1,16 @@
 buildscript {
   repositories {
     mavenLocal()
+    gradlePluginPortal()
   }
 
   dependencies {
-    // version here is a placeholder,
-    // it is replaced with a project dependency during integration tests
-    // by adding --include-build <path> to gradlew
-    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.0.1'
+    // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
+    // for the currently latest version.
+    //classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.1'
+
+    // For testing on travis, we use another group id:
+    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
   }
 }
 
