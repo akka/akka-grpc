@@ -12,3 +12,4 @@ val root = project.in(file("."))
     ProjectRef(file("../"), "akka-grpc-codegen"),
   )
 
+javacOptions in compile += "-Xlint:deprecation"

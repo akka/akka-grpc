@@ -19,6 +19,4 @@ val root = project.in(file("."))
     ProjectRef(file("../"), "akka-grpc-codegen"),
   )
 
-// for loading of cert, issue #89
-val grpcVersion = "1.11.0"
-libraryDependencies += "io.grpc" % "grpc-testing" % grpcVersion
+javacOptions in compile += "-Xlint:deprecation"

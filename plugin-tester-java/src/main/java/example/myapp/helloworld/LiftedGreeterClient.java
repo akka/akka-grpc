@@ -5,12 +5,9 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.time.Duration;
 
 import io.grpc.StatusRuntimeException;
-import io.grpc.internal.testing.TestUtils;
-
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
 import akka.Done;
 import akka.NotUsed;
@@ -31,7 +28,7 @@ class LiftedGreeterClient {
     GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
         // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
         .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("rootCA.crt");
+        .withTrustedCaCertificate("ca.pem");
 
     ActorSystem system = ActorSystem.create();
     Materializer materializer = ActorMaterializer.create(system);
@@ -91,7 +88,7 @@ class LiftedGreeterClient {
   }
 
   private static void streamingRequestReply(GreeterServiceClient client, Materializer mat) throws Exception {
-    FiniteDuration interval = Duration.create(100, TimeUnit.SECONDS);
+    Duration interval = Duration.ofSeconds(1);
     Source<HelloRequest, NotUsed> requestStream = Source
         .tick(interval, interval, "tick")
         .zipWithIndex()

@@ -67,7 +67,6 @@ object GreeterServer {
     val privateKey = kf.generatePrivate(spec)
 
     val fact = CertificateFactory.getInstance("X.509")
-//    val is = new FileInputStream(TestUtils.loadCert("server1.pem"))
     val cer = fact.generateCertificate(GreeterServer.getClass.getResourceAsStream("/certs/server1.pem"))
 
     val ks = KeyStore.getInstance("PKCS12")
