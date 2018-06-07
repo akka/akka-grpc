@@ -10,13 +10,13 @@ final class GrpcClientSettings(
   // TODO remove CallOptions here and build them ourselves inside the client
   val options: Option[CallOptions],
   // TODO more 'akka-http-like' way of configuring TLS
-  val certificate: Option[String]) {
+  val trustedCaCertificate: Option[String]) {
 
   def withOverrideAuthority(authority: String): GrpcClientSettings =
-    new GrpcClientSettings(host, port, Some(authority), options, certificate)
+    new GrpcClientSettings(host, port, Some(authority), options, trustedCaCertificate)
   def withOptions(options: CallOptions): GrpcClientSettings =
-    new GrpcClientSettings(host, port, overrideAuthority, Some(options), certificate)
-  def withCertificate(certificate: String): GrpcClientSettings =
+    new GrpcClientSettings(host, port, overrideAuthority, Some(options), trustedCaCertificate)
+  def withTrustedCaCertificate(certificate: String): GrpcClientSettings =
     new GrpcClientSettings(host, port, overrideAuthority, options, Some(certificate))
 
 }
@@ -31,8 +31,8 @@ object GrpcClientSettings {
   /**
    * Scala API
    */
-  def apply(host: String, port: Int, overrideAuthority: Option[String], options: Option[CallOptions], certificate: Option[String]): GrpcClientSettings =
-    new GrpcClientSettings(host, port, overrideAuthority, options, certificate)
+  def apply(host: String, port: Int, overrideAuthority: Option[String], options: Option[CallOptions], trustedCaCertificate: Option[String]): GrpcClientSettings =
+    new GrpcClientSettings(host, port, overrideAuthority, options, trustedCaCertificate)
 
   /**
    * Java API
