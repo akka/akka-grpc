@@ -93,7 +93,7 @@ For a complete overview of the configuration options see the chapter for your bu
 ## Generate and implement
 
 Define the interfaces you want to implement in your project's
-@sbt[src/main/protobuf]@gradle[src/main/proto]@maven[src/main/proto] file(s).
+@sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`]  file(s).
 
 For example, a Hello World service:
 
