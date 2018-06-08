@@ -37,7 +37,7 @@ object GreeterClient {
       8080,
       overrideAuthority = Some("foo.test.google.fr"),
       None,
-      certificate = Some("ca.pem"),
+      trustedCaCertificate = Some("ca.pem"),
     ))
 
 

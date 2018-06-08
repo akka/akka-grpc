@@ -31,7 +31,7 @@ class LiftedGreeterClient {
     GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
         // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
         .withOverrideAuthority("foo.test.google.fr")
-        .withCertificate("rootCA.crt");
+        .withTrustedCaCertificate("rootCA.crt");
 
     ActorSystem system = ActorSystem.create();
     Materializer materializer = ActorMaterializer.create(system);

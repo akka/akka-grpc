@@ -27,7 +27,7 @@ object NettyClientUtils {
         .forAddress(settings.host, settings.port)
         .flowControlWindow(65 * 1024)
 
-    builder = settings.certificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
+    builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
       .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
       .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
     builder = settings.overrideAuthority
