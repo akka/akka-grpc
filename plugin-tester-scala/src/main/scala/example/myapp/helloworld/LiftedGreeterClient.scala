@@ -36,7 +36,7 @@ object LiftedGreeterClient {
       8080,
       overrideAuthority = Some("foo.test.google.fr"),
       options = None,
-      certificate = Some("ca.pem"),
+      trustedCaCertificate = Some("ca.pem"),
     ))
 
     singleRequestReply()
