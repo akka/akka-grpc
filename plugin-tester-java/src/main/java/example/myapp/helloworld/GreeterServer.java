@@ -10,10 +10,12 @@ import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.grpc.internal.testing.TestUtils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -49,7 +51,7 @@ class GreeterServer {
 
   private static HttpsConnectionContext serverHttpContext() throws Exception {
     // FIXME how would end users do this? TestUtils.loadCert? issue #89
-    String keyEncoded = new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath())), "UTF-8")
+    String keyEncoded = read(GreeterServer.class.getResourceAsStream("/certs/server1.key"))
         .replace("-----BEGIN PRIVATE KEY-----\n", "")
         .replace("-----END PRIVATE KEY-----\n", "")
         .replace("\n", "");
@@ -62,8 +64,7 @@ class GreeterServer {
     PrivateKey privateKey = kf.generatePrivate(spec);
 
     CertificateFactory fact = CertificateFactory.getInstance("X.509");
-    FileInputStream is = new FileInputStream(TestUtils.loadCert("server1.pem"));
-    Certificate cer = fact.generateCertificate(is);
+    Certificate cer = fact.generateCertificate(GreeterServer.class.getResourceAsStream("/certs/server1.pem"));
 
     KeyStore ks = KeyStore.getInstance("PKCS12");
     ks.load(null);
@@ -76,6 +77,19 @@ class GreeterServer {
     context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
 
     return ConnectionContext.https(context);
+  }
+
+  private static String read(InputStream in) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream(Math.max(64, in.available()));
+    byte[] buffer = new byte[32 * 1024];
+    int bytesRead = in.read(buffer);
+    while (bytesRead >= 0) {
+      baos.write(buffer, 0, bytesRead);
+      bytesRead = in.read(buffer);
+    }
+
+    byte[] bytes = baos.toByteArray();
+    return new String(bytes, "UTF-8");
   }
 }
 //#full-server
