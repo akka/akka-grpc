@@ -7,6 +7,7 @@ import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator
 import akka.grpc.gen.CodeGenerator
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
+import org.apache.maven.plugin.logging.Log
 import org.slf4j.LoggerFactory
 import protocbridge.{ JvmGenerator, Target }
 import org.apache.maven.project.MavenProject
@@ -16,7 +17,6 @@ import scala.annotation.tailrec
 import scala.beans.BeanProperty
 
 class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
-  val log = LoggerFactory.getLogger(classOf[GenerateMojo])
 
   @BeanProperty
   var protoPath: String = _
@@ -63,6 +63,7 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
 
     val dependentProjectsIncludePaths = Seq.empty
     val protocOptions = Seq.empty
+
     compile(runProtoc, schemas, includePaths ++ dependentProjectsIncludePaths, protocOptions, targets)
   }
 
@@ -77,27 +78,27 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
         throw new RuntimeException("error occurred while compiling protobuf files: %s" format (e.getMessage), e)
     }
 
-  private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]) = {
+  private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]): Unit = {
     // Sort by the length of path names to ensure that delete parent directories before deleting child directories.
     val generatedTargetDirs = targets.map(_.outputPath).sortBy(_.getAbsolutePath.length)
     generatedTargetDirs.foreach(_.mkdirs())
 
     if (schemas.nonEmpty && targets.nonEmpty) {
-      log.info("Compiling %d protobuf files to %s".format(schemas.size, generatedTargetDirs.mkString(",")))
-      log.debug("protoc options:")
-      protocOptions.map("\t" + _).foreach(log.debug(_))
-      schemas.foreach(schema => log.info("Compiling schema %s" format schema))
+      getLog.info("Compiling %d protobuf files to %s".format(schemas.size, generatedTargetDirs.mkString(",")))
+      getLog.debug("protoc options:")
+      protocOptions.map("\t" + _).foreach(getLog.debug(_))
+      schemas.foreach(schema => getLog.info("Compiling schema %s" format schema))
 
       val exitCode = executeProtoc(protocCommand, schemas, includePaths, protocOptions, targets)
       if (exitCode != 0)
         sys.error("protoc returned exit code: %d" format exitCode)
 
-      log.info("Compiling protobuf")
+      getLog.info("Compiling protobuf")
       generatedTargetDirs.foreach { dir =>
-        log.info("Protoc target directory: %s".format(dir.getAbsolutePath))
+        getLog.info("Protoc target directory: %s".format(dir.getAbsolutePath))
       }
     } else if (schemas.nonEmpty && targets.isEmpty) {
-      log.info("Protobufs files found, but PB.targets is empty.")
+      getLog.info("Protobufs files found, but PB.targets is empty.")
     }
   }
 
