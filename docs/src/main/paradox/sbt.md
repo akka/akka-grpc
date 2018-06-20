@@ -58,3 +58,27 @@ that contain proto definitions to your build:
 libraryDependencies +=
   "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ```
+
+## Starting your Akka gRPC server from sbt
+
+As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
+
+This can be done using the `JavaAgent` sbt plugin.
+
+Add the plugin `project/plugin.sbt`
+
+sbt
+:   @@snip [plugin.sbt]($root$/../plugin-tester-scala/project/plugins.sbt) { #java-agent-plugin }
+
+and then tell it to use the ALPN agent:
+
+sbt
+:   @@snip [build.sbt]($root$/../plugin-tester-scala/build.sbt) { #alpn }
+
+After that you can run it as usual:
+
+sbt
+:   ```
+runMain io.grpc.examples.helloworld.GreeterServer
+```

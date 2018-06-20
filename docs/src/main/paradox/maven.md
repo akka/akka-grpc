@@ -11,7 +11,7 @@ By default both client and server in Java are generated.
 <plugin>
     <groupId>com.lightbend.akka.grpc</groupId>
     <artifactId>akka-grpc-maven-plugin</artifactId>
-    <version>${akka.grpc.project.version}</version>
+    <version>${akka.grpc.version}</version>
     <configuration>
       <language>JAVA</language> <!- or SCALA, must be uppercase -->
       <generateClient>false</generateClient>
@@ -29,7 +29,7 @@ which is a relative path to the project basedir.
 <plugin>
     <groupId>com.lightbend.akka.grpc</groupId>
     <artifactId>akka-grpc-maven-plugin</artifactId>
-    <version>${akka.grpc.project.version}</version>
+    <version>${akka.grpc.version}</version>
     <configuration>
       <protoPath>src/main/protobuf</protoPath>
     </configuration>
