@@ -66,6 +66,8 @@ Maven
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
+        <!-- Hook the generate goal into the lifecycle,
+             automatically tied to generate-sources -->
         <executions>
           <execution>
             <goals>

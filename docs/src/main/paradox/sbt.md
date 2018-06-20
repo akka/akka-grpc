@@ -2,7 +2,7 @@
 
 To get started with Akka gRPC read the [client](client.md) or [server](server.md) introductions.
 
-## Only generating the server or client side
+## Configuring what to generate
 
 It can be configured to just generate either server or client like so:
 
