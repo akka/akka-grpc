@@ -36,6 +36,8 @@ object Dependencies {
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
     val protocJar = "com.github.os72" % "protoc-jar" % "3.5.1"
+
+    val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
   }
 
   object Agents {
@@ -79,6 +81,7 @@ object Dependencies {
     Compile.mavenPluginApi,
     Compile.mavenCore,
     Compile.protocJar,
+    Compile.plexusBuildApi,
   ) ++ testing
 
   val sbtPlugin = Seq(

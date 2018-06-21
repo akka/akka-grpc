@@ -2,21 +2,25 @@ package akka.grpc.maven
 
 import java.io.File
 
+import akka.grpc.gen.CodeGenerator
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator }
-import akka.grpc.gen.CodeGenerator
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
-import org.apache.maven.plugin.logging.Log
-import org.slf4j.LoggerFactory
-import protocbridge.{ JvmGenerator, Target }
 import org.apache.maven.project.MavenProject
+import org.sonatype.plexus.build.incremental.BuildContext
+import protocbridge.{ JvmGenerator, Target }
 import scalapb.ScalaPbCodeGenerator
 
 import scala.annotation.tailrec
 import scala.beans.BeanProperty
 
-class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
+object GenerateMojo {
+  val protocVersion = "-v351"
+}
+
+class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
+  import GenerateMojo._
 
   @BeanProperty
   var protoPath: String = _
@@ -28,43 +32,62 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
   var generateServer: Boolean = _
 
   override def execute(): Unit = {
-    val protoDirectory = new File(project.getBasedir, protoPath).getAbsoluteFile
-    if (!protoDirectory.exists()) throw new RuntimeException(s"Configured protoPath [$protoDirectory] does not exist")
-    val schemas = findProtoFiles(protoDirectory)
 
-    val sourceRoot = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
-    val sourceManaged = new File(sourceRoot)
-    project.addCompileSourceRoot(sourceRoot)
+    // generated sources should be compiled
+    val generatedSourcesDir = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
+    val compileSourceRoot = new File(generatedSourcesDir)
+    project.addCompileSourceRoot(generatedSourcesDir)
 
-    val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
-    val targets = language match {
-      case Language.JAVA ⇒
-        val glueGenerator =
-          if (generateServer)
-            if (generateClient) JavaBothCodeGenerator
-            else JavaServerCodeGenerator
-          else JavaClientCodeGenerator
-        Seq[Target](
-          protocbridge.gens.java -> sourceManaged,
-          adaptAkkaGenerator(sourceManaged, glueGenerator, akkaGrpcCodeGeneratorSettings))
-      case Language.SCALA ⇒
-        val glueGenerator =
-          if (generateServer)
-            if (generateClient) ScalaBothCodeGenerator
-            else ScalaServerCodeGenerator
-          else ScalaClientCodeGenerator
-        Seq[Target](
-          (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → sourceManaged,
-          adaptAkkaGenerator(sourceManaged, glueGenerator, akkaGrpcCodeGeneratorSettings))
+
+
+    // only do any work if needed (m2e integration)
+    if (!buildContext.isIncremental && buildContext.hasDelta(generatedSourcesDir)) {
+      generate(compileSourceRoot)
     }
-    val protocVersion = "-v351"
-    val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-    val includePaths = Seq(protoDirectory)
+  }
 
-    val dependentProjectsIncludePaths = Seq.empty
-    val protocOptions = Seq.empty
+  private def generate(generatedSourcesDir: File): Unit = {
+    val protoDir = new File(project.getBasedir, protoPath)
+    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
+    val scanner = buildContext.newScanner(protoDir, true)
+    scanner.setIncludes(Array("**/*.proto"))
+    scanner.scan()
+    val schemas = scanner.getIncludedFiles.map(file => new File(protoDir, file))
+      .filter(buildContext.hasDelta)
+      .toSet
 
-    compile(runProtoc, schemas, includePaths ++ dependentProjectsIncludePaths, protocOptions, targets)
+    // only build if there are changes to the proto files
+    if (schemas.isEmpty) {
+      getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
+    } else {
+      val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
+      val targets = language match {
+        case Language.JAVA ⇒
+          val glueGenerator =
+            if (generateServer)
+              if (generateClient) JavaBothCodeGenerator
+              else JavaServerCodeGenerator
+            else JavaClientCodeGenerator
+          Seq[Target](
+            protocbridge.gens.java -> generatedSourcesDir,
+            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
+        case Language.SCALA ⇒
+          val glueGenerator =
+            if (generateServer)
+              if (generateClient) ScalaBothCodeGenerator
+              else ScalaServerCodeGenerator
+            else ScalaClientCodeGenerator
+          Seq[Target](
+            (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → generatedSourcesDir,
+            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
+      }
+
+      val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      val includePaths = Seq(new File(protoPath).getAbsoluteFile)
+      val protocOptions = Seq.empty
+
+      compile(runProtoc, schemas, includePaths, protocOptions, targets)
+    }
   }
 
   private[this] def executeProtoc(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]): Int =
@@ -75,28 +98,34 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
         pluginFrontend = protocbridge.frontend.PluginFrontend.newInstance)
     } catch {
       case e: Exception =>
-        throw new RuntimeException("error occurred while compiling protobuf files: %s" format (e.getMessage), e)
+        throw new RuntimeException("error occurred while compiling protobuf files: %s".format(e.getMessage), e)
     }
 
   private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]): Unit = {
-    // Sort by the length of path names to ensure that delete parent directories before deleting child directories.
+    // Sort by the length of path names to ensure that we have parent directories before sub directories
     val generatedTargetDirs = targets.map(_.outputPath).sortBy(_.getAbsolutePath.length)
     generatedTargetDirs.foreach(_.mkdirs())
-
     if (schemas.nonEmpty && targets.nonEmpty) {
       getLog.info("Compiling %d protobuf files to %s".format(schemas.size, generatedTargetDirs.mkString(",")))
-      getLog.debug("protoc options:")
-      protocOptions.map("\t" + _).foreach(getLog.debug(_))
-      schemas.foreach(schema => getLog.info("Compiling schema %s" format schema))
+      schemas.foreach { schema =>
+        buildContext.removeMessages(schema)
+      }
+      getLog.debug("Compiling schemas [%s]".format(schemas.mkString(",")))
+      getLog.debug("protoc options: %s".format(protocOptions.mkString(",")))
 
       val exitCode = executeProtoc(protocCommand, schemas, includePaths, protocOptions, targets)
-      if (exitCode != 0)
-        sys.error("protoc returned exit code: %d" format exitCode)
+      if (exitCode != 0) {
+        // FIXME just logging exit code here isn't very useful, we'd need to get protobridge to capture stderr
+        // and report errors in the proto #242
+        sys.error("protoc returned exit code: %d".format(exitCode))
+      }
 
       getLog.info("Compiling protobuf")
       generatedTargetDirs.foreach { dir =>
         getLog.info("Protoc target directory: %s".format(dir.getAbsolutePath))
+        buildContext.refresh(dir)
       }
+
     } else if (schemas.nonEmpty && targets.isEmpty) {
       getLog.info("Protobufs files found, but PB.targets is empty.")
     }
@@ -106,19 +135,6 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
     val adapted = new ProtocBridgeCodeGenerator(generator)
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
-  }
-
-  private def findProtoFiles(dir: File): Set[File] = {
-    @tailrec
-    def find(pending: Array[File], accumulator: Set[File]): Set[File] =
-      if (pending.isEmpty)
-        accumulator
-      else if (pending.head.isDirectory)
-        find(pending.head.listFiles(f ⇒ f.isDirectory || f.getName.endsWith(".proto")) ++ pending.tail, accumulator)
-      else
-        find(pending.tail, accumulator + pending.head)
-
-    find(dir.listFiles(f ⇒ f.isDirectory || f.getName.endsWith(".proto")), Set.empty)
   }
 
 }
