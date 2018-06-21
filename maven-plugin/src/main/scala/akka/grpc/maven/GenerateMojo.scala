@@ -1,6 +1,6 @@
 package akka.grpc.maven
 
-import java.io.File
+import java.io.{ ByteArrayOutputStream, File, PrintStream }
 
 import akka.grpc.gen.CodeGenerator
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
@@ -14,9 +14,43 @@ import scalapb.ScalaPbCodeGenerator
 
 import scala.annotation.tailrec
 import scala.beans.BeanProperty
+import scala.util.control.NoStackTrace
 
 object GenerateMojo {
   val protocVersion = "-v351"
+
+  case class ProtocError(file: String, line: Int, pos: Int, message: String)
+  private val ProtocErrorRegex = """(\w+\.\w+):(\d+):(\d+):\s(.*)""".r
+
+  /** @return a left(parsed error) or a right(original error string) if it cannot be parsed */
+  def parseError(errorLine: String): Either[ProtocError, String] = {
+    errorLine match {
+      case ProtocErrorRegex(file, line, pos, message) =>
+        Left(ProtocError(file, line.toInt, pos.toInt, message))
+      case unknown =>
+        Right(unknown)
+    }
+  }
+
+  private def captureStdOutAnderr[T](block: => T): (String, String, T) = {
+    val errBao = new ByteArrayOutputStream()
+    val errPrinter = new PrintStream(errBao, true, "UTF-8")
+    val outBao = new ByteArrayOutputStream()
+    val outPrinter = new PrintStream(outBao, true, "UTF-8")
+    val originalOut = System.out
+    val originalErr = System.err
+    System.setOut(outPrinter)
+    System.setErr(errPrinter)
+    val t = try {
+      block
+    } finally {
+      System.setOut(originalOut)
+      System.setErr(originalErr)
+    }
+
+    (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
+  }
+
 }
 
 class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
@@ -35,7 +69,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
 
     // generated sources should be compiled
     val generatedSourcesDir = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
-    val compileSourceRoot = new File(generatedSourcesDir)
+    val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
     project.addCompileSourceRoot(generatedSourcesDir)
 
 
@@ -83,25 +117,24 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       }
 
       val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-      val includePaths = Seq(new File(protoPath).getAbsoluteFile)
       val protocOptions = Seq.empty
 
-      compile(runProtoc, schemas, includePaths, protocOptions, targets)
+      compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
   }
 
-  private[this] def executeProtoc(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]): Int =
+  private[this] def executeProtoc(protocCommand: Seq[String] => Int, schemas: Set[File], protoDir: File, protocOptions: Seq[String], targets: Seq[Target]): Int =
     try {
-      val incPath = includePaths.map("-I" + _.getCanonicalPath)
+      val incPath = "-I" + protoDir.getCanonicalPath
       protocbridge.ProtocBridge.run(protocCommand, targets,
-        incPath ++ protocOptions ++ schemas.map(_.getCanonicalPath),
+        Seq(incPath) ++ protocOptions ++ schemas.map(_.getCanonicalPath),
         pluginFrontend = protocbridge.frontend.PluginFrontend.newInstance)
     } catch {
       case e: Exception =>
         throw new RuntimeException("error occurred while compiling protobuf files: %s".format(e.getMessage), e)
     }
 
-  private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], includePaths: Seq[File], protocOptions: Seq[String], targets: Seq[Target]): Unit = {
+  private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], protoDir: File, protocOptions: Seq[String], targets: Seq[Target]): Unit = {
     // Sort by the length of path names to ensure that we have parent directories before sub directories
     val generatedTargetDirs = targets.map(_.outputPath).sortBy(_.getAbsolutePath.length)
     generatedTargetDirs.foreach(_.mkdirs())
@@ -113,19 +146,27 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       getLog.debug("Compiling schemas [%s]".format(schemas.mkString(",")))
       getLog.debug("protoc options: %s".format(protocOptions.mkString(",")))
 
-      val exitCode = executeProtoc(protocCommand, schemas, includePaths, protocOptions, targets)
-      if (exitCode != 0) {
-        // FIXME just logging exit code here isn't very useful, we'd need to get protobridge to capture stderr
-        // and report errors in the proto #242
-        sys.error("protoc returned exit code: %d".format(exitCode))
-      }
-
       getLog.info("Compiling protobuf")
-      generatedTargetDirs.foreach { dir =>
-        getLog.info("Protoc target directory: %s".format(dir.getAbsolutePath))
-        buildContext.refresh(dir)
+      val (out, err, exitCode) = captureStdOutAnderr {
+        executeProtoc(protocCommand, schemas, protoDir, protocOptions, targets)
       }
-
+      if (exitCode != 0) {
+        err.split("\n\r").map(_.trim).map(parseError).foreach {
+          case Left(ProtocError(file, line, pos, message)) =>
+            buildContext.addMessage(new File(protoDir, file), line, pos, message, BuildContext.SEVERITY_ERROR, new RuntimeException("protoc compilation failed") with NoStackTrace)
+          case Right(otherError) =>
+            sys.error(s"protoc exit code $exitCode: $otherError")
+        }
+      } else {
+        if (getLog.isDebugEnabled) {
+          getLog.debug("protoc output: " + out)
+          getLog.debug("protoc stderr: " + err)
+        }
+        generatedTargetDirs.foreach { dir =>
+          getLog.info("Protoc target directory: %s".format(dir.getAbsolutePath))
+          buildContext.refresh(dir)
+        }
+      }
     } else if (schemas.nonEmpty && targets.isEmpty) {
       getLog.info("Protobufs files found, but PB.targets is empty.")
     }
