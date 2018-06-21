@@ -32,9 +32,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case object Java extends Language
     }
 
-    val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]]("Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
-    val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]]("Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client)")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generator")
+    val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]]("Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client)")
+    val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]]("Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
+    val privateExtraGrpcTargets = settingKey[(File, Seq[String]) => Seq[protocbridge.Target]]("Settings including other Akka-gRPC code generators.")
   }
 
   object autoImport extends Keys
@@ -46,7 +47,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
     Seq(
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
-      akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala))
+      akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
+      // by default there's no extraGrpcTargets
+      privateExtraGrpcTargets := { case (_, _) => Seq.empty[protocbridge.Target] })
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
@@ -59,7 +62,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
         targetsFor(
           sourceManaged.value,
           akkaGrpcCodeGeneratorSettings.value,
-          akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value),
+          akkaGrpcGeneratedSources.value,
+          akkaGrpcGeneratedLanguages.value) ++ privateExtraGrpcTargets.value(
+            sourceManaged.value,
+            akkaGrpcCodeGeneratorSettings.value),
 
       // include proto files extracted from the dependencies with "protobuf" configuration by default
       PB.protoSources += PB.externalIncludePath.value) ++
