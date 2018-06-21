@@ -117,6 +117,7 @@ lazy val interopTests = Project(
   .settings(commonSettings)
   .enablePlugins(JavaAgent)
   .settings(
+    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.AkkaCompositeCodeGenerator",
     javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
     // needed explicitly as we don't directly depend on the codegen project
     watchSources ++= (watchSources in codegen).value,
@@ -157,6 +158,22 @@ lazy val interopTests = Project(
         }.dependsOn(products in Compile).evaluated
       }
       )))
+
+lazy val playInteropTest = Project(
+    id="akka-grpc-play-interop-test",
+    base = file("play-interop-test")
+  )
+  .settings(Dependencies.playInteropTest)
+  .settings(commonSettings)
+  .settings(Seq(
+    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.PlayCompositeCodeGenerator",
+  ))
+  .enablePlugins(akka.grpc.NoPublish)
+  .enablePlugins(akka.grpc.ReflectiveCodeGen)
+  // needed to be able to override the PB.generate task reliably
+  .disablePlugins(ProtocPlugin)
+  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
+  .dependsOn(runtime)
 
 lazy val docs = Project(
     id = "akka-grpc-docs",

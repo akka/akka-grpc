@@ -1,0 +1,37 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service)
+
+package @service.packageName
+
+import javax.inject._
+
+import scala.concurrent.Future
+
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.stream.Materializer
+
+import play.api.mvc._
+import play.api.mvc.akkahttp.AkkaHttpHandler
+import play.api.routing.Router
+import play.api.routing.Router.Routes
+
+@@Singleton
+class @{service.name}Router @@Inject()(cc: ControllerComponents, impl: controllers.@{service.name}Impl)(implicit mat: Materializer)
+  extends Router {
+
+  val handler = new AkkaHttpHandler {
+    val h = @{service.name}Handler(impl)
+    override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
+  }
+
+  // could look at @{service.name}.name, but isn't this already covered in the route file?
+  override def routes: Routes = { case _ ⇒ handler }
+
+  override def documentation: Seq[(String, String, String)] = Seq.empty
+
+  override def withPrefix(prefix: String): Router = this
+
+}
