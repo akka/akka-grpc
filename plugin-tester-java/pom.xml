@@ -1,6 +1,7 @@
 <!--
   To test locally, first 'sbt akka-grpc-maven-plugin:publishM2' in the parent dir
-  and update the version below
+  and define the published version as akka.grpc.project.version in the properties block below
+  or pass it to mvn when running like so: mvn -Dakka.grpc.project.version=some-version compile exec:exec
 -->
 <project>
   <modelVersion>4.0.0</modelVersion>
@@ -21,6 +22,12 @@
       <artifactId>grpc-stub</artifactId>
       <version>${grpc.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty.alpn</groupId>
+      <artifactId>jetty-alpn-agent</artifactId>
+      <version>2.0.7</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -28,6 +35,42 @@
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.5.1</version>
+        <executions>
+          <execution>
+            <id>getClasspathFilenames</id>
+            <goals>
+              <!-- provides the jars of the classpath as properties inside of maven
+                   so that we can refer to one of the jars in the exec plugin config below -->
+              <goal>properties</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <configuration>
+          <executable>java</executable>
+          <arguments>
+            <argument>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argument>
+            <argument>-classpath</argument>
+            <classpath />
+            <argument>example.myapp.helloworld.GreeterServer</argument>
+          </arguments>
+        </configuration>
       </plugin>
     </plugins>
   </build>

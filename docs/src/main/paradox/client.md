@@ -66,6 +66,8 @@ Maven
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
+        <!-- Hook the generate goal into the lifecycle,
+             automatically tied to generate-sources -->
         <executions>
           <execution>
             <goals>
@@ -87,7 +89,7 @@ Maven
 ```
 @@@
 
-For a complete overview of the configuration options see @ref[configuration](#Configuration) below.
+For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](sbt.md), @ref[Gradle](gradle.md) or @ref[Maven](maven.md).
 
 ## Generate and use
 
@@ -177,15 +179,6 @@ java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
 ```
 
 Run with `-Djava.util.logging.config.file=/path/to/grpc-debug-logging.properties`.
-
-## Configuration
-
-You can configure where your .proto files are located like this:
-
-sbt
-:   @@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
-
-TODO gradle, maven
 
 ### Request metadata
 

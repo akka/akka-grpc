@@ -28,7 +28,9 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
   var generateServer: Boolean = _
 
   override def execute(): Unit = {
-    val schemas = findProtoFiles(new File(protoPath))
+    val protoDirectory = new File(project.getBasedir, protoPath).getAbsoluteFile
+    if (!protoDirectory.exists()) throw new RuntimeException(s"Configured protoPath [$protoDirectory] does not exist")
+    val schemas = findProtoFiles(protoDirectory)
 
     val sourceRoot = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
     val sourceManaged = new File(sourceRoot)
@@ -57,7 +59,8 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
     }
     val protocVersion = "-v351"
     val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-    val includePaths = Seq(new File(protoPath).getAbsoluteFile)
+    val includePaths = Seq(protoDirectory)
+
     val dependentProjectsIncludePaths = Seq.empty
     val protocOptions = Seq.empty
     compile(runProtoc, schemas, includePaths ++ dependentProjectsIncludePaths, protocOptions, targets)
