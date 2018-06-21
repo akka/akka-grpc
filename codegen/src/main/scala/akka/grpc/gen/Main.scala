@@ -8,7 +8,11 @@ import java.io.ByteArrayOutputStream
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
+import akka.grpc.gen.javadsl.JavaClientCodeGenerator
+import akka.grpc.gen.javadsl.JavaServerCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaClientCodeGenerator
+import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
 
 object Main extends App {
 
@@ -25,11 +29,32 @@ object Main extends App {
   }
 
   val req = CodeGeneratorRequest.parseFrom(inBytes)
-  // TODO #155 use a parameter to define whether to generate code for
-  // the client, the server, or both
-  val out =
-    if (req.getParameter.toLowerCase.contains("language=scala")) ScalaBothCodeGenerator.run(req)
-    else JavaBothCodeGenerator.run(req)
+  private val reqLowerCase = req.getParameter.toLowerCase
+
+  private val languageScala: Boolean = reqLowerCase.contains("language=scala")
+
+  private val generateClient: Boolean = !reqLowerCase.contains("generate_client=false")
+
+  private val generateServer: Boolean = !reqLowerCase.contains("generate_server=false")
+
+  val out = {
+    val codeGenerator =
+      if (languageScala) {
+        // Scala
+        if (generateClient && generateServer) ScalaBothCodeGenerator
+        else if (generateClient) ScalaClientCodeGenerator
+        else if (generateServer) ScalaServerCodeGenerator
+        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+      } else {
+        // Java
+        if (generateClient && generateServer) JavaBothCodeGenerator
+        else if (generateClient) JavaClientCodeGenerator
+        else if (generateServer) JavaServerCodeGenerator
+        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+      }
+
+    codeGenerator.run(req)
+  }
 
   System.out.write(out.toByteArray)
   System.out.flush()
