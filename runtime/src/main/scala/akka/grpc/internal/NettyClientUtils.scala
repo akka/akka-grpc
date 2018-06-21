@@ -4,12 +4,15 @@
 package akka.grpc.internal
 
 import java.io.File
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration.FiniteDuration
 
 import akka.annotation.InternalApi
 import akka.grpc.GrpcClientSettings
+import io.grpc.CallOptions
 import io.grpc.ManagedChannel
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 
 /**
  * INTERNAL API
@@ -25,13 +28,15 @@ object NettyClientUtils {
     var builder =
       NettyChannelBuilder
         .forAddress(settings.host, settings.port)
-        .flowControlWindow(65 * 1024)
+        .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
     builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
       .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
       .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
-    builder = settings.overrideAuthority
-      .map(builder.overrideAuthority(_)).getOrElse(builder)
+
+    builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+
+    builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
 
     builder.build
   }
@@ -62,5 +67,21 @@ object NettyClientUtils {
 
     tmpFile
   }
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi def callOptions(settings: GrpcClientSettings): CallOptions = {
+    settings.callCredentials.map(CallOptions.DEFAULT.withCallCredentials).getOrElse(CallOptions.DEFAULT)
+  }
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi private[akka] def callOptionsWithDeadline(defaultOptions: CallOptions, settings: GrpcClientSettings): CallOptions =
+    settings.deadline match {
+      case d: FiniteDuration => defaultOptions.withDeadlineAfter(d.toMillis, TimeUnit.MILLISECONDS)
+      case _ => defaultOptions
+    }
 
 }

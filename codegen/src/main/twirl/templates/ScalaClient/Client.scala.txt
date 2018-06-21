@@ -25,20 +25,20 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   import @{service.name}Client._
 
   private val channel = NettyClientUtils.createChannel(settings)
-  private val options = settings.options.getOrElse(CallOptions.DEFAULT)
+  private val options = NettyClientUtils.callOptions(settings)
 
   @for(method <- service.methods) {
     private val @{method.name}RequestBuilder = {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options)
+        new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
       } else {
         val fqName = "@{service.grpcName}.@{method.grpcName}"
         @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options)
+          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
         } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, mat)
+          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings, mat)
         } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options)
+          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
         }
       }
     }
