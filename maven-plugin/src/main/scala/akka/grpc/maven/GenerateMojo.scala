@@ -29,7 +29,7 @@ class GenerateMojo @Inject() (project: MavenProject) extends AbstractMojo {
 
   override def execute(): Unit = {
     val protoDirectory = new File(project.getBasedir, protoPath).getAbsoluteFile
-    if (!protoDirectory.exists()) throw new RuntimeException(s"Configured protoPath $protoDirectory does not exist")
+    if (!protoDirectory.exists()) throw new RuntimeException(s"Configured protoPath [$protoDirectory] does not exist")
     val schemas = findProtoFiles(protoDirectory)
 
     val sourceRoot = "target/generated-sources/akka-grpc-" + language.name().toLowerCase

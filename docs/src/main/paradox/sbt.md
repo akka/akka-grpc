@@ -61,7 +61,7 @@ libraryDependencies +=
 
 ## Starting your Akka gRPC server from sbt
 
-As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
 you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
 
 This can be done using the `JavaAgent` sbt plugin.
