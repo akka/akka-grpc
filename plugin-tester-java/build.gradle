@@ -21,6 +21,14 @@ plugins {
 
 apply plugin: 'com.lightbend.akka.grpc.gradle'
 
+// These are the default options for a Java project (not necessary to define)
+akkaGrpc {
+  language = "Java"
+  generateClient = true
+  generateServer = true
+}
+
+
 repositories {
   mavenLocal()
   mavenCentral()

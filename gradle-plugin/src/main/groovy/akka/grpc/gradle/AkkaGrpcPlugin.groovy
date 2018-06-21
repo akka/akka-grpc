@@ -18,9 +18,12 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
     void apply(Project project) {
         this.project = project
         project.gradle.addListener(this)
-        final boolean isScala = project.plugins.hasPlugin("scala")
+
+        def extension = project.extensions.create('akkaGrpc', AkkaGrpcPluginExtension, project)
 
         project.configure(project) {
+            boolean isScala = "${extension.language}".toLowerCase() == "scala"
+
             apply plugin: 'com.google.protobuf'
             protobuf {
                 protoc {
@@ -64,8 +67,10 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
                         task.plugins {
                             akkaGrpc {
+                                option "language=${extension.language}"
+                                option "generate_client=${extension.generateClient}"
+                                option "generate_server=${extension.generateServer}"
                                 if (isScala) {
-                                    option "language=scala"
                                     option "flat_package"
                                 }
                             }
@@ -92,6 +97,21 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     @Override
     void afterResolve(ResolvableDependencies resolvableDependencies) {
+
+    }
+}
+
+class AkkaGrpcPluginExtension {
+
+    String language
+    boolean generateClient = true
+    boolean generateServer = true
+
+    AkkaGrpcPluginExtension(Project project) {
+        if (project.plugins.hasPlugin("scala"))
+            language = "Scala"
+        else
+            language = "Java"
 
     }
 }
