@@ -8,10 +8,8 @@ import sbt.{ GlobFilter, _ }
 import Keys._
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator }
-import akka.grpc.gen.CompositeCodeGenerator
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
-import templates.ScalaCommon.txt.Marshallers
 
 object AkkaGrpcPlugin extends AutoPlugin {
   import sbtprotoc.ProtocPlugin.autoImport._

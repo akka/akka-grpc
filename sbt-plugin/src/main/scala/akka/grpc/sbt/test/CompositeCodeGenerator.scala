@@ -2,15 +2,14 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc.gen
+package akka.grpc.sbt.test
 
+import akka.grpc.gen.CodeGenerator
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
-
-import scala.collection.JavaConverters._
 
 /**
  * Generate both Java and Scala server-side code, mainly for testing.
