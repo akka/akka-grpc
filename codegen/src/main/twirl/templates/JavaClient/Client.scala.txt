@@ -51,27 +51,22 @@ public final class @{service.name}Client implements @{service.name} {
 
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
     this.channel = NettyClientUtils.createChannel(settings);
-    final CallOptions defaultOptions;
-    if (settings.options().isDefined()) {
-      defaultOptions = settings.options().get();
-    } else {
-      defaultOptions = CallOptions.DEFAULT;
-    }
+    final CallOptions options = NettyClientUtils.callOptions(settings);
 
     @for(method <- service.methods) {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, defaultOptions);
+        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings);
       } else {
         @defining(service.grpcName + "." + method.grpcName){ fqName =>
           @if(method.methodType == akka.grpc.gen.ClientStreaming){
             @{method.name}RequestBuilder = new JavaClientStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, defaultOptions, mat);
+              @{method.name}Descriptor, "@fqName", channel, options, settings, mat);
           } else if(method.methodType == akka.grpc.gen.ServerStreaming){
             @{method.name}RequestBuilder = new JavaServerStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, defaultOptions);
+              @{method.name}Descriptor, "@fqName", channel, options, settings);
           } else if(method.methodType == akka.grpc.gen.BidiStreaming){
             @{method.name}RequestBuilder = new JavaBidirectionalStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, defaultOptions);
+              @{method.name}Descriptor, "@fqName", channel, options, settings);
           }
         }
       }

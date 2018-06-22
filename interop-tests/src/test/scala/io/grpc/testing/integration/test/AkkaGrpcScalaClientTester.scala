@@ -28,12 +28,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   private val awaitTimeout = 3.seconds
 
   def setUp(): Unit = {
-    val grpcSettings = new GrpcClientSettings(
-      settings.serverHost,
-      settings.serverPort,
-      Option(settings.serverHostOverride),
-      None,
-      trustedCaCertificate = Some("ca.pem"))
+    val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
+      .withOverrideAuthority(settings.serverHostOverride)
+      .withTrustedCaCertificate("ca.pem")
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
