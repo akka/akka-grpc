@@ -51,6 +51,25 @@ object GenerateMojo {
     (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 
+  sealed trait Language {
+    def targetDirSuffix: String
+  }
+  case object Scala extends Language {
+    val targetDirSuffix = "scala"
+  }
+  case object Java extends Language {
+    val targetDirSuffix = "java"
+  }
+
+  def parseLanguage(text: String): Language = {
+    text.toLowerCase match {
+      case "scala" => Scala
+      case "java" => Java
+      case unknown =>
+        throw new IllegalArgumentException("[$unknown] is not a supported language, supported are java or scala")
+    }
+  }
+
   val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
 
 }
@@ -61,27 +80,29 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   @BeanProperty
   var protoPath: String = _
   @BeanProperty
-  var language: Language = _
+  var language: String = _
   @BeanProperty
   var generateClient: Boolean = _
   @BeanProperty
   var generateServer: Boolean = _
 
   override def execute(): Unit = {
+    val chosenLanguage = parseLanguage(language)
+
     // verify proto dir exists
     val protoDir = new File(project.getBasedir, protoPath)
     if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
 
     // generated sources should be compiled
-    val generatedSourcesDir = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
+    val generatedSourcesDir = s"target/generated-sources/akka-grpc-${chosenLanguage.targetDirSuffix}"
     val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
     project.addCompileSourceRoot(generatedSourcesDir)
 
-    generate(compileSourceRoot, protoDir)
+    generate(chosenLanguage, compileSourceRoot, protoDir)
   }
 
-  private def generate(generatedSourcesDir: File, protoDir: File): Unit = {
-
+  private def generate(language: Language, generatedSourcesDir: File, protoDir: File): Unit = {
+    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
@@ -95,7 +116,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     } else {
 
       val targets = language match {
-        case Language.JAVA ⇒
+        case Java ⇒
           val glueGenerator =
             if (generateServer)
               if (generateClient) JavaBothCodeGenerator
@@ -104,7 +125,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
           Seq[Target](
             protocbridge.gens.java -> generatedSourcesDir,
             adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
-        case Language.SCALA ⇒
+        case Scala ⇒
           val glueGenerator =
             if (generateServer)
               if (generateClient) ScalaBothCodeGenerator
