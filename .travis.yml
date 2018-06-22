@@ -13,9 +13,9 @@ jobs:
       env: SBT-JAVA
     - script: sbt publishLocal && cd plugin-tester-scala && sbt compile
       env: SBT-SCALA
-    - script: sbt publishM2 && cd plugin-tester-java && echo `git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-\([0-9]*\).*/\\1+\\2-/"``echo $TRAVIS_COMMIT | head -c8` && find ~/.m2/repository/com/lightbend/akka/grpc/akka-grpc-maven-plugin && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-\([0-9]*\).*/\\1+\\2-/"``echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate compile
+    - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-\([0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
       env: MAVEN-JAVA
-    - script: sbt publishM2 && find ~/.m2/repository/com/lightbend/akka/grpc/akka-grpc-maven-plugin && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-\([0-9]*\).*/\\1+\\2-/"``echo $TRAVIS_COMMIT | head -c8` akka-grpc:generate scala:compile
+    - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\([0-9]*.[0-9]*\)-\([0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate scala:compile
       env: MAVEN-SCALA
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
       env: GRADLE-JAVA
