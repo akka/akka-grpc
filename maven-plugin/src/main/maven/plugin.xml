@@ -17,7 +17,7 @@
       <parameters>
         <parameter>
           <name>language</name>
-          <type>enum</type>
+          <type>string</type>
           <required>false</required>
           <editable>true</editable>
           <description>Generate java or scala code</description>

@@ -52,7 +52,7 @@
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
         <configuration>
-          <language>SCALA</language>
+          <language>Scala</language>
           <protoPath>src/main/protobuf</protoPath>
         </configuration>
         <executions>

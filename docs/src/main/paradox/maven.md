@@ -13,7 +13,7 @@ By default both client and server in Java are generated.
     <artifactId>akka-grpc-maven-plugin</artifactId>
     <version>${akka.grpc.version}</version>
     <configuration>
-      <language>JAVA</language> <!- or SCALA, must be uppercase -->
+      <language>Java</language> <!-- or Scala -->
       <generateClient>false</generateClient>
       <generateServer>true</generateServer>
     </configuration>
