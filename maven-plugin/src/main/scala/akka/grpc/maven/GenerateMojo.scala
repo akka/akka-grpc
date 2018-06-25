@@ -51,6 +51,8 @@ object GenerateMojo {
     (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 
+  val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
+
 }
 
 class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
@@ -66,23 +68,20 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   var generateServer: Boolean = _
 
   override def execute(): Unit = {
+    // verify proto dir exists
+    val protoDir = new File(project.getBasedir, protoPath)
+    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
 
     // generated sources should be compiled
     val generatedSourcesDir = "target/generated-sources/akka-grpc-" + language.name().toLowerCase
     val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
     project.addCompileSourceRoot(generatedSourcesDir)
 
-
-
-    // only do any work if needed (m2e integration)
-    if (!buildContext.isIncremental && buildContext.hasDelta(generatedSourcesDir)) {
-      generate(compileSourceRoot)
-    }
+    generate(compileSourceRoot, protoDir)
   }
 
-  private def generate(generatedSourcesDir: File): Unit = {
-    val protoDir = new File(project.getBasedir, protoPath)
-    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
+  private def generate(generatedSourcesDir: File, protoDir: File): Unit = {
+
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
@@ -94,7 +93,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
+
       val targets = language match {
         case Language.JAVA ⇒
           val glueGenerator =
