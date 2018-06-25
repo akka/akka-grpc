@@ -2,9 +2,8 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc.sbt
+package akka.grpc.sbt.test
 
-import akka.grpc.gen.CompositeCodeGenerator
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
 
 /**
