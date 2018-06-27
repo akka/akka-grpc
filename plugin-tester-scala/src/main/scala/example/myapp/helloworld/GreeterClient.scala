@@ -83,6 +83,6 @@ object GreeterClient {
   }
 
 
-
 }
+
 //#full-client
