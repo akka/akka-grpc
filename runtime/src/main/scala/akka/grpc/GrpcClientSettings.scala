@@ -24,26 +24,29 @@ object GrpcClientSettings {
       else
         akkaGrpcClientConfig.getConfig("\"*\"")
 
-    fromSubConfig(sys.settings.config, serviceConfig)
+    GrpcClientSettings(serviceConfig)
+  }
+  def apply(config: Config): GrpcClientSettings = {
+    var result = GrpcClientSettings(config getString "host", config getInt "port")
+    if (config.hasPath("override-authority"))
+      result = result.withOverrideAuthority(config.getString("override-authority"))
+    if (config.hasPath("trusted-ca-certificate"))
+      result = result.withTrustedCaCertificate(config.getString("trusted-ca-certificate"))
+    if (config.hasPath("deadline"))
+      result = result.withDeadline(config.getDuration("deadline"))
+    if (config.hasPath("user-agent"))
+      result = result.withUserAgent(config.getString("user-agent"))
+
+    result
   }
 
   /** Java API */
   def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
     GrpcClientSettings(serviceName, sys)
 
-  def fromSubConfig(root: Config, c: Config): GrpcClientSettings = {
-    var result = GrpcClientSettings(c getString "host", c getInt "port")
-    if (c.hasPath("override-authority"))
-      result = result.withOverrideAuthority(c.getString("override-authority"))
-    if (c.hasPath("trusted-ca-certificate"))
-      result = result.withTrustedCaCertificate(c.getString("trusted-ca-certificate"))
-    if (c.hasPath("deadline"))
-      result = result.withDeadline(c.getDuration("deadline"))
-    if (c.hasPath("user-agent"))
-      result = result.withUserAgent(c.getString("user-agent"))
-
-    result
-  }
+  /** Java API */
+  def create(config: Config): GrpcClientSettings =
+    GrpcClientSettings(config)
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
