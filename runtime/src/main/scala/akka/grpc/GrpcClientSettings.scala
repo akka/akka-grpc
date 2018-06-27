@@ -4,6 +4,7 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
+import akka.util.Helpers
 import com.typesafe.config.Config
 
 import scala.concurrent.duration.Duration
@@ -26,21 +27,22 @@ object GrpcClientSettings {
 
     GrpcClientSettings(serviceConfig)
   }
-  def apply(config: Config): GrpcClientSettings = {
-    var result = GrpcClientSettings(config getString "host", config getInt "port")
-      .withDeadline(getPotentiallyInfiniteDuration(config, "deadline"))
 
-    if (config.hasPath("override-authority"))
-      result = result.withOverrideAuthority(config.getString("override-authority"))
-    if (config.hasPath("trusted-ca-certificate"))
-      result = result.withTrustedCaCertificate(config.getString("trusted-ca-certificate"))
-    if (config.hasPath("user-agent"))
-      result = result.withUserAgent(config.getString("user-agent"))
+  /** Scala API */
+  def apply(config: Config): GrpcClientSettings =
+    GrpcClientSettings(config getString "host", config getInt "port")
+      .copy(
+        overrideAuthority = getOptionalString(config, "override-authority"),
+        deadline = getPotentiallyInfiniteDuration(config, "deadline"),
+        trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
+        userAgent = getOptionalString(config, "user-agent"))
 
-    result
+  private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
+    case "" => None
+    case other => Some(other)
   }
 
-  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = underlying.getString(path) match {
+  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = Helpers.toRootLowerCase(underlying.getString(path)) match {
     case "infinite" ⇒ Duration.Inf
     case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
