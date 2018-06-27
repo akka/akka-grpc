@@ -52,7 +52,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     val call = channel.newCall(descriptor, callOptionsWithDeadline())
     call.start(listener, headers.toGoogleGrpcMetadata())
     call.sendMessage(request)
-    call.halfClose()
+//    call.halfClose()
     call.request(2)
     listener.future
   }
@@ -62,7 +62,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     val call = channel.newCall(descriptor, callOptionsWithDeadline())
     call.start(listener, headers.toGoogleGrpcMetadata())
     call.sendMessage(request)
-    call.halfClose()
+//    call.halfClose()
     call.request(2)
     listener.future
   }
@@ -97,7 +97,7 @@ final class JavaUnaryRequestBuilder[I, O](
     val call = channel.newCall(descriptor, callOptionsWithDeadline())
     call.start(listener, headers.toGoogleGrpcMetadata())
     call.sendMessage(request)
-    call.halfClose()
+//    call.halfClose()
     call.request(2)
     listener.cs
   }
@@ -107,7 +107,7 @@ final class JavaUnaryRequestBuilder[I, O](
     val call = channel.newCall(descriptor, callOptionsWithDeadline())
     call.start(listener, headers.toGoogleGrpcMetadata())
     call.sendMessage(request)
-    call.halfClose()
+//    call.halfClose()
     call.request(2)
     listener.cs
   }
