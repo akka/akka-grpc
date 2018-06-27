@@ -47,6 +47,7 @@ object Dependencies {
   object Test {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
     val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
+    val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
   }
 
   object Plugins {
@@ -56,7 +57,8 @@ object Dependencies {
   private val l = libraryDependencies
 
   val testing = Seq(
-    Test.scalaTest
+    Test.scalaTest,
+    Test.junit
   )
 
   val codegen = l ++= Seq(
