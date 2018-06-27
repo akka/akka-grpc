@@ -6,7 +6,7 @@ scala:
 jobs:
   include:
     - stage: tests
-      script: sbt test
+      script: sbt test headerCheck
     - script: sbt scripted
       env: SCRIPTED
     - script: sbt publishLocal && cd plugin-tester-java && sbt compile
