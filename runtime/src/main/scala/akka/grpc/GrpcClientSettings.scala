@@ -4,17 +4,29 @@
 
 package akka.grpc
 
-import akka.actor.ActorSystem
-import akka.util.Helpers
 import com.typesafe.config.Config
-
-import scala.concurrent.duration.Duration
 import io.grpc.CallCredentials
 
+import scala.collection.immutable
+import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.grpc.internal.HardcodedServiceDiscovery
+import akka.util.Helpers
+
 object GrpcClientSettings {
+  val DefaultResolveTimeout = 5.seconds
+  val DefaultPort = 443
+
   /** Scala API */
   def apply(host: String, port: Int): GrpcClientSettings =
-    new GrpcClientSettings(host, port)
+    new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port))
+
+  /** Scala API */
+  def apply(name: String, serviceDiscovery: SimpleServiceDiscovery) =
+    new GrpcClientSettings(name, serviceDiscovery)
 
   /** Scala API */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
@@ -30,13 +42,14 @@ object GrpcClientSettings {
   }
 
   /** Scala API */
-  def apply(config: Config): GrpcClientSettings =
+  def apply(config: Config): GrpcClientSettings = {
     GrpcClientSettings(config getString "host", config getInt "port")
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
         userAgent = getOptionalString(config, "user-agent"))
+  }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case "" => None
@@ -58,24 +71,36 @@ object GrpcClientSettings {
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
+
+  /** Java API */
+  def create(name: String, serviceDiscovery: SimpleServiceDiscovery) =
+    new GrpcClientSettings(name, serviceDiscovery)
+
+  private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
 }
 
 final class GrpcClientSettings private (
-  val host: String,
-  val port: Int,
+  val name: String,
+  val serviceDiscovery: SimpleServiceDiscovery,
+  val defaultPort: Int = 443,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
-  val useTls: Boolean = true) {
+  val useTls: Boolean = true,
+  val resolveTimeout: FiniteDuration = 1.second) {
 
-  def withHost(value: String): GrpcClientSettings = copy(host = value)
-  def withPort(value: Int): GrpcClientSettings = copy(port = value)
+  def withName(value: String): GrpcClientSettings = copy(name = value)
+  /**
+   * If using ServiceDiscovery and no port is returned use this one.
+   */
+  def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
 
+  def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
   /**
    * Each call will have this deadline.
    */
@@ -99,21 +124,26 @@ final class GrpcClientSettings private (
     copy(useTls = enabled)
 
   private def copy(
-    host: String = host,
-    port: Int = port,
+    name: String = name,
+    defaultPort: Int = defaultPort,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
     trustedCaCertificate: Option[String] = trustedCaCertificate,
     deadline: Duration = deadline,
     userAgent: Option[String] = userAgent,
-    useTls: Boolean = useTls): GrpcClientSettings = new GrpcClientSettings(
+    useTls: Boolean = useTls,
+    resolveTimeout: FiniteDuration = resolveTimeout,
+  ): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
+    serviceDiscovery = serviceDiscovery,
     deadline = deadline,
-    host = host,
+    name = name,
     overrideAuthority = overrideAuthority,
-    port = port,
+    defaultPort = defaultPort,
     trustedCaCertificate = trustedCaCertificate,
     userAgent = userAgent,
-    useTls = useTls)
+    useTls = useTls,
+    resolveTimeout = resolveTimeout,
+  )
 
 }

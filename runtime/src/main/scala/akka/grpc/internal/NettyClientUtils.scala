@@ -5,15 +5,17 @@
 package akka.grpc.internal
 
 import java.io.File
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 
 import scala.concurrent.duration.FiniteDuration
-
 import akka.annotation.InternalApi
+import akka.discovery.SimpleServiceDiscovery
 import akka.grpc.GrpcClientSettings
 import io.grpc.CallOptions
 import io.grpc.ManagedChannel
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * INTERNAL API
@@ -25,24 +27,31 @@ object NettyClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def createChannel(settings: GrpcClientSettings): ManagedChannel = {
-    var builder =
-      NettyChannelBuilder
-        .forAddress(settings.host, settings.port)
-        .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
+  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): Future[ManagedChannel] = {
+    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).map { targets: SimpleServiceDiscovery.Resolved =>
+      if (targets.addresses.nonEmpty) {
+        val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
+        var builder =
+          NettyChannelBuilder
+            .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
+            .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
-    if (!settings.useTls)
-      builder = builder.usePlaintext()
-    else {
-      builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
-        .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
-        .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+        if (!settings.useTls)
+          builder = builder.usePlaintext()
+        else {
+          builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
+            .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
+            .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+          builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+        }
 
-      builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+        builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
+
+        builder.build
+      } else {
+        throw new IllegalStateException("No targets returned for name: " + settings.name)
+      }
     }
-    builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
-
-    builder.build
   }
 
   // FIXME couldn't we use the inputstream based trustManager() method instead of going via filesystem?
