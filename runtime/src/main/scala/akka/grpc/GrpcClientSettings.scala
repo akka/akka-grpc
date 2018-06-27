@@ -3,14 +3,47 @@
  */
 package akka.grpc
 
-import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
 
+import scala.concurrent.duration.Duration
 import io.grpc.CallCredentials
 
 object GrpcClientSettings {
   /** Scala API */
   def apply(host: String, port: Int): GrpcClientSettings =
     new GrpcClientSettings(host, port)
+
+  /** Scala API */
+  def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
+    val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
+
+    val serviceConfig =
+      if (akkaGrpcClientConfig.hasPath('"' + serviceName + '"'))
+        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(akkaGrpcClientConfig.getConfig("\"*\""))
+      else
+        akkaGrpcClientConfig.getConfig("\"*\"")
+
+    fromSubConfig(sys.settings.config, serviceConfig)
+  }
+
+  /** Java API */
+  def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
+    GrpcClientSettings(serviceName, sys)
+
+  def fromSubConfig(root: Config, c: Config): GrpcClientSettings = {
+    var result = GrpcClientSettings(c getString "host", c getInt "port")
+    if (c.hasPath("override-authority"))
+      result = result.withOverrideAuthority(c.getString("override-authority"))
+    if (c.hasPath("trusted-ca-certificate"))
+      result = result.withTrustedCaCertificate(c.getString("trusted-ca-certificate"))
+    if (c.hasPath("deadline"))
+      result = result.withDeadline(c.getDuration("deadline"))
+    if (c.hasPath("user-agent"))
+      result = result.withUserAgent(c.getString("user-agent"))
+
+    result
+  }
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
@@ -63,4 +96,3 @@ final class GrpcClientSettings private (
     userAgent = userAgent)
 
 }
-
