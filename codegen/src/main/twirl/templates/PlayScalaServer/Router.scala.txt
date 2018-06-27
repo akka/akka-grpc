@@ -19,8 +19,10 @@ import play.api.routing.Router
 import play.api.routing.Router.Routes
 
 @@Singleton
-class @{service.name}Router @@Inject()(cc: ControllerComponents, impl: controllers.@{service.name}Impl)(implicit mat: Materializer)
+class @{service.name}Router @@Inject()(impl: controllers.@{service.name}Impl)(implicit mat: Materializer)
   extends Router {
+
+  protected val prefix: String = @{service.name}.name
 
   val handler = new AkkaHttpHandler {
     val h = @{service.name}Handler(impl)
@@ -28,10 +30,20 @@ class @{service.name}Router @@Inject()(cc: ControllerComponents, impl: controlle
   }
 
   // could look at @{service.name}.name, but isn't this already covered in the route file?
-  override def routes: Routes = { case _ ⇒ handler }
+  override def routes: Routes = {
+    case rh if rh.path.startsWith(prefix) ⇒ handler
+  }
 
   override def documentation: Seq[(String, String, String)] = Seq.empty
 
-  override def withPrefix(prefix: String): Router = this
+  override def withPrefix(additionalPrefix: String): Router = {
+    val newPrefix =
+      if (prefix == @{service.name}.name) additionalPrefix
+      else Router.prefixPath(additionalPrefix + prefix)
+
+    new @{service.name}Router(impl) {
+      override val prefix = newPrefix
+    }
+  }
 
 }
