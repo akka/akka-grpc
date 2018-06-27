@@ -28,16 +28,21 @@ object GrpcClientSettings {
   }
   def apply(config: Config): GrpcClientSettings = {
     var result = GrpcClientSettings(config getString "host", config getInt "port")
+      .withDeadline(getPotentiallyInfiniteDuration(config, "deadline"))
+
     if (config.hasPath("override-authority"))
       result = result.withOverrideAuthority(config.getString("override-authority"))
     if (config.hasPath("trusted-ca-certificate"))
       result = result.withTrustedCaCertificate(config.getString("trusted-ca-certificate"))
-    if (config.hasPath("deadline"))
-      result = result.withDeadline(config.getDuration("deadline"))
     if (config.hasPath("user-agent"))
       result = result.withUserAgent(config.getString("user-agent"))
 
     result
+  }
+
+  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = underlying.getString(path) match {
+    case "infinite" ⇒ Duration.Inf
+    case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
   /** Java API */
