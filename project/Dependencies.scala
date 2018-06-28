@@ -10,7 +10,7 @@ object Dependencies {
     val akkaHttp = "10.1.1"
 
     val scalapb = "0.7.1"
-    val grpc = "1.12.0"
+    val grpc = "1.13.1"
 
     val scalaTest = "3.0.4"
     val scalaJava8Compat = "0.8.0"
