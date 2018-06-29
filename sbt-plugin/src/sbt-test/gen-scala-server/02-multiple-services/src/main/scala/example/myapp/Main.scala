@@ -27,7 +27,7 @@ object Main extends App {
     ,
     interface = "localhost",
     port = 8443,
-    httpsContext = serverHttpContext())
+    connectionContext = serverHttpContext())
 
   private def serverHttpContext() = {
     // never put passwords into code!
