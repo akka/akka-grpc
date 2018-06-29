@@ -26,7 +26,9 @@ trait GrpcInteropTests {
     "cancel_after_begin",
     "cancel_after_first_response",
     "timeout_on_sleeping_server",
-    "custom_metadata",
+    // Currently fails often, the client seems to prematurely close
+    // the stream. #219
+    // "custom_metadata",
     "status_code_and_message",
     "unimplemented_method",
     "client_compressed_unary",
@@ -153,7 +155,7 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "cancel_after_begin",
       "cancel_after_first_response",
       "timeout_on_sleeping_server",
-      // "custom_metadata",
+      "custom_metadata",
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",
