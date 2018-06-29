@@ -18,7 +18,26 @@ import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.stream.Materializer
 
 object @{service.name}Handler {
-  def apply(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+  private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
+
+  /**
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+   *
+   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+   * several services.
+   */
+  def apply(implementation: @service.name)(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+    partial(implementation).orElse { case _ => notFound }
+
+  /**
+   * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
+   * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example
+   * `Http().bindAndHandleAsync`.
+   *
+   * Use `@{service.name}Handler.apply` if the server is only handling one service.
+   */
+  def partial(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     implicit val ec: ExecutionContext = mat.executionContext
     import @{service.name}.Serializers._
 

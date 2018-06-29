@@ -6,6 +6,7 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.grpc.scaladsl.ServiceHandler
 import akka.http.scaladsl.{Http2, HttpsConnectionContext}
 
 import example.myapp.echo.EchoServiceImpl
@@ -18,13 +19,12 @@ object Main extends App {
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
-  val echoHandler = EchoServiceHandler(new EchoServiceImpl)
-  val greeterHandler = GreeterServiceHandler(new GreeterServiceImpl)
+  val echoHandler = EchoServiceHandler.partial(new EchoServiceImpl)
+  val greeterHandler = GreeterServiceHandler.partial(new GreeterServiceImpl)
+  val serviceHandler = ServiceHandler.concatOrNotFound(echoHandler, greeterHandler)
 
   Http2().bindAndHandleAsync(
-    echoHandler
-      .orElse(greeterHandler)
-    ,
+    serviceHandler,
     interface = "localhost",
     port = 8443,
     connectionContext = serverHttpContext())

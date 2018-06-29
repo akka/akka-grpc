@@ -24,18 +24,23 @@ import akka.grpc.javadsl.GrpcExceptionHandler;
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
 public class @{service.name}HandlerFactory {
+  private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
+    HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+
+  /**
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
+   * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
+   *
+   * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
+   */
   public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
     return (req -> {
       Iterator<String> segments = req.getUri().pathSegments().iterator();
       if (segments.hasNext() && segments.next().equals(@{service.name}.name) && segments.hasNext()) {
         String method = segments.next();
         return handle(req, method, implementation, mat).exceptionally(e -> GrpcExceptionHandler.standard(e));
-      }
-      else
-      {
-        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-        result.completeExceptionally(new UnsupportedOperationException("Unexpected path"));
-        return result;
+      } else {
+        return notFound;
       }
     });
   }

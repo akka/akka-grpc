@@ -1,5 +1,4 @@
-//#full-server
-package example.myapp.helloworld
+package example.myapp
 
 import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
 import java.nio.file.Files
@@ -27,9 +26,18 @@ import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 
+import example.myapp.helloworld._
 import example.myapp.helloworld.grpc._
 
-object GreeterServer {
+import example.myapp.echo._
+import example.myapp.echo.grpc._
+
+//#concatOrNotFound
+import akka.grpc.scaladsl.ServiceHandler
+
+//#concatOrNotFound
+
+object CombinedServer {
 
   def main(args: Array[String]): Unit = {
     // important to enable HTTP/2 in ActorSystem's config
@@ -39,15 +47,22 @@ object GreeterServer {
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
-    val service: HttpRequest => Future[HttpResponse] =
-      GreeterServiceHandler(new GreeterServiceImpl(mat))
+    //#concatOrNotFound
+    // explicit types not needed but included in example for clarity
+    val greeterService: PartialFunction[HttpRequest,Future[HttpResponse]] =
+      GreeterServiceHandler.partial(new GreeterServiceImpl(mat))
+    val echoService: PartialFunction[HttpRequest,Future[HttpResponse]] =
+      EchoServiceHandler.partial(new EchoServiceImpl)
+    val serviceHandlers: HttpRequest => Future[HttpResponse] =
+      ServiceHandler.concatOrNotFound(greeterService, echoService)
 
     Http().bindAndHandleAsync(
-      service,
+      serviceHandlers,
       interface = "127.0.0.1",
       port = 8080,
       connectionContext = serverHttpContext()
     )
+    //#concatOrNotFound
     .foreach { binding =>
       println(s"gRPC server bound to: ${binding.localAddress}")
     }
@@ -55,7 +70,7 @@ object GreeterServer {
 
   private def serverHttpContext(): HttpsConnectionContext = {
     // FIXME how would end users do this? TestUtils.loadCert? issue #89
-    val keyEncoded = read(GreeterServer.getClass.getResourceAsStream("/certs/server1.key"))
+    val keyEncoded = read(CombinedServer.getClass.getResourceAsStream("/certs/server1.key"))
       .replace("-----BEGIN PRIVATE KEY-----\n", "")
       .replace("-----END PRIVATE KEY-----\n", "")
       .replace("\n", "")
@@ -68,7 +83,7 @@ object GreeterServer {
     val privateKey = kf.generatePrivate(spec)
 
     val fact = CertificateFactory.getInstance("X.509")
-    val cer = fact.generateCertificate(GreeterServer.getClass.getResourceAsStream("/certs/server1.pem"))
+    val cer = fact.generateCertificate(CombinedServer.getClass.getResourceAsStream("/certs/server1.pem"))
 
     val ks = KeyStore.getInstance("PKCS12")
     ks.load(null)
@@ -99,4 +114,4 @@ object GreeterServer {
   }
 
 }
-//#full-server
+

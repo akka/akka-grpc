@@ -92,6 +92,8 @@ For a complete overview of the configuration options see the chapter for your bu
 
 ## Generate and implement
 
+### Proto
+
 Define the interfaces you want to implement in your project's
 @sbt[`src/main/protobuf`]@gradle[`src/main/proto`]@maven[`src/main/proto`]  file(s).
 
@@ -129,6 +131,8 @@ Maven
 mvn akka-grpc:generate
 ```
 
+### Service implementation
+
 Implement the methods of the service interface in a new class:
 
 Scala
@@ -137,9 +141,11 @@ Scala
 Java
 :  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServiceImpl.java) { #full-service-impl }
 
+### Server
+
 That service can then be handled by an Akka HTTP server via the generated `GreeterServiceHandler`,
-which is a @scala[partial ]function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
-@scala[The partial function should be made total before giving it to Akka HTTP by for example providing 404 as as default response].
+which is a function from `HttpRequest` to @scala[`Future[HttpResponse]`]@java[`CompletionStage<HttpResponse>`].
+It returns 404 as response for requests that don't match the path of the service.
 
 The server will run one instance of the implementation and that is then shared between requests,
 this mean that it must be thread safe. In the sample above there is no mutable state, for more about safely implementing
@@ -158,6 +164,20 @@ Note that it's important to enable HTTP/2 in the configuration of the `ActorSyst
 ```
 akka.http.server.preview.enable-http2 = on
 ```
+
+# Multiple services
+
+When a server handles several services the handlers must be combined with
+@scala[`akka.grpc.scaladsl.ServiceHandler.concatOrNotFound`]@java[`akka.grpc.javadsl.ServiceHandler.concatOrNotFound`]
+
+Scala
+:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/CombinedServer.scala) { #concatOrNotFound }
+
+Java
+:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/CombinedServer.java) { #import #concatOrNotFound }
+
+@scala[Note that the `GreeterServiceHandler.partial` and `EchoServiceHandler.partial` are used instead of `apply`
+methods to create partial functions that are combined by concatOrNotFound.]
 
 ## Running
 
