@@ -35,7 +35,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
       testService,
       interface = "127.0.0.1",
       port = 0,
-      httpsContext = serverHttpContext())
+      connectionContext = serverHttpContext())
 
     val binding = Await.result(bindingFuture, 10.seconds)
     (sys, binding)
