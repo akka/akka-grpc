@@ -4,14 +4,57 @@
 
 package akka.grpc
 
-import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
+import akka.util.Helpers
+import com.typesafe.config.Config
 
+import scala.concurrent.duration.Duration
 import io.grpc.CallCredentials
 
 object GrpcClientSettings {
   /** Scala API */
   def apply(host: String, port: Int): GrpcClientSettings =
     new GrpcClientSettings(host, port)
+
+  /** Scala API */
+  def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
+    val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
+
+    val serviceConfig =
+      if (akkaGrpcClientConfig.hasPath('"' + serviceName + '"'))
+        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(akkaGrpcClientConfig.getConfig("\"*\""))
+      else
+        akkaGrpcClientConfig.getConfig("\"*\"")
+
+    GrpcClientSettings(serviceConfig)
+  }
+
+  /** Scala API */
+  def apply(config: Config): GrpcClientSettings =
+    GrpcClientSettings(config getString "host", config getInt "port")
+      .copy(
+        overrideAuthority = getOptionalString(config, "override-authority"),
+        deadline = getPotentiallyInfiniteDuration(config, "deadline"),
+        trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
+        userAgent = getOptionalString(config, "user-agent"))
+
+  private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
+    case "" => None
+    case other => Some(other)
+  }
+
+  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = Helpers.toRootLowerCase(underlying.getString(path)) match {
+    case "infinite" ⇒ Duration.Inf
+    case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
+  }
+
+  /** Java API */
+  def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
+    GrpcClientSettings(serviceName, sys)
+
+  /** Java API */
+  def create(config: Config): GrpcClientSettings =
+    GrpcClientSettings(config)
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
@@ -64,4 +107,3 @@ final class GrpcClientSettings private (
     userAgent = userAgent)
 
 }
-
