@@ -4,18 +4,19 @@
 
 package akka.grpc.internal
 
-import java.io.File
-import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
+import java.lang.reflect.Field
+import java.util.concurrent.{ThreadLocalRandom, TimeUnit}
 
-import scala.concurrent.duration.FiniteDuration
 import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
 import akka.grpc.GrpcClientSettings
-import io.grpc.CallOptions
-import io.grpc.ManagedChannel
-import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
+import io.grpc.netty.shaded.io.grpc.netty.{GrpcSslContexts, NegotiationType, NettyChannelBuilder}
+import io.grpc.netty.shaded.io.netty.handler.ssl._
+import io.grpc.{CallOptions, ManagedChannel}
+import javax.net.ssl.SSLContext
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * INTERNAL API
@@ -39,9 +40,10 @@ object NettyClientUtils {
         if (!settings.useTls)
           builder = builder.usePlaintext()
         else {
-          builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
-            .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
+          builder = settings.sslContext
+            .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
             .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+
           builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
         }
 
@@ -54,32 +56,38 @@ object NettyClientUtils {
     }
   }
 
-  // FIXME couldn't we use the inputstream based trustManager() method instead of going via filesystem?
-  private def loadCert(name: String): File = {
-    import java.io._
+  /**
+   * INTERNAL API
+   *
+   * Given a Java [[SSLContext]], create a Netty [[SslContext]] that can be used to build
+   * a Netty HTTP/2 channel.
+   */
+  @InternalApi
+  private def nettyHttp2SslContext(javaSslContext: SSLContext): SslContext = {
+    // FIXME: Create a JdkSslContext using a normal constructor. Need to work out sensible values for all args first.
+    // In the meantime, use a Netty SslContextBuild to create a JdkSslContext, then use reflection to patch the
+    // object's internal SSLContext. It's not pretty, but it gets something working for now.
 
-    val in = new BufferedInputStream(this.getClass.getResourceAsStream("/certs/" + name))
-    val inBytes: Array[Byte] = {
-      val baos = new ByteArrayOutputStream(math.max(64, in.available()))
-      val buffer = Array.ofDim[Byte](32 * 1024)
+    // Create a Netty JdkSslContext object with all the correct ciphers, protocol settings, etc initialized.
+    val nettySslContext: JdkSslContext = buildJdkSslContext(GrpcSslContexts.forClient)
 
-      var bytesRead = in.read(buffer)
-      while (bytesRead >= 0) {
-        baos.write(buffer, 0, bytesRead)
-        bytesRead = in.read(buffer)
-      }
-      baos.toByteArray
-    }
+    // Patch the SSLContext value inside the JdkSslContext object
+    val nettySslContextField: Field = classOf[JdkSslContext].getDeclaredField("sslContext")
+    nettySslContextField.setAccessible(true)
+    nettySslContextField.set(nettySslContext, javaSslContext)
 
-    val tmpFile = File.createTempFile(name, "")
-    tmpFile.deleteOnExit()
-
-    val out = new BufferedOutputStream(new FileOutputStream(tmpFile))
-    out.write(inBytes)
-    out.close()
-
-    tmpFile
+    nettySslContext
   }
+
+  /**
+   * INTERNAL API
+   *
+   * Given an [[SslContextBuilder]], obtain a [[JdkSslContext]]. This uses `GrpcSslContexts.configure` to configure
+   * the correct protocols, ciphers, etc for the JDK SSL provider.
+   */
+  @InternalApi
+  private[grpc] def buildJdkSslContext(contextBuilder: SslContextBuilder): JdkSslContext =
+    GrpcSslContexts.configure(contextBuilder, SslProvider.JDK).build.asInstanceOf[JdkSslContext]
 
   /**
    * INTERNAL API

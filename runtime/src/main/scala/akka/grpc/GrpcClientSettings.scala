@@ -4,18 +4,22 @@
 
 package akka.grpc
 
-import com.typesafe.config.Config
-import io.grpc.CallCredentials
-
-import scala.collection.immutable
-import scala.concurrent.duration._
+import java.io.{IOException, InputStream}
 
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.grpc.internal.HardcodedServiceDiscovery
+import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.grpc.internal.{HardcodedServiceDiscovery, NettyClientUtils}
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
+import com.typesafe.config.Config
+import io.grpc.CallCredentials
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import javax.net.ssl.SSLContext
+
+import scala.collection.immutable
+import scala.concurrent.duration.{Duration, _}
 
 object GrpcClientSettings {
 
@@ -53,12 +57,18 @@ object GrpcClientSettings {
 
   /** Scala API */
   def apply(config: Config): GrpcClientSettings = {
-    GrpcClientSettings(config.getString("host"), config.getInt("port"))
+    var settings = GrpcClientSettings(config getString "host", config getInt "port")
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
-        trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
         userAgent = getOptionalString(config, "user-agent"))
+
+    // TODO: Decide whether to present a deprecation warning for this option.
+    getOptionalString(config, "trusted-ca-certificate").foreach { cert =>
+      settings = settings.withSSLContext(trustCert(cert))
+    }
+
+    settings
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
@@ -99,6 +109,20 @@ object GrpcClientSettings {
     apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
 
   private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private[GrpcClientSettings] def trustCert(certPath: String): SSLContext = {
+    // Use Netty's SslContextBuilder internally to help us construct a SSLContext
+    val fullCertPath = "/certs/" + certPath
+    val certStream: InputStream = getClass.getResourceAsStream(fullCertPath)
+    if (certStream == null) throw new IOException(s"Couldn't find '$fullCertPath' on the classpath")
+    val sslBuilder = try { GrpcSslContexts.forClient.trustManager(certStream) } finally certStream.close()
+    NettyClientUtils.buildJdkSslContext(sslBuilder).context
+  }
+
 }
 
 final class GrpcClientSettings private (
@@ -108,7 +132,7 @@ final class GrpcClientSettings private (
   val resolveTimeout: FiniteDuration,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
-  val trustedCaCertificate: Option[String] = None,
+  val sslContext: Option[SSLContext] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
   val useTls: Boolean = true) {
@@ -120,9 +144,10 @@ final class GrpcClientSettings private (
   def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
-  def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
-
+  def withSSLContext(context: SSLContext) = copy(sslContext = Option(context))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
+  @deprecated("Use withSSLContext instead", "0.2")
+  def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(sslContext = Option(GrpcClientSettings.trustCert(value)))
   /**
    * Each call will have this deadline.
    */
@@ -150,7 +175,7 @@ final class GrpcClientSettings private (
     defaultPort: Int = defaultPort,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
-    trustedCaCertificate: Option[String] = trustedCaCertificate,
+    sslContext: Option[SSLContext] = sslContext,
     deadline: Duration = deadline,
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
@@ -162,7 +187,7 @@ final class GrpcClientSettings private (
     name = name,
     overrideAuthority = overrideAuthority,
     defaultPort = defaultPort,
-    trustedCaCertificate = trustedCaCertificate,
+    sslContext = sslContext,
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,

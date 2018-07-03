@@ -13,6 +13,9 @@ val root = project.in(file("."))
     ProjectRef(file("../"), "akka-grpc-runtime"),
     ProjectRef(file("../"), "akka-grpc-codegen"),
   )
+  .settings(
+    libraryDependencies += "com.typesafe" %% "ssl-config-core" % "0.2.4-SNAPSHOT"
+  )
 
 javacOptions in compile += "-Xlint:deprecation"
 
