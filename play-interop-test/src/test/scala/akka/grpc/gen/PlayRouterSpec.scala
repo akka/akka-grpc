@@ -1,26 +1,28 @@
 package akka.grpc.gen
 
+import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.mvc.Headers
-import play.api.mvc.request.{RemoteConnection, RequestFactory, RequestTarget}
+import play.api.mvc.request.{ RemoteConnection, RequestFactory, RequestTarget }
 import controllers.GreeterServiceImpl
 import example.myapp.helloworld.grpc.helloworld._
 import GreeterServiceMarshallers._
-import akka.grpc.{Grpc, ProtobufSerializer}
+import akka.grpc.{ Grpc, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.Chunk
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
 class PlayRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
   implicit val sys = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher
+  implicit val patience = PatienceConfig(timeout = 3.seconds, interval = 15.milliseconds)
 
   "The generated Play Router" should {
 
