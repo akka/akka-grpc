@@ -9,6 +9,8 @@ object Dependencies {
     val akka = "2.5.12"
     val akkaHttp = "10.1.3"
 
+    val play = "2.7.0-M1"
+
     val scalapb = "0.7.1"
     val grpc = "1.13.1"
 
@@ -39,8 +41,9 @@ object Dependencies {
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
 
-    val play = "com.typesafe.play" %% "play" % "2.7.0-M1" // Apache M2
-    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % "2.7.0-M1" // Apache M2
+    val play = "com.typesafe.play" %% "play" % Versions.play // Apache M2
+    val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache M2
+    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
   }
 
   object Agents {
@@ -108,6 +111,7 @@ object Dependencies {
     // TODO #193
     Compile.grpcStub,
     Compile.play,
+    Compile.playGuice,
     Compile.playAkkaHttpServer,
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }
