@@ -14,6 +14,7 @@ import akka.grpc.scaladsl.{ SingleResponseRequestBuilder, StreamResponseRequestB
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -26,6 +27,12 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
 
   private val channel = NettyClientUtils.createChannel(settings)
   private val options = NettyClientUtils.callOptions(settings)
+
+  mat match {
+    case m: ActorMaterializer =>
+      m.system.whenTerminated.foreach(_ => close())(ex)
+    case _ =>
+  }
 
   @for(method <- service.methods) {
     private val @{method.name}RequestBuilder = {
@@ -64,8 +71,12 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
       @{method.name}().invoke(in)
   }
 
-  // TODO perhaps return Future[Done]?
-  def close(): Unit = channel.shutdown()
+  // TODO expose the close state as Future[Done]
+
+  /**
+   * Initiates a shutdown in which preexisting and new calls are cancelled.
+   */
+  def close(): Unit = channel.shutdownNow()
 
 }
 

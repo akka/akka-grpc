@@ -16,6 +16,7 @@ import akka.grpc.internal.JavaBidirectionalStreamingRequestBuilder;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.SingleResponseRequestBuilder;
 import akka.grpc.javadsl.StreamResponseRequestBuilder;
+import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Flow;
@@ -52,6 +53,10 @@ public final class @{service.name}Client implements @{service.name} {
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
     this.channel = NettyClientUtils.createChannel(settings);
     final CallOptions options = NettyClientUtils.callOptions(settings);
+
+    if (mat instanceof ActorMaterializer) {
+      ((ActorMaterializer) mat).system().getWhenTerminated().whenComplete((v, e) -> close());
+    }
 
     @for(method <- service.methods) {
       @if(method.methodType == akka.grpc.gen.Unary) {
@@ -114,9 +119,13 @@ public final class @{service.name}Client implements @{service.name} {
         .build();
     }
 
-  // TODO perhaps return CompletionStage[Done]?
+  // TODO expose the close state as CompletionStage[Done]
+
+  /**
+   * Initiates a shutdown in which preexisting and new calls are cancelled.
+   */
   public void close() {
-    channel.shutdown();
+    channel.shutdownNow();
   }
 }
 
