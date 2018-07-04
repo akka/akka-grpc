@@ -21,11 +21,10 @@ import play.api.routing.Router.Routes
 @@Singleton
 class @{service.name}Router @@Inject()(impl: controllers.@{service.name}Impl)(implicit mat: Materializer)
   extends Router {
+  protected val prefix = @{service.name}.name
 
-  protected val prefix: String = @{service.name}.name
-
-  val handler = new AkkaHttpHandler {
-    val h = @{service.name}Handler(impl)
+  protected val handler = new AkkaHttpHandler {
+    val h = @{service.name}Handler(impl, prefix)
     override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
   }
 
@@ -36,13 +35,21 @@ class @{service.name}Router @@Inject()(impl: controllers.@{service.name}Impl)(im
 
   override def documentation: Seq[(String, String, String)] = Seq.empty
 
-  override def withPrefix(additionalPrefix: String): Router = {
-    val newPrefix =
-      if (prefix == @{service.name}.name) additionalPrefix
-      else Router.prefixPath(additionalPrefix + prefix)
-
-    new @{service.name}Router(impl) {
+  override def withPrefix(newPrefix: String): Router = {
+    if (newPrefix == "/") this
+    else new @{service.name}Router(impl) {
       override val prefix = newPrefix
+
+      // Needs to be overridden to point to new prefix due to initialization order
+      override val handler = new AkkaHttpHandler {
+        val h = GreeterServiceHandler(impl, newPrefix)
+        override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
+      }
+
+      override def withPrefix(additionalPrefix: String): Router = {
+        if (prefix == "/") this
+        else throw new IllegalStateException("Only one level of prefixes is supported for gRPC")
+      }
     }
   }
 

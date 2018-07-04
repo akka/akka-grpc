@@ -209,6 +209,7 @@ lazy val root = Project(
     sbtPlugin,
     scalapbProtocPlugin,
     interopTests,
+    playInteropTest,
     docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
