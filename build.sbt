@@ -166,7 +166,7 @@ lazy val playInteropTest = Project(
   .settings(Dependencies.playInteropTest)
   .settings(commonSettings)
   .settings(Seq(
-    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.PlayCompositeCodeGenerator",
+    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayCompositeCodeGenerator",
   ))
   .enablePlugins(akka.grpc.NoPublish)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
