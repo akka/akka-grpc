@@ -1,21 +1,16 @@
 package akka.grpc.gen
 
-import java.net.URI
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.akkahttp.AkkaHttpHandler
-import play.api.mvc.{Headers, Request, RequestHeader}
+import play.api.mvc.Headers
 import play.api.mvc.request.{RemoteConnection, RequestFactory, RequestTarget}
 import controllers.GreeterServiceImpl
 import example.myapp.helloworld.grpc.helloworld._
 import GreeterServiceMarshallers._
 import akka.grpc.{Grpc, ProtobufSerializer}
-import akka.grpc.scaladsl.GrpcMarshalling
 import akka.http.scaladsl.model.HttpEntity.Chunk
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
