@@ -21,9 +21,9 @@ public interface @{service.name} {
 
   static String name = "@service.grpcName";
 
-  static class Serializers {
+  public static class Serializers {
     @for(serializer <- service.serializers) {
-      static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
+      public static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
     }
   }
 }

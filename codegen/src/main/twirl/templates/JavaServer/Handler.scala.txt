@@ -24,8 +24,33 @@ import akka.grpc.javadsl.GrpcExceptionHandler;
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
 public class @{service.name}HandlerFactory {
+
   private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
     HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+
+  /**
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+   *
+   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+   * several services.
+   */
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
+    return create(implementation, @{service.name}.name, mat);
+  }
+
+  /**
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+   *
+   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+   * several services.
+   *
+   * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
+   */
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, String prefix, Materializer mat) {
+    return partial(implementation, prefix, mat);
+  }
 
   /**
    * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
@@ -33,12 +58,13 @@ public class @{service.name}HandlerFactory {
    *
    * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
    */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@service.name implementation, String prefix, Materializer mat) {
     return (req -> {
       Iterator<String> segments = req.getUri().pathSegments().iterator();
-      if (segments.hasNext() && segments.next().equals(@{service.name}.name) && segments.hasNext()) {
+      if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
         String method = segments.next();
-        return handle(req, method, implementation, mat).exceptionally(e -> GrpcExceptionHandler.standard(e));
+        if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
+        else return handle(req, method, implementation, mat).exceptionally(e -> GrpcExceptionHandler.standard(e));
       } else {
         return notFound;
       }

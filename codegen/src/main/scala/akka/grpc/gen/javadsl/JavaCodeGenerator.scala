@@ -13,11 +13,12 @@ import templates.JavaCommon.txt.ApiInterface
 import scala.collection.JavaConverters._
 
 abstract class JavaCodeGenerator extends CodeGenerator {
-  // Override this to add generated files per service
-  def perServiceContent = Set[Service ⇒ CodeGeneratorResponse.File](generateServiceInterface)
 
-  // Override this to add service-independent generated files
-  def staticContent = Set.empty[CodeGeneratorResponse.File]
+  /** Override this to add generated files per service */
+  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
+
+  /** Override this to add service-independent generated files */
+  def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
 
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
@@ -56,4 +57,13 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   override val suggestedDependencies = Seq(
     Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
   )
+}
+
+object JavaCodeGenerator {
+  val generateServiceFile: Service ⇒ CodeGeneratorResponse.File = service ⇒ {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(ApiInterface(service).body)
+    b.setName(s"${service.packageDir}/${service.name}.java")
+    b.build
+  }
 }

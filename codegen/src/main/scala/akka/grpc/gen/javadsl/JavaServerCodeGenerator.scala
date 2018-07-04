@@ -12,7 +12,8 @@ import templates.JavaServer.txt.Handler
 trait JavaServerCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
 
-  override def perServiceContent = super.perServiceContent + generateHandlerFactory
+  override def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = super.perServiceContent +
+    JavaCodeGenerator.generateServiceFile + generateHandlerFactory
 
   def generateHandlerFactory(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
