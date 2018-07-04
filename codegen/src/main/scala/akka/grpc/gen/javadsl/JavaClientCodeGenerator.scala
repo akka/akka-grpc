@@ -12,7 +12,9 @@ import templates.JavaClient.txt.Client
 trait JavaClientCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-client"
 
-  override def perServiceContent = super.perServiceContent + generateStub
+  override def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = super.perServiceContent +
+    JavaCodeGenerator.generateServiceFile + generateStub
+
   override val staticContent = super.staticContent
 
   def generateStub(service: Service): CodeGeneratorResponse.File = {

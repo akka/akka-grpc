@@ -5,6 +5,7 @@
 package akka.grpc.sbt.test
 
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
+import akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator
 import akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
@@ -16,7 +17,13 @@ import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
 class PlayCompositeCodeGenerator {
   def instance(): protocbridge.ProtocCodeGenerator =
     new ProtocBridgeSbtPluginCodeGenerator(new CompositeCodeGenerator(Seq(
-      ScalaBothCodeGenerator,
-      ScalaMarshallersCodeGenerator,
-      PlayScalaServerCodeGenerator)))
+      //      ScalaMarshallersCodeGenerator,
+
+      // scala
+      //      ScalaBothCodeGenerator,
+      //      PlayScalaServerCodeGenerator,
+
+      // java
+      JavaBothCodeGenerator,
+      PlayJavaServerCodeGenerator)))
 }
