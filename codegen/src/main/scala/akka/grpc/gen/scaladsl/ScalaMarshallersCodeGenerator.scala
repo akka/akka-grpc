@@ -25,7 +25,7 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
   def generateMarshalling(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Marshallers(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Marshallers.scala")
+    b.setName(s"${service.packageDir}/${service.name}Marshallers.scala")
     b.build
   }
 }

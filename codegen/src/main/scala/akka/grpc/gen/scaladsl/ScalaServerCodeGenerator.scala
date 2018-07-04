@@ -15,7 +15,7 @@ trait ScalaServerCodeGenerator extends ScalaCodeGenerator {
   def generateHandler(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Handler.scala")
+    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
     b.build
   }
 

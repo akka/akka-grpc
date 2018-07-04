@@ -66,7 +66,7 @@ object ScalaCodeGenerator {
   val generateServiceFile: Service => CodeGeneratorResponse.File = service => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ApiTrait(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}.scala")
+    b.setName(s"${service.packageDir}/${service.name}.scala")
     b.build
   }
 }

@@ -17,7 +17,7 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   def generateStub(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Client.scala")
+    b.setName(s"${service.packageDir}/${service.name}Client.scala")
     b.build
   }
 

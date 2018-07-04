@@ -16,7 +16,7 @@ object PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
   private val generateRouter: Service => CodeGeneratorResponse.File = service => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Router(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Router.scala")
+    b.setName(s"${service.packageDir}/${service.name}Router.scala")
     b.build
   }
 }
