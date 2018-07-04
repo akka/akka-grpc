@@ -50,7 +50,7 @@ object @{service.name}Handler {
    * Use `@{service.name}Handler.apply` if the server is only handling one service.
    */
   def partial(implementation: @service.name)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] =
-    partial(implementation, "@service.name")
+    partial(implementation, @{service.name}.name)
 
   /**
    * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
