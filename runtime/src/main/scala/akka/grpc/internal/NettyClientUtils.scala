@@ -31,12 +31,15 @@ object NettyClientUtils {
         .forAddress(settings.host, settings.port)
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
-    builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
-      .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
-      .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+    if (!settings.useTls)
+      builder = builder.usePlaintext()
+    else {
+      builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
+        .map(ctx => builder.negotiationType(NegotiationType.TLS).sslContext(ctx))
+        .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
 
-    builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
-
+      builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+    }
     builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
 
     builder.build

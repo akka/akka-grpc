@@ -19,12 +19,15 @@ package akka.grpc.benchmarks.qps;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
+import akka.grpc.benchmarks.Unencrypted;
 import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.BenchmarkService;
 import akka.grpc.benchmarks.proto.BenchmarkServiceHandlerFactory;
 import akka.grpc.benchmarks.proto.Messages;
+import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.Http;
+import akka.http.javadsl.UseHttp2;
 import akka.stream.ActorMaterializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -60,12 +63,13 @@ public class AsyncServer {
       return;
     }
 
-    new AsyncServer().run((InetSocketAddress) config.address);
+    new AsyncServer().run((InetSocketAddress) config.address, config.tls);
   }
 
   /** Equivalent of "main", but non-static. */
-  public void run(InetSocketAddress address) throws Exception {
+  public void run(InetSocketAddress address, boolean useTls) throws Exception {
     // important to enable HTTP/2 in ActorSystem's config
+
     Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
     system = ActorSystem.create("AsyncServer", conf);
@@ -74,13 +78,22 @@ public class AsyncServer {
 
     benchmarkService = new BenchmarkServiceImpl(mat);
 
-    Http.get(system).bindAndHandleAsync(
+    if (useTls) {
+      Http.get(system).bindAndHandleAsync(
         BenchmarkServiceHandlerFactory.create(benchmarkService, mat),
         ConnectWithHttps.toHostHttps(address.getHostName(), address.getPort()).withCustomHttpsContext(Utils.serverHttpContext()),
         mat)
         .thenAccept(binding -> {
-          System.out.println("gRPC server bound to: " + address);
+          System.out.println("gRPC server bound to: https://" + address);
         });
+    } else {
+      Unencrypted.connect(system,  BenchmarkServiceHandlerFactory.create(benchmarkService, mat),
+        ConnectHttp.toHost(address.getHostName(), address.getPort(), UseHttp2.always()),
+        mat
+        ).thenAccept(binding -> {
+        System.out.println("gRPC server bound to: http://" + address);
+      });
+    }
   }
 
   public void shutdown() {
