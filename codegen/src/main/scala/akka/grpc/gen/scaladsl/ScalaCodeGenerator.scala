@@ -19,10 +19,10 @@ import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
-  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set(generateServiceFile)
+  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
 
   // Override this to add service-independent generated files
-  def staticContent = Set.empty[CodeGeneratorResponse.File]
+  def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
 
   override def suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
 
@@ -52,13 +52,6 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     b.build()
   }
 
-  private def generateServiceFile(service: Service): CodeGeneratorResponse.File = {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(ApiTrait(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}.scala")
-    b.build
-  }
-
   private def parseParameters(params: String): GeneratorParams = {
     params.split(",").map(_.trim).filter(_.nonEmpty).foldLeft[GeneratorParams](GeneratorParams()) {
       case (p, "java_conversions") => p.copy(javaConversions = true)
@@ -67,5 +60,13 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
       case (p, "single_line_to_string") => p.copy(singleLineToProtoString = true)
       case (x, _) => x
     }
+  }
+}
+object ScalaCodeGenerator {
+  val generateServiceFile: Service => CodeGeneratorResponse.File = service => {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(ApiTrait(service).body)
+    b.setName(s"${service.packageDir}/${service.name}.scala")
+    b.build
   }
 }
