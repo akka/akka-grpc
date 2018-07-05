@@ -10,12 +10,12 @@ import templates.ScalaServer.txt._
 trait ScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-server"
 
-  override def perServiceContent = super.perServiceContent + generateHandler
+  override def perServiceContent = super.perServiceContent + ScalaCodeGenerator.generateServiceFile + generateHandler
 
   def generateHandler(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}Handler.scala")
+    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
     b.build
   }
 

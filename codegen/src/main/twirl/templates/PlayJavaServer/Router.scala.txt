@@ -1,0 +1,85 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.javadsl.Service)
+
+package @service.packageName;
+
+import javax.inject.*;
+
+import akka.japi.Function;
+import play.api.mvc.Handler;
+import play.api.mvc.akkahttp.AkkaHttpHandler$;
+import scala.compat.java8.FutureConverters;
+import scala.compat.java8.JFunction1;
+import scala.concurrent.Future;
+
+import akka.http.scaladsl.model.HttpRequest;
+import akka.http.scaladsl.model.HttpResponse;
+import akka.stream.Materializer;
+
+import play.mvc.*;
+import play.api.mvc.akkahttp.AkkaHttpHandler;
+import play.routing.Router;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionStage;
+
+@@Singleton
+public class @{service.name}Router implements Router {
+
+  private final String prefix;
+  private final controllers.@{service.name}Impl impl;
+  private final Materializer mat;
+
+  private final AkkaHttpHandler handler;
+
+  @@Inject()
+  public @{service.name}Router(controllers.@{service.name}Impl impl, Materializer mat) {
+    prefix = @{service.name}.name;
+
+    this.impl = impl;
+    this.mat = mat;
+
+    // perhaps provide adapter in runtime lib or introduce javadsl accepting one in Play?
+    this.handler = AkkaHttpHandler$.MODULE$.apply(new JFunction1<HttpRequest, Future<HttpResponse>>() {
+      final Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> h =
+        @{service.name}HandlerFactory.create(impl, mat);
+
+      @@Override
+      public Future<HttpResponse> apply(HttpRequest req) {
+        try {
+        CompletionStage<akka.http.scaladsl.model.HttpResponse> res =
+            h.apply(akka.http.javadsl.model.HttpRequest.class.cast(req))
+              .thenApply(r -> akka.http.scaladsl.model.HttpResponse.class.cast(r));
+
+          return FutureConverters.toScala(res);
+        } catch (Exception e) {
+          return FutureConverters.<HttpResponse>failedPromise(e).future();
+        }
+      }
+    });
+  }
+
+
+  @@Override
+  public List<RouteDocumentation> documentation() {
+    return Collections.emptyList();
+  }
+
+  @@Override
+  public Optional<Handler> route(Http.RequestHeader request) {
+    if (request.path().startsWith(prefix)) return Optional.of(handler);
+    else return Optional.empty();
+  }
+
+  @@Override
+  public Router withPrefix(String prefix) {
+    if (prefix == "/") return this;
+    else throw new IllegalStateException("Only one level of prefixes is supported for gRPC");
+  }
+}
+
