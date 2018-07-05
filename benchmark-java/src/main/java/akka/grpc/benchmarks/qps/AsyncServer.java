@@ -72,6 +72,7 @@ public class AsyncServer {
 
     Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
+
     system = ActorSystem.create("AsyncServer", conf);
 
     Materializer mat = ActorMaterializer.create(system);
