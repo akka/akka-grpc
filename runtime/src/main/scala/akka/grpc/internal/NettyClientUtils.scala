@@ -26,9 +26,14 @@ object NettyClientUtils {
    */
   @InternalApi
   def createChannel(settings: GrpcClientSettings): ManagedChannel = {
+    if (settings.host.isEmpty)
+      throw new IllegalArgumentException("Provided settings does not specify a host to connect to")
+    if (settings.port.isEmpty)
+      throw new IllegalArgumentException(s"Provided settings does not specify a port to connect to for host ${settings.host.get}")
+
     var builder =
       NettyChannelBuilder
-        .forAddress(settings.host, settings.port)
+        .forAddress(settings.host.get, settings.port.get)
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
     builder = settings.trustedCaCertificate.map(c => GrpcSslContexts.forClient.trustManager(loadCert(c)).build)
