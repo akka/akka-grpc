@@ -14,9 +14,26 @@ import io.grpc.CallCredentials
 object GrpcClientSettings {
   /** Scala API */
   def apply(host: String, port: Int): GrpcClientSettings =
-    new GrpcClientSettings(host, port)
+    new GrpcClientSettings(Some(host), Some(port))
 
-  /** Scala API */
+  /**
+   * Apply default settings from config. You will need to provide a host and port for the client
+   * to be able to actually use the returned settings.
+   *
+   * Scala API
+   */
+  def apply(sys: ActorSystem): GrpcClientSettings = {
+    val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
+    GrpcClientSettings(akkaGrpcClientConfig.getConfig("\"*\""))
+  }
+
+  /**
+   * Apply specific settings from system for `serviceName` falling back to the '*' settings for defaults.
+   * If the specified `serviceName` does not have a host and port in the config it will have to be provided
+   * programmatically.
+   *
+   * Scala API
+   */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
 
@@ -30,18 +47,28 @@ object GrpcClientSettings {
   }
 
   /** Scala API */
-  def apply(config: Config): GrpcClientSettings =
-    GrpcClientSettings(config getString "host", config getInt "port")
+  def apply(config: Config): GrpcClientSettings = {
+    val host = getOptionalString(config, "host")
+
+    val port =
+      if (config.hasPath("port")) Some(config.getInt("port"))
+      else None
+
+    new GrpcClientSettings(host, port)
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
         userAgent = getOptionalString(config, "user-agent"))
-
-  private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
-    case "" => None
-    case other => Some(other)
   }
+
+  private def getOptionalString(config: Config, path: String): Option[String] =
+    if (config.hasPath(path))
+      config.getString(path) match {
+        case "" => None
+        case other => Some(other)
+      }
+    else None
 
   private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = Helpers.toRootLowerCase(underlying.getString(path)) match {
     case "infinite" ⇒ Duration.Inf
@@ -61,8 +88,8 @@ object GrpcClientSettings {
 }
 
 final class GrpcClientSettings private (
-  val host: String,
-  val port: Int,
+  val host: Option[String],
+  val port: Option[Int],
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
@@ -70,8 +97,8 @@ final class GrpcClientSettings private (
   val userAgent: Option[String] = None,
   val useTls: Boolean = true) {
 
-  def withHost(value: String): GrpcClientSettings = copy(host = value)
-  def withPort(value: Int): GrpcClientSettings = copy(port = value)
+  def withHost(value: String): GrpcClientSettings = copy(host = Some(value))
+  def withPort(value: Int): GrpcClientSettings = copy(port = Some(value))
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
@@ -99,8 +126,8 @@ final class GrpcClientSettings private (
     copy(useTls = enabled)
 
   private def copy(
-    host: String = host,
-    port: Int = port,
+    host: Option[String] = host,
+    port: Option[Int] = port,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
     trustedCaCertificate: Option[String] = trustedCaCertificate,
