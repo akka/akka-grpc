@@ -22,7 +22,7 @@ import akka.stream.Materializer
  */
 @@Singleton
 class @{service.name}ClientProvider @@Inject()(implicit sys: ActorSystem, mat: Materializer) extends Provider[@{service.name}Client]() {
-  override def get(): GreeterServiceClient = {
+  override def get(): @{service.name}Client = {
     implicit val ec: ExecutionContext = sys.dispatcher
     @{service.name}Client(GrpcClientSettings(@{service.name}.name, sys))
   }

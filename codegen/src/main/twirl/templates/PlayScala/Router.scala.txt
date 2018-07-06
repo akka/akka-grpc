@@ -42,7 +42,7 @@ class @{service.name}Router @@Inject()(impl: controllers.@{service.name}Impl)(im
 
       // Needs to be overridden to point to new prefix due to initialization order
       override val handler = new AkkaHttpHandler {
-        val h = GreeterServiceHandler(impl, newPrefix)
+        val h = @{service.name}Handler(impl, newPrefix)
         override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
       }
 
