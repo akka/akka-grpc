@@ -42,8 +42,7 @@ public class ClientConfiguration implements Configuration {
   private static final ClientConfiguration DEFAULT = new ClientConfiguration();
 
   Transport transport = Transport.AKKA_HTTP;
-  // currenlty we don't support non-tls
-  boolean tls = true;
+  boolean tls = false;
   // currently we only support testca
   boolean testca = true;
   String authorityOverride = TestUtils.TEST_SERVER_HOST;

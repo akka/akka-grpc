@@ -67,13 +67,15 @@ final class GrpcClientSettings private (
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
   val deadline: Duration = Duration.Undefined,
-  val userAgent: Option[String] = None) {
+  val userAgent: Option[String] = None,
+  val useTls: Boolean = true) {
 
   def withHost(value: String): GrpcClientSettings = copy(host = value)
   def withPort(value: Int): GrpcClientSettings = copy(port = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
+
   /**
    * Each call will have this deadline.
    */
@@ -90,6 +92,12 @@ final class GrpcClientSettings private (
    */
   def withUserAgent(value: String): GrpcClientSettings = copy(userAgent = Option(value))
 
+  /**
+   * Set to false to use unencrypted HTTP/2. This should not be used in production system.
+   */
+  def withTls(enabled: Boolean): GrpcClientSettings =
+    copy(useTls = enabled)
+
   private def copy(
     host: String = host,
     port: Int = port,
@@ -97,13 +105,15 @@ final class GrpcClientSettings private (
     overrideAuthority: Option[String] = overrideAuthority,
     trustedCaCertificate: Option[String] = trustedCaCertificate,
     deadline: Duration = deadline,
-    userAgent: Option[String] = userAgent): GrpcClientSettings = new GrpcClientSettings(
+    userAgent: Option[String] = userAgent,
+    useTls: Boolean = useTls): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     deadline = deadline,
     host = host,
     overrideAuthority = overrideAuthority,
     port = port,
     trustedCaCertificate = trustedCaCertificate,
-    userAgent = userAgent)
+    userAgent = userAgent,
+    useTls = useTls)
 
 }

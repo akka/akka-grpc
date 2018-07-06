@@ -45,6 +45,7 @@ final class LoadServer {
   LoadServer(Control.ServerConfig config) throws Exception {
     log.log(Level.INFO, "Server Config \n" + config.toString());
     port = config.getPort() ==  0 ? Utils.pickUnusedPort() : config.getPort();
+
     switch (config.getServerType()) {
       case ASYNC_SERVER: {
         break;
@@ -85,7 +86,7 @@ final class LoadServer {
     InetSocketAddress address = new InetSocketAddress("127.0.0.1", port);
 
     server = new AsyncServer();
-    server.run(address);
+    server.run(address, true);
 
     lastStatTime = System.nanoTime();
     if (osBean != null) {

@@ -18,6 +18,7 @@
 package akka.grpc.benchmarks;
 
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.benchmarks.proto.Control;
 import akka.grpc.benchmarks.proto.Messages;
 import akka.grpc.benchmarks.proto.Messages.Payload;
 import akka.grpc.benchmarks.proto.Messages.SimpleRequest;
@@ -78,7 +79,6 @@ public final class Utils {
     int port = Integer.parseInt(parts[1]);
     return new InetSocketAddress(host, port);
   }
-
 
 
   /**
@@ -184,11 +184,15 @@ public final class Utils {
     return ConnectionContext.https(context);
   }
 
-  public static GrpcClientSettings createGrpcClientSettings(InetSocketAddress socketAddress) {
-    GrpcClientSettings settings = GrpcClientSettings.create(socketAddress.getHostName(), socketAddress.getPort())
-        // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
-        .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
-        .withTrustedCaCertificate("ca.pem");
-    return settings;
+  public static GrpcClientSettings createGrpcClientSettings(InetSocketAddress socketAddress, boolean useTls) {
+    GrpcClientSettings settings = GrpcClientSettings.create(socketAddress.getHostName(), socketAddress.getPort());
+    if (useTls) // having security params means --tls
+      // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
+      return settings
+          .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
+          .withTrustedCaCertificate("ca.pem");
+    else
+      return settings;
+
   }
 }

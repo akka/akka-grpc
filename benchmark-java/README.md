@@ -11,19 +11,19 @@ grpc-java and akka-grpc.
 Server:
 
 ```
-sbt  "runMain akka.grpc.benchmarks.qps.AsyncServer --address=localhost:50051"
+sbt  "runMain akka.grpc.benchmarks.qps.AsyncServer --tls --address=localhost:50051"
 ```
 
 Client with unary calls:
 
 ```
-sbt "runMain akka.grpc.benchmarks.qps.AsyncClient --address=localhost:50051 --warmup_duration=15 --duration=30 --channels=1 --outstanding_rpcs=16"
+sbt "runMain akka.grpc.benchmarks.qps.AsyncClient --tls --address=localhost:50051 --warmup_duration=15 --duration=30 --channels=1 --outstanding_rpcs=16"
 ```
 
 Client with streaming calls:
 
 ```
-sbt "runMain akka.grpc.benchmarks.qps.AsyncClient --address=localhost:50051 --warmup_duration=15 --duration=30 --channels=1 --outstanding_rpcs=16 --streaming_rpcs"
+sbt "runMain akka.grpc.benchmarks.qps.AsyncClient --tls --address=localhost:50051 --warmup_duration=15 --duration=30 --channels=1 --outstanding_rpcs=16 --streaming_rpcs"
 ```
 
 Use `--help` to show description of all options.
