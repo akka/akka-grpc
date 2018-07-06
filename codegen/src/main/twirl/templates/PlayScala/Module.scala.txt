@@ -1,0 +1,16 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service)
+
+package @service.packageName
+
+import play.api.inject.Binding
+import play.api.{Configuration, Environment}
+
+class @{service.name}Module extends play.api.inject.Module {
+  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
+    Seq(bind[@{service.name}Client].toProvider[@{service.name}ClientProvider])
+  }
+}

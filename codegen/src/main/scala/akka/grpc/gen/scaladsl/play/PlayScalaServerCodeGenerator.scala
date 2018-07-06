@@ -6,7 +6,7 @@ package akka.grpc.gen.scaladsl.play
 
 import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
-import templates.PlayScalaServer.txt.Router
+import templates.PlayScala.txt.Router
 
 object PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name: String = "akka-grpc-play-server-scala"
