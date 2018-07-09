@@ -5,8 +5,6 @@
 package akka.grpc.sbt.test
 
 import akka.grpc.gen.CodeGenerator
-import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
@@ -14,21 +12,13 @@ import protocbridge.Artifact
 /**
  * Generate both Java and Scala server-side code, mainly for testing.
  */
-object CompositeCodeGenerator extends CodeGenerator {
+class CompositeCodeGenerator(generators: Seq[CodeGenerator]) extends CodeGenerator {
   override val name = "akka-composite"
 
   override def run(request: PluginProtos.CodeGeneratorRequest): PluginProtos.CodeGeneratorResponse = {
-    val javaResult = JavaBothCodeGenerator.run(request)
-    val scalaResult = ScalaBothCodeGenerator.run(request)
-    val scalaMarshallersResult = ScalaMarshallersCodeGenerator.run(request)
-
-    CodeGeneratorResponse.newBuilder()
-      .addAllFile(javaResult.getFileList)
-      .addAllFile(scalaResult.getFileList)
-      .addAllFile(scalaMarshallersResult.getFileList)
-      .build()
+    generators.foldLeft(CodeGeneratorResponse.newBuilder())((builder, generator) => builder.addAllFile(generator.run(request).getFileList)).build()
   }
 
   override def suggestedDependencies: Seq[Artifact] =
-    JavaBothCodeGenerator.suggestedDependencies ++ ScalaBothCodeGenerator.suggestedDependencies
+    generators.flatMap(_.suggestedDependencies)
 }

@@ -127,7 +127,7 @@ public final class @{service.name}Client implements @{service.name} {
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   public void close() {
-    channel.foreach(c -> c.shutdown(), ec);
+    channel.foreach(c -> c.shutdownNow(), ec);
   }
 }
 

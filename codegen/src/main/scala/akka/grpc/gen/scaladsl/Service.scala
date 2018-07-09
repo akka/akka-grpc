@@ -12,6 +12,7 @@ import scalapb.compiler.{ DescriptorPimps, GeneratorParams }
 
 case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
+  def packageDir = packageName.replace('.', '/')
 }
 
 object Service {

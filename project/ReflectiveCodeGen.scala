@@ -11,6 +11,7 @@ import scalapb.ScalaPbCodeGenerator
 
 /** A plugin that allows to use a code generator compiled in one subproject to be used in a test project */
 object ReflectiveCodeGen extends AutoPlugin {
+  val reflectiveGeneratorClass = settingKey[String]("Generator to reflectively run")
   // In the 'real' plugin we enable the 'flat_package' option by default to get package names
   // that are more consistent between Scala and Java.
   // Because the interop tests generate both Scala and Java code, however, here we disable this
@@ -51,6 +52,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       setCodeGenerator := loadAndSetGenerator(
         // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generator from there
         (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
+        (reflectiveGeneratorClass in Compile).value,
         (mutableGenerator in Compile).value
       ),
       PB.recompile ~= (_ => true),
@@ -82,12 +84,12 @@ object ReflectiveCodeGen extends AutoPlugin {
     MutableGeneratorAccess(adapted.setUnderlying _, (JvmGenerator("mutable", adapted), codeGeneratorSettings))
   }
 
-  def loadAndSetGenerator(classpath: Classpath, access: MutableGeneratorAccess): Unit = {
+  def loadAndSetGenerator(classpath: Classpath, mutableGeneratorClass: String, access: MutableGeneratorAccess): Unit = {
     val cp = classpath.map(_.data)
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
     val loader = ClasspathUtilities.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
-    val instance = loader.loadClass("akka.grpc.sbt.test.AkkaCompositeCodeGenerator").newInstance()
+    val instance = loader.loadClass(mutableGeneratorClass).newInstance()
     type WithInstance = {
       def instance(): protocbridge.ProtocCodeGenerator
     }

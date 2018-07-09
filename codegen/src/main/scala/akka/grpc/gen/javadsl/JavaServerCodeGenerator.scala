@@ -17,7 +17,7 @@ trait JavaServerCodeGenerator extends JavaCodeGenerator {
   def generateHandlerFactory(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}HandlerFactory.java")
+    b.setName(s"${service.packageDir}/${service.name}HandlerFactory.java")
     b.build
   }
 

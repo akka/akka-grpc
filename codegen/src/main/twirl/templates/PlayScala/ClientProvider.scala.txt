@@ -1,0 +1,29 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service)
+
+package @service.packageName
+
+import javax.inject.{Inject, Singleton, Provider}
+
+import scala.concurrent.ExecutionContext
+
+import play.api.inject.ApplicationLifecycle
+
+import akka.actor.ActorSystem
+import akka.grpc.GrpcClientSettings
+import akka.stream.Materializer
+
+/**
+ * Wired into DI by adding @{service.packageName}.@{service.name}Module to play.modules.enabled
+ * in your application.conf
+ */
+@@Singleton
+class @{service.name}ClientProvider @@Inject()(implicit sys: ActorSystem, mat: Materializer) extends Provider[@{service.name}Client]() {
+  override def get(): @{service.name}Client = {
+    implicit val ec: ExecutionContext = sys.dispatcher
+    @{service.name}Client(GrpcClientSettings(@{service.name}.name, sys))
+  }
+}

@@ -4,18 +4,17 @@
 
 package akka.grpc
 
-import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.grpc.internal.HardcodedServiceDiscovery
-import akka.util.Helpers
 import com.typesafe.config.Config
-
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.collection.immutable
 import io.grpc.CallCredentials
 
+import scala.collection.immutable
 import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.grpc.internal.HardcodedServiceDiscovery
+import akka.util.Helpers
 
 object GrpcClientSettings {
   val DefaultResolveTimeout = 5.seconds
@@ -43,13 +42,14 @@ object GrpcClientSettings {
   }
 
   /** Scala API */
-  def apply(config: Config): GrpcClientSettings =
+  def apply(config: Config): GrpcClientSettings = {
     GrpcClientSettings(config getString "host", config getInt "port")
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
         userAgent = getOptionalString(config, "user-agent"))
+  }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case "" => None
@@ -88,6 +88,7 @@ final class GrpcClientSettings private (
   val trustedCaCertificate: Option[String] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
+  val useTls: Boolean = true,
   val resolveTimeout: FiniteDuration = 1.second) {
 
   def withName(value: String): GrpcClientSettings = copy(name = value)
@@ -98,6 +99,7 @@ final class GrpcClientSettings private (
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
+
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
   /**
    * Each call will have this deadline.
@@ -115,6 +117,12 @@ final class GrpcClientSettings private (
    */
   def withUserAgent(value: String): GrpcClientSettings = copy(userAgent = Option(value))
 
+  /**
+   * Set to false to use unencrypted HTTP/2. This should not be used in production system.
+   */
+  def withTls(enabled: Boolean): GrpcClientSettings =
+    copy(useTls = enabled)
+
   private def copy(
     name: String = name,
     defaultPort: Int = defaultPort,
@@ -123,7 +131,9 @@ final class GrpcClientSettings private (
     trustedCaCertificate: Option[String] = trustedCaCertificate,
     deadline: Duration = deadline,
     userAgent: Option[String] = userAgent,
-    resolveTimeout: FiniteDuration = resolveTimeout): GrpcClientSettings = new GrpcClientSettings(
+    useTls: Boolean = useTls,
+    resolveTimeout: FiniteDuration = resolveTimeout,
+  ): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     deadline = deadline,
@@ -132,6 +142,8 @@ final class GrpcClientSettings private (
     defaultPort = defaultPort,
     trustedCaCertificate = trustedCaCertificate,
     userAgent = userAgent,
-    resolveTimeout = resolveTimeout)
+    useTls = useTls,
+    resolveTimeout = resolveTimeout,
+  )
 
 }

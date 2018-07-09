@@ -49,7 +49,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ApiInterface(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}.java")
+    b.setName(s"${service.packageDir}/${service.name}.java")
     b.build
   }
 
