@@ -15,20 +15,30 @@ import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
+import akka.util.JavaDurationConverters._
 
 object GrpcClientSettings {
-  val DefaultResolveTimeout = 5.seconds
-  val DefaultPort = 443
 
   /** Scala API */
   def apply(host: String, port: Int): GrpcClientSettings =
-    new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port))
+    // hardcoded doesn't use the resolve timeout
+    new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port), port, 1.second)
 
-  /** Scala API */
-  def apply(name: String, serviceDiscovery: SimpleServiceDiscovery) =
-    new GrpcClientSettings(name, serviceDiscovery)
+  /**
+    * Scala API
+    *
+    * @param serviceName Name to look up in serviceDiscovery
+    * @param defaultPort Port to use if service discovery only returns a host name
+    * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
+    */
+  def apply(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: FiniteDuration) =
+    new GrpcClientSettings(serviceName, serviceDiscovery, defaultPort, resolveTimeout)
 
-  /** Scala API */
+  /**
+    * Scala API
+    *
+    * @param serviceName of the service to lookup config from the ActorSystem's config
+    */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
 
@@ -43,7 +53,7 @@ object GrpcClientSettings {
 
   /** Scala API */
   def apply(config: Config): GrpcClientSettings = {
-    GrpcClientSettings(config getString "host", config getInt "port")
+    GrpcClientSettings(config.getString("host"), config.getInt("port"))
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
@@ -61,20 +71,32 @@ object GrpcClientSettings {
     case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
-  /** Java API */
+  /**
+    * Java API
+    *
+    * @param serviceName Name of the service to look up in the ActorSystem's config
+    */
   def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
     GrpcClientSettings(serviceName, sys)
 
-  /** Java API */
+  /**
+    * Java API
+    */
   def create(config: Config): GrpcClientSettings =
     GrpcClientSettings(config)
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
 
-  /** Java API */
-  def create(name: String, serviceDiscovery: SimpleServiceDiscovery) =
-    new GrpcClientSettings(name, serviceDiscovery)
+  /**
+    * Java API
+    *
+    * @param serviceName Name of the service to look up in the ServiceDiscovery
+    * @param defaultPort Port to use if service discovery only return a host
+    * @param resolveTimeout Passed to service discovery resolve
+    */
+  def create(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: java.time.Duration) =
+    apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
 
   private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
 }
@@ -82,14 +104,14 @@ object GrpcClientSettings {
 final class GrpcClientSettings private (
   val name: String,
   val serviceDiscovery: SimpleServiceDiscovery,
-  val defaultPort: Int = 443,
+  val defaultPort: Int,
+  val resolveTimeout: FiniteDuration,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
-  val useTls: Boolean = true,
-  val resolveTimeout: FiniteDuration = 1.second) {
+  val useTls: Boolean = true) {
 
   def withName(value: String): GrpcClientSettings = copy(name = value)
   /**
