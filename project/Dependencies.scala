@@ -8,6 +8,7 @@ object Dependencies {
   object Versions {
     val akka = "2.5.12"
     val akkaHttp = "10.1.3"
+    val akkaDiscovery = "0.15.0"
 
     val play = "2.7.0-M1"
 
@@ -21,10 +22,11 @@ object Dependencies {
   }
 
   object Compile {
-    val akkaStream       = "com.typesafe.akka" %% "akka-stream"        % Versions.akka
-    val akkaHttp         = "com.typesafe.akka" %% "akka-http"          % Versions.akkaHttp
-    val akkaHttpCore     = "com.typesafe.akka" %% "akka-http-core"     % Versions.akkaHttp
-    val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
+    val akkaStream       = "com.typesafe.akka"            %% "akka-stream"        % Versions.akka
+    val akkaHttp         = "com.typesafe.akka"            %% "akka-http"          % Versions.akkaHttp
+    val akkaHttpCore     = "com.typesafe.akka"            %% "akka-http-core"     % Versions.akkaHttp
+    val akkaHttp2Support = "com.typesafe.akka"            %% "akka-http2-support" % Versions.akkaHttp
+    val akkaDiscovery    = "com.lightbend.akka.discovery" %% "akka-discovery"     % Versions.akkaDiscovery
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % Versions.scalapb
     val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
@@ -81,7 +83,8 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
-    Compile.akkaHttp2Support
+    Compile.akkaHttp2Support,
+    Compile.akkaDiscovery
   ) ++ testing
 
   val mavenPlugin = l ++= Seq(

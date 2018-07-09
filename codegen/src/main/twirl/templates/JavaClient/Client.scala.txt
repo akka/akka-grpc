@@ -31,13 +31,14 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 
 
 import java.util.concurrent.CompletionStage;
-
 import scala.concurrent.ExecutionContext;
 
 
 public final class @{service.name}Client implements @{service.name} {
 
-  private final ManagedChannel channel;
+  private final scala.concurrent.Future<ManagedChannel> channel;
+  private final ExecutionContext ec;
+
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
       private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder;
@@ -51,7 +52,8 @@ public final class @{service.name}Client implements @{service.name} {
   }
 
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    this.channel = NettyClientUtils.createChannel(settings);
+    this.channel = NettyClientUtils.createChannel(settings, ec);
+    this.ec = ec;
     final CallOptions options = NettyClientUtils.callOptions(settings);
 
     if (mat instanceof ActorMaterializer) {
@@ -60,18 +62,18 @@ public final class @{service.name}Client implements @{service.name} {
 
     @for(method <- service.methods) {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings);
+        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
       } else {
         @defining(service.grpcName + "." + method.grpcName){ fqName =>
           @if(method.methodType == akka.grpc.gen.ClientStreaming){
             @{method.name}RequestBuilder = new JavaClientStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings, mat);
+              @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
           } else if(method.methodType == akka.grpc.gen.ServerStreaming){
             @{method.name}RequestBuilder = new JavaServerStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings);
+              @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           } else if(method.methodType == akka.grpc.gen.BidiStreaming){
             @{method.name}RequestBuilder = new JavaBidirectionalStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings);
+              @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           }
         }
       }
@@ -125,7 +127,7 @@ public final class @{service.name}Client implements @{service.name} {
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   public void close() {
-    channel.shutdownNow();
+    channel.foreach(c -> c.shutdownNow(), ec);
   }
 }
 
