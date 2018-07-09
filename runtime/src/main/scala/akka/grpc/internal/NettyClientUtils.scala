@@ -28,7 +28,7 @@ object NettyClientUtils {
    */
   @InternalApi
   def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): Future[ManagedChannel] = {
-    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).map { targets: SimpleServiceDiscovery.Resolved =>
+    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).flatMap { targets: SimpleServiceDiscovery.Resolved =>
       if (targets.addresses.nonEmpty) {
         val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
         var builder =
@@ -47,9 +47,9 @@ object NettyClientUtils {
 
         builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
 
-        builder.build
+        Future.successful(builder.build)
       } else {
-        throw new IllegalStateException("No targets returned for name: " + settings.name)
+        Future.failed(new IllegalStateException("No targets returned for name: " + settings.name))
       }
     }
   }
