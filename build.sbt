@@ -159,14 +159,30 @@ lazy val interopTests = Project(
       }
       )))
 
-lazy val playInteropTest = Project(
-    id="akka-grpc-play-interop-test",
-    base = file("play-interop-test")
+lazy val playInteropTestScala = Project(
+    id="akka-grpc-play-interop-test-scala",
+    base = file("play-interop-test-scala")
   )
   .settings(Dependencies.playInteropTest)
   .settings(commonSettings)
   .settings(Seq(
-    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayCompositeCodeGenerator",
+    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayScalaCompositeCodeGenerator",
+  ))
+  .enablePlugins(akka.grpc.NoPublish)
+  .enablePlugins(akka.grpc.ReflectiveCodeGen)
+  // needed to be able to override the PB.generate task reliably
+  .disablePlugins(ProtocPlugin)
+  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
+  .dependsOn(runtime)
+
+lazy val playInteropTestJava = Project(
+    id="akka-grpc-play-interop-test-java",
+    base = file("play-interop-test-java")
+  )
+  .settings(Dependencies.playInteropTest)
+  .settings(commonSettings)
+  .settings(Seq(
+    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayJavaCompositeCodeGenerator",
   ))
   .enablePlugins(akka.grpc.NoPublish)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
@@ -209,7 +225,8 @@ lazy val root = Project(
     sbtPlugin,
     scalapbProtocPlugin,
     interopTests,
-    playInteropTest,
+    playInteropTestJava,
+    playInteropTestScala,
     docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
