@@ -30,7 +30,7 @@ public class AkkaGrpcClientJava extends GrpcClient {
     TestUtils.installConscryptIfAvailable();
     final Settings settings = Settings.parseArgs(args);
 
-    final ActorSystem sys = ActorSystem.create();
+    final ActorSystem sys = ActorSystem.create("AkkaGrpcClientJava");
     final Materializer mat = ActorMaterializer.create(sys);
 
     final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, mat, sys.dispatcher()));

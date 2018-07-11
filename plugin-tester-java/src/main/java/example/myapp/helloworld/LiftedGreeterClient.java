@@ -30,7 +30,7 @@ class LiftedGreeterClient {
         .withOverrideAuthority("foo.test.google.fr")
         .withTrustedCaCertificate("ca.pem");
 
-    ActorSystem system = ActorSystem.create();
+    ActorSystem system = ActorSystem.create("HelloWorldClient");
     Materializer materializer = ActorMaterializer.create(system);
 
     GreeterServiceClient client = null;

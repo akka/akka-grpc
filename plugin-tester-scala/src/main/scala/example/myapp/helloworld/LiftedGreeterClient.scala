@@ -27,7 +27,7 @@ object LiftedGreeterClient {
 
   def main(args: Array[String]): Unit = {
 
-    implicit val sys = ActorSystem()
+    implicit val sys = ActorSystem("HelloWorldClient")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
