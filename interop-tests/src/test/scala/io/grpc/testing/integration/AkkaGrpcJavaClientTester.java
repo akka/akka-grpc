@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -37,6 +38,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   private TestServiceClient client;
   private UnimplementedServiceClient clientUnimplementedService;
+
+  private static int AWAIT_TIME_SECONDS = 3;
 
   public AkkaGrpcJavaClientTester(Settings settings, Materializer mat, ExecutionContext ec) {
     this.settings = settings;
@@ -56,8 +59,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   @Override
   public void tearDown() throws Exception {
-    if (client != null) client.close();
-    if (clientUnimplementedService != null) clientUnimplementedService.close();
+    if (client != null) client.close().toCompletableFuture().get(AWAIT_TIME_SECONDS, TimeUnit.SECONDS);
+    if (clientUnimplementedService != null) clientUnimplementedService.close().toCompletableFuture().get(AWAIT_TIME_SECONDS, TimeUnit.SECONDS);
   }
 
   @Override

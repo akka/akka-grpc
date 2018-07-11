@@ -7,8 +7,10 @@
 package @service.packageName;
 
 import akka.NotUsed;
+import akka.Done;
 import akka.grpc.internal.ProtoMarshaller;
 import akka.grpc.internal.NettyClientUtils;
+import akka.grpc.internal.ChannelUtils;
 import akka.grpc.internal.JavaUnaryRequestBuilder;
 import akka.grpc.internal.JavaClientStreamingRequestBuilder;
 import akka.grpc.internal.JavaServerStreamingRequestBuilder;
@@ -32,10 +34,13 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 
 import java.util.concurrent.CompletionStage;
 import scala.concurrent.ExecutionContext;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.Promise;
 
 
 public final class @{service.name}Client implements @{service.name} {
 
+  private final Promise<Done> done = ChannelUtils.createDonePromise();
   private final scala.concurrent.Future<ManagedChannel> channel;
   private final ExecutionContext ec;
 
@@ -52,7 +57,7 @@ public final class @{service.name}Client implements @{service.name} {
   }
 
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    this.channel = NettyClientUtils.createChannel(settings, ec);
+    this.channel = NettyClientUtils.createChannel(settings, done, ec);
     this.ec = ec;
     final CallOptions options = NettyClientUtils.callOptions(settings);
 
@@ -121,13 +126,19 @@ public final class @{service.name}Client implements @{service.name} {
         .build();
     }
 
-  // TODO expose the close state as CompletionStage[Done]
-
   /**
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
-  public void close() {
-    channel.foreach(c -> c.shutdownNow(), ec);
+  public CompletionStage<Done> close() {
+    return ChannelUtils.closeCS(channel, done, ec);
+  }
+
+ /**
+  * Returns a CompletionState that completes successfully when shutdown via close()
+  * or exceptionally if a connection can not be established after maxConnectionAttempts.
+  */
+  public CompletionStage<Done> closed() {
+    return FutureConverters.toJava(done.future());
   }
 }
 

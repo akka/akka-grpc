@@ -7,15 +7,16 @@ package akka.grpc.internal
 import java.io.File
 import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 
+import akka.Done
+
 import scala.concurrent.duration.FiniteDuration
 import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
 import akka.grpc.GrpcClientSettings
-import io.grpc.CallOptions
-import io.grpc.ManagedChannel
+import io.grpc.{ CallOptions, ConnectivityState, ManagedChannel }
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
  * INTERNAL API
@@ -27,8 +28,8 @@ object NettyClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): Future[ManagedChannel] = {
-    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).flatMap { targets: SimpleServiceDiscovery.Resolved =>
+  def createChannel(settings: GrpcClientSettings, done: Promise[Done])(implicit ec: ExecutionContext): Future[ManagedChannel] = {
+    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).flatMap { targets =>
       if (targets.addresses.nonEmpty) {
         val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
         var builder =
@@ -47,7 +48,9 @@ object NettyClientUtils {
 
         builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
 
-        Future.successful(builder.build)
+        val channel = builder.build()
+        ChannelUtils.monitorChannel(done, channel, settings.connectionAttempts)
+        Future.successful(channel)
       } else {
         Future.failed(new IllegalStateException("No targets returned for name: " + settings.name))
       }

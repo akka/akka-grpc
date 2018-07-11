@@ -25,20 +25,20 @@ object GrpcClientSettings {
     new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port), port, 1.second)
 
   /**
-    * Scala API
-    *
-    * @param serviceName Name to look up in serviceDiscovery
-    * @param defaultPort Port to use if service discovery only returns a host name
-    * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
-    */
+   * Scala API
+   *
+   * @param serviceName Name to look up in serviceDiscovery
+   * @param defaultPort Port to use if service discovery only returns a host name
+   * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
+   */
   def apply(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: FiniteDuration) =
     new GrpcClientSettings(serviceName, serviceDiscovery, defaultPort, resolveTimeout)
 
   /**
-    * Scala API
-    *
-    * @param serviceName of the service to lookup config from the ActorSystem's config
-    */
+   * Scala API
+   *
+   * @param serviceName of the service to lookup config from the ActorSystem's config
+   */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
 
@@ -58,7 +58,8 @@ object GrpcClientSettings {
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
-        userAgent = getOptionalString(config, "user-agent"))
+        userAgent = getOptionalString(config, "user-agent"),
+        connectionAttempts = config.getInt("connection-attempts"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
@@ -72,16 +73,16 @@ object GrpcClientSettings {
   }
 
   /**
-    * Java API
-    *
-    * @param serviceName Name of the service to look up in the ActorSystem's config
-    */
+   * Java API
+   *
+   * @param serviceName Name of the service to look up in the ActorSystem's config
+   */
   def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
     GrpcClientSettings(serviceName, sys)
 
   /**
-    * Java API
-    */
+   * Java API
+   */
   def create(config: Config): GrpcClientSettings =
     GrpcClientSettings(config)
 
@@ -89,12 +90,12 @@ object GrpcClientSettings {
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
 
   /**
-    * Java API
-    *
-    * @param serviceName Name of the service to look up in the ServiceDiscovery
-    * @param defaultPort Port to use if service discovery only return a host
-    * @param resolveTimeout Passed to service discovery resolve
-    */
+   * Java API
+   *
+   * @param serviceName Name of the service to look up in the ServiceDiscovery
+   * @param defaultPort Port to use if service discovery only return a host
+   * @param resolveTimeout Passed to service discovery resolve
+   */
   def create(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: java.time.Duration) =
     apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
 
@@ -106,6 +107,7 @@ final class GrpcClientSettings private (
   val serviceDiscovery: SimpleServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
+  val connectionAttempts: Int = 5,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
@@ -145,6 +147,14 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
+  /**
+   * How many times to retry establishing a connection before failing the client
+   * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
+   * An exponentially increasing backoff is used between attempts.
+   */
+  def withConnectionAttempts(value: Int): GrpcClientSettings =
+    copy(connectionAttempts = value)
+
   private def copy(
     name: String = name,
     defaultPort: Int = defaultPort,
@@ -155,7 +165,7 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-  ): GrpcClientSettings = new GrpcClientSettings(
+    connectionAttempts: Int = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     deadline = deadline,
@@ -166,6 +176,6 @@ final class GrpcClientSettings private (
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,
-  )
+    connectionAttempts = connectionAttempts)
 
 }

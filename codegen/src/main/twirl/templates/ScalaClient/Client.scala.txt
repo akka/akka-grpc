@@ -7,7 +7,8 @@
 package @service.packageName
 
 import akka.NotUsed
-import akka.grpc.internal.{ Marshaller, NettyClientUtils }
+import akka.Done
+import akka.grpc.internal.{ Marshaller, NettyClientUtils, ChannelUtils }
 import akka.grpc.internal.{ ScalaUnaryRequestBuilder, ScalaClientStreamingRequestBuilder }
 import akka.grpc.internal.{ ScalaServerStreamingRequestBuilder, ScalaBidirectionalStreamingRequestBuilder }
 import akka.grpc.scaladsl.{ SingleResponseRequestBuilder, StreamResponseRequestBuilder }
@@ -16,7 +17,7 @@ import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 import io.grpc._
 import io.grpc.stub.{ ClientCalls, StreamObserver }
@@ -25,7 +26,9 @@ import @{service.name}Client._
 final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} {
   import @{service.name}Client._
 
-  private val channel: Future[ManagedChannel] = NettyClientUtils.createChannel(settings)
+  private val done = Promise[Done]()
+  private val channel: Future[ManagedChannel] = NettyClientUtils.createChannel(settings, done)
+
   private val options = NettyClientUtils.callOptions(settings)
 
   mat match {
@@ -71,12 +74,19 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
       @{method.name}().invoke(in)
   }
 
-  // TODO expose the close state as Future[Done]
-
   /**
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
-  def close(): Unit = channel.foreach(_.shutdownNow())
+  def close(): Future[Done] = {
+    ChannelUtils.close(channel, done)
+  }
+
+ /**
+  * Returns a Future that completes successfully when shutdown via close()
+  * or exceptionally if a connection can not be established or reestablished
+  * after maxConnectionAttempts.
+  */
+  def closed(): Future[Done] = done.future
 
 }
 
