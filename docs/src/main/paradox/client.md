@@ -165,6 +165,11 @@ avoid leaking in the latter case, you should call `.close()` on the client.
 When the connection breaks, the client will start failing requests and try reconnecting
 to the server automatically.
 
+If a connection can not be established after the configured number of attempts then
+the client closes its self. When this happens the @scala[`Future`]@java[`CompletionStage`] 
+returned by `closed()` will complete with a failure. You do not need to call `close()` in
+this case. 
+
 ### Debug logging
 
 To enable fine grained debug running the following logging configuration can be used.

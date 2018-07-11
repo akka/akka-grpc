@@ -8,13 +8,7 @@ package @service.packageName;
 
 import akka.NotUsed;
 import akka.Done;
-import akka.grpc.internal.ProtoMarshaller;
-import akka.grpc.internal.NettyClientUtils;
-import akka.grpc.internal.ChannelUtils;
-import akka.grpc.internal.JavaUnaryRequestBuilder;
-import akka.grpc.internal.JavaClientStreamingRequestBuilder;
-import akka.grpc.internal.JavaServerStreamingRequestBuilder;
-import akka.grpc.internal.JavaBidirectionalStreamingRequestBuilder;
+import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.SingleResponseRequestBuilder;
 import akka.grpc.javadsl.StreamResponseRequestBuilder;
@@ -40,7 +34,7 @@ import scala.concurrent.Promise;
 
 public final class @{service.name}Client implements @{service.name} {
 
-  private final Promise<Done> done = ChannelUtils.createDonePromise();
+  private final InternalChannel internalChannel;
   private final scala.concurrent.Future<ManagedChannel> channel;
   private final ExecutionContext ec;
 
@@ -57,7 +51,8 @@ public final class @{service.name}Client implements @{service.name} {
   }
 
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    this.channel = NettyClientUtils.createChannel(settings, done, ec);
+    this.internalChannel = NettyClientUtils.createChannel(settings, ec);
+    this.channel = internalChannel.managedChannel();
     this.ec = ec;
     final CallOptions options = NettyClientUtils.callOptions(settings);
 
@@ -130,7 +125,7 @@ public final class @{service.name}Client implements @{service.name} {
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   public CompletionStage<Done> close() {
-    return ChannelUtils.closeCS(channel, done, ec);
+    return ChannelUtils.closeCS(internalChannel, ec);
   }
 
  /**
@@ -138,7 +133,7 @@ public final class @{service.name}Client implements @{service.name} {
   * or exceptionally if a connection can not be established after maxConnectionAttempts.
   */
   public CompletionStage<Done> closed() {
-    return FutureConverters.toJava(done.future());
+    return internalChannel.doneCS();
   }
 }
 

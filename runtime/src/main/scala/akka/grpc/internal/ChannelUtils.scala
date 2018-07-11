@@ -19,28 +19,37 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 @InternalApi
 object ChannelUtils {
 
-  def createDonePromise(): Promise[Done] = Promise[Done]()
-
-  def close(channel: Future[ManagedChannel], done: Promise[Done])(implicit ec: ExecutionContext): Future[Done] = {
-    channel.foreach(_.shutdown())
-    done.future
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  def close(internalChannel: InternalChannel)(implicit ec: ExecutionContext): Future[Done] = {
+    internalChannel.managedChannel.foreach(_.shutdown())
+    internalChannel.done
+  }
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  def closeCS(internalChannel: InternalChannel)(implicit ec: ExecutionContext): CompletionStage[Done] = {
+    close(internalChannel).toJava
   }
 
-  def closeCS(channel: Future[ManagedChannel], done: Promise[Done])(implicit ec: ExecutionContext): CompletionStage[Done] = {
-    close(channel, done).toJava
-  }
-
-  def monitorChannel(done: Promise[Done], channel: ManagedChannel, maxConnectionAttempts: Int): Unit = {
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private[akka] def monitorChannel(done: Promise[Done], channel: ManagedChannel, maxConnectionAttempts: Int): Unit = {
 
     def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit = {
       if (connectionAttempts == maxConnectionAttempts) {
         // shutdown is idempotent in ManagedChannelImpl
         channel.shutdown()
-        done.failure(new RuntimeException("Unable to establish connection"))
+        done.tryFailure(new RuntimeException(s"Unable to establish connection after [$maxConnectionAttempts]"))
       } else {
         val currentState = channel.getState(false)
         if (currentState == ConnectivityState.SHUTDOWN) {
-          done.success(Done)
+          done.trySuccess(Done)
         } else {
           channel.notifyWhenStateChanged(currentState, () => {
             if (currentState == ConnectivityState.TRANSIENT_FAILURE) {

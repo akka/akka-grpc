@@ -8,10 +8,8 @@ package @service.packageName
 
 import akka.NotUsed
 import akka.Done
-import akka.grpc.internal.{ Marshaller, NettyClientUtils, ChannelUtils }
-import akka.grpc.internal.{ ScalaUnaryRequestBuilder, ScalaClientStreamingRequestBuilder }
-import akka.grpc.internal.{ ScalaServerStreamingRequestBuilder, ScalaBidirectionalStreamingRequestBuilder }
-import akka.grpc.scaladsl.{ SingleResponseRequestBuilder, StreamResponseRequestBuilder }
+import akka.grpc.internal._
+import akka.grpc.scaladsl._
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Flow, Sink, Source }
@@ -26,8 +24,8 @@ import @{service.name}Client._
 final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} {
   import @{service.name}Client._
 
-  private val done = Promise[Done]()
-  private val channel: Future[ManagedChannel] = NettyClientUtils.createChannel(settings, done)
+  private val internalChannel: InternalChannel = NettyClientUtils.createChannel(settings)
+  private val channel: Future[ManagedChannel] = internalChannel.managedChannel
 
   private val options = NettyClientUtils.callOptions(settings)
 
@@ -78,7 +76,7 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   def close(): Future[Done] = {
-    ChannelUtils.close(channel, done)
+    ChannelUtils.close(internalChannel)
   }
 
  /**
@@ -86,7 +84,7 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   * or exceptionally if a connection can not be established or reestablished
   * after maxConnectionAttempts.
   */
-  def closed(): Future[Done] = done.future
+  def closed(): Future[Done] = internalChannel.done
 
 }
 

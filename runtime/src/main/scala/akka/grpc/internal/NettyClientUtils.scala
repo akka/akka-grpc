@@ -11,9 +11,8 @@ import akka.Done
 
 import scala.concurrent.duration.FiniteDuration
 import akka.annotation.InternalApi
-import akka.discovery.SimpleServiceDiscovery
 import akka.grpc.GrpcClientSettings
-import io.grpc.{ CallOptions, ConnectivityState, ManagedChannel }
+import io.grpc._
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
@@ -28,8 +27,9 @@ object NettyClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def createChannel(settings: GrpcClientSettings, done: Promise[Done])(implicit ec: ExecutionContext): Future[ManagedChannel] = {
-    settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).flatMap { targets =>
+  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): InternalChannel = {
+    val promise = Promise[Done]()
+    val mc = settings.serviceDiscovery.lookup(settings.name, settings.resolveTimeout).flatMap { targets =>
       if (targets.addresses.nonEmpty) {
         val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
         var builder =
@@ -49,12 +49,13 @@ object NettyClientUtils {
         builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
 
         val channel = builder.build()
-        ChannelUtils.monitorChannel(done, channel, settings.connectionAttempts)
+        ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
         Future.successful(channel)
       } else {
         Future.failed(new IllegalStateException("No targets returned for name: " + settings.name))
       }
     }
+    new InternalChannel(mc, promise)
   }
 
   // FIXME couldn't we use the inputstream based trustManager() method instead of going via filesystem?
