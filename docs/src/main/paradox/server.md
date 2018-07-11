@@ -13,8 +13,14 @@ sbt
 ```scala
 // in project/plugins.sbt:
 addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
+addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent
+
 // in build.sbt:
 enablePlugins(AkkaGrpcPlugin)
+
+// ALPN agent
+enablePlugins(JavaAgent)
+javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime;test"
 ```
 @@@
 

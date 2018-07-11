@@ -1,13 +1,10 @@
 //#full-client
 package example.myapp.helloworld
 
-import java.util.concurrent.TimeUnit
-
-import scala.concurrent.Await
-import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Try
-import scala.util.control.NonFatal
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 import akka.Done
 import akka.NotUsed
@@ -15,12 +12,6 @@ import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import io.grpc.CallOptions
-import io.grpc.StatusRuntimeException
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 
 import example.myapp.helloworld.grpc._
 
@@ -28,7 +19,7 @@ object GreeterClient {
 
   def main(args: Array[String]): Unit = {
 
-    implicit val sys = ActorSystem()
+    implicit val sys = ActorSystem("HelloWorldClient")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
@@ -43,26 +34,42 @@ object GreeterClient {
     streamingRequestReply()
 
     sys.scheduler.schedule(1.second, 1.second) {
-      Try(singleRequestReply())
+      singleRequestReply()
     }
 
     def singleRequestReply(): Unit = {
       sys.log.info("Performing request")
       val reply = client.sayHello(HelloRequest("Alice"))
-      println(s"got single reply: ${Await.result(reply, 5.seconds).message}")
+      reply.onComplete {
+        case Success(msg) =>
+          println(s"got single reply: $msg")
+        case Failure(e) =>
+          println(s"Error sayHello: $e")
+      }
     }
 
     def streamingRequest(): Unit = {
       val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
       val reply = client.itKeepsTalking(Source(requests))
-      println(s"got single reply for streaming requests: ${Await.result(reply, 5.seconds).message}")
+      reply.onComplete {
+        case Success(msg) =>
+          println(s"got single reply for streaming requests: $msg")
+        case Failure(e) =>
+          println(s"Error streamingRequest: $e")
+      }
     }
 
     def streamingReply(): Unit = {
       val responseStream = client.itKeepsReplying(HelloRequest("Alice"))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
-      Await.ready(done, 1.minute) // just to keep sample simple - dont do Await.ready in actual code
+
+      done.onComplete {
+        case Success(_) =>
+          println("streamingReply done")
+        case Failure(e) =>
+          println(s"Error streamingReply: $e")
+      }
     }
 
     def streamingRequestReply(): Unit = {
@@ -78,7 +85,13 @@ object GreeterClient {
       val responseStream: Source[HelloReply, NotUsed] = client.streamHellos(requestStream)
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
-      Await.ready(done, 1.minute)
+
+      done.onComplete {
+        case Success(_) =>
+          println("streamingRequestReply done")
+        case Failure(e) =>
+          println(s"Error streamingRequestReply: $e")
+      }
     }
   }
 
