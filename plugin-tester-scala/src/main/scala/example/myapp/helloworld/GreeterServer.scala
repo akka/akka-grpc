@@ -35,22 +35,34 @@ object GreeterServer {
     // important to enable HTTP/2 in ActorSystem's config
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
-    implicit val sys: ActorSystem = ActorSystem("HelloWorld", conf)
+    val system = ActorSystem("HelloWorld", conf)
+    new GreeterServer(system).run()
+  }
+}
+
+class GreeterServer(system: ActorSystem) {
+
+  def run(): Future[Http.ServerBinding] = {
+
+    implicit val sys: ActorSystem = system
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
     val service: HttpRequest => Future[HttpResponse] =
       GreeterServiceHandler(new GreeterServiceImpl(mat))
 
-    Http().bindAndHandleAsync(
+    val bound = Http().bindAndHandleAsync(
       service,
       interface = "127.0.0.1",
       port = 8080,
       connectionContext = serverHttpContext()
     )
-    .foreach { binding =>
+
+    bound.foreach { binding =>
       println(s"gRPC server bound to: ${binding.localAddress}")
     }
+
+    bound
   }
 
   private def serverHttpContext(): HttpsConnectionContext = {

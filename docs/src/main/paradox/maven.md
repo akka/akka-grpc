@@ -46,7 +46,7 @@ TODO this is not supported yet See [#152](https://github.com/akka/akka-grpc/issu
 As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
 you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
 
-Doing this from inside of maven requires a little bit of configuration:
+Doing this from inside of Maven requires a little bit of configuration:
 
 
 ```xml
@@ -67,7 +67,7 @@ Doing this from inside of maven requires a little bit of configuration:
           <execution>
             <id>getClasspathFilenames</id>
             <goals>
-              <!-- provides the jars of the classpath as properties inside of maven
+              <!-- provides the jars of the classpath as properties inside of Maven
                    so that we can refer to one of the jars in the exec plugin config below -->
               <goal>properties</goal>
             </goals>
@@ -91,6 +91,10 @@ Doing this from inside of maven requires a little bit of configuration:
   </plugins>
 ```
 
-The server can then be started from the command line with `mvn dependency:properties exec:exec`
+The server can then be started from the command line with:
+
+```
+mvn compile dependency:properties exec:exec
+```
 
 
