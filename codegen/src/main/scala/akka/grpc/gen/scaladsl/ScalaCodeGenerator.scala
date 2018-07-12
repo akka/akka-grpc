@@ -21,15 +21,15 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
   def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
 
-  // Override this to add service-independent generated files
+  // Override these to add service-independent generated files
   def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
   override def suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
 
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
-
     val fileDescByName: Map[String, FileDescriptor] =
       request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
         case (acc, fp) =>
@@ -37,17 +37,22 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
+    val services =
+      (for {
+        file ← request.getFileToGenerateList.asScala
+        fileDesc = fileDescByName(file)
+        serviceDesc ← fileDesc.getServices.asScala
+      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc)).toSeq
+
     for {
-      file ← request.getFileToGenerateList.asScala
-      fileDesc = fileDescByName(file)
-      serviceDesc ← fileDesc.getServices.asScala
-      service = Service(parseParameters(request.getParameter), fileDesc, serviceDesc)
+      service <- services
       generator ← perServiceContent
     } {
       b.addFile(generator(service))
     }
 
     staticContent.map(b.addFile)
+    staticContent(services).map(b.addFile)
 
     b.build()
   }
