@@ -94,7 +94,10 @@ object Dependencies {
     Compile.akkaHttpCore,
     Compile.akkaHttp,
     Compile.akkaHttp2Support,
-    Compile.akkaDiscovery
+    Compile.akkaDiscovery,
+    // these two are available when used through Play, which is also the only case when they are needed
+    Compile.play % "provided",
+    Compile.playAkkaHttpServer % "provided",
   ) ++ testing
 
   val mavenPlugin = l ++= Seq(

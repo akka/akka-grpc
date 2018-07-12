@@ -6,90 +6,39 @@
 
 package @service.packageName;
 
-import javax.inject.*;
+import java.util.concurrent.CompletionStage;
 
 import akka.japi.Function;
-import play.api.mvc.Handler;
-import play.api.mvc.akkahttp.AkkaHttpHandler$;
-import scala.compat.java8.FutureConverters;
-import scala.compat.java8.JFunction1;
 import scala.concurrent.Future;
 
 import akka.http.scaladsl.model.HttpRequest;
 import akka.http.scaladsl.model.HttpResponse;
 import akka.stream.Materializer;
 
+import akka.grpc.internal.PlayRouter;
+
 import play.mvc.*;
-import play.api.mvc.akkahttp.AkkaHttpHandler;
-import play.routing.Router;
+import play.api.inject.Injector;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
-@@Singleton
-public class @{service.name}Router implements Router {
+/**
+ * Abstract base class for implementing @{service.name} in Java and using as a play Router
+ */
+public abstract class Abstract@{service.name}Router extends PlayRouter implements @{service.name} {
 
-  private final String prefix;
-  private final controllers.@{service.name}Impl impl;
-  private final Materializer mat;
-
-  private final AkkaHttpHandler handler;
-
-  @@Inject
-  public @{service.name}Router(controllers.@{service.name}Impl impl, Materializer mat) {
-      this(@{service.name}.name, impl, mat);
-    }
-
-  public @{service.name}Router(String prefix, controllers.@{service.name}Impl impl, Materializer mat) {
-    this.prefix = prefix;
-    this.impl = impl;
-    this.mat = mat;
-
-    // perhaps provide adapter in runtime lib or introduce javadsl accepting one in Play?
-    this.handler = AkkaHttpHandler$.MODULE$.apply(new JFunction1<HttpRequest, Future<HttpResponse>>() {
-      final Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> h =
-        @{service.name}HandlerFactory.create(impl, prefix, mat);
-
-      @@Override
-      public Future<HttpResponse> apply(HttpRequest req) {
-        try {
-        CompletionStage<akka.http.scaladsl.model.HttpResponse> res =
-            h.apply(akka.http.javadsl.model.HttpRequest.class.cast(req))
-              .thenApply(r -> akka.http.scaladsl.model.HttpResponse.class.cast(r));
-
-          return FutureConverters.toScala(res);
-        } catch (Exception e) {
-          return FutureConverters.<HttpResponse>failedPromise(e).future();
-        }
-      }
-    });
+  public Abstract@{service.name}Router(Injector injector) {
+    super(injector, @{service.name}.name);
   }
 
-
-  @@Override
-  public List<RouteDocumentation> documentation() {
-    return Collections.emptyList();
+  /**
+   * INTERNAL API
+   */
+  final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
+     return akka.grpc.internal.PlayRouterHelper.handlerFor(
+        @{service.name}HandlerFactory.create(this, prefix, mat)
+     );
   }
 
-  @@Override
-  public Optional<Handler> route(Http.RequestHeader request) {
-    if (request.path().startsWith(prefix)) return Optional.of(handler);
-    else return Optional.empty();
-  }
-
-  @@Override
-  public Router withPrefix(String newPrefix) {
-    if (newPrefix.equals("/")) return this;
-    else return new @{service.name}Router(newPrefix, impl, mat) {
-      @@Override
-      public Router withPrefix(String newPrefix) {
-        if (newPrefix.equals("/")) return this;
-        else throw new IllegalStateException("Only one level of prefixes is supported for gRPC");
-      }
-    };
-  }
 
 }
 

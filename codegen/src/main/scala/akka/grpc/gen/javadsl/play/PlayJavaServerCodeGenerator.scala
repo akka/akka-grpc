@@ -17,7 +17,7 @@ object PlayJavaServerCodeGenerator extends JavaCodeGenerator {
   private val generateRouter: Service => CodeGeneratorResponse.File = service => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Router(service).body)
-    b.setName(s"${service.packageDir}/${service.name}Router.java")
+    b.setName(s"${service.packageDir}/Abstract${service.name}Router.java")
     b.build
   }
 

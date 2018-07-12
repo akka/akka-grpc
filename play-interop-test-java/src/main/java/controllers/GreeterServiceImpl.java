@@ -6,17 +6,24 @@ package controllers;
 
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
-import example.myapp.helloworld.grpc.GreeterService;
+import com.google.inject.Inject;
+import example.myapp.helloworld.grpc.AbstractGreeterServiceRouter;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
+import play.api.inject.Injector;
 
 import javax.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-/** Would be written by the user, with support for dependency injection etc */
+/** User implementation, with support for dependency injection etc */
 @Singleton
-public class GreeterServiceImpl implements GreeterService {
+public class GreeterServiceImpl extends AbstractGreeterServiceRouter {
+
+  @Inject
+  public GreeterServiceImpl(Injector injector) {
+    super(injector);
+  }
 
   @Override
   public CompletionStage<HelloReply> sayHello(HelloRequest in) {
