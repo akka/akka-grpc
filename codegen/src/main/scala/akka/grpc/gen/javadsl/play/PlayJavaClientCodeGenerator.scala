@@ -28,7 +28,12 @@ object PlayJavaClientCodeGenerator extends JavaCodeGenerator {
       val b = CodeGeneratorResponse.File.newBuilder()
       b.setContent(AkkaGrpcClientModule(packageName, allServices).body)
       b.setName(s"${packageName.replace('.', '/')}/AkkaGrpcClientModule.java")
-      Set(b.build)
+      val set = Set(b.build)
+      println(s"Generated [${packageName}.AkkaGrpcClientModule] add it to play.modules.enabled and a section " +
+        "with Akka gRPC client config under akka.grpc.client.[servicepackage.ServiceName] to be able to inject " +
+        "client instances.")
+      set
+
     } else Set.empty
   }
 
