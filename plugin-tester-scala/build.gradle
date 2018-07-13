@@ -11,15 +11,20 @@ buildscript {
 
     // For testing on travis, we use another group id:
     classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
+
+    classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
   }
 }
 
 plugins {
   id 'scala'
   id 'application'
+  id "com.github.maiflai.scalatest" version "0.22"
 }
 
 apply plugin: 'com.lightbend.akka.grpc.gradle'
+
+apply plugin: "com.github.maiflai.scalatest"
 
 // These are the default options for a Scala project (not necessary to define)
 akkaGrpc {
@@ -28,8 +33,39 @@ akkaGrpc {
   generateServer = true
 }
 
-
 repositories {
   mavenLocal()
   mavenCentral()
 }
+
+// Define a separate configuration for managing the dependency on Jetty ALPN agent.
+configurations {
+  alpnagent
+}
+
+dependencies {
+  testImplementation 'com.typesafe.akka:akka-stream-testkit_2.12:2.5.13'
+  testImplementation 'org.scalatest:scalatest_2.12:3.0.5'
+  testRuntime 'org.pegdown:pegdown:1.1.0'
+
+  // Configuration for modules that use Jetty ALPN agent
+  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.7'
+}
+
+test {
+  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
+}
+
+task runServer(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'example.myapp.helloworld.GreeterServer'
+  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
+}
+
+
+task runClient(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'example.myapp.helloworld.GreeterClient'
+}
+
+

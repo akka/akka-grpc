@@ -10,89 +10,87 @@ Then add the Akka gRPC plugin to your build:
 
 sbt
 :   @@@vars
-```scala
-// in project/plugins.sbt:
-addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
-addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent
-
-// in build.sbt:
-enablePlugins(AkkaGrpcPlugin)
-
-// ALPN agent
-enablePlugins(JavaAgent)
-javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime;test"
-```
-@@@
+    ```scala
+    // in project/plugins.sbt:
+    addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
+    addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent
+    //
+    // in build.sbt:
+    enablePlugins(AkkaGrpcPlugin)
+    // ALPN agent
+    enablePlugins(JavaAgent)
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "runtime;test"
+    ```
+    @@@
 
 Gradle
 :   @@@vars
-```gradle
-plugins {
-  id 'com.google.protobuf' version '0.8.4'
-}
-protobuf {
-  protoc {
-    // Get protobuf from maven central instead of
-    // using the installed version:
-    artifact = 'com.google.protobuf:protoc:3.4.0'
-  }
-  plugins {
-    akkaGrpc {
-      artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:$projectversion$:-assembly@jar"
+    ```gradle
+    buildscript {
+      repositories {
+        mavenLocal()
+        gradlePluginPortal()
+      }
+      dependencies {
+        // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
+        // for the currently latest version.
+        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
+      }
     }
-  }
-}
-```
-@@@
+    plugins {
+      id 'java'
+      id 'application'
+    }
+    apply plugin: 'com.lightbend.akka.grpc.gradle'
+    repositories {
+      mavenLocal()
+      mavenCentral()
+    }
+    ```
+    @@@
 
 Maven
 :   @@@vars
-```
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <name>Project name</name>
-  <groupId>com.example</groupId>
-  <artifactId>my-grpc-app</artifactId>
-  <version>0.1-SNAPSHOT</version>
-  <dependencies>
-    <dependency>
-      <groupId>com.lightbend.akka.grpc</groupId>
-      <artifactId>akka-grpc-runtime_2.12</artifactId>
-      <version>${akka.grpc.project.version}</version>
-    </dependency>
-    <!-- for loading of cert, issue #89 -->
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-testing</artifactId>
-      <version>${grpc.version}</version>
-    </dependency>
-  </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.lightbend.akka.grpc</groupId>
-        <artifactId>akka-grpc-maven-plugin</artifactId>
-        <version>${akka.grpc.project.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.grpc.project.version>$projectversion$</akka.grpc.project.version>
-    <grpc.version>$grpc.version$</grpc.version>
-    <project.encoding>UTF-8</project.encoding>
-  </properties>
-</project>
-```
-@@@
+    ```xml
+    <project>
+      <modelVersion>4.0.0</modelVersion>
+      <name>Project name</name>
+      <groupId>com.example</groupId>
+      <artifactId>my-grpc-app</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <akka.grpc.version>$projectversion$</akka.grpc.version>
+        <grpc.version>$grpc.version$</grpc.version>
+        <project.encoding>UTF-8</project.encoding>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.lightbend.akka.grpc</groupId>
+          <artifactId>akka-grpc-runtime_2.12</artifactId>
+          <version>${akka.grpc.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.lightbend.akka.grpc</groupId>
+            <artifactId>akka-grpc-maven-plugin</artifactId>
+            <version>${akka.grpc.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </project>
+    ```
+    @@@
 
 For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](sbt.md), @ref[Gradle](gradle.md) or @ref[Maven](maven.md).
 

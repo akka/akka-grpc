@@ -9,12 +9,34 @@
   <groupId>com.lightbend.akka.grpc</groupId>
   <artifactId>grpc-plugin-tester-java</artifactId>
   <version>0.1-SNAPSHOT</version>
-  
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <akka.version>2.5.13</akka.version>
+    <grpc.version>1.13.1</grpc.version>
+    <project.encoding>UTF-8</project.encoding>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-stream-testkit_2.12</artifactId>
+      <version>${akka.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.12</artifactId>
+      <version>3.0.5</version>
+      <scope>test</scope>
     </dependency>
 
     <!-- Needed for the generated client -->
@@ -42,6 +64,7 @@
           <execution>
             <goals>
               <goal>compile</goal>
+              <goal>testCompile</goal>
             </goals>
           </execution>
         </executions>
@@ -64,6 +87,35 @@
         </executions>
       </plugin>
 
+      <!-- disable surefire -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+      <!-- enable scalatest -->
+      <plugin>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest-maven-plugin</artifactId>
+        <version>1.0</version>
+        <configuration>
+          <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+          <junitxml>.</junitxml>
+          <filereports>TestSuite.txt</filereports>
+          <argLine>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.5.1</version>
@@ -78,6 +130,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -94,10 +147,5 @@
       </plugin>
     </plugins>
   </build>
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <grpc.version>1.13.1</grpc.version>
-    <project.encoding>UTF-8</project.encoding>
-  </properties>
+
 </project>

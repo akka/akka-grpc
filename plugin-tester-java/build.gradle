@@ -28,8 +28,29 @@ akkaGrpc {
   generateServer = true
 }
 
-
 repositories {
   mavenLocal()
   mavenCentral()
+}
+
+// Define a separate configuration for managing the dependency on Jetty ALPN agent.
+configurations {
+  alpnagent
+}
+
+dependencies {
+  // Configuration for modules that use Jetty ALPN agent
+  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.7'
+}
+
+task runServer(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'example.myapp.helloworld.GreeterServer'
+  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
+}
+
+
+task runClient(type: JavaExec) {
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'example.myapp.helloworld.GreeterClient'
 }

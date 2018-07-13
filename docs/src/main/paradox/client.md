@@ -47,11 +47,18 @@ Maven
   <groupId>com.example</groupId>
   <artifactId>my-grpc-app</artifactId>
   <version>0.1-SNAPSHOT</version>
+  <properties>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+      <akka.grpc.version>$projectversion$</akka.grpc.version>
+      <grpc.version>$grpc.version$</grpc.version>
+      <project.encoding>UTF-8</project.encoding>
+    </properties>
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
       <artifactId>akka-grpc-runtime_2.12</artifactId>
-      <version>${akka.grpc.project.version}</version>
+      <version>${akka.grpc.version}</version>
     </dependency>
     <!-- for loading of cert, issue #89 -->
     <dependency>
@@ -65,7 +72,7 @@ Maven
       <plugin>
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
-        <version>${akka.grpc.project.version}</version>
+        <version>${akka.grpc.version}</version>
         <!-- Hook the generate goal into the lifecycle,
              automatically tied to generate-sources -->
         <executions>
@@ -78,13 +85,6 @@ Maven
       </plugin>
     </plugins>
   </build>
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.grpc.project.version>$projectversion$</akka.grpc.project.version>
-    <grpc.version>$grpc.version$</grpc.version>
-    <project.encoding>UTF-8</project.encoding>
-  </properties>
 </project>
 ```
 @@@
