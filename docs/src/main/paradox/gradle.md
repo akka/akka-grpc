@@ -16,28 +16,23 @@ Java
         mavenLocal()
         gradlePluginPortal()
       }
-
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
         // for the currently latest version.
         classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
       }
     }
-
     plugins {
       id 'java'
       id 'application'
     }
-
     apply plugin: 'com.lightbend.akka.grpc.gradle'
-
     // These are the default options for a Java project (not necessary to define)
     akkaGrpc {
       language = "Java"
       generateClient = true
       generateServer = true
     }
-    
     repositories {
       mavenLocal()
       mavenCentral()
@@ -53,28 +48,23 @@ Scala
         mavenLocal()
         gradlePluginPortal()
       }
-
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
         // for the currently latest version.
         classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
       }
     }
-
     plugins {
       id 'scala'
       id 'application'
     }
-
     apply plugin: 'com.lightbend.akka.grpc.gradle'
-
     // These are the default options for a Scala project (not necessary to define)
     akkaGrpc {
       language = "Scala"
       generateClient = true
       generateServer = true
     }
-
     repositories {
       mavenLocal()
       mavenCentral()
@@ -113,9 +103,7 @@ dependencies {
 
 task runServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
-
   main = 'com.example.helloworld.GreeterServer'
-
   jvmArgs "-javaagent:" + configurations.alpnagent.asPath
 }
 

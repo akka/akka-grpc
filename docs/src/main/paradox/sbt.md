@@ -46,8 +46,7 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 
 You can configure where your .proto files are located like this:
 
-sbt
-:   @@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
+@@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
 
 ## Loading proto files from artifacts
 
@@ -68,17 +67,14 @@ This can be done using the `JavaAgent` sbt plugin.
 
 Add the plugin `project/plugin.sbt`
 
-sbt
-:   @@snip [plugin.sbt]($root$/../plugin-tester-scala/project/plugins.sbt) { #java-agent-plugin }
+@@snip [plugin.sbt]($root$/../plugin-tester-scala/project/plugins.sbt) { #java-agent-plugin }
 
 and then tell it to use the ALPN agent:
 
-sbt
-:   @@snip [build.sbt]($root$/../plugin-tester-scala/build.sbt) { #alpn }
+@@snip [build.sbt]($root$/../plugin-tester-scala/build.sbt) { #alpn }
 
 After that you can run it as usual:
 
-sbt
-:   ```
+```
 runMain io.grpc.examples.helloworld.GreeterServer
 ```

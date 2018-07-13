@@ -47,7 +47,6 @@ Maven
   <groupId>com.example</groupId>
   <artifactId>my-grpc-app</artifactId>
   <version>0.1-SNAPSHOT</version>
-
   <properties>
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
@@ -55,7 +54,6 @@ Maven
       <grpc.version>$grpc.version$</grpc.version>
       <project.encoding>UTF-8</project.encoding>
     </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
