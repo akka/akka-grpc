@@ -18,9 +18,4 @@ class GreeterServiceImpl @Inject() (implicit mat: Materializer) extends GreeterS
 
   override def sayHello(in: HelloRequest): Future[HelloReply] = Future.successful(HelloReply(s"Hello, ${in.name}!"))
 
-  override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = ???
-
-  override def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = ???
-
-  override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = ???
 }

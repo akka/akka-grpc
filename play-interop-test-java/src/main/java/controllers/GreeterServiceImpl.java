@@ -25,18 +25,4 @@ public class GreeterServiceImpl implements GreeterService {
     return CompletableFuture.completedFuture(reply);
   }
 
-  @Override
-  public CompletionStage<HelloReply> itKeepsTalking(Source<HelloRequest, NotUsed> in) {
-    return null;
-  }
-
-  @Override
-  public Source<HelloReply, NotUsed> itKeepsReplying(HelloRequest in) {
-    return null;
-  }
-
-  @Override
-  public Source<HelloReply, NotUsed> streamHellos(Source<HelloRequest, NotUsed> in) {
-    return null;
-  }
 }
