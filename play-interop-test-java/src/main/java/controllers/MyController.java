@@ -1,6 +1,7 @@
 /**
- * Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package controllers;
 
 import example.myapp.helloworld.grpc.GreeterServiceClient;
