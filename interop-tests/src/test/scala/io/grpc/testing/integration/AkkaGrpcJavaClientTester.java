@@ -49,7 +49,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     final GrpcClientSettings grpcSettings =
         GrpcClientSettings.create(settings.serverHost(), settings.serverPort())
           .withOverrideAuthority(settings.serverHostOverride())
-          .withTrustedCaCertificate("ca.pem");
+          .withSSLContext(GrpcClientSettings.sslContextForCert("ca.pem"));
     client = TestServiceClient.create(grpcSettings, mat, ec);
     clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
   }

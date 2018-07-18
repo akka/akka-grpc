@@ -14,6 +14,7 @@ import akka.grpc.internal.{HardcodedServiceDiscovery, NettyClientUtils}
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.Config
+import com.typesafe.sslconfig.ssl.{ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings}
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import javax.net.ssl.SSLContext
@@ -46,11 +47,15 @@ object GrpcClientSettings {
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
 
-    val serviceConfig =
+    val serviceConfig = {
+      // Use config named "*" by default
+      val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
+      // Override "*" config with specific service config if available
       if (akkaGrpcClientConfig.hasPath('"' + serviceName + '"'))
-        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(akkaGrpcClientConfig.getConfig("\"*\""))
+        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(defaultServiceConfig)
       else
-        akkaGrpcClientConfig.getConfig("\"*\"")
+        defaultServiceConfig
+    }
 
     GrpcClientSettings(serviceConfig)
   }
@@ -61,12 +66,12 @@ object GrpcClientSettings {
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
-        userAgent = getOptionalString(config, "user-agent"))
+        userAgent = getOptionalString(config, "user-agent"),
+        sslContext = getOptionalSSLContext(config, "ssl-config")
+      )
 
-    // TODO: Decide whether to present a deprecation warning for this option.
-    getOptionalString(config, "trusted-ca-certificate").foreach { cert =>
-      settings = settings.withSSLContext(trustCert(cert))
-    }
+    // FIXME: Only including this to catch code that I've failed to upgrade
+    getOptionalString(config, "trusted-ca-certificate").foreach(_ => ???)
 
     settings
   }
@@ -112,9 +117,37 @@ object GrpcClientSettings {
 
   /**
    * INTERNAL API
+   *
+   * @param config The config to parse, assumes already at the right path.
    */
   @InternalApi
-  private[GrpcClientSettings] def trustCert(certPath: String): SSLContext = {
+  private def getSSLContext(config: Config): SSLContext = {
+    val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(config)
+    val sslContext: SSLContext = new ConfigSSLContextBuilder(
+      com.typesafe.sslconfig.util.PrintlnLogger.factory, // FIXME
+      sslConfigSettings,
+      new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
+      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)
+    ).build()
+    sslContext
+  }
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private def getOptionalSSLContext(config: Config, path: String): Option[SSLContext] = {
+    if (config.hasPath(path))
+      Some(getSSLContext(config.getConfig(path)))
+    else
+      None
+  }
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  def sslContextForCert(certPath: String): SSLContext = { // FIXME: Remove once unused
     // Use Netty's SslContextBuilder internally to help us construct a SSLContext
     val fullCertPath = "/certs/" + certPath
     val certStream: InputStream = getClass.getResourceAsStream(fullCertPath)
@@ -146,8 +179,6 @@ final class GrpcClientSettings private (
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withSSLContext(context: SSLContext) = copy(sslContext = Option(context))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
-  @deprecated("Use withSSLContext instead", "0.2")
-  def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(sslContext = Option(GrpcClientSettings.trustCert(value)))
   /**
    * Each call will have this deadline.
    */

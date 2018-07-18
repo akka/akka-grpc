@@ -14,6 +14,7 @@ object Dependencies {
 
     val scalapb = "0.7.1"
     val grpc = "1.13.1"
+    val sslConfig = "0.2.4"
 
     val scalaTest = "3.0.4"
     val scalaJava8Compat = "0.8.0"
@@ -35,6 +36,8 @@ object Dependencies {
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    val sslConfigCore = "com.typesafe" %% "ssl-config-core" % Versions.sslConfig
 
     val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.25"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
@@ -80,6 +83,7 @@ object Dependencies {
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,
+    Compile.sslConfigCore,
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
