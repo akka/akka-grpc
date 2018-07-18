@@ -6,7 +6,6 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import scala.util.control.NonFatal
 
 import akka.Done
 import akka.NotUsed
@@ -14,12 +13,6 @@ import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import io.grpc.CallOptions
-import io.grpc.StatusRuntimeException
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 
 import example.myapp.helloworld.grpc._
 
@@ -31,10 +24,8 @@ object LiftedGreeterClient {
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val client = new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
-        .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem"))
+    val clientSettings = GrpcClientSettings.create("helloworld.GreeterService", sys)
+    val client = new GreeterServiceClient(clientSettings)
 
     singleRequestReply()
     streamingRequest()

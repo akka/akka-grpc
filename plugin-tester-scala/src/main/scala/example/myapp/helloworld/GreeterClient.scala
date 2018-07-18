@@ -1,6 +1,15 @@
 //#full-client
 package example.myapp.helloworld
 
+
+import akka.Done
+import akka.NotUsed
+import akka.actor.ActorSystem
+import akka.grpc.GrpcClientSettings
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
+import example.myapp.helloworld.grpc._
+
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.Future
@@ -9,57 +18,14 @@ import scala.util.{Failure, Success}
 
 object GreeterClient {
 
-  // trait LoggerFactory {
-  //   def apply(clazz: Class[_]): NoDepsLogger
-  //   def apply(name: String): NoDepsLogger
-  // }
-
-  private def configureSSLContext(rootConfig: Config, sslConfig: Config): SSLContext = {
-    val sslConfigWithDefaults: Config = sslConfig.withFallback(rootConfig.getConfig("ssl-config"))
-    println("sslConfigWithDefaults: " + sslConfigWithDefaults)
-    val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(sslConfigWithDefaults)
-    val sslContext: SSLContext = new ConfigSSLContextBuilder(
-      com.typesafe.sslconfig.util.PrintlnLogger.factory, // FIXME
-      sslConfigSettings,
-      new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
-      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)
-    ).build()
-    sslContext
-  }
-
-  private def grpcClientConfig(config: Config, serviceName: String): Config = {
-    def configPath(n: String): String = s"""akka.grpc.client."$n""""
-    val clientConfig: Config = config.getConfig(configPath(serviceName))
-    val defaultConfig: Config = config.getConfig(configPath("*"))
-    clientConfig.withFallback(defaultConfig)
-  }
-
-  private def parseClientSettings(rootConfig: Config, clientConfig: Config): GrpcClientSettings = {
-    val sslContext: SSLContext = configureSSLContext(rootConfig, clientConfig.getConfig("ssl-config"))
-    GrpcClientSettings(clientConfig).withSSLContext(sslContext)
-  }
-
   def main(args: Array[String]): Unit = {
 
     implicit val sys = ActorSystem("HelloWorldClient")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val config = sys.settings.config
-    val clientSettings = try {
-      parseClientSettings(config, grpcClientConfig(config, "helloworld.GreeterService"))
-    } catch {
-      case ex: Exception =>
-        System.err.println("Exception encountered while parsing client settings")
-        ex.printStackTrace()
-        sys.terminate()
-        throw ex
-    }
-
-    val client = new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
-        .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem"))
+    val clientSettings = GrpcClientSettings.create("helloworld.GreeterService", sys)
+    val client = new GreeterServiceClient(clientSettings)
 
     singleRequestReply()
     streamingRequest()
