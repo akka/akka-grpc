@@ -29,10 +29,7 @@ class PlayScalaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll 
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 3.seconds, interval = 15.milliseconds)
 
-  val injector = new SimpleInjector(null, Map(
-    classOf[Materializer] -> mat))
-
-  val router = new GreeterServiceImpl(injector)
+  val router = new GreeterServiceImpl
 
   "The generated Play Router" should {
 

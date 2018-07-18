@@ -5,6 +5,7 @@
 package controllers;
 
 import akka.NotUsed;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
 import com.google.inject.Inject;
 import example.myapp.helloworld.grpc.AbstractGreeterServiceRouter;
@@ -21,8 +22,8 @@ import java.util.concurrent.CompletionStage;
 public class GreeterServiceImpl extends AbstractGreeterServiceRouter {
 
   @Inject
-  public GreeterServiceImpl(Injector injector) {
-    super(injector);
+  public GreeterServiceImpl(Materializer mat) {
+    super(mat);
   }
 
   @Override

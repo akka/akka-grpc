@@ -38,7 +38,9 @@ import scala.compat.java8.OptionConverters._
  *
  * INTERNAL API
  */
-@InternalApi abstract class PlayRouter(injector: Injector, serviceName: String) extends play.api.routing.Router {
+@InternalApi abstract class PlayRouter(mat: Materializer, serviceName: String) extends play.api.routing.Router {
+
+  private val prefix = s"/$serviceName"
 
   /**
    * INTERNAL API
@@ -47,13 +49,13 @@ import scala.compat.java8.OptionConverters._
   protected def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse]
 
   private val handler = new AkkaHttpHandler {
-    val handler = createHandler(serviceName, injector.instanceOf[Materializer])
+    val handler = createHandler(serviceName, mat)
     override def apply(request: HttpRequest): Future[HttpResponse] = handler(request)
   }
 
   // Scala API
   final override def routes: Routes = {
-    case rh if rh.path.startsWith(serviceName) ⇒ handler
+    case rh if rh.path.startsWith(prefix) ⇒ handler
   }
 
   final override def documentation: Seq[(String, String, String)] = Seq.empty
@@ -63,7 +65,9 @@ import scala.compat.java8.OptionConverters._
    * so therefore not supported.
    */
   final override def withPrefix(prefix: String): Router =
-    throw new UnsupportedOperationException("Prefixing gRPC services is not widely supported, " +
-      "strongly discouraged by the specification and therefore not supported")
+    if (prefix == this.prefix) this
+    else
+      throw new UnsupportedOperationException("Prefixing gRPC services is not widely supported by clients, " +
+        s"strongly discouraged by the specification and therefore not supported. Prefix was [$prefix]")
 
 }

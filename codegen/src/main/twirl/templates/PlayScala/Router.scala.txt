@@ -13,12 +13,10 @@ import akka.stream.Materializer
 
 import akka.grpc.internal.PlayRouter
 
-import play.api.inject.Injector
-
 /**
  * Abstract base class for implementing @{service.name} and using as a play Router
  */
-abstract class Abstract@{service.name}Router(injector: Injector) extends PlayRouter(injector, @{service.name}.name) with @{service.name} {
+abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name} {
 
   final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
     @{service.name}Handler(this, serviceName)(mat)
