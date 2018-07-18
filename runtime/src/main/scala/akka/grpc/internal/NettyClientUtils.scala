@@ -69,7 +69,9 @@ object NettyClientUtils {
     // object's internal SSLContext. It's not pretty, but it gets something working for now.
 
     // Create a Netty JdkSslContext object with all the correct ciphers, protocol settings, etc initialized.
-    val nettySslContext: JdkSslContext = buildJdkSslContext(GrpcSslContexts.forClient)
+    val nettySslContext: JdkSslContext = GrpcSslContexts
+      .configure(GrpcSslContexts.forClient, SslProvider.JDK)
+      .build.asInstanceOf[JdkSslContext]
 
     // Patch the SSLContext value inside the JdkSslContext object
     val nettySslContextField: Field = classOf[JdkSslContext].getDeclaredField("sslContext")
@@ -78,17 +80,6 @@ object NettyClientUtils {
 
     nettySslContext
   }
-
-  /**
-   * INTERNAL API
-   *
-   * Given an [[SslContextBuilder]], obtain a [[JdkSslContext]]. This uses `GrpcSslContexts.configure` to configure
-   * the correct protocols, ciphers, etc for the JDK SSL provider.
-   */
-  @InternalApi
-  private[grpc] def buildJdkSslContext(contextBuilder: SslContextBuilder): JdkSslContext =
-    GrpcSslContexts.configure(contextBuilder, SslProvider.JDK).build.asInstanceOf[JdkSslContext]
-
   /**
    * INTERNAL API
    */

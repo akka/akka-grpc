@@ -4,19 +4,16 @@
 
 package akka.grpc
 
-import java.io.{IOException, InputStream}
-
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
-import akka.grpc.internal.{HardcodedServiceDiscovery, NettyClientUtils}
+import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.Config
 import com.typesafe.sslconfig.ssl.{ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings}
 import io.grpc.CallCredentials
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import javax.net.ssl.SSLContext
 
 import scala.collection.immutable
@@ -46,7 +43,6 @@ object GrpcClientSettings {
     */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
-
     val serviceConfig = {
       // Use config named "*" by default
       val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
@@ -62,18 +58,13 @@ object GrpcClientSettings {
 
   /** Scala API */
   def apply(config: Config): GrpcClientSettings = {
-    var settings = GrpcClientSettings(config getString "host", config getInt "port")
+    GrpcClientSettings(config getString "host", config getInt "port")
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         userAgent = getOptionalString(config, "user-agent"),
         sslContext = getOptionalSSLContext(config, "ssl-config")
       )
-
-    // FIXME: Only including this to catch code that I've failed to upgrade
-    getOptionalString(config, "trusted-ca-certificate").foreach(_ => ???)
-
-    settings
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
@@ -124,7 +115,7 @@ object GrpcClientSettings {
   private def getSSLContext(config: Config): SSLContext = {
     val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(config)
     val sslContext: SSLContext = new ConfigSSLContextBuilder(
-      com.typesafe.sslconfig.util.PrintlnLogger.factory, // FIXME
+      com.typesafe.sslconfig.util.NoopLogger.factory, // FIXME
       sslConfigSettings,
       new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
       new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)
@@ -141,19 +132,6 @@ object GrpcClientSettings {
       Some(getSSLContext(config.getConfig(path)))
     else
       None
-  }
-
-  /**
-   * INTERNAL API
-   */
-  @InternalApi
-  def sslContextForCert(certPath: String): SSLContext = { // FIXME: Remove once unused
-    // Use Netty's SslContextBuilder internally to help us construct a SSLContext
-    val fullCertPath = "/certs/" + certPath
-    val certStream: InputStream = getClass.getResourceAsStream(fullCertPath)
-    if (certStream == null) throw new IOException(s"Couldn't find '$fullCertPath' on the classpath")
-    val sslBuilder = try { GrpcSslContexts.forClient.trustManager(certStream) } finally certStream.close()
-    NettyClientUtils.buildJdkSslContext(sslBuilder).context
   }
 
 }

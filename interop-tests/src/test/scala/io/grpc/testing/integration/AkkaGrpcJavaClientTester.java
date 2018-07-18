@@ -17,6 +17,7 @@ import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.testing.integration.test.SSLContextUtils;
 import io.grpc.testing.integration2.ClientTester;
 import io.grpc.testing.integration2.Settings;
 import scala.concurrent.ExecutionContext;
@@ -49,7 +50,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     final GrpcClientSettings grpcSettings =
         GrpcClientSettings.create(settings.serverHost(), settings.serverPort())
           .withOverrideAuthority(settings.serverHostOverride())
-          .withSSLContext(GrpcClientSettings.sslContextForCert("ca.pem"));
+          .withSSLContext(SSLContextUtils.sslContextForCert("ca.pem"));
     client = TestServiceClient.create(grpcSettings, mat, ec);
     clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
   }
