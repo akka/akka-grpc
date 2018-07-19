@@ -28,7 +28,7 @@ class LiftedGreeterClient {
     ActorSystem system = ActorSystem.create("HelloWorldClient");
     Materializer materializer = ActorMaterializer.create(system);
 
-    GrpcClientSettings settings = GrpcClientSettings.create("helloworld.GreeterService", system);
+    GrpcClientSettings settings = GrpcClientSettings.create(GreeterService.name, system);
     GreeterServiceClient client = null;
     try {
       client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
