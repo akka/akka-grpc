@@ -24,6 +24,12 @@
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
+    <!-- Make sure the right version comes in: -->
+    <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>ssl-config-core_2.12</artifactId>
+      <version>0.2.4</version>
+    </dependency>
 
     <dependency>
       <groupId>com.typesafe.akka</groupId>
