@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{BuildInfo, CodeGenerator}
+import akka.grpc.gen.{BuildInfo, CodeGenerator, Logger}
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
 import protocbridge.Artifact
@@ -21,7 +21,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
   def staticContent(allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
-  override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
+  override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
 
     // generate services code here, the data types we want to leave to scalapb

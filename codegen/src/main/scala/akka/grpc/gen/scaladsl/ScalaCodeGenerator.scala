@@ -6,15 +6,11 @@ package akka.grpc.gen.scaladsl
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-
-import akka.grpc.gen.{ BuildInfo, CodeGenerator }
-
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
-
 import protocbridge.Artifact
-
 import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
@@ -28,7 +24,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   override def suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
 
   // generate services code here, the data types we want to leave to scalapb
-  override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
+  override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
     val fileDescByName: Map[String, FileDescriptor] =
       request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {

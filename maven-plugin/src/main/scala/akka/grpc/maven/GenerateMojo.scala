@@ -6,7 +6,7 @@ package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
 
-import akka.grpc.gen.CodeGenerator
+import akka.grpc.gen.{ CodeGenerator, Logger }
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator }
 import javax.inject.Inject
@@ -197,7 +197,11 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   }
 
   def adaptAkkaGenerator(targetPath: File, generator: CodeGenerator, settings: Seq[String]): Target = {
-    val adapted = new ProtocBridgeCodeGenerator(generator)
+    val logger = new Logger {
+      def info(text: String): Unit = getLog.info(text)
+      def warn(text: String): Unit = getLog.warn(text)
+    }
+    val adapted = new ProtocBridgeCodeGenerator(generator, logger)
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }

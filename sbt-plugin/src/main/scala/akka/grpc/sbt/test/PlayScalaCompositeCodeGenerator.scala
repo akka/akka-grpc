@@ -4,8 +4,9 @@
 
 package akka.grpc.sbt.test
 
-import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
-import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
+import akka.grpc.gen.StdoutLogger
+import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator}
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
 
 /**
@@ -18,5 +19,7 @@ class PlayScalaCompositeCodeGenerator {
       ScalaBothCodeGenerator,
       ScalaMarshallersCodeGenerator,
       PlayScalaServerCodeGenerator,
-      PlayScalaClientCodeGenerator)))
+      PlayScalaClientCodeGenerator)),
+      StdoutLogger
+    )
 }

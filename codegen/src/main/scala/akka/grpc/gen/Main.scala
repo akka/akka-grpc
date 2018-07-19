@@ -53,7 +53,7 @@ object Main extends App {
         else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       }
 
-    codeGenerator.run(req)
+    codeGenerator.run(req, StdoutLogger)
   }
 
   System.out.write(out.toByteArray)
