@@ -68,6 +68,7 @@ import scala.compat.java8.OptionConverters._
     if (prefix == this.prefix) this
     else
       throw new UnsupportedOperationException("Prefixing gRPC services is not widely supported by clients, " +
-        s"strongly discouraged by the specification and therefore not supported. Prefix was [$prefix]")
+        s"strongly discouraged by the specification and therefore not supported. Prefix was [$prefix] but" +
+        s"the only allowed prefix is [${this.prefix}]")
 
 }

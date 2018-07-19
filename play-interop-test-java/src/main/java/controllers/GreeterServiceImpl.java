@@ -11,7 +11,6 @@ import com.google.inject.Inject;
 import example.myapp.helloworld.grpc.AbstractGreeterServiceRouter;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
-import play.api.inject.Injector;
 
 import javax.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
