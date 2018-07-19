@@ -59,11 +59,16 @@ object GrpcClientSettings {
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
         userAgent = getOptionalString(config, "user-agent"),
-        connectionAttempts = config.getInt("connection-attempts"))
+        connectionAttempts = getOptionalInt(config, "connection-attempts"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case "" => None
+    case other => Some(other)
+  }
+
+  private def getOptionalInt(config: Config, path: String): Option[Int] = config.getInt(path) match {
+    case -1 => None // retry forever
     case other => Some(other)
   }
 
@@ -107,7 +112,7 @@ final class GrpcClientSettings private (
   val serviceDiscovery: SimpleServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
-  val connectionAttempts: Int = 5,
+  val connectionAttempts: Option[Int] = None,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val trustedCaCertificate: Option[String] = None,
@@ -153,7 +158,7 @@ final class GrpcClientSettings private (
    * An exponentially increasing backoff is used between attempts.
    */
   def withConnectionAttempts(value: Int): GrpcClientSettings =
-    copy(connectionAttempts = value)
+    copy(connectionAttempts = Some(value))
 
   private def copy(
     name: String = name,
@@ -165,7 +170,7 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-    connectionAttempts: Int = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
+    connectionAttempts: Option[Int] = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     deadline = deadline,

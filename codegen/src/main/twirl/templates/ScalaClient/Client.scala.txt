@@ -21,7 +21,7 @@ import io.grpc._
 import io.grpc.stub.{ ClientCalls, StreamObserver }
 import @{service.name}Client._
 
-final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} {
+final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} with AkkaGrpcClient {
   import @{service.name}Client._
 
   private val internalChannel: InternalChannel = NettyClientUtils.createChannel(settings)

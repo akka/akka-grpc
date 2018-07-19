@@ -8,11 +8,10 @@ import akka.Done
 import akka.annotation.InternalApi
 import io.grpc.ManagedChannel
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.compat.java8.FutureConverters._
 
-@InternalApi
-/**
+@InternalApi /**
   * INTERNAL API
   * Used from generated code so can't be private.
   */

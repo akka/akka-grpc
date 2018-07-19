@@ -14,6 +14,15 @@ import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
+  * Used to indicate that a gRPC client can not establish a connection
+  * after the configured number of attempts.
+  *
+  * Can be caught to re-create the client if it is likely that
+  * your service discovery mechanism will resolve to different instances.
+  */
+class ClientConnectionException(msg: String) extends RuntimeException(msg)
+
+/**
  * INTERNAL API
  */
 @InternalApi
@@ -39,13 +48,13 @@ object ChannelUtils {
    * INTERNAL API
    */
   @InternalApi
-  private[akka] def monitorChannel(done: Promise[Done], channel: ManagedChannel, maxConnectionAttempts: Int): Unit = {
+  private[akka] def monitorChannel(done: Promise[Done], channel: ManagedChannel, maxConnectionAttempts: Option[Int]): Unit = {
 
     def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit = {
-      if (connectionAttempts == maxConnectionAttempts) {
+      if (maxConnectionAttempts.contains(connectionAttempts)) {
         // shutdown is idempotent in ManagedChannelImpl
         channel.shutdown()
-        done.tryFailure(new RuntimeException(s"Unable to establish connection after [$maxConnectionAttempts]"))
+        done.tryFailure(new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]"))
       } else {
         val currentState = channel.getState(false)
         if (currentState == ConnectivityState.SHUTDOWN) {

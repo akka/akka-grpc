@@ -32,7 +32,7 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Promise;
 
 
-public final class @{service.name}Client implements @{service.name} {
+public final class @{service.name}Client implements @{service.name}, AkkaGrpcClient {
 
   private final InternalChannel internalChannel;
   private final scala.concurrent.Future<ManagedChannel> channel;
