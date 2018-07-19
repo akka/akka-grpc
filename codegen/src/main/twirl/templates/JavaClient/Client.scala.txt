@@ -8,6 +8,7 @@ package @service.packageName;
 
 import akka.NotUsed;
 import akka.Done;
+import akka.annotation.*;
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.SingleResponseRequestBuilder;
@@ -32,7 +33,7 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Promise;
 
 
-public final class @{service.name}Client implements @{service.name}, AkkaGrpcClient {
+public final class @{service.name}Client implements @{service.name}, JavaAkkaGrpcClient {
 
   private final InternalChannel internalChannel;
   private final scala.concurrent.Future<ManagedChannel> channel;

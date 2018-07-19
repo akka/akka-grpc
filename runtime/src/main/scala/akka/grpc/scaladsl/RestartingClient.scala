@@ -1,31 +1,33 @@
-package akka.grpc
+package akka.grpc.scaladsl
 
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.annotation.ApiMayChange
-import akka.grpc.RestartingClient.ClientClosedException
-import akka.grpc.internal.{AkkaGrpcClient, ClientConnectionException}
+import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException }
+import akka.grpc.scaladsl.RestartingClient.ClientClosedException
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Failure
 
 object RestartingClient {
   def apply[T <: AkkaGrpcClient](createClient: () => T)(implicit ec: ExecutionContext): RestartingClient[T] =
     new RestartingClient[T](createClient)
 
   /**
-    * Thrown if a withClient call is called after
-    */
+   * Thrown if a withClient call is called after
+   */
   class ClientClosedException() extends RuntimeException("withClient called after close()")
+
 }
 
 /**
-  * Wraps a Akka gRPC  client and restarts it if a [ClientConnectionException] is thrown.
-  * All other exceptions result in closing and any calls to withClient throwing
-  * a [ClientClosedException].
-  */
+ * Wraps a Akka gRPC  client and restarts it if a [ClientConnectionException] is thrown.
+ * All other exceptions result in closing and any calls to withClient throwing
+ * a [ClientClosedException].
+ */
+
 @ApiMayChange
 final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implicit ec: ExecutionContext) {
 
@@ -46,7 +48,7 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
       val done = c.close()
       if (clientRef.compareAndSet(c, null.asInstanceOf[T]))
         done
-      else // client has had a ClientConnectionExceptin and been re-created, need to shutdown the new one
+      else // client has had a ClientConnectionException and been re-created, need to shutdown the new one
         close()
     } else
       Future.successful(Done)
@@ -56,14 +58,15 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
   private def create(): T = {
     val c: T = createClient()
     c.closed().onComplete {
-      // closed() should not fail with any other exception so close it
       case Failure(_: ClientConnectionException) =>
         clientRef.set(create())
       case Failure(_) =>
+        println("Failing")
         close()
       case _ =>
-        // let all other exceptions and success through
+      // let all other exceptions and success through
     }
     c
   }
 }
+

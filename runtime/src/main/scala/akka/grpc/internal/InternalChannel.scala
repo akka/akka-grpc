@@ -4,6 +4,8 @@
 
 package akka.grpc.internal
 
+import java.util.concurrent.CompletionStage
+
 import akka.Done
 import akka.annotation.InternalApi
 import io.grpc.ManagedChannel
@@ -11,13 +13,14 @@ import io.grpc.ManagedChannel
 import scala.concurrent.{ Future, Promise }
 import scala.compat.java8.FutureConverters._
 
-@InternalApi /**
-  * INTERNAL API
-  * Used from generated code so can't be private.
-  */
+/**
+ * INTERNAL API
+ * Used from generated code so can't be private.
+ */
+@InternalApi
 class InternalChannel(val managedChannel: Future[ManagedChannel], promiseDone: Promise[Done]) {
 
-  val doneCS = promiseDone.future.toJava
-  val done = promiseDone.future
+  val doneCS: CompletionStage[Done] = promiseDone.future.toJava
+  val done: Future[Done] = promiseDone.future
 
 }

@@ -8,6 +8,7 @@ package @service.packageName
 
 import akka.NotUsed
 import akka.Done
+import akka.annotation.InternalApi
 import akka.grpc.internal._
 import akka.grpc.scaladsl._
 import akka.grpc.GrpcClientSettings
@@ -85,7 +86,6 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   * after maxConnectionAttempts.
   */
   def closed(): Future[Done] = internalChannel.done
-
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {

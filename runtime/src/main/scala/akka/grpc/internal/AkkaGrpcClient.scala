@@ -1,5 +1,7 @@
 package akka.grpc.internal
 
+import java.util.concurrent.CompletionStage
+
 import akka.Done
 import akka.annotation.ApiMayChange
 
@@ -12,6 +14,12 @@ import scala.concurrent.Future
  */
 @ApiMayChange
 trait AkkaGrpcClient {
-  def closed(): Future[Done]
   def close(): Future[Done]
+  def closed(): Future[Done]
+}
+
+@ApiMayChange
+trait JavaAkkaGrpcClient {
+  def close(): CompletionStage[Done]
+  def closed(): CompletionStage[Done]
 }

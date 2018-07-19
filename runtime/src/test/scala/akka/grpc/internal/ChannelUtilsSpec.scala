@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import akka.Done
 import akka.grpc.internal.ChannelUtilsSpec.FakeChannel
 import io.grpc._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import ConnectivityState._
 import org.scalatest.concurrent.ScalaFutures
 

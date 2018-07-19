@@ -14,12 +14,12 @@ import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
-  * Used to indicate that a gRPC client can not establish a connection
-  * after the configured number of attempts.
-  *
-  * Can be caught to re-create the client if it is likely that
-  * your service discovery mechanism will resolve to different instances.
-  */
+ * Used to indicate that a gRPC client can not establish a connection
+ * after the configured number of attempts.
+ *
+ * Can be caught to re-create the client if it is likely that
+ * your service discovery mechanism will resolve to different instances.
+ */
 class ClientConnectionException(msg: String) extends RuntimeException(msg)
 
 /**

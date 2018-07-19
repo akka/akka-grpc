@@ -1,18 +1,18 @@
-package akka.grpc
+package akka.grpc.scaladsl
 
 import java.util.concurrent._
 
 import akka.Done
-import akka.grpc.RestartingClient.ClientClosedException
-import akka.grpc.RestartingClientSpec.FakeClient
-import akka.grpc.internal.{AkkaGrpcClient, ClientConnectionException}
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.{Matchers, WordSpec}
+import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient }
+import akka.grpc.scaladsl.RestartingClient.ClientClosedException
+import akka.grpc.scaladsl.RestartingClientSpec.FakeClient
 import org.scalatest.Inspectors._
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ Future, Promise }
 
 object RestartingClientSpec {
 
@@ -97,7 +97,7 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
       }
     }
 
-    "not re-create on any other exceptions"in {
+    "not re-create on any other exceptions" in {
       val (clientCreations, restartingClient) = fakeRestartingClient()
       restartingClient.withClient(c => c.fail(new RuntimeException("Naughty")))
       val firstClient = clientCreations.poll(queueTimeoutMs, TimeUnit.MILLISECONDS)
@@ -134,8 +134,10 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
 
       failures.futureValue
       closers.futureValue
-      val clients = clientCreations.asScala
-      forAll(clients) { c => c.beenClosed shouldBe true }
+      eventually {
+        val clients = clientCreations.asScala
+        forAll(clients) { c => c.beenClosed shouldBe true }
+      }
     }
   }
 }

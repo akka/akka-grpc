@@ -4,12 +4,11 @@ import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
-import akka.grpc.RestartingClient;
+import akka.grpc.javadsl.RestartingClient;
 import akka.japi.Pair;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
-import io.grpc.StatusRuntimeException;
 
 import java.time.Duration;
 import java.util.List;
