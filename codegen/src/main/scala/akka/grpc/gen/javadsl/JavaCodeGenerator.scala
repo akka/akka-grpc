@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 abstract class JavaCodeGenerator extends CodeGenerator {
 
   /** Override this to add generated files per service */
-  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
+  def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = Set.empty
 
   /** Override these to add service-independent generated files */
   def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
@@ -44,7 +44,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       service <- services
       generator ← perServiceContent
     } {
-      b.addFile(generator(service))
+      b.addFile(generator(logger, service))
     }
 
     staticContent.map(b.addFile)
@@ -66,7 +66,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
 }
 
 object JavaCodeGenerator {
-  val generateServiceFile: Service ⇒ CodeGeneratorResponse.File = service ⇒ {
+  val generateServiceFile: (Logger, Service) ⇒ CodeGeneratorResponse.File = (logger, service) ⇒ {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ApiInterface(service).body)
     b.setName(s"${service.packageDir}/${service.name}.java")

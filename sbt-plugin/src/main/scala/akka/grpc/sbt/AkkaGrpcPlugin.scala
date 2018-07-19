@@ -4,6 +4,8 @@
 
 package akka.grpc.sbt
 
+import java.io.{ ByteArrayOutputStream, PrintStream }
+
 import sbt.{ GlobFilter, _ }
 import Keys._
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
@@ -21,10 +23,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   // hack because we cannot access sbt logger from streams unless inside taskKeys and
   // we need it in settingsKeys
-  private val logger = new GenLogger {
+  private val generatorLogger = new GenLogger {
     @volatile var logger: Logger = ConsoleLogger()
-    def info(text: String): Unit = logger.info(s"[INFO]: $text")
-    def warn(text: String): Unit = logger.warn(s"[WARN]: $text")
+    def debug(text: String): Unit = logger.debug(text)
+    def info(text: String): Unit = logger.info(text)
+    def warn(text: String): Unit = logger.warn(text)
+    def error(text: String): Unit = logger.error(text)
   }
 
   trait Keys { _: autoImport.type =>
@@ -58,14 +62,25 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
-      akkaGrpcExtraGenerators := Seq.empty)
+      akkaGrpcExtraGenerators := Seq.empty,
+      PB.recompile in Compile := {
+        // hack to get our (dirty) hands on a proper sbt logger before running the generators
+        generatorLogger.logger = streams.value.log
+        (PB.recompile in Compile).value
+      },
+      PB.recompile in Test := {
+        // hack to get our (dirty) hands on a proper sbt logger before running the generators
+        generatorLogger.logger = streams.value.log
+        (PB.recompile in Test).value
+      },
+    )
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
       akkaGrpcGenerators := {
-        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, logger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, logger))
+        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, generatorLogger))
       },
 
       // configure the proto gen automatically by adding our codegen:
@@ -78,11 +93,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
       // include proto files extracted from the dependencies with "protobuf" configuration by default
       PB.protoSources += PB.externalIncludePath.value,
-      PB.recompile := {
-        // hack to get our hands on a proper sbt logger before running the generators
-        logger.logger = streams.value.log
-        PB.recompile.value
-      }) ++
+    ) ++
 
       inTask(PB.recompile)(
         Seq(
@@ -153,6 +164,29 @@ object AkkaGrpcPlugin extends AutoPlugin {
     override def run(request: Array[Byte]): Array[Byte] = impl.run(request, logger)
     override def suggestedDependencies: Seq[protocbridge.Artifact] = impl.suggestedDependencies
     override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${impl.name}: $impl)"
+  }
+
+  /**
+   * Redirect stdout and stderr to buffers while running the given block, then reinstall original
+   * stdin and out and return the logged output
+   */
+  private def captureStdOutAnderr[T](block: => T): (String, String, T) = {
+    val errBao = new ByteArrayOutputStream()
+    val errPrinter = new PrintStream(errBao, true, "UTF-8")
+    val outBao = new ByteArrayOutputStream()
+    val outPrinter = new PrintStream(outBao, true, "UTF-8")
+    val originalOut = System.out
+    val originalErr = System.err
+    System.setOut(outPrinter)
+    System.setErr(errPrinter)
+    val t = try {
+      block
+    } finally {
+      System.setOut(originalOut)
+      System.setErr(originalErr)
+    }
+
+    (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 }
 

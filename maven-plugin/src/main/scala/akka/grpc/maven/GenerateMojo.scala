@@ -198,8 +198,10 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
 
   def adaptAkkaGenerator(targetPath: File, generator: CodeGenerator, settings: Seq[String]): Target = {
     val logger = new Logger {
+      def debug(text: String): Unit = getLog.debug(text)
       def info(text: String): Unit = getLog.info(text)
       def warn(text: String): Unit = getLog.warn(text)
+      def error(text: String): Unit = getLog.error(text)
     }
     val adapted = new ProtocBridgeCodeGenerator(generator, logger)
     val jvmGenerator = JvmGenerator(generator.name, adapted)

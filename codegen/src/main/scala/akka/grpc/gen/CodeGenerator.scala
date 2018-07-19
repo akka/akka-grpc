@@ -11,16 +11,20 @@ import protocbridge.Artifact
 
 // specific to gen so that the build tools can implement their own
 trait Logger {
+  def debug(text: String): Unit
   def info(text: String): Unit
   def warn(text: String): Unit
+  def error(text: String): Unit
 }
 
 /**
  * Simple standard out logger for use in tests or where there is no logger from the build tool available
  */
 object StdoutLogger extends Logger {
+  def debug(text: String): Unit = println(s"DEBUG: $text")
   def info(text: String): Unit = println(s"INFO: $text")
   def warn(text: String): Unit = println(s"WARN: $text")
+  def error(text: String): Unit = println(s"ERROR: $text")
 }
 
 /**
