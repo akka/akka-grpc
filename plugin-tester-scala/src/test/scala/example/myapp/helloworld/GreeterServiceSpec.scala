@@ -8,6 +8,7 @@ import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import akka.grpc.SSLContextUtils
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
@@ -42,7 +43,7 @@ class GreeterSpec
     new GreeterServiceClient(
       GrpcClientSettings("127.0.0.1", 8080)
         .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem"))
+        .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
   }
 
   override def afterAll: Unit = {

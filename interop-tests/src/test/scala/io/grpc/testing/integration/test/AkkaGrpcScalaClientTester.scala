@@ -8,7 +8,7 @@ import java.io.{ IOException, InputStream }
 
 import akka.grpc.GrpcClientSettings.getClass
 import akka.grpc.internal.NettyClientUtils
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata }
+import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import com.google.protobuf.ByteString

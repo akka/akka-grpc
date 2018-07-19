@@ -2,7 +2,7 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package io.grpc.testing.integration.test
+package akka.grpc
 
 import java.io.{ File, FileInputStream, IOException, InputStream }
 
