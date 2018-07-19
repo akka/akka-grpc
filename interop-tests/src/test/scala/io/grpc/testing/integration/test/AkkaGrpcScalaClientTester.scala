@@ -36,7 +36,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
     val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
-      .withSSLContext(SSLContextUtils.sslContextForCert("ca.pem"))
+      .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
