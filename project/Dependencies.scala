@@ -6,7 +6,7 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
-    val akka = "2.5.12"
+    val akka = "2.5.14"
     val akkaHttp = "10.1.3"
     val akkaDiscovery = "0.15.0"
 
