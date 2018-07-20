@@ -1,10 +1,6 @@
 //#full-client
 package example.myapp.helloworld
 
-import scala.concurrent.duration._
-import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
 
 import akka.Done
 import akka.NotUsed
@@ -12,8 +8,13 @@ import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-
 import example.myapp.helloworld.grpc._
+
+import javax.net.ssl.SSLContext
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 object GreeterClient {
 
@@ -23,10 +24,8 @@ object GreeterClient {
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val client = new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
-        .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem"))
+    val clientSettings = GrpcClientSettings.create(GreeterService.name, sys)
+    val client = new GreeterServiceClient(clientSettings)
 
     singleRequestReply()
     streamingRequest()

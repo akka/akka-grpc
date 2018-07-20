@@ -4,16 +4,21 @@
 
 package io.grpc.testing.integration.test
 
-import java.io.InputStream
+import java.io.{ IOException, InputStream }
 
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata }
+import akka.grpc.GrpcClientSettings.getClass
+import akka.grpc.internal.NettyClientUtils
+import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import com.google.protobuf.ByteString
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.netty.handler.ssl.{ JdkSslContext, SslProvider }
 import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
 import io.grpc.testing.integration2.{ ClientTester, Settings }
 import io.grpc.{ Metadata, Status, StatusRuntimeException }
+import javax.net.ssl.SSLContext
 import org.junit.Assert._
 
 import scala.concurrent.duration._
@@ -29,9 +34,10 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   private val awaitTimeout = 3.seconds
 
   def setUp(): Unit = {
+
     val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
-      .withTrustedCaCertificate("ca.pem")
+      .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }

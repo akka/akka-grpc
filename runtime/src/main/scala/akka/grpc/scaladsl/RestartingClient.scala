@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.scaladsl
 
 import java.util.concurrent.atomic.AtomicReference
@@ -37,7 +41,7 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
     val c = clientRef.get()
     if (c != null)
       f(clientRef.get())
-    else // Likely to happen if this is a shared client during shutdown?
+    else // Likely to happen if this is a shared client during shutdown
       throw new ClientClosedException
   }
 
@@ -61,7 +65,6 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
       case Failure(_: ClientConnectionException) =>
         clientRef.set(create())
       case Failure(_) =>
-        println("Failing")
         close()
       case _ =>
       // let all other exceptions and success through

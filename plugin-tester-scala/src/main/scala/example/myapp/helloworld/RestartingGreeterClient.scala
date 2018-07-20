@@ -2,7 +2,8 @@ package example.myapp.helloworld
 
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
-import akka.grpc.{GrpcClientSettings, RestartingClient}
+import akka.grpc.GrpcClientSettings
+import akka.grpc.scaladsl.RestartingClient
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
@@ -21,10 +22,8 @@ object RestartingGreeterClient {
 
     //#restarting-client
     // Function for creating a client
-    val clientConstructor = () => new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
-        .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem"))
+    val clientSettings = GrpcClientSettings.create(GreeterService.name, sys)
+    val clientConstructor = () => new GreeterServiceClient(clientSettings)
 
     // Wrapped in a restarting client
     val restartingClient = new RestartingClient[GreeterServiceClient](clientConstructor)
@@ -51,12 +50,12 @@ object RestartingGreeterClient {
 
     def streamingRequest(): Unit = {
       val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
-      val reply = restartingClient.client().itKeepsTalking(Source(requests))
+      val reply = restartingClient.withClient(c => c.itKeepsTalking(Source(requests)))
       println(s"got single reply for streaming requests: ${Await.result(reply, 5.seconds).message}")
     }
 
     def streamingReply(): Unit = {
-      val responseStream = restartingClient.client().itKeepsReplying(HelloRequest("Alice"))
+      val responseStream = restartingClient.withClient(c => c.itKeepsReplying(HelloRequest("Alice")))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
       Await.ready(done, 1.minute) // just to keep sample simple - don't do Await.ready in actual code
@@ -72,7 +71,7 @@ object RestartingGreeterClient {
           .take(10)
           .mapMaterializedValue(_ => NotUsed)
 
-      val responseStream: Source[HelloReply, NotUsed] = restartingClient.client().streamHellos(requestStream)
+      val responseStream: Source[HelloReply, NotUsed] = restartingClient.withClient(c => c.streamHellos(requestStream))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
       Await.ready(done, 1.minute)

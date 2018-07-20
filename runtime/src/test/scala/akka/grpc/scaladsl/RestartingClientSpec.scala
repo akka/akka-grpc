@@ -1,23 +1,34 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.scaladsl
 
 import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicInteger
 
 import akka.Done
-import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient }
+import akka.grpc.internal.{AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient}
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
 import akka.grpc.scaladsl.RestartingClientSpec.FakeClient
 import org.scalatest.Inspectors._
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.time.{Millis, Span}
+import org.scalatest.{Matchers, WordSpec}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 
 object RestartingClientSpec {
 
+  object FakeClient {
+    val count = new AtomicInteger(1)
+  }
+
   class FakeClient extends AkkaGrpcClient {
 
+    private val nr = FakeClient.count.getAndIncrement()
     private val promise: Promise[Done] = Promise[Done]()
     @volatile var beenClosed: Boolean = false
 
@@ -26,27 +37,32 @@ object RestartingClientSpec {
     def bestClientCallEver(): String = "best"
 
     override def close(): Future[Done] = {
+      println(s"$nr Close()")
       beenClosed = true
       Future.successful(Done)
     }
 
     def fail(t: Throwable): Unit = {
-      promise.tryFailure(t)
+      println(s"$nr Fail(): " + t)
       beenClosed = true
+      promise.tryFailure(t)
     }
 
     def succeed(): Unit = {
+      println(s"$nr Succeed()")
       promise.trySuccess(Done)
     }
 
-    override def toString = s"FakeClient($promise, $beenClosed)"
+
+    override def toString = s"FakeClient($nr, $promise, $beenClosed)"
   }
 
 }
 
 class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with Eventually {
 
-  val queueTimeoutMs = 10
+  implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(20, Millis))
+  val queueTimeoutMs = 25
 
   def fakeRestartingClient(capacity: Int = 2): (BlockingQueue[FakeClient], RestartingClient[FakeClient]) = {
     val clientCreations = new ArrayBlockingQueue[FakeClient](capacity)

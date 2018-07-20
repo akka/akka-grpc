@@ -2,7 +2,7 @@ package com.lightbend.grpc.interop
 
 import java.io.InputStream
 
-import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException}
+import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, SSLContextUtils}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.google.protobuf.ByteString
@@ -31,7 +31,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, e
   def setUp(): Unit = {
     val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
-      .withTrustedCaCertificate("ca.pem")
+      .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
 
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)

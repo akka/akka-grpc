@@ -25,14 +25,10 @@ class LiftedGreeterClient {
     String serverHost = "127.0.0.1";
     int serverPort = 8080;
 
-    GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
-        // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
-        .withOverrideAuthority("foo.test.google.fr")
-        .withTrustedCaCertificate("ca.pem");
-
     ActorSystem system = ActorSystem.create("HelloWorldClient");
     Materializer materializer = ActorMaterializer.create(system);
 
+    GrpcClientSettings settings = GrpcClientSettings.create(GreeterService.name, system);
     GreeterServiceClient client = null;
     try {
       client = GreeterServiceClient.create(settings, materializer, system.dispatcher());

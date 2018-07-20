@@ -30,11 +30,7 @@ class RestartingGreeterClient {
 
         try {
             //#restarting-client
-            GrpcClientSettings settings = GrpcClientSettings.create(serverHost, serverPort)
-                    // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
-                    .withOverrideAuthority("foo.test.google.fr")
-                    .withTrustedCaCertificate("ca.pem");
-
+            GrpcClientSettings settings = GrpcClientSettings.create(GreeterService.name, system);
 
             RestartingClient<GreeterServiceClient> client = new RestartingClient<>(
                     () -> GreeterServiceClient.create(settings, materializer, system.dispatcher()), system.dispatcher()
@@ -92,7 +88,7 @@ class RestartingGreeterClient {
                 .take(10)
                 .mapMaterializedValue(m -> NotUsed.getInstance());
 
-        Source<HelloReply, NotUsed> responseStream = client.streamHellos(requestStream);
+        Source<HelloReply, NotUsed> responseStream = client.withClient(c -> c.streamHellos(requestStream));
         CompletionStage<Done> done =
                 responseStream.runForeach(reply ->
                         System.out.println("got streaming reply: " + reply.getMessage()), mat);
