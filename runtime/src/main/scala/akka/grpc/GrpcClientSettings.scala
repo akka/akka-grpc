@@ -4,18 +4,20 @@
 
 package akka.grpc
 
-import com.typesafe.config.Config
-import io.grpc.CallCredentials
-
-import scala.collection.immutable
-import scala.concurrent.duration._
-
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
+import com.typesafe.config.Config
+import com.typesafe.sslconfig.ssl.{ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings}
+import io.grpc.CallCredentials
+import javax.net.ssl.SSLContext
+
+import scala.collection.immutable
+import scala.concurrent.duration.{Duration, _}
 
 object GrpcClientSettings {
 
@@ -41,24 +43,28 @@ object GrpcClientSettings {
     */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
-
-    val serviceConfig =
+    val serviceConfig = {
+      // Use config named "*" by default
+      val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
+      // Override "*" config with specific service config if available
       if (akkaGrpcClientConfig.hasPath('"' + serviceName + '"'))
-        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(akkaGrpcClientConfig.getConfig("\"*\""))
+        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(defaultServiceConfig)
       else
-        akkaGrpcClientConfig.getConfig("\"*\"")
+        defaultServiceConfig
+    }
 
     GrpcClientSettings(serviceConfig)
   }
 
   /** Scala API */
   def apply(config: Config): GrpcClientSettings = {
-    GrpcClientSettings(config.getString("host"), config.getInt("port"))
+    GrpcClientSettings(config getString "host", config getInt "port")
       .copy(
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
-        trustedCaCertificate = getOptionalString(config, "trusted-ca-certificate"),
-        userAgent = getOptionalString(config, "user-agent"))
+        userAgent = getOptionalString(config, "user-agent"),
+        sslContext = getOptionalSSLContext(config, "ssl-config")
+      )
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
@@ -99,6 +105,35 @@ object GrpcClientSettings {
     apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
 
   private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
+
+  /**
+   * INTERNAL API
+   *
+   * @param config The config to parse, assumes already at the right path.
+   */
+  @InternalApi
+  private def getSSLContext(config: Config): SSLContext = {
+    val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(config)
+    val sslContext: SSLContext = new ConfigSSLContextBuilder(
+      com.typesafe.sslconfig.util.NoopLogger.factory, // FIXME
+      sslConfigSettings,
+      new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
+      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)
+    ).build()
+    sslContext
+  }
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private def getOptionalSSLContext(config: Config, path: String): Option[SSLContext] = {
+    if (config.hasPath(path))
+      Some(getSSLContext(config.getConfig(path)))
+    else
+      None
+  }
+
 }
 
 final class GrpcClientSettings private (
@@ -108,7 +143,7 @@ final class GrpcClientSettings private (
   val resolveTimeout: FiniteDuration,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
-  val trustedCaCertificate: Option[String] = None,
+  val sslContext: Option[SSLContext] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
   val useTls: Boolean = true) {
@@ -120,8 +155,7 @@ final class GrpcClientSettings private (
   def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
-  def withTrustedCaCertificate(value: String): GrpcClientSettings = copy(trustedCaCertificate = Option(value))
-
+  def withSSLContext(context: SSLContext) = copy(sslContext = Option(context))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
   /**
    * Each call will have this deadline.
@@ -150,7 +184,7 @@ final class GrpcClientSettings private (
     defaultPort: Int = defaultPort,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
-    trustedCaCertificate: Option[String] = trustedCaCertificate,
+    sslContext: Option[SSLContext] = sslContext,
     deadline: Duration = deadline,
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
@@ -162,7 +196,7 @@ final class GrpcClientSettings private (
     name = name,
     overrideAuthority = overrideAuthority,
     defaultPort = defaultPort,
-    trustedCaCertificate = trustedCaCertificate,
+    sslContext = sslContext,
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,

@@ -7,6 +7,7 @@ package io.grpc.testing.integration;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.GrpcResponseMetadata;
 import akka.grpc.GrpcSingleResponse;
+import akka.grpc.SSLContextUtils;
 import akka.grpc.javadsl.Metadata;
 import akka.japi.Pair;
 import akka.stream.Materializer;
@@ -49,7 +50,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     final GrpcClientSettings grpcSettings =
         GrpcClientSettings.create(settings.serverHost(), settings.serverPort())
           .withOverrideAuthority(settings.serverHostOverride())
-          .withTrustedCaCertificate("ca.pem");
+          .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     client = TestServiceClient.create(grpcSettings, mat, ec);
     clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
   }

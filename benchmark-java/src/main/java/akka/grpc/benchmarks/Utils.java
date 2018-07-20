@@ -18,6 +18,7 @@
 package akka.grpc.benchmarks;
 
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.SSLContextUtils;
 import akka.grpc.benchmarks.proto.Control;
 import akka.grpc.benchmarks.proto.Messages;
 import akka.grpc.benchmarks.proto.Messages.Payload;
@@ -190,7 +191,7 @@ public final class Utils {
       // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
       return settings
           .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
-          .withTrustedCaCertificate("ca.pem");
+          .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
     else
       return settings;
 

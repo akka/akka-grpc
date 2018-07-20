@@ -14,6 +14,8 @@ object Dependencies {
 
     val scalapb = "0.7.1"
     val grpc = "1.13.1"
+    val config = "1.3.3"
+    val sslConfig = "0.2.4"
 
     val scalaTest = "3.0.4"
     val scalaJava8Compat = "0.8.0"
@@ -35,6 +37,9 @@ object Dependencies {
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
     val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    val config = "com.typesafe" % "config" % Versions.config
+    val sslConfigCore = "com.typesafe" %% "ssl-config-core" % Versions.sslConfig
 
     val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.25"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
@@ -80,6 +85,11 @@ object Dependencies {
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,
+    // 'config' is also a transitive dependency, but Maven will select an old
+    // version coming in via `sslConfigCore` unless we explicitly add a
+    // dependency on the newer version here.
+    Compile.config,
+    Compile.sslConfigCore,
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
