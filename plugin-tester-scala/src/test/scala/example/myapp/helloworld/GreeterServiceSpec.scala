@@ -43,7 +43,7 @@ class GreeterSpec
     new GreeterServiceClient(
       GrpcClientSettings("127.0.0.1", 8080)
         .withOverrideAuthority("foo.test.google.fr")
-        .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
+        .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem")))
   }
 
   override def afterAll: Unit = {
