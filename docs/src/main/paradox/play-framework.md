@@ -8,7 +8,7 @@
 
 ## Using a gRPC client in a Play Framework app
 
-Akka gRPC has special support to allow for minimal fuzz injection of generated clients in Play. To enable this you
+Akka gRPC has special support to allow for seamless injection of generated clients in Play. To enable this you
 need to first enable the gRPC plugin as described in the @ref[client docs](client.md) and then add an additional
 source generator in `build.sbt`:
 
