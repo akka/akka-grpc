@@ -1,10 +1,7 @@
 # Play Framework
 
-
-## Serving gRPC from a Play Framework app
-
-
-
+Akka gRPC has special support for both consuming gRPC services through an Akka gRPC client and for implementing
+your own gRPC service as a part of a Play Framework application.
 
 ## Using a gRPC client in a Play Framework app
 
@@ -12,9 +9,16 @@ Akka gRPC has special support to allow for seamless injection of generated clien
 need to first enable the gRPC plugin as described in the @ref[client docs](client.md) and then add an additional
 source generator in `build.sbt`:
 
-```
+Scala
+:  ```
 import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 akkaGrpcExtraGenerators += PlayScalaClientCodeGenerator
+```
+
+Java
+:  ```
+import akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator
+akkaGrpcExtraGenerators += PlayJavaClientCodeGenerator
 ```
 
 This will generate a Play module that provides all generated clients for injection. The module must be enabled
@@ -50,3 +54,58 @@ Scala
 Java
 :   @@snip[MyController.java]($root$/../play-interop-test-java/src/main/java/controllers/MyController.java) { #using-client }
 
+## Serving gRPC from a Play Framework app
+
+To be able to serve gRPC from a Play Framework app you must enable [HTTP/2 Support](https://www.playframework.com/documentation/2.6.x/AkkaHttpServer#HTTP%2F2-support-%28experimental%29)
+with HTTPS and the ALPN agent. (This is still somewhat involved and we hope to simplify it)
+
+Generating classes from the gRPC service definition is done buy adding the Akka gRPC plugin to your sbt build:
+
+sbt
+:   @@@vars
+    ```scala
+    // in project/plugins.sbt:
+    addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
+    ```
+    @@@
+
+
+Then you need to enable the Play server side code generator in `build.sbt`:
+
+Scala
+:   ```scala
+enablePlugins(AkkaGrpcPlugin)
+import akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator
+akkaGrpcExtraGenerators += PlayScalaClientServerGenerator
+```
+
+Java
+:   ```scala
+enablePlugins(AkkaGrpcPlugin)
+import akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator
+akkaGrpcExtraGenerators += PlayJavaClientServerGenerator
+```
+
+The plugin will look for `.proto` service descriptors in `src/main/protobuf` and output an abstract class per service
+that you then implement, so for example for the following protobuf descriptor:
+
+@@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
+
+You will get an abstract class named `example.myapp.helloworld.grpc.helloworld.AbstractGreeterServiceRouter`.
+Create a concrete subclass implementing this wherever you see fit in your project, let's say `controller.GreeterServiceImpl`
+like so:
+
+Scala
+:   @@snip[GreeterServiceImpl.scala]($root$/../play-interop-test-scala/src/main/scala/controllers/GreeterServiceImpl.scala) { #service-impl }
+
+Java
+:   @@snip[GreeterServiceImpl.java]($root$/../play-interop-test-java/src/main/java/controllers/GreeterServiceImpl.java) { #service-impl }
+
+And then add this to your Play `conf/routes` file, note that the path here depends on the package and service name from the
+`.proto` service descriptor and cannot be set to an arbitrary value (if you try to do so an exception will be thrown when the router is started).
+
+```
+->     /helloworld.GreeterService   controllers.GreeterServiceController
+```
+
+A gRPC client can now connect to the server and call the provided services.

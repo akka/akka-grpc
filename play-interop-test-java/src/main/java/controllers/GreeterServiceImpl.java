@@ -2,11 +2,10 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
+// #service-impl
 package controllers;
 
-import akka.NotUsed;
 import akka.stream.Materializer;
-import akka.stream.javadsl.Source;
 import com.google.inject.Inject;
 import example.myapp.helloworld.grpc.AbstractGreeterServiceRouter;
 import example.myapp.helloworld.grpc.HelloReply;
@@ -33,3 +32,4 @@ public class GreeterServiceImpl extends AbstractGreeterServiceRouter {
   }
 
 }
+// #service-impl
