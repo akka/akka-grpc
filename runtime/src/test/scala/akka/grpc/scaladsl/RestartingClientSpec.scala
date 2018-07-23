@@ -8,17 +8,17 @@ import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.Done
-import akka.grpc.internal.{AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient}
+import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient }
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
 import akka.grpc.scaladsl.RestartingClientSpec.FakeClient
 import org.scalatest.Inspectors._
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.time.{Millis, Span}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.time.{ Millis, Span }
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 
 object RestartingClientSpec {
 
@@ -52,7 +52,6 @@ object RestartingClientSpec {
       println(s"$nr Succeed()")
       promise.trySuccess(Done)
     }
-
 
     override def toString = s"FakeClient($nr, $promise, $beenClosed)"
   }
@@ -136,14 +135,15 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
     "close all the clients" in {
       val (clientCreations, restartingClient) = fakeRestartingClient(20)
       val failures = Future.sequence((1 to 20).map(i => Future {
-        restartingClient.withClient(f => {
-          try {
-            f.fail(new ClientConnectionException(s"fail-$i"))
-          } catch {
-            case _: ClientClosedException =>
-          }
-        })
+        try {
+          restartingClient.withClient(c => {
+            c.fail(new ClientConnectionException(s"fail-$i"))
+          })
+        } catch {
+          case _: ClientClosedException =>
+        }
       }))
+
       val closers = Future.sequence((1 to 5).map(_ => Future {
         restartingClient.close()
       }))

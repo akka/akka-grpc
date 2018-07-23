@@ -25,6 +25,8 @@ import static org.junit.Assert.*;
 
 public class RestartingClientTest extends JUnitEventually {
 
+    private static final long QUEUE_TIMEOUT = 50;
+
     public static class FakeJavaClient implements JavaAkkaGrpcClient {
 
         private RestartingClientSpec.FakeClient delegate = new RestartingClientSpec.FakeClient();
@@ -47,7 +49,6 @@ public class RestartingClientTest extends JUnitEventually {
         }
     }
 
-
     @Test
     public void shouldWork() throws Exception {
         ArrayBlockingQueue<FakeJavaClient> clientCreations = new ArrayBlockingQueue<FakeJavaClient>(10);
@@ -59,13 +60,13 @@ public class RestartingClientTest extends JUnitEventually {
                 }, Executors.newCachedThreadPool()
         );
 
-        FakeJavaClient firstClient = clientCreations.poll(10, TimeUnit.MILLISECONDS);
+        FakeJavaClient firstClient = clientCreations.poll(QUEUE_TIMEOUT, TimeUnit.MILLISECONDS);
         assertNotNull(firstClient);
         assertEquals(0, clientCreations.size());
 
         firstClient.delegate.fail(new ClientConnectionException("Oh noes"));
 
-        FakeJavaClient secondClient = clientCreations.poll(10, TimeUnit.MILLISECONDS);
+        FakeJavaClient secondClient = clientCreations.poll(QUEUE_TIMEOUT, TimeUnit.MILLISECONDS);
         assertNotNull(secondClient);
         assertEquals(0, clientCreations.size());
 

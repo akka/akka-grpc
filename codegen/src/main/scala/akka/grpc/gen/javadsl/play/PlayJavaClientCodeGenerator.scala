@@ -2,26 +2,25 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc.gen.scaladsl.play
+package akka.grpc.gen.javadsl.play
 
-import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, Service }
+import akka.grpc.gen.javadsl.{ JavaCodeGenerator, Service }
+import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
-import templates.PlayScala.txt.{ AkkaGrpcClientModule, ClientProvider }
+import templates.PlayJava.txt.{ AkkaGrpcClientModule, ClientProvider }
 
 import scala.annotation.tailrec
+import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 
-object PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
-
-  val ClientModuleName = "AkkaGrpcClientModule"
-
-  override def name: String = "akka-grpc-play-client-scala"
+object PlayJavaClientCodeGenerator extends JavaCodeGenerator {
+  override def name: String = "akka-grpc-play-client-java"
 
   override def perServiceContent = super.perServiceContent + generateClientProvider
 
   private val generateClientProvider: Service => CodeGeneratorResponse.File = service => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ClientProvider(service).body)
-    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.scala")
+    b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.java")
     b.build
   }
 
@@ -30,41 +29,25 @@ object PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
       val packageName = packageForSharedModuleFile(allServices)
       val b = CodeGeneratorResponse.File.newBuilder()
       b.setContent(AkkaGrpcClientModule(packageName, allServices).body)
-      b.setName(s"${packageName.replace('.', '/')}/${ClientModuleName}.scala")
+      b.setName(s"${packageName.replace('.', '/')}/${PlayScalaClientCodeGenerator.ClientModuleName}.java")
       val set = Set(b.build)
       /* FIXME we cannot stdout from the generator, it breaks things #257
-      println(s"Generated [${packageName}.${ClientModuleName}] add it to play.modules.enabled and a section " +
+        println(s"Generated [${packageName}.${PlayScalaClientCodeGenerator.ClientModuleName}] add it to play.modules.enabled and a section " +
         "with Akka gRPC client config under akka.grpc.client.[servicepackage.ServiceName] to be able to inject " +
-        "client instances.")
-      */
+        "client instances.") */
       set
+
     } else Set.empty
   }
 
-  def packageForSharedModuleFile(allServices: Seq[Service]): String =
+  private[play] def packageForSharedModuleFile(allServices: Seq[Service]): String =
     // single service or all services in single package - use that
     if (allServices.forall(_.packageName == allServices.head.packageName)) allServices.head.packageName
     else {
       // try to find longest common prefix
       allServices.tail.foldLeft(allServices.head.packageName)((packageName, service) =>
         if (packageName == service.packageName) packageName
-        else commonPackage(packageName, service.packageName))
+        else PlayScalaClientCodeGenerator.commonPackage(packageName, service.packageName))
     }
-
-  /** extract the longest common package prefix for two classes */
-  def commonPackage(a: String, b: String): String = {
-    val aPackages = a.split('.')
-    val bPackages = b.split('.')
-    @tailrec
-    def countIdenticalPackage(pos: Int): Int = {
-      if (aPackages(pos) == bPackages(pos)) countIdenticalPackage(pos + 1)
-      else pos
-    }
-
-    val prefixLength = countIdenticalPackage(0)
-    if (prefixLength == 0) "" // no common, use root package
-    else aPackages.take(prefixLength).mkString(".")
-
-  }
 
 }

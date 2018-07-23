@@ -17,8 +17,9 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   /** Override this to add generated files per service */
   def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
 
-  /** Override this to add service-independent generated files */
+  /** Override these to add service-independent generated files */
   def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
   override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
@@ -32,17 +33,22 @@ abstract class JavaCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
-    for {
+    val services = (for {
       file ← request.getFileToGenerateList.asScala
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
-      service = Service(fileDesc, serviceDesc)
+    } yield Service(fileDesc, serviceDesc)).toVector
+
+
+    for {
+      service <- services
       generator ← perServiceContent
     } {
       b.addFile(generator(service))
     }
 
     staticContent.map(b.addFile)
+    staticContent(services).map(b.addFile)
 
     b.build()
   }

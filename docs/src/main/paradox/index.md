@@ -63,6 +63,7 @@ which is sufficient for many use cases, but is planned to be replaced with
 * [sbt](sbt.md)
 * [maven](maven.md)
 * [gradle](gradle.md)
+* [play-framework](play-framework.md)
 * [proxy](proxy.md)
 
 @@@

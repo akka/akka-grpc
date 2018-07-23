@@ -63,7 +63,15 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
     val c: T = createClient()
     c.closed().onComplete {
       case Failure(_: ClientConnectionException) =>
-        clientRef.set(create())
+        val old = clientRef.get()
+        if (old != null) {
+          val newClient = create()
+          // Only one client is alive at a time. However a close() could have happened between the get() and this set
+          if (!clientRef.compareAndSet(old, newClient)) {
+            // close the newly created client we've been shutdown
+            newClient.close()
+          }
+        }
       case Failure(_) =>
         close()
       case _ =>

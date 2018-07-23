@@ -1,0 +1,31 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(packageName: String, services: Seq[akka.grpc.gen.javadsl.Service])
+
+package @{packageName};
+
+import play.api.Configuration;
+import play.api.Environment;
+import play.api.inject.Binding;
+import play.api.inject.Module;
+import scala.collection.Seq;
+@services.map { service =>
+import @{service.packageName}.*;
+}
+
+/**
+ * Add this generated AkkaGrpcClientModule to play.modules.enabled
+ * in your application.conf to have the available gRPC clients injectable
+ */
+public class AkkaGrpcClientModule extends Module {
+  @@Override
+  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
+    return seq(
+        @services.map { service =>
+           bind(@{service.name}Client.class).toProvider(@{service.name}ClientProvider.class)
+        }.mkString(",")
+    );
+  }
+}
