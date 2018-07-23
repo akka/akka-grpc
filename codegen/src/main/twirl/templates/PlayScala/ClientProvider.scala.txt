@@ -17,7 +17,7 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 
 /**
- * Wired into DI by adding @{service.packageName}.@{service.name}Module to play.modules.enabled
+ * Wired into DI by adding the generated AkkaGrpcClientModule to play.modules.enabled
  * in your application.conf
  */
 @@Singleton
