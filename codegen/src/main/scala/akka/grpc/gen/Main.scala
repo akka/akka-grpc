@@ -14,6 +14,7 @@ import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaClientCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
 
+// This is the protoc plugin that the gradle plugin uses
 object Main extends App {
 
   val inBytes: Array[Byte] = {
@@ -37,6 +38,12 @@ object Main extends App {
 
   private val generateServer: Boolean = !reqLowerCase.contains("generate_server=false")
 
+  val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
+  private val logger = req.getParameter match {
+    case LogFileRegex(path) => new FileLogger(path)
+    case _ => SilencedLogger
+  }
+
   val out = {
     val codeGenerator =
       if (languageScala) {
@@ -53,7 +60,7 @@ object Main extends App {
         else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       }
 
-    codeGenerator.run(req, StdoutLogger)
+    codeGenerator.run(req, logger)
   }
 
   System.out.write(out.toByteArray)

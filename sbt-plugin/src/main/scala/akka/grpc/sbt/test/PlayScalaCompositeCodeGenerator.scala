@@ -17,9 +17,9 @@ class PlayScalaCompositeCodeGenerator {
   def instance(): protocbridge.ProtocCodeGenerator =
     new ProtocBridgeSbtPluginCodeGenerator(
       new CompositeCodeGenerator(Seq(
-      ScalaBothCodeGenerator,
-      ScalaMarshallersCodeGenerator,
-      PlayScalaServerCodeGenerator,
-      PlayScalaClientCodeGenerator)),
+        ScalaBothCodeGenerator,
+        ScalaMarshallersCodeGenerator,
+        PlayScalaServerCodeGenerator,
+        PlayScalaClientCodeGenerator)),
       StdoutLogger)
 }
