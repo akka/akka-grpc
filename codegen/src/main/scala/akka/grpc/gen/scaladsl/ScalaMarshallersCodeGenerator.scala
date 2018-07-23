@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.scaladsl
 
-import akka.grpc.gen.BuildInfo
+import akka.grpc.gen.{ BuildInfo, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.ScalaCommon.txt._
@@ -22,7 +22,7 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
     // FIXME Scala version missing in artifact name here
     Artifact("com.typesafe.akka", "akka-http", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies
 
-  def generateMarshalling(service: Service): CodeGeneratorResponse.File = {
+  def generateMarshalling(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Marshallers(service).body)
     b.setName(s"${service.packageDir}/${service.name}Marshallers.scala")

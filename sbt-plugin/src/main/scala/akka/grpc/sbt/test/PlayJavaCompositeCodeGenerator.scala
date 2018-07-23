@@ -6,7 +6,7 @@ package akka.grpc.sbt.test
 
 import akka.grpc.gen.StdoutLogger
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
-import akka.grpc.gen.javadsl.play.{PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
+import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
 
 /**

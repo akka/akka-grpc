@@ -21,7 +21,6 @@ trait JavaServerCodeGenerator extends JavaCodeGenerator {
 
     val serverPath = s"${service.packageDir}/${service.name}HandlerFactory.java"
     b.setName(serverPath)
-    logger.info(s"Generating abstract Akka gRPC server for ${service.name} in $serverPath")
     b.build
   }
 

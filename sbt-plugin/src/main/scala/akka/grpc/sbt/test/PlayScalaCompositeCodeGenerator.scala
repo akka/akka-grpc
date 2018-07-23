@@ -5,8 +5,8 @@
 package akka.grpc.sbt.test
 
 import akka.grpc.gen.StdoutLogger
-import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
-import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator}
+import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
+import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
 
 /**
@@ -15,11 +15,11 @@ import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
  */
 class PlayScalaCompositeCodeGenerator {
   def instance(): protocbridge.ProtocCodeGenerator =
-    new ProtocBridgeSbtPluginCodeGenerator(new CompositeCodeGenerator(Seq(
+    new ProtocBridgeSbtPluginCodeGenerator(
+      new CompositeCodeGenerator(Seq(
       ScalaBothCodeGenerator,
       ScalaMarshallersCodeGenerator,
       PlayScalaServerCodeGenerator,
       PlayScalaClientCodeGenerator)),
-      StdoutLogger
-    )
+      StdoutLogger)
 }

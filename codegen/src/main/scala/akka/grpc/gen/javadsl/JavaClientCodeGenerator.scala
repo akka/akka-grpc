@@ -15,14 +15,12 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
   override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = super.perServiceContent +
     JavaCodeGenerator.generateServiceFile + generateStub
 
-  override val staticContent = super.staticContent
-
   def generateStub(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
     val clientPath = s"${service.packageDir}/${service.name}Client.java"
     b.setName(clientPath)
-    logger.info(s"Generating Akka gRPC client for ${service.name} in $clientPath")
+    logger.info(s"Generating Akka gRPC client [${service.packageName}.${service.name}]")
     b.build
   }
 

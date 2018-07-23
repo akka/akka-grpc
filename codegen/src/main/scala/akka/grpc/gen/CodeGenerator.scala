@@ -21,10 +21,10 @@ trait Logger {
  * Simple standard out logger for use in tests or where there is no logger from the build tool available
  */
 object StdoutLogger extends Logger {
-  def debug(text: String): Unit = println(s"DEBUG: $text")
-  def info(text: String): Unit = println(s"INFO: $text")
-  def warn(text: String): Unit = println(s"WARN: $text")
-  def error(text: String): Unit = println(s"ERROR: $text")
+  def debug(text: String): Unit = println(s"[debug] $text")
+  def info(text: String): Unit = println(s"[info] $text")
+  def warn(text: String): Unit = println(s"[warn] $text")
+  def error(text: String): Unit = println(s"[error] $text")
 }
 
 /**
