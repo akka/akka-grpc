@@ -24,6 +24,7 @@ import org.junit.Assert._
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Failure
+import scala.util.control.NoStackTrace
 
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
 
@@ -42,8 +43,8 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def tearDown(): Unit = {
-    if (client != null) client.close()
-    if (clientUnimplementedService != null) clientUnimplementedService.close()
+    if (client != null) Await.ready(client.close(), awaitTimeout)
+    if (clientUnimplementedService != null) Await.ready(clientUnimplementedService.close(), awaitTimeout)
   }
 
   def emptyUnary(): Unit = {
@@ -68,11 +69,11 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def clientCompressedUnary(probe: Boolean): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented: clientCompressedUnary") with NoStackTrace
   }
 
   def serverCompressedUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented: serverCompressedUnary") with NoStackTrace
   }
 
   def clientStreaming(): Unit = {
@@ -308,15 +309,15 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def cancelAfterBegin(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! cancelAfterBegin ") with NoStackTrace
   }
 
   def cancelAfterFirstResponse(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! cancelAfterFirstResponse") with NoStackTrace
   }
 
   def timeoutOnSleepingServer(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! timeoutOnSleepingServer") with NoStackTrace
   }
 
 }

@@ -7,17 +7,17 @@ package akka.grpc
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.discovery.SimpleServiceDiscovery
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.Config
-import com.typesafe.sslconfig.ssl.{ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings}
+import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
 import javax.net.ssl.SSLContext
 
 import scala.collection.immutable
-import scala.concurrent.duration.{Duration, _}
+import scala.concurrent.duration.{ Duration, _ }
 
 object GrpcClientSettings {
 
@@ -27,20 +27,20 @@ object GrpcClientSettings {
     new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port), port, 1.second)
 
   /**
-    * Scala API
-    *
-    * @param serviceName Name to look up in serviceDiscovery
-    * @param defaultPort Port to use if service discovery only returns a host name
-    * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
-    */
+   * Scala API
+   *
+   * @param serviceName Name to look up in serviceDiscovery
+   * @param defaultPort Port to use if service discovery only returns a host name
+   * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
+   */
   def apply(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: FiniteDuration) =
     new GrpcClientSettings(serviceName, serviceDiscovery, defaultPort, resolveTimeout)
 
   /**
-    * Scala API
-    *
-    * @param serviceName of the service to lookup config from the ActorSystem's config
-    */
+   * Scala API
+   *
+   * @param serviceName of the service to lookup config from the ActorSystem's config
+   */
   def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
     val serviceConfig = {
@@ -63,12 +63,17 @@ object GrpcClientSettings {
         overrideAuthority = getOptionalString(config, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(config, "deadline"),
         userAgent = getOptionalString(config, "user-agent"),
-        sslContext = getOptionalSSLContext(config, "ssl-config")
-      )
+        sslContext = getOptionalSSLContext(config, "ssl-config"),
+        connectionAttempts = getOptionalInt(config, "connection-attempts"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case "" => None
+    case other => Some(other)
+  }
+
+  private def getOptionalInt(config: Config, path: String): Option[Int] = config.getInt(path) match {
+    case -1 => None // retry forever
     case other => Some(other)
   }
 
@@ -78,16 +83,16 @@ object GrpcClientSettings {
   }
 
   /**
-    * Java API
-    *
-    * @param serviceName Name of the service to look up in the ActorSystem's config
-    */
+   * Java API
+   *
+   * @param serviceName Name of the service to look up in the ActorSystem's config
+   */
   def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
     GrpcClientSettings(serviceName, sys)
 
   /**
-    * Java API
-    */
+   * Java API
+   */
   def create(config: Config): GrpcClientSettings =
     GrpcClientSettings(config)
 
@@ -95,12 +100,12 @@ object GrpcClientSettings {
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
 
   /**
-    * Java API
-    *
-    * @param serviceName Name of the service to look up in the ServiceDiscovery
-    * @param defaultPort Port to use if service discovery only return a host
-    * @param resolveTimeout Passed to service discovery resolve
-    */
+   * Java API
+   *
+   * @param serviceName Name of the service to look up in the ServiceDiscovery
+   * @param defaultPort Port to use if service discovery only return a host
+   * @param resolveTimeout Passed to service discovery resolve
+   */
   def create(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: java.time.Duration) =
     apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
 
@@ -118,8 +123,7 @@ object GrpcClientSettings {
       com.typesafe.sslconfig.util.NoopLogger.factory, // FIXME
       sslConfigSettings,
       new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
-      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)
-    ).build()
+      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)).build()
     sslContext
   }
 
@@ -141,6 +145,7 @@ final class GrpcClientSettings private (
   val serviceDiscovery: SimpleServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
+  val connectionAttempts: Option[Int] = None,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
   val sslContext: Option[SSLContext] = None,
@@ -179,6 +184,14 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
+  /**
+   * How many times to retry establishing a connection before failing the client
+   * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
+   * An exponentially increasing backoff is used between attempts.
+   */
+  def withConnectionAttempts(value: Int): GrpcClientSettings =
+    copy(connectionAttempts = Some(value))
+
   private def copy(
     name: String = name,
     defaultPort: Int = defaultPort,
@@ -189,7 +202,7 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-  ): GrpcClientSettings = new GrpcClientSettings(
+    connectionAttempts: Option[Int] = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     deadline = deadline,
@@ -200,6 +213,6 @@ final class GrpcClientSettings private (
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,
-  )
+    connectionAttempts = connectionAttempts)
 
 }
