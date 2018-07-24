@@ -121,3 +121,18 @@ It cannot be added at an arbitrary path (if you try to do so an exception will b
 ```
 
 A gRPC client can now connect to the server and call the provided services.
+
+## Gradle support
+
+To enable the Play support in a Gradle project you need to set the option `generatePlay` to true:
+
+```
+akkaGrpc {
+  language = "Java"
+  generateClient = true
+  generateServer = true
+  generatePlay = true
+}
+```
+
+See the @ref[gradle support docs](gradle.md) for details about the other options.

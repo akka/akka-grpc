@@ -10,9 +10,11 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.javadsl.JavaClientCodeGenerator
 import akka.grpc.gen.javadsl.JavaServerCodeGenerator
+import akka.grpc.gen.javadsl.play.{PlayJavaBothCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaClientCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
+import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
 
 // This is the protoc plugin that the gradle plugin uses
 object Main extends App {
@@ -38,6 +40,8 @@ object Main extends App {
 
   private val generateServer: Boolean = !reqLowerCase.contains("generate_server=false")
 
+  private val generatePlay: Boolean = reqLowerCase.contains("generate_play=true")
+
   val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
   private val logger = req.getParameter match {
     case LogFileRegex(path) => new FileLogger(path)
@@ -46,18 +50,34 @@ object Main extends App {
 
   val out = {
     val codeGenerator =
-      if (languageScala) {
-        // Scala
-        if (generateClient && generateServer) ScalaBothCodeGenerator
-        else if (generateClient) ScalaClientCodeGenerator
-        else if (generateServer) ScalaServerCodeGenerator
-        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+      if (!generatePlay) {
+        if (languageScala) {
+          // Scala
+          if (generateClient && generateServer) ScalaBothCodeGenerator
+          else if (generateClient) ScalaClientCodeGenerator
+          else if (generateServer) ScalaServerCodeGenerator
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+        } else {
+          // Java
+          if (generateClient && generateServer) JavaBothCodeGenerator
+          else if (generateClient) JavaClientCodeGenerator
+          else if (generateServer) JavaServerCodeGenerator
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+        }
       } else {
-        // Java
-        if (generateClient && generateServer) JavaBothCodeGenerator
-        else if (generateClient) JavaClientCodeGenerator
-        else if (generateServer) JavaServerCodeGenerator
-        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+        if (languageScala) {
+          // Scala
+          if (generateClient && generateServer) PlayScalaClientCodeGenerator
+          else if (generateClient) PlayScalaClientCodeGenerator
+          else if (generateServer) PlayScalaServerCodeGenerator
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+        } else {
+          // Java
+          if (generateClient && generateServer) PlayJavaBothCodeGenerator
+          else if (generateClient) PlayJavaClientCodeGenerator
+          else if (generateServer) PlayJavaServerCodeGenerator
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+        }
       }
 
     codeGenerator.run(req, logger)
