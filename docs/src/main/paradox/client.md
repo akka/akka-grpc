@@ -156,7 +156,82 @@ Maven
 mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.helloworld.GreeterClient
 ```
 
+### Configuration 
 
+A gRPC client is configured with a `GrpcClientSettings` instance. There are a number of ways of creating one and the API
+docs are the best reference. 
+
+The simplest way to create a client is to provide a static host and port.
+
+Scala
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple }
+
+Java
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple }
+
+Further settings can be added via the `with` methods
+
+Scala
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple-programmatic }
+
+Java
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple-programmatic }
+
+Instead a client can be defined in configuration. All client configurations need to be under `akka.grpc.client`
+
+Scala
+:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
+
+Java
+:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
+
+Clients defined in configuration pick up defaults from `reference.conf`:
+
+Scala
+:  @@snip [reference]($root$/../runtime/src/main/resources/reference.conf) { #defaults }
+
+Java
+:  @@snip [reference]($root$/../runtime/src/main/resources/reference.conf) { #defaults }
+
+#### Service discovery
+
+The examples above all use a hard coded host and port for the location of the gRPC service. Alternatively 
+[Akka Service Discovery](https://developer.lightbend.com/docs/akka-management/current/discovery.html) can be used.
+This allows a gRPC client to switch between discovering services via DNS, config, Kubernetes and Consul by just changing
+the configuration.
+
+To see how to config a particular service discovery mechanism see the [Akka Service Discovery docs](https://developer.lightbend.com/docs/akka-management/current/discovery.html).
+Once it is configured a service discovery instance can either be passed into settings or the name of the mechanism
+to lookup via an ActorSystem's configuration.
+
+Scala
+:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
+
+Java
+:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
+
+The above example configures the client `project.WithConfigServiceDiscovery` to use `config` based service discovery.
+
+Then to create the `GrpcClientSettings`:
+
+Scala
+:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #sd-settings }
+
+Java
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #sd-settings }
+
+Alternatively if a `SimpleServiceDiscovery` is available else where in your system is can be passed in:
+
+Scala
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #provide-sd }
+
+Java
+:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #provide-sd }
+
+ 
+Currently service discovery is only queried on creation of the client. A client can be automatically re-created, and go via service discovery again,
+ if a connection can't established, see the lifecycle section.
+ 
 ### Lifecycle
 
 Instances of the generated client may be long-lived and can be used concurrently.

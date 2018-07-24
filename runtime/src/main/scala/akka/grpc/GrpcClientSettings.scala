@@ -6,7 +6,7 @@ package akka.grpc
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.SimpleServiceDiscovery
+import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
@@ -21,7 +21,12 @@ import scala.concurrent.duration.{ Duration, _ }
 
 object GrpcClientSettings {
 
-  /** Scala API */
+  /**
+   * Scala API
+   *
+   * Create a client hat uses a static host and port. Does not load
+   * any default configuration from reference.conf
+   */
   def apply(host: String, port: Int): GrpcClientSettings =
     // hardcoded doesn't use the resolve timeout
     new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port), port, 1.second)
@@ -29,8 +34,12 @@ object GrpcClientSettings {
   /**
    * Scala API
    *
+   * Create a client with the given service discovery mechanism. This does
+   * not load any default configuration from reference.conf
+   *
    * @param serviceName Name to look up in serviceDiscovery
    * @param defaultPort Port to use if service discovery only returns a host name
+   * @param serviceDiscovery Service discovery mechanism to use
    * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
    */
   def apply(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: FiniteDuration) =
@@ -39,32 +48,47 @@ object GrpcClientSettings {
   /**
    * Scala API
    *
-   * @param serviceName of the service to lookup config from the ActorSystem's config
+   * Look up client settings from an ActorSystem's configuration. Client configuration
+   * must be under `akka.grpc.client`. Each client configuration falls back to the
+   * defaults defined in reference.conf
+   *
+   * @param clientName of the client configuration to lookup config from the ActorSystem's config
    */
-  def apply(serviceName: String, sys: ActorSystem): GrpcClientSettings = {
-    val akkaGrpcClientConfig = sys.settings.config.getConfig("akka.grpc.client")
-    val serviceConfig = {
+  def apply(clientName: String, actorSystem: ActorSystem): GrpcClientSettings = {
+    val akkaGrpcClientConfig = actorSystem.settings.config.getConfig("akka.grpc.client")
+    val clientConfig = {
       // Use config named "*" by default
       val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
-      // Override "*" config with specific service config if available
-      if (akkaGrpcClientConfig.hasPath('"' + serviceName + '"'))
-        akkaGrpcClientConfig.getConfig('"' + serviceName + '"').withFallback(defaultServiceConfig)
-      else
-        defaultServiceConfig
+      require(akkaGrpcClientConfig.hasPath('"' + clientName + '"'), s"Config path `akka.grpc.client.$clientName` does not exist")
+      akkaGrpcClientConfig.getConfig('"' + clientName + '"').withFallback(defaultServiceConfig)
     }
 
-    GrpcClientSettings(serviceConfig)
+    GrpcClientSettings(clientConfig, actorSystem)
   }
 
-  /** Scala API */
-  def apply(config: Config): GrpcClientSettings = {
-    GrpcClientSettings(config getString "host", config getInt "port")
+  /**
+   * Scala API
+   *
+   * Configure client via the provided Config. See reference.conf for configuration properties.
+   */
+  def apply(clientConfiguration: Config, sys: ActorSystem): GrpcClientSettings = {
+    val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery-mechanism")
+    val serviceName = clientConfiguration.getString("service-name")
+    val port = clientConfiguration.getInt("port")
+    val resolveTimeout = clientConfiguration.getDuration("resolve-timeout").asScala
+    val sd = serviceDiscoveryMechanism match {
+      case "hardcoded" =>
+        hardcodedServiceDiscovery(serviceName, port)
+      case other =>
+        ServiceDiscovery(sys).loadServiceDiscovery(other)
+    }
+    new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
       .copy(
-        overrideAuthority = getOptionalString(config, "override-authority"),
-        deadline = getPotentiallyInfiniteDuration(config, "deadline"),
-        userAgent = getOptionalString(config, "user-agent"),
-        sslContext = getOptionalSSLContext(config, "ssl-config"),
-        connectionAttempts = getOptionalInt(config, "connection-attempts"))
+        overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
+        deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
+        userAgent = getOptionalString(clientConfiguration, "user-agent"),
+        sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
+        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
@@ -85,16 +109,22 @@ object GrpcClientSettings {
   /**
    * Java API
    *
-   * @param serviceName Name of the service to look up in the ActorSystem's config
+   * Look up client settings from an ActorSystem's configuration. Client configuration
+   * must be under `akka.grpc.client`. Each client configuration falls back to the
+   * defaults defined in reference.conf
+   *
+   *
+   * @param clientName Name of the client to look up in the ActorSystem's config
    */
-  def create(serviceName: String, sys: ActorSystem): GrpcClientSettings =
-    GrpcClientSettings(serviceName, sys)
+  def create(clientName: String, sys: ActorSystem): GrpcClientSettings =
+    apply(clientName, sys)
 
   /**
    * Java API
+   *
+   * Configure client via the provided Config. See reference.conf for configuration properties.
    */
-  def create(config: Config): GrpcClientSettings =
-    GrpcClientSettings(config)
+  def create(config: Config, sys: ActorSystem): GrpcClientSettings = apply(config, sys)
 
   /** Java API */
   def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
@@ -140,8 +170,12 @@ object GrpcClientSettings {
 
 }
 
+/**
+ * @param serviceName Service name to lookup in serviceDiscovery.
+ * @param serviceDiscovery Service discovery mechanism to use. For cases where there isn't an ActorSystem this is a hardcoded version.
+ */
 final class GrpcClientSettings private (
-  val name: String,
+  val serviceName: String,
   val serviceDiscovery: SimpleServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
@@ -153,7 +187,6 @@ final class GrpcClientSettings private (
   val userAgent: Option[String] = None,
   val useTls: Boolean = true) {
 
-  def withName(value: String): GrpcClientSettings = copy(name = value)
   /**
    * If using ServiceDiscovery and no port is returned use this one.
    */
@@ -193,7 +226,7 @@ final class GrpcClientSettings private (
     copy(connectionAttempts = Some(value))
 
   private def copy(
-    name: String = name,
+    serviceName: String = serviceName,
     defaultPort: Int = defaultPort,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
@@ -206,7 +239,7 @@ final class GrpcClientSettings private (
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     deadline = deadline,
-    name = name,
+    serviceName = serviceName,
     overrideAuthority = overrideAuthority,
     defaultPort = defaultPort,
     sslContext = sslContext,
