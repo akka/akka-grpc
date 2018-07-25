@@ -10,7 +10,7 @@ buildscript {
     //classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.1'
 
     // For testing on travis, we use another group id:
-    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.1+80-39d48e3b'
+    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
 
     classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
   }
