@@ -80,7 +80,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "generate_client=${extension.generateClient}"
                                 option "generate_server=${extension.generateServer}"
                                 option "logfile=${logFile.getAbsolutePath()}"
-                                if (generatePlay) {
+                                if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
                                 if (isScala) {
