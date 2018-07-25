@@ -5,32 +5,28 @@
 package akka.grpc.gen
 
 import akka.NotUsed
-
-import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.grpc.scaladsl.GrpcMarshalling
-import akka.http.scaladsl.model._
-import akka.stream.{ ActorMaterializer, Materializer }
-import play.api.libs.typedmap.TypedMap
-import play.api.mvc.akkahttp.AkkaHttpHandler
-import play.api.mvc.Headers
-import play.mvc.Http.RequestHeader
-import play.mvc.{ Http ⇒ PlayHttp }
-import controllers.GreeterServiceImpl
 import akka.grpc.{ Codec, Grpc, ProtobufSerializer }
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model.HttpEntity.Chunk
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.{ FromRequestUnmarshaller, Unmarshaller }
 import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.{ ActorMaterializer, Materializer }
 import akka.util.ByteString
-import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceRouter }
-import example.myapp.helloworld.grpc.HelloRequest
-import example.myapp.helloworld.grpc.HelloReply
+import controllers.GreeterServiceImpl
+import example.myapp.helloworld.grpc.{ GreeterService, HelloReply, HelloRequest }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import play.api.inject.SimpleInjector
+import play.api.libs.typedmap.TypedMap
+import play.api.mvc.{ Handler, Headers, RequestHeader }
+import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.mvc.request.{ RemoteConnection, RequestFactory, RequestTarget }
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
   implicit val sys = ActorSystem()
@@ -54,23 +50,21 @@ class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll w
   implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer, codec: Codec): ToResponseMarshaller[Source[T, NotUsed]] =
     Marshaller.opaque((response: Source[T, NotUsed]) ⇒ GrpcMarshalling.marshalStream(response)(serializer, mat, codec))
 
+  val router = new GreeterServiceImpl(mat)
+
   "The generated Play (Java) Router" should {
 
     "don't accept requests for other paths" in {
-      val router = new GreeterServiceRouter(new GreeterServiceImpl(), mat)
-
-      router.route(playRequestFor(Uri("http://localhost/foo"))).isPresent shouldBe false
+      router.routes.lift(playRequestFor(Uri("http://localhost/foo"))).isEmpty shouldBe true
     }
 
-    "by default accept requests using the service name as prefix" in {
-      val router = new GreeterServiceRouter(new GreeterServiceImpl(), mat)
-
+    "accept requests using the service name as prefix" in {
       val uri = Uri(s"http://localhost/${GreeterService.name}/SayHello")
-      router.route(playRequestFor(uri)).isPresent shouldBe true
+      router.routes.lift(playRequestFor(uri)).isDefined shouldBe true
 
       val name = "John"
 
-      val handler = router.route(playRequestFor(uri)).get().asInstanceOf[AkkaHttpHandler]
+      val handler = router.routes(playRequestFor(uri)).asInstanceOf[AkkaHttpHandler]
       val request = akkaHttpRequestFor(uri, HelloRequest.newBuilder().setName(name).build())(HelloRequestSerializer)
       val response = handler(request).futureValue
       response.status shouldBe StatusCodes.OK
@@ -79,21 +73,15 @@ class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll w
       reply.getMessage shouldBe s"Hello, $name!"
     }
 
-    "allow specifying a different prefix" in {
-      val router = new GreeterServiceRouter(new GreeterServiceImpl(), mat).withPrefix("otherPrefix")
+    "allow it's expected prefix" in {
+      val result = router.withPrefix(s"/${GreeterService.name}")
+      result shouldBe theSameInstanceAs(router)
+    }
 
-      val uri = Uri(s"http://localhost/otherPrefix/SayHello")
-      router.route(playRequestFor(uri)).isPresent shouldBe true
-
-      val name = "John"
-
-      val handler = router.route(playRequestFor(uri)).get().asInstanceOf[AkkaHttpHandler]
-      val request = akkaHttpRequestFor(uri, HelloRequest.newBuilder().setName(name).build())(HelloRequestSerializer)
-      val response = handler(request).futureValue
-      response.status shouldBe StatusCodes.OK
-
-      val reply = akkaHttpResponse[HelloReply](response).futureValue
-      reply.getMessage shouldBe s"Hello, $name!"
+    "not allow specifying another prefix" in {
+      intercept[UnsupportedOperationException] {
+        router.withPrefix("/some")
+      }
     }
 
     def akkaHttpRequestFor[T](uri: Uri, msg: T)(implicit serializer: ProtobufSerializer[T]) = {
@@ -106,11 +94,11 @@ class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll w
       RequestFactory.plain.createRequest(
         RemoteConnection(uri.authority.host.address, secure = false, clientCertificateChain = None),
         "GET",
-        RequestTarget(uri.toString, uri.path.toString.tail, queryString = Map.empty),
+        RequestTarget(uri.toString, uri.path.toString, queryString = Map.empty),
         version = "42",
         Headers(),
         attrs = TypedMap.empty,
-        body = ()).asJava
+        body = ())
   }
 
   override def afterAll(): Unit = {

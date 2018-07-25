@@ -6,51 +6,19 @@
 
 package @service.packageName
 
-import javax.inject._
-
 import scala.concurrent.Future
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 
-import play.api.mvc._
-import play.api.mvc.akkahttp.AkkaHttpHandler
-import play.api.routing.Router
-import play.api.routing.Router.Routes
+import akka.grpc.internal.PlayRouter
 
-@@Singleton
-class @{service.name}Router @@Inject()(impl: controllers.@{service.name}Impl)(implicit mat: Materializer)
-  extends Router {
-  protected val prefix = @{service.name}.name
+/**
+ * Abstract base class for implementing @{service.name} and using as a play Router
+ */
+abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name} {
 
-  protected val handler = new AkkaHttpHandler {
-    val h = @{service.name}Handler(impl, prefix)
-    override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
-  }
-
-  // could look at @{service.name}.name, but isn't this already covered in the route file?
-  override def routes: Routes = {
-    case rh if rh.path.startsWith(prefix) ⇒ handler
-  }
-
-  override def documentation: Seq[(String, String, String)] = Seq.empty
-
-  override def withPrefix(newPrefix: String): Router = {
-    if (newPrefix == "/") this
-    else new @{service.name}Router(impl) {
-      override val prefix = newPrefix
-
-      // Needs to be overridden to point to new prefix due to initialization order
-      override val handler = new AkkaHttpHandler {
-        val h = @{service.name}Handler(impl, newPrefix)
-        override def apply(request: HttpRequest): Future[HttpResponse] = h(request)
-      }
-
-      override def withPrefix(additionalPrefix: String): Router = {
-        if (prefix == "/") this
-        else throw new IllegalStateException("Only one level of prefixes is supported for gRPC")
-      }
-    }
-  }
+  final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
+    @{service.name}Handler(this, serviceName)(mat)
 
 }
