@@ -76,14 +76,14 @@ Scala
 :   ```scala
 enablePlugins(AkkaGrpcPlugin)
 import akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator
-akkaGrpcExtraGenerators += PlayScalaClientServerGenerator
+akkaGrpcExtraGenerators += PlayScalaServerCodeGenerator
 ```
 
 Java
 :   ```scala
 enablePlugins(AkkaGrpcPlugin)
 import akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator
-akkaGrpcExtraGenerators += PlayJavaClientServerGenerator
+akkaGrpcExtraGenerators += PlayJavaServerCodeGenerator
 ```
 
 The plugin will look for `.proto` service descriptors in `src/main/protobuf` and output an abstract class per service
