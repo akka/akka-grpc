@@ -4,9 +4,10 @@
 
 package akka.grpc.gen
 
+import java.nio.file.Path
+
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
-
 import protocbridge.Artifact
 
 /**
@@ -17,10 +18,10 @@ trait CodeGenerator {
   /** Generator name; example: `akka-grpc-scala` */
   def name: String
 
-  def run(request: CodeGeneratorRequest): CodeGeneratorResponse
+  def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse
 
   def suggestedDependencies: Seq[Artifact]
 
-  final def run(request: Array[Byte]): Array[Byte] =
-    run(CodeGeneratorRequest.parseFrom(request)).toByteArray
+  final def run(request: Array[Byte], logger: Logger): Array[Byte] =
+    run(CodeGeneratorRequest.parseFrom(request), logger: Logger).toByteArray
 }

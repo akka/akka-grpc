@@ -4,6 +4,7 @@
 
 package akka.grpc.sbt.test
 
+import akka.grpc.gen.{ Logger, StdoutLogger }
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaMarshallersCodeGenerator }
 import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
@@ -13,9 +14,10 @@ import akka.grpc.sbt.AkkaGrpcPlugin.ProtocBridgeSbtPluginCodeGenerator
  * only used in the ReflectiveCodeGen plugin in the main sbt project, which is needed for the interop-tests subproject
  */
 class AkkaCompositeCodeGenerator {
-  def instance(): protocbridge.ProtocCodeGenerator =
+  def instance(): protocbridge.ProtocCodeGenerator = {
     new ProtocBridgeSbtPluginCodeGenerator(new CompositeCodeGenerator(Seq(
       JavaBothCodeGenerator,
       ScalaBothCodeGenerator,
-      ScalaMarshallersCodeGenerator)))
+      ScalaMarshallersCodeGenerator)), StdoutLogger)
+  }
 }

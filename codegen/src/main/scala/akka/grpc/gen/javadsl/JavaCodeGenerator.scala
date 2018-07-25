@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{BuildInfo, CodeGenerator}
+import akka.grpc.gen.{BuildInfo, CodeGenerator, Logger}
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
 import protocbridge.Artifact
@@ -15,13 +15,13 @@ import scala.collection.JavaConverters._
 abstract class JavaCodeGenerator extends CodeGenerator {
 
   /** Override this to add generated files per service */
-  def perServiceContent: Set[Service ⇒ CodeGeneratorResponse.File] = Set.empty
+  def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = Set.empty
 
   /** Override these to add service-independent generated files */
-  def staticContent: Set[CodeGeneratorResponse.File] = Set.empty
-  def staticContent(allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
-  override def run(request: CodeGeneratorRequest): CodeGeneratorResponse = {
+  override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
 
     // generate services code here, the data types we want to leave to scalapb
@@ -44,11 +44,11 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       service <- services
       generator ← perServiceContent
     } {
-      b.addFile(generator(service))
+      b.addFile(generator(logger, service))
     }
 
-    staticContent.map(b.addFile)
-    staticContent(services).map(b.addFile)
+    staticContent(logger).map(b.addFile)
+    staticContent(logger, services).map(b.addFile)
 
     b.build()
   }
@@ -66,10 +66,11 @@ abstract class JavaCodeGenerator extends CodeGenerator {
 }
 
 object JavaCodeGenerator {
-  val generateServiceFile: Service ⇒ CodeGeneratorResponse.File = service ⇒ {
+  val generateServiceFile: (Logger, Service) ⇒ CodeGeneratorResponse.File = (logger, service) ⇒ {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ApiInterface(service).body)
     b.setName(s"${service.packageDir}/${service.name}.java")
+    logger.info(s"Generating Akka gRPC service interface for [${service.packageName}.${service.name}]")
     b.build
   }
 }

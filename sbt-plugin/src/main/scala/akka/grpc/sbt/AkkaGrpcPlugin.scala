@@ -4,10 +4,13 @@
 
 package akka.grpc.sbt
 
+import java.io.{ ByteArrayOutputStream, PrintStream }
+
 import sbt.{ GlobFilter, _ }
 import Keys._
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator }
+import akka.grpc.gen.{ Logger => GenLogger }
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
@@ -17,6 +20,16 @@ object AkkaGrpcPlugin extends AutoPlugin {
   // don't enable automatically, you might not want to run it on every subproject automatically
   override def trigger = noTrigger
   override def requires = ProtocPlugin
+
+  // hack because we cannot access sbt logger from streams unless inside taskKeys and
+  // we need it in settingsKeys
+  private val generatorLogger = new GenLogger {
+    @volatile var logger: Logger = ConsoleLogger()
+    def debug(text: String): Unit = logger.debug(text)
+    def info(text: String): Unit = logger.info(text)
+    def warn(text: String): Unit = logger.warn(text)
+    def error(text: String): Unit = logger.error(text)
+  }
 
   trait Keys { _: autoImport.type =>
 
@@ -49,13 +62,26 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
-      akkaGrpcExtraGenerators := Seq.empty)
+      akkaGrpcExtraGenerators := Seq.empty,
+      PB.recompile in Compile := {
+        // hack to get our (dirty) hands on a proper sbt logger before running the generators
+        generatorLogger.logger = streams.value.log
+        (PB.recompile in Compile).value
+      },
+      PB.recompile in Test := {
+        // hack to get our (dirty) hands on a proper sbt logger before running the generators
+        generatorLogger.logger = streams.value.log
+        (PB.recompile in Test).value
+      },
+    )
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(Seq(
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
-      akkaGrpcGenerators := generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value) ++ akkaGrpcExtraGenerators.value.map(toGenerator),
+      akkaGrpcGenerators := {
+        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, generatorLogger))
+      },
 
       // configure the proto gen automatically by adding our codegen:
       // FIXME: actually specifying separate Compile and Test target stub and languages does not work #194
@@ -66,7 +92,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
           akkaGrpcGenerators.value),
 
       // include proto files extracted from the dependencies with "protobuf" configuration by default
-      PB.protoSources += PB.externalIncludePath.value) ++
+      PB.protoSources += PB.externalIncludePath.value,
+    ) ++
+
       inTask(PB.recompile)(
         Seq(
           includeFilter := GlobFilter("*.proto"),
@@ -95,7 +123,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   // creates a seq of generator and per generator settings
-  private def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language]): Seq[protocbridge.Generator] = {
+  private def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], logger: GenLogger): Seq[protocbridge.Generator] = {
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
@@ -104,38 +132,61 @@ object AkkaGrpcPlugin extends AutoPlugin {
     stubs match {
       case Seq(_, _) =>
         languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator), JavaGenerator, toGenerator(JavaBothCodeGenerator))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaBothCodeGenerator))
+          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator, logger), JavaGenerator, toGenerator(JavaBothCodeGenerator, logger))
+          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator, logger))
+          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaBothCodeGenerator, logger))
         }
       case Seq(AkkaGrpc.Client) =>
         languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator), JavaGenerator, toGenerator(JavaClientCodeGenerator))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaClientCodeGenerator))
+          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, logger), JavaGenerator, toGenerator(JavaClientCodeGenerator, logger))
+          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, logger))
+          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaClientCodeGenerator, logger))
         }
       case Seq(AkkaGrpc.Server) =>
         languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator), JavaGenerator, toGenerator(JavaServerCodeGenerator))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaServerCodeGenerator))
+          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator, logger), JavaGenerator, toGenerator(JavaServerCodeGenerator, logger))
+          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator, logger))
+          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaServerCodeGenerator, logger))
         }
     }
   }
 
   // this transforms the Akka gRPC API generators to the right protocbridge type
-  def toGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): protocbridge.Generator = {
-    val adapter = new ProtocBridgeSbtPluginCodeGenerator(codeGenerator)
+  def toGenerator(codeGenerator: akka.grpc.gen.CodeGenerator, logger: GenLogger): protocbridge.Generator = {
+    val adapter = new ProtocBridgeSbtPluginCodeGenerator(codeGenerator, logger)
     protocbridge.JvmGenerator(codeGenerator.name, adapter)
   }
 
   /**
    * Adapts existing [[akka.grpc.gen.CodeGenerator]] into the protocbridge required type
    */
-  private[akka] class ProtocBridgeSbtPluginCodeGenerator(impl: akka.grpc.gen.CodeGenerator) extends protocbridge.ProtocCodeGenerator {
-    override def run(request: Array[Byte]): Array[Byte] = impl.run(request)
+  private[akka] class ProtocBridgeSbtPluginCodeGenerator(impl: akka.grpc.gen.CodeGenerator, logger: GenLogger) extends protocbridge.ProtocCodeGenerator {
+    override def run(request: Array[Byte]): Array[Byte] = impl.run(request, logger)
     override def suggestedDependencies: Seq[protocbridge.Artifact] = impl.suggestedDependencies
     override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${impl.name}: $impl)"
+  }
+
+  /**
+   * Redirect stdout and stderr to buffers while running the given block, then reinstall original
+   * stdin and out and return the logged output
+   */
+  private def captureStdOutAnderr[T](block: => T): (String, String, T) = {
+    val errBao = new ByteArrayOutputStream()
+    val errPrinter = new PrintStream(errBao, true, "UTF-8")
+    val outBao = new ByteArrayOutputStream()
+    val outPrinter = new PrintStream(outBao, true, "UTF-8")
+    val originalOut = System.out
+    val originalErr = System.err
+    System.setOut(outPrinter)
+    System.setErr(errPrinter)
+    val t = try {
+      block
+    } finally {
+      System.setOut(originalOut)
+      System.setErr(originalErr)
+    }
+
+    (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 }
 

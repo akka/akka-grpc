@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.scaladsl
 
+import akka.grpc.gen.Logger
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt._
 
@@ -12,7 +13,7 @@ trait ScalaServerCodeGenerator extends ScalaCodeGenerator {
 
   override def perServiceContent = super.perServiceContent + ScalaCodeGenerator.generateServiceFile + generateHandler
 
-  def generateHandler(service: Service): CodeGeneratorResponse.File = {
+  def generateHandler(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service).body)
     b.setName(s"${service.packageDir}/${service.name}Handler.scala")

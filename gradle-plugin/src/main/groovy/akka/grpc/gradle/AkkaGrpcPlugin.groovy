@@ -4,6 +4,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
+import java.io.File
+import java.nio.file.Files
 
 class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
@@ -23,6 +25,8 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
+            File logFile = File.createTempFile("akka-grpc-gradle", ".log")
+            logFile.deleteOnExit()
 
             apply plugin: 'com.google.protobuf'
             protobuf {
@@ -70,6 +74,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "language=${extension.language}"
                                 option "generate_client=${extension.generateClient}"
                                 option "generate_server=${extension.generateServer}"
+                                option "logfile=${logFile.getAbsolutePath()}"
                                 if (isScala) {
                                     option "flat_package"
                                 }
@@ -83,8 +88,22 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                     }
                 }
             }
+
+            println project.getTasks()
+            project.task("printProtocLogs") {
+                doLast {
+                    Files.lines(logFile.toPath()).forEach { line ->
+                        if (line.startsWith("[info]")) logger.info(line.substring(7))
+                        else if (line.startsWith("[debug]")) logger.debug(line.substring(7))
+                        else if (line.startsWith("[warn]")) logger.warn(line.substring(6))
+                        else if (line.startsWith("[error]")) logger.error(line.substring(7))
+                    }
+                }
+            }
+            project.getTasks().getByName("compileJava").dependsOn("printProtocLogs")
         }
     }
+
 
     @Override
     void beforeResolve(ResolvableDependencies resolvableDependencies) {

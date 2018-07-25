@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.javadsl.play
 
+import akka.grpc.gen.Logger
 import akka.grpc.gen.javadsl.{ JavaCodeGenerator, Service }
 import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
@@ -17,24 +18,23 @@ object PlayJavaClientCodeGenerator extends JavaCodeGenerator {
 
   override def perServiceContent = super.perServiceContent + generateClientProvider
 
-  private val generateClientProvider: Service => CodeGeneratorResponse.File = service => {
+  private val generateClientProvider: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ClientProvider(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.java")
     b.build
   }
 
-  override def staticContent(allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = {
+  override def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = {
     if (allServices.nonEmpty) {
       val packageName = packageForSharedModuleFile(allServices)
       val b = CodeGeneratorResponse.File.newBuilder()
       b.setContent(AkkaGrpcClientModule(packageName, allServices).body)
       b.setName(s"${packageName.replace('.', '/')}/${PlayScalaClientCodeGenerator.ClientModuleName}.java")
       val set = Set(b.build)
-      /* FIXME we cannot stdout from the generator, it breaks things #257
-        println(s"Generated [${packageName}.${PlayScalaClientCodeGenerator.ClientModuleName}] add it to play.modules.enabled and a section " +
-        "with Akka gRPC client config under akka.grpc.client.[servicepackage.ServiceName] to be able to inject " +
-        "client instances.") */
+      logger.info(s"Generated [${packageName}.${PlayScalaClientCodeGenerator.ClientModuleName}] add it to play.modules.enabled and a section " +
+        "with Akka gRPC client config under akka.grpc.client.\"servicepackage.ServiceName\" to be able to inject " +
+        "client instances.")
       set
 
     } else Set.empty

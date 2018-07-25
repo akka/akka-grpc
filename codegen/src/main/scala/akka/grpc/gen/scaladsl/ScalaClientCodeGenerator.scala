@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.scaladsl
 
+import akka.grpc.gen.Logger
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
@@ -14,10 +15,11 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   override def perServiceContent = super.perServiceContent + ScalaCodeGenerator.generateServiceFile + generateStub
 
-  def generateStub(service: Service): CodeGeneratorResponse.File = {
+  def generateStub(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
     b.setName(s"${service.packageDir}/${service.name}Client.scala")
+    logger.info(s"Generating Akka gRPC client ${service.packageName}.${service.name}")
     b.build
   }
 
