@@ -6,6 +6,7 @@ package io.grpc.testing.integration.test
 
 import java.io.{ IOException, InputStream }
 
+import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings.getClass
 import akka.grpc.internal.NettyClientUtils
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
@@ -26,10 +27,11 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Failure
 import scala.util.control.NoStackTrace
 
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, as: ActorSystem) extends ClientTester {
 
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
+  private implicit val ec = as.dispatcher
 
   private val awaitTimeout = 3.seconds
 

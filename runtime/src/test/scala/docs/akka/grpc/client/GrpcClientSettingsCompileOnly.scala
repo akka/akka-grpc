@@ -12,6 +12,7 @@ import scala.concurrent.duration._
 
 object GrpcClientSettingsCompileOnly {
 
+  implicit val actorSystem = ActorSystem()
   //#simple
   GrpcClientSettings("localhost", 443)
   //#simple
@@ -22,15 +23,11 @@ object GrpcClientSettingsCompileOnly {
     .withTls(false)
   //#simple-programmatic
 
-  val actorSystem = ActorSystem()
   //#provide-sd
   // An ActorSystem's default service discovery mechanism
-  val serviceDiscovery: SimpleServiceDiscovery = ServiceDiscovery(actorSystem).discovery
-
   GrpcClientSettings(
     serviceName = "my-service",
     defaultPort = 443,
-    serviceDiscovery = serviceDiscovery,
-    10.seconds)
+    serviceDiscoveryMechanism = "config")
   //#provide-sd
 }

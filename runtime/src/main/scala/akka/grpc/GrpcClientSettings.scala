@@ -11,7 +11,7 @@ import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigUtil, ConfigValueFactory }
 import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
 import javax.net.ssl.SSLContext
@@ -24,26 +24,34 @@ object GrpcClientSettings {
   /**
    * Scala API
    *
-   * Create a client hat uses a static host and port. Does not load
-   * any default configuration from reference.conf
+   * Create a client hat uses a static host and port. Default configuration
+   * is loaded from reference.conf
    */
-  def apply(host: String, port: Int): GrpcClientSettings =
-    // hardcoded doesn't use the resolve timeout
-    new GrpcClientSettings(host, hardcodedServiceDiscovery(host, port), port, 1.second)
+  def apply(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+    // default is hardcoded
+    val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+      .withValue("service-name", ConfigValueFactory.fromAnyRef(host))
+      .withValue("port", ConfigValueFactory.fromAnyRef(port))
+    GrpcClientSettings(defaultServiceConfig, actorSystem)
+  }
 
   /**
    * Scala API
    *
-   * Create a client with the given service discovery mechanism. This does
-   * not load any default configuration from reference.conf
+   * Create a client with the given service discovery mechanism. Default configuration
+   * is loaded from reference.conf
    *
-   * @param serviceName Name to look up in serviceDiscovery
-   * @param defaultPort Port to use if service discovery only returns a host name
-   * @param serviceDiscovery Service discovery mechanism to use
-   * @param resolveTimeout passed to calls to resolve on ServiceDiscovery
+   * @param serviceName               Name to look up in serviceDiscovery
+   * @param defaultPort               Port to use if service discovery only returns a host name
+   * @param serviceDiscoveryMechanism Service discovery mechanism to use. Must be correctly configured in the ActorSystem's config
    */
-  def apply(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: FiniteDuration) =
-    new GrpcClientSettings(serviceName, serviceDiscovery, defaultPort, resolveTimeout)
+  def apply(serviceName: String, defaultPort: Int, serviceDiscoveryMechanism: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+    val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+      .withValue("service-name", ConfigValueFactory.fromAnyRef(serviceName))
+      .withValue("port", ConfigValueFactory.fromAnyRef(defaultPort))
+      .withValue("service-discovery-mechanism", ConfigValueFactory.fromAnyRef(serviceDiscoveryMechanism))
+    GrpcClientSettings(defaultServiceConfig, actorSystem)
+  }
 
   /**
    * Scala API
@@ -113,7 +121,6 @@ object GrpcClientSettings {
    * must be under `akka.grpc.client`. Each client configuration falls back to the
    * defaults defined in reference.conf
    *
-   *
    * @param clientName Name of the client to look up in the ActorSystem's config
    */
   def create(clientName: String, sys: ActorSystem): GrpcClientSettings =
@@ -127,17 +134,17 @@ object GrpcClientSettings {
   def create(config: Config, sys: ActorSystem): GrpcClientSettings = apply(config, sys)
 
   /** Java API */
-  def create(host: String, port: Int): GrpcClientSettings = apply(host, port)
+  def create(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = apply(host, port)
 
   /**
    * Java API
    *
-   * @param serviceName Name of the service to look up in the ServiceDiscovery
-   * @param defaultPort Port to use if service discovery only return a host
-   * @param resolveTimeout Passed to service discovery resolve
+   * @param serviceName    Name of the service to look up in the ServiceDiscovery
+   * @param defaultPort    Port to use if service discovery only return a host
+   * @param serviceDiscoveryMechanism Service discovery mechanism to use. Must be correctly configured in the ActorSystem's config
    */
-  def create(serviceName: String, defaultPort: Int, serviceDiscovery: SimpleServiceDiscovery, resolveTimeout: java.time.Duration) =
-    apply(serviceName, defaultPort, serviceDiscovery, resolveTimeout.asScala)
+  def create(serviceName: String, defaultPort: Int, serviceDiscoveryMechanism: String)(implicit actorSystem: ActorSystem) =
+    apply(serviceName, defaultPort, serviceDiscoveryMechanism)
 
   private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
 
@@ -171,7 +178,7 @@ object GrpcClientSettings {
 }
 
 /**
- * @param serviceName Service name to lookup in serviceDiscovery.
+ * @param serviceName      Service name to lookup in serviceDiscovery.
  * @param serviceDiscovery Service discovery mechanism to use. For cases where there isn't an ActorSystem this is a hardcoded version.
  */
 final class GrpcClientSettings private (

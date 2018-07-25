@@ -24,7 +24,7 @@ class GreeterSpec
 
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
-  val serverSystem: ActorSystem = {
+  implicit val serverSystem: ActorSystem = {
     // important to enable HTTP/2 in server ActorSystem's config
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())

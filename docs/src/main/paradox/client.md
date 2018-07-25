@@ -159,7 +159,7 @@ mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.hello
 ### Configuration 
 
 A gRPC client is configured with a `GrpcClientSettings` instance. There are a number of ways of creating one and the API
-docs are the best reference. 
+docs are the best reference. An `ActorSystem` is always required as it is used for default configuration and service discovery.
 
 The simplest way to create a client is to provide a static host and port.
 
@@ -195,14 +195,13 @@ Java
 
 #### Service discovery
 
-The examples above all use a hard coded host and port for the location of the gRPC service. Alternatively 
-[Akka Service Discovery](https://developer.lightbend.com/docs/akka-management/current/discovery.html) can be used.
+The examples above all use a hard coded host and port for the location of the gRPC service which is the default if you do not configure a `service-discovery-mechanism`.
+Alternatively [Akka Service Discovery](https://developer.lightbend.com/docs/akka-management/current/discovery.html) can be used.
 This allows a gRPC client to switch between discovering services via DNS, config, Kubernetes and Consul by just changing
 the configuration.
 
 To see how to config a particular service discovery mechanism see the [Akka Service Discovery docs](https://developer.lightbend.com/docs/akka-management/current/discovery.html).
-Once it is configured a service discovery instance can either be passed into settings or the name of the mechanism
-to lookup via an ActorSystem's configuration.
+Once it is configured a service discovery mechanism name can either be passed into settings or put in the client's configuration.
 
 Scala
 :  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
@@ -230,7 +229,7 @@ Java
 
  
 Currently service discovery is only queried on creation of the client. A client can be automatically re-created, and go via service discovery again,
- if a connection can't established, see the lifecycle section.
+ if a connection can't be established, see the lifecycle section.
  
 ### Lifecycle
 

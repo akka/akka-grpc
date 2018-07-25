@@ -4,6 +4,7 @@ import java.io.InputStream
 
 import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, SSLContextUtils}
 import akka.stream.Materializer
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.google.protobuf.ByteString
 import io.grpc.testing.integration.messages.{Payload, ResponseParameters, SimpleRequest, StreamingOutputCallRequest, StreamingOutputCallResponse, _}
@@ -21,10 +22,11 @@ import scala.util.control.NoStackTrace
 import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServiceClient }
 
 
-class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, ex: ExecutionContext) extends ClientTester {
+class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, sys: ActorSystem) extends ClientTester {
 
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
+  private implicit val ec = sys.dispatcher
 
   private val awaitTimeout = 7.seconds
 

@@ -7,14 +7,12 @@ package akka.grpc
 import java.io.IOException
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.config.ConfigSimpleServiceDiscovery
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpec }
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.collection.{ immutable => im }
 
