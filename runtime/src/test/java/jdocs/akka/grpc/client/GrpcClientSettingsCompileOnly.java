@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package jdocs.akka.grpc.client;
 
 import akka.actor.ActorSystem;
