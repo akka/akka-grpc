@@ -10,7 +10,7 @@ object Dependencies {
     val akkaHttp = "10.1.4"
     val akkaDiscovery = "0.17.0"
 
-    val play = "2.7.0-M1"
+    val play = "2.7.0-M1" // TODO: Update to M2
 
     val scalapb = "0.7.1"
     val grpc = "1.14.0"
@@ -18,6 +18,7 @@ object Dependencies {
     val sslConfig = "0.2.4"
 
     val scalaTest = "3.0.4"
+    val scalaTestPlusPlay = "4.0.0-M1" // ApacheV2 // TODO: Update to M2 when we update Play to M2
     val scalaJava8Compat = "0.8.0"
 
     val maven = "3.5.3"
@@ -59,6 +60,9 @@ object Dependencies {
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
+    val playTest = "com.typesafe.play" %% "play-test" % Versions.play % "test"
+    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play % "test"
+    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay % "test"
   }
 
   object Plugins {
@@ -134,5 +138,8 @@ object Dependencies {
     Compile.play,
     Compile.playGuice,
     Compile.playAkkaHttpServer,
+    Test.playTest,
+    Test.playSpecs2,
+    Test.scalaTestPlusPlay
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }

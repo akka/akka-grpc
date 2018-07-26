@@ -8,8 +8,10 @@ import java.util.concurrent.CompletionStage
 
 import akka.Done
 import akka.annotation.{ ApiMayChange, InternalApi }
+import akka.grpc.GrpcClientSettings
+import akka.stream.Materializer
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * INTERNAL API
@@ -20,6 +22,10 @@ import scala.concurrent.Future
 trait AkkaGrpcClient {
   def close(): Future[Done]
   def closed(): Future[Done]
+}
+
+trait AkkaGrpcClientFactory[T <: AkkaGrpcClient] {
+  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T
 }
 
 /**

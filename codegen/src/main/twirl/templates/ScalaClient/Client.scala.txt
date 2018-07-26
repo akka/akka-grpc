@@ -96,12 +96,17 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
-object @{service.name}Client {
+object @{service.name}Client { clientObj =>
+
+  implicit val factory: AkkaGrpcClientFactory[@{service.name}Client] = new AkkaGrpcClientFactory[@{service.name}Client] {
+    override def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+      clientObj.apply(settings)(mat, ex)
+  }
+
+  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+    new @{service.name}Client(settings)
 
   import @{service.name}.Serializers._
-
-  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
-    new @{service.name}Client(settings)
 
   @for(method <- service.methods) {
     private val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
