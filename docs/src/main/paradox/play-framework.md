@@ -86,7 +86,7 @@ import akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator
 akkaGrpcExtraGenerators += PlayJavaServerCodeGenerator
 ```
 
-The plugin will look for `.proto` service descriptors in `src/main/protobuf` and output an abstract class per service
+The plugin will look for `.proto` service descriptors in `app/protobuf` and output an abstract class per service
 that you then implement, so for example for the following protobuf descriptor:
 
 @@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
