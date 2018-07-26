@@ -65,7 +65,9 @@ import scala.compat.java8.OptionConverters._
    * so therefore not supported.
    */
   final override def withPrefix(prefix: String): Router =
-    if (prefix == this.prefix) this
+    // explicitly stating the full path is fine, we also treat / as identity for convenience so that users do not
+    // _have_ to repeat the service name but can just have a / in the routes file
+    if (prefix == this.prefix || prefix == "/") this
     else
       throw new UnsupportedOperationException("Prefixing gRPC services is not widely supported by clients, " +
         s"strongly discouraged by the specification and therefore not supported. Prefix was [$prefix] but" +
