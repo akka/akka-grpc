@@ -10,7 +10,7 @@ object Dependencies {
     val akkaHttp = "10.1.3"
     val akkaDiscovery = "0.15.0"
 
-    val play = "2.7.0-M1"
+    val play = "2.7.0-M1" // FIXME: Update to M2
 
     val scalapb = "0.7.1"
     val grpc = "1.13.1"
@@ -18,6 +18,7 @@ object Dependencies {
     val sslConfig = "0.2.4"
 
     val scalaTest = "3.0.4"
+    val scalaTestPlusPlay = "4.0.0-M1" // FIXME: Update to M2 when we update Play to M2
     val scalaJava8Compat = "0.8.0"
 
     val maven = "3.5.3"
@@ -61,6 +62,8 @@ object Dependencies {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
     val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
+    val play = "com.typesafe.play" %% "play-test" % Versions.play // Apache M2
+    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay % "test"
   }
 
   object Plugins {
@@ -126,5 +129,7 @@ object Dependencies {
     Compile.play,
     Compile.playGuice,
     Compile.playAkkaHttpServer,
+    Test.play,
+    Test.scalaTestPlusPlay
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 }

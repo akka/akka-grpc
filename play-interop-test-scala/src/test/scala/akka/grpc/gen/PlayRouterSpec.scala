@@ -54,7 +54,7 @@ class PlayRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll with 
     }
 
     "allow specifying a different prefix" in {
-      val router = new GreeterServiceRouter(new GreeterServiceImpl()).withPrefix("otherPrefix")
+      val router = new GreeterServiceRouter(new GreeterServiceImpl()).withPrefix("/otherPrefix")
 
       val uri = Uri(s"http://localhost/otherPrefix/SayHello")
       router.routes.isDefinedAt(playRequestFor(uri)) shouldBe true
@@ -79,7 +79,7 @@ class PlayRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll with 
     def playRequestFor(uri: Uri) = RequestFactory.plain.createRequest(
       RemoteConnection(uri.authority.host.address, secure = false, clientCertificateChain = None),
       "GET",
-      RequestTarget(uri.toString, uri.path.toString.tail, queryString = Map.empty),
+      RequestTarget(uri.toString, uri.path.toString, queryString = Map.empty),
       version = "42",
       Headers(),
       attrs = TypedMap.empty,

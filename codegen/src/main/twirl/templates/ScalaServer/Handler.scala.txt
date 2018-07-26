@@ -6,6 +6,7 @@
 
 package @service.packageName
 
+import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future }
 
 import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
@@ -13,7 +14,6 @@ import akka.grpc.Codecs
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
-import akka.http.scaladsl.model.Uri.Path.Segment
 
 import akka.stream.Materializer
 
@@ -62,6 +62,7 @@ object @{service.name}Handler {
    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
    */
   def partial(implementation: @service.name, prefix: String)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+
     implicit val ec: ExecutionContext = mat.executionContext
     import @{service.name}.Serializers._
 
@@ -76,11 +77,36 @@ object @{service.name}Handler {
       case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
     }
 
-    Function.unlift((req: HttpRequest) => req.uri.path match {
-      case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) ⇒
-        Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
-      case _ =>
-        None
-    })
+    import Path._
+
+    val prefixPath: Path = {
+      val unslashed: Path = Path(prefix)
+      // Add slash automatically in the same way as Akka HTTP's `path` routing directive does.
+      unslashed match {
+        case p: Slash => p
+        case p => Slash(p)
+      }
+    }
+
+    def handlePath(req: HttpRequest): Option[Future[HttpResponse]] = {
+      @@tailrec
+      def handleRec(prefix0: Path, path0: Path): Option[Future[HttpResponse]] = (prefix0, path0) match {
+        case (Slash(prefix1), Slash(path1)) =>
+          println(s"$prefix0 is a prefix of $path0 - scanning subpath")
+          handleRec(prefix1, path1)
+        case (Segment(prefixSegment, prefix1), Segment(pathSegment, path1)) if prefixSegment == pathSegment =>
+          println(s"$prefix0 is a prefix of $path0 - scanning subpath")
+          handleRec(prefix1, path1)
+        case (_: SlashOrEmpty, Slash(Segment(method, Empty))) =>
+          println(s"$prefix0 is a prefix of $path0 - returning handler for $method")
+          Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
+        case _ =>
+          println(s"$prefix0 is NOT a prefix of $path0")
+          None
+      }
+      handleRec(prefixPath, req.uri.path)
+    }
+
+    Function.unlift(handlePath)
   }
 }

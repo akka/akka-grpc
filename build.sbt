@@ -167,6 +167,7 @@ lazy val playInteropTestScala = Project(
   .settings(commonSettings)
   .settings(Seq(
     ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayScalaCompositeCodeGenerator",
+    fork in Test := true,
   ))
   .enablePlugins(akka.grpc.NoPublish)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
@@ -183,6 +184,7 @@ lazy val playInteropTestJava = Project(
   .settings(commonSettings)
   .settings(Seq(
     ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayJavaCompositeCodeGenerator",
+    fork in Test := true,
   ))
   .enablePlugins(akka.grpc.NoPublish)
   .enablePlugins(akka.grpc.ReflectiveCodeGen)
