@@ -11,7 +11,7 @@ import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
-import com.typesafe.config.{ Config, ConfigUtil, ConfigValueFactory }
+import com.typesafe.config.{ Config, ConfigValueFactory }
 import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
 import javax.net.ssl.SSLContext
@@ -32,7 +32,7 @@ object GrpcClientSettings {
     val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
       .withValue("service-name", ConfigValueFactory.fromAnyRef(host))
       .withValue("port", ConfigValueFactory.fromAnyRef(port))
-    GrpcClientSettings(defaultServiceConfig, actorSystem)
+    GrpcClientSettings(defaultServiceConfig)
   }
 
   /**
@@ -50,7 +50,7 @@ object GrpcClientSettings {
       .withValue("service-name", ConfigValueFactory.fromAnyRef(serviceName))
       .withValue("port", ConfigValueFactory.fromAnyRef(defaultPort))
       .withValue("service-discovery-mechanism", ConfigValueFactory.fromAnyRef(serviceDiscoveryMechanism))
-    GrpcClientSettings(defaultServiceConfig, actorSystem)
+    GrpcClientSettings(defaultServiceConfig)
   }
 
   /**
@@ -62,7 +62,7 @@ object GrpcClientSettings {
    *
    * @param clientName of the client configuration to lookup config from the ActorSystem's config
    */
-  def apply(clientName: String, actorSystem: ActorSystem): GrpcClientSettings = {
+  def apply(clientName: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
     val akkaGrpcClientConfig = actorSystem.settings.config.getConfig("akka.grpc.client")
     val clientConfig = {
       // Use config named "*" by default
@@ -71,7 +71,7 @@ object GrpcClientSettings {
       akkaGrpcClientConfig.getConfig('"' + clientName + '"').withFallback(defaultServiceConfig)
     }
 
-    GrpcClientSettings(clientConfig, actorSystem)
+    GrpcClientSettings(clientConfig)
   }
 
   /**
@@ -79,7 +79,7 @@ object GrpcClientSettings {
    *
    * Configure client via the provided Config. See reference.conf for configuration properties.
    */
-  def apply(clientConfiguration: Config, sys: ActorSystem): GrpcClientSettings = {
+  def apply(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
     val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery-mechanism")
     val serviceName = clientConfiguration.getString("service-name")
     val port = clientConfiguration.getInt("port")
@@ -124,17 +124,17 @@ object GrpcClientSettings {
    * @param clientName Name of the client to look up in the ActorSystem's config
    */
   def create(clientName: String, sys: ActorSystem): GrpcClientSettings =
-    apply(clientName, sys)
+    apply(clientName)(sys)
 
   /**
    * Java API
    *
    * Configure client via the provided Config. See reference.conf for configuration properties.
    */
-  def create(config: Config, sys: ActorSystem): GrpcClientSettings = apply(config, sys)
+  def create(config: Config, sys: ActorSystem): GrpcClientSettings = apply(config)(sys)
 
   /** Java API */
-  def create(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = apply(host, port)
+  def create(host: String, port: Int, actorSystem: ActorSystem): GrpcClientSettings = apply(host, port)(actorSystem)
 
   /**
    * Java API
@@ -143,8 +143,8 @@ object GrpcClientSettings {
    * @param defaultPort    Port to use if service discovery only return a host
    * @param serviceDiscoveryMechanism Service discovery mechanism to use. Must be correctly configured in the ActorSystem's config
    */
-  def create(serviceName: String, defaultPort: Int, serviceDiscoveryMechanism: String)(implicit actorSystem: ActorSystem) =
-    apply(serviceName, defaultPort, serviceDiscoveryMechanism)
+  def create(serviceName: String, defaultPort: Int, serviceDiscoveryMechanism: String, actorSystem: ActorSystem) =
+    apply(serviceName, defaultPort, serviceDiscoveryMechanism)(actorSystem)
 
   private def hardcodedServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
 

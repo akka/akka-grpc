@@ -4,8 +4,6 @@
 
 package akka.grpc
 
-import java.io.IOException
-
 import akka.actor.ActorSystem
 import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.config.ConfigSimpleServiceDiscovery
@@ -49,7 +47,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
          }
         """)
 
-    val sys = ActorSystem("test", ConfigFactory.parseString(
+    implicit val sys = ActorSystem("test", ConfigFactory.parseString(
       """
         //#client-config
         akka.grpc.client {
@@ -94,12 +92,12 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
     "provide a useful error message if configuration missing" in {
       intercept[IllegalArgumentException] {
-        GrpcClientSettings("project.MissingConfiguration", sys)
+        GrpcClientSettings("project.MissingConfiguration")
       }.getMessage should be("requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
     }
 
     "parse configuration values" in {
-      val parsed = GrpcClientSettings("project.WithSpecificConfiguration", sys)
+      val parsed = GrpcClientSettings("project.WithSpecificConfiguration")
       parsed.serviceName should be("myhost")
       val Seq(discovered) = parsed.serviceDiscovery.lookup(parsed.serviceName, 1.second).futureValue.addresses
       discovered.host should be("myhost")
@@ -112,7 +110,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
     "fail to parse configuration with non-existent certificate" in {
       val thrown = the[IllegalArgumentException] thrownBy
-        GrpcClientSettings("project.WithSpecificConfiguration", sysWithCert("no-such-cert.pem"))
+        GrpcClientSettings("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
       // We want a good message since missing classpath resources are difficult to debug
       thrown.getMessage should include("certs/no-such-cert.pem")
     }
@@ -121,8 +119,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       //#sd-settings
       // sys is an ActorSystem which is required for service discovery
       val settings = GrpcClientSettings(
-        clientName = "project.WithConfigServiceDiscovery",
-        actorSystem = sys)
+        clientName = "project.WithConfigServiceDiscovery")
       //#sd-settings
 
       settings.serviceDiscovery shouldBe a[ConfigSimpleServiceDiscovery]
@@ -133,5 +130,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       val resolvedWithNoPort = settings.serviceDiscovery.lookup("from-config-no-port", 1.second).futureValue
       resolvedWithNoPort should be(Resolved("from-config-no-port", im.Seq(ResolvedTarget("dog", None))))
     }
+
   }
 }
