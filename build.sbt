@@ -18,6 +18,7 @@ val commonSettings = Seq(
 )
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
+
 lazy val codegen = Project(
     id = "akka-grpc-codegen",
     base = file("codegen")

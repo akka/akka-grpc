@@ -4,6 +4,7 @@
 
 @(packageName: String, services: Seq[akka.grpc.gen.scaladsl.Service])
 
+@akka.grpc.gen.Constants.DoNotEditComment
 package @{packageName}
 
 import play.api.inject.Binding
