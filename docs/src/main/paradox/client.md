@@ -193,14 +193,14 @@ Scala
 Java
 :  @@snip [reference]($root$/../runtime/src/main/resources/reference.conf) { #defaults }
 
-#### Service discovery
+#### Akka Discovery
 
 The examples above all use a hard coded host and port for the location of the gRPC service which is the default if you do not configure a `service-discovery-mechanism`.
-Alternatively [Akka Service Discovery](https://developer.lightbend.com/docs/akka-management/current/discovery.html) can be used.
-This allows a gRPC client to switch between discovering services via DNS, config, Kubernetes and Consul by just changing
+Alternatively [Akka Discovery](https://developer.lightbend.com/docs/akka-management/current/discovery.html) can be used.
+This allows a gRPC client to switch between discovering services via DNS, config, Kubernetes and Consul and others by just changing
 the configuration.
 
-To see how to config a particular service discovery mechanism see the [Akka Service Discovery docs](https://developer.lightbend.com/docs/akka-management/current/discovery.html).
+To see how to config a particular service discovery mechanism see the [Akka Discovery docs](https://developer.lightbend.com/docs/akka-management/current/discovery.html).
 Once it is configured a service discovery mechanism name can either be passed into settings or put in the client's configuration.
 
 Scala

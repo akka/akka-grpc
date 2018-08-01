@@ -24,7 +24,7 @@ object GreeterClient {
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    val clientSettings = GrpcClientSettings.create(GreeterService.name, sys)
+    val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
     val client = new GreeterServiceClient(clientSettings)
 
     singleRequestReply()

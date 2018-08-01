@@ -41,7 +41,7 @@ class GreeterSpec
     implicit val mat = ActorMaterializer.create(clientSystem)
     implicit val ec = clientSystem.dispatcher
     new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
+      GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
         .withOverrideAuthority("foo.test.google.fr")
         .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem")))
   }

@@ -33,6 +33,6 @@ public class @{service.name}ClientProvider implements Provider<@{service.name}Cl
   }
 
   public @{service.name}Client get() {
-    return @{service.name}Client.create(GrpcClientSettings.create(@{service.name}.name, sys), mat, sys.dispatcher());
+    return @{service.name}Client.create(GrpcClientSettings.fromConfig(@{service.name}.name, sys), mat, sys.dispatcher());
   }
 }

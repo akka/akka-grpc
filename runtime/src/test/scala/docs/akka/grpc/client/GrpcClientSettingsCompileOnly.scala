@@ -14,18 +14,18 @@ object GrpcClientSettingsCompileOnly {
 
   implicit val actorSystem = ActorSystem()
   //#simple
-  GrpcClientSettings("localhost", 443)
+  GrpcClientSettings.connectToServiceAt("localhost", 443)
   //#simple
 
   //#simple-programmatic
-  GrpcClientSettings("localhost", 443)
+  GrpcClientSettings.connectToServiceAt("localhost", 443)
     .withDeadline(1.second)
     .withTls(false)
   //#simple-programmatic
 
   //#provide-sd
   // An ActorSystem's default service discovery mechanism
-  GrpcClientSettings(
+  GrpcClientSettings.discoverService(
     serviceName = "my-service",
     defaultPort = 443,
     serviceDiscoveryMechanism = "config")

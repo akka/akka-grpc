@@ -31,7 +31,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
   private val awaitTimeout = 7.seconds
 
   def setUp(): Unit = {
-    val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
+    val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
 

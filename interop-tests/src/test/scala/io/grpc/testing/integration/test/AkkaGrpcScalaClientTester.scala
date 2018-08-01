@@ -27,17 +27,17 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Failure
 import scala.util.control.NoStackTrace
 
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, as: ActorSystem) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
 
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
-  private implicit val ec = as.dispatcher
+  private implicit val ec = system.dispatcher
 
   private val awaitTimeout = 3.seconds
 
   def setUp(): Unit = {
 
-    val grpcSettings = GrpcClientSettings(settings.serverHost, settings.serverPort)
+    val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
     client = TestServiceClient(grpcSettings)

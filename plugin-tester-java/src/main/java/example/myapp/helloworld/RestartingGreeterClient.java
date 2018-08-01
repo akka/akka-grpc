@@ -30,7 +30,7 @@ class RestartingGreeterClient {
 
         try {
             //#restarting-client
-            GrpcClientSettings settings = GrpcClientSettings.create(GreeterService.name, system);
+            GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
 
             RestartingClient<GreeterServiceClient> client = new RestartingClient<>(
                     () -> GreeterServiceClient.create(settings, materializer, system.dispatcher()), system.dispatcher()

@@ -14,18 +14,18 @@ public class GrpcClientSettingsCompileOnly {
 
         ActorSystem actorSystem = ActorSystem.create();
         //#simple
-        GrpcClientSettings.create("localhost", 443, actorSystem);
+        GrpcClientSettings.connectToServiceAt("localhost", 443, actorSystem);
         //#simple
 
         //#simple-programmatic
-        GrpcClientSettings.create("localhost", 443, actorSystem)
+        GrpcClientSettings.connectToServiceAt("localhost", 443, actorSystem)
                 .withDeadline(Duration.ofSeconds(1))
                 .withTls(false);
         //#simple-programmatic
 
         //#provide-sd
         // An ActorSystem's default service discovery mechanism
-        GrpcClientSettings.create(
+        GrpcClientSettings.discoverService(
                 "my-service",
                 443,
                 "config", // config based service discovery must be defined in the ActorSystems' config
@@ -35,7 +35,7 @@ public class GrpcClientSettingsCompileOnly {
 
         //#sd-settings
         // sys is an ActorSystem which is required for service discovery
-        GrpcClientSettings.create(
+        GrpcClientSettings.fromConfig(
                 "project.WithConfigServiceDiscovery", actorSystem
         );
         //#sd-settings

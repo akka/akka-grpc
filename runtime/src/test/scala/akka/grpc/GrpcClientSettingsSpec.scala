@@ -52,7 +52,8 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         //#client-config
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
-            service-name = "myhost"
+            service-name = "my-service"
+            host = "my-host"
             port = 42
             override-authority = "google.fr"
             deadline = 10m
@@ -69,7 +70,8 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         s"""
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
-            service-name = "myhost"
+            service-name = "my-service"
+            host = "my-host"
             port = 42
             override-authority = "google.fr"
             ssl-config {
@@ -92,15 +94,21 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
     "provide a useful error message if configuration missing" in {
       intercept[IllegalArgumentException] {
-        GrpcClientSettings("project.MissingConfiguration")
+        GrpcClientSettings.fromConfig("project.MissingConfiguration")
       }.getMessage should be("requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
     }
 
-    "parse configuration values" in {
-      val parsed = GrpcClientSettings("project.WithSpecificConfiguration")
-      parsed.serviceName should be("myhost")
+    "use static service discovery for connectToServiceAt" in {
+      val settings = GrpcClientSettings.connectToServiceAt("host.com", 8080)
+      val resolved = settings.serviceDiscovery.lookup("any", 1.second).futureValue
+      resolved.addresses should be(Seq(ResolvedTarget("host.com", Some(8080))))
+    }
+
+    "uses host for static service discovery" in {
+      val parsed = GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")
+      parsed.serviceName should be("my-service")
       val Seq(discovered) = parsed.serviceDiscovery.lookup(parsed.serviceName, 1.second).futureValue.addresses
-      discovered.host should be("myhost")
+      discovered.host should be("my-host")
       discovered.port should be(Some(42))
       parsed.overrideAuthority should be(Some("google.fr"))
       parsed.sslContext shouldBe defined
@@ -110,7 +118,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
     "fail to parse configuration with non-existent certificate" in {
       val thrown = the[IllegalArgumentException] thrownBy
-        GrpcClientSettings("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
+        GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
       // We want a good message since missing classpath resources are difficult to debug
       thrown.getMessage should include("certs/no-such-cert.pem")
     }
@@ -118,7 +126,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
     "load a user defined service discovery mechanism" in {
       //#sd-settings
       // sys is an ActorSystem which is required for service discovery
-      val settings = GrpcClientSettings(
+      val settings = GrpcClientSettings.fromConfig(
         clientName = "project.WithConfigServiceDiscovery")
       //#sd-settings
 

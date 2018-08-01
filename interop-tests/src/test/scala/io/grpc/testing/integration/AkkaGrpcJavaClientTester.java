@@ -54,7 +54,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   @Override
   public void setUp() {
     final GrpcClientSettings grpcSettings =
-        GrpcClientSettings.create(settings.serverHost(), settings.serverPort(), as)
+        GrpcClientSettings.connectToServiceAt(settings.serverHost(), settings.serverPort(), as)
           .withOverrideAuthority(settings.serverHostOverride())
           .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     client = TestServiceClient.create(grpcSettings, mat, ec);
