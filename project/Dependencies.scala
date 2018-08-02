@@ -8,7 +8,7 @@ object Dependencies {
   object Versions {
     val akka = "2.5.14"
     val akkaHttp = "10.1.3"
-    val akkaDiscovery = "0.15.0"
+    val akkaDiscovery = "0.17.0"
 
     val play = "2.7.0-M1"
 
@@ -61,6 +61,7 @@ object Dependencies {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
     val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
+    val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
   }
 
   object Plugins {
@@ -98,6 +99,7 @@ object Dependencies {
     // these two are available when used through Play, which is also the only case when they are needed
     Compile.play % "provided",
     Compile.playAkkaHttpServer % "provided",
+    Test.akkaDiscoveryConfig
   ) ++ testing
 
   val mavenPlugin = l ++= Seq(

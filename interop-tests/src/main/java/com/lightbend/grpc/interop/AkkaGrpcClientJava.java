@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit;
 
 public class AkkaGrpcClientJava extends GrpcClient {
 
-  private final Function3<Settings, Materializer, ExecutionContext, ClientTester> clientTesterFactory;
+  private final Function3<Settings, Materializer, ActorSystem, ClientTester> clientTesterFactory;
 
-  public AkkaGrpcClientJava(Function3<Settings, Materializer, ExecutionContext, ClientTester> clientTesterFactory) {
+  public AkkaGrpcClientJava(Function3<Settings, Materializer, ActorSystem, ClientTester> clientTesterFactory) {
     this.clientTesterFactory = clientTesterFactory;
   }
 
@@ -33,7 +33,7 @@ public class AkkaGrpcClientJava extends GrpcClient {
     final ActorSystem sys = ActorSystem.create("AkkaGrpcClientJava");
     final Materializer mat = ActorMaterializer.create(sys);
 
-    final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, mat, sys.dispatcher()));
+    final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, mat, sys));
     client.setUp();
 
     try {

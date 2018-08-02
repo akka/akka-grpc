@@ -4,6 +4,7 @@
 
 package io.grpc.testing.integration;
 
+import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.GrpcResponseMetadata;
 import akka.grpc.GrpcSingleResponse;
@@ -36,22 +37,24 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   private final Settings settings;
   private final Materializer mat;
   private final ExecutionContext ec;
+  private final ActorSystem as;
 
   private TestServiceClient client;
   private UnimplementedServiceClient clientUnimplementedService;
 
   private static int AWAIT_TIME_SECONDS = 3;
 
-  public AkkaGrpcJavaClientTester(Settings settings, Materializer mat, ExecutionContext ec) {
+  public AkkaGrpcJavaClientTester(Settings settings, Materializer mat, ActorSystem as) {
     this.settings = settings;
     this.mat = mat;
-    this.ec = ec;
+    this.as = as;
+    this.ec =  as.dispatcher();
   }
 
   @Override
   public void setUp() {
     final GrpcClientSettings grpcSettings =
-        GrpcClientSettings.create(settings.serverHost(), settings.serverPort())
+        GrpcClientSettings.connectToServiceAt(settings.serverHost(), settings.serverPort(), as)
           .withOverrideAuthority(settings.serverHostOverride())
           .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     client = TestServiceClient.create(grpcSettings, mat, ec);

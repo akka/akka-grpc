@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 
 // TODO #151 use our own Settings object
-final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ExecutionContext => ClientTester) extends GrpcClient {
+final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ActorSystem => ClientTester) extends GrpcClient {
 
   override def run(args: Array[String]): Unit = {
     TestUtils.installConscryptIfAvailable()
@@ -23,7 +23,7 @@ final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializ
     implicit val sys = ActorSystem()
     implicit val mat = ActorMaterializer()
 
-    val client = new TestServiceClient(clientTesterFactory(settings)(mat)(sys.dispatcher))
+    val client = new TestServiceClient(clientTesterFactory(settings)(mat)(sys))
     client.setUp()
 
     try

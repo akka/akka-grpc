@@ -148,13 +148,13 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
   object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
     val label: String = "akka-grpc scala client tester"
 
-    def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcScalaClientTester(settings))
+    def client = AkkaGrpcClientScala(settings => implicit mat => implicit as => new AkkaGrpcScalaClientTester(settings))
   }
 
   object AkkaHttpClientProviderJava extends AkkaHttpClientProvider {
     val label: String = "akka-grpc java client tester"
 
-    def client = new AkkaGrpcClientJava((settings, mat, ec) => new AkkaGrpcJavaClientTester(settings, mat, ec))
+    def client = new AkkaGrpcClientJava((settings, mat, as) => new AkkaGrpcJavaClientTester(settings, mat, as))
   }
 
 }

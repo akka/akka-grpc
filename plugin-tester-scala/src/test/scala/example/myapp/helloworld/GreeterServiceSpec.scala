@@ -24,7 +24,7 @@ class GreeterSpec
 
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
-  val serverSystem: ActorSystem = {
+  implicit val serverSystem: ActorSystem = {
     // important to enable HTTP/2 in server ActorSystem's config
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
@@ -41,7 +41,7 @@ class GreeterSpec
     implicit val mat = ActorMaterializer.create(clientSystem)
     implicit val ec = clientSystem.dispatcher
     new GreeterServiceClient(
-      GrpcClientSettings("127.0.0.1", 8080)
+      GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
         .withOverrideAuthority("foo.test.google.fr")
         .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem")))
   }
