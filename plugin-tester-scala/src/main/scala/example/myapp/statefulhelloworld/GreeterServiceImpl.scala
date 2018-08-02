@@ -24,7 +24,6 @@ class GreeterServiceImpl(system: ActorSystem) extends GreeterService {
       .map(message => HelloReply(s"${message.greeting}, ${in.name}"))
   }
 
-
   def changeGreeting(in: ChangeRequest): Future[ChangeResponse] = {
     greeterActor ! GreeterActor.ChangeGreeting(in.newGreeting)
     Future.successful(ChangeResponse())

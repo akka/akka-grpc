@@ -36,6 +36,5 @@ class GreeterServiceImpl(materializer: Materializer) extends GreeterService {
     in.map(request => HelloReply(s"Hello, ${request.name}"))
   }
 
-
 }
 //#full-service-impl

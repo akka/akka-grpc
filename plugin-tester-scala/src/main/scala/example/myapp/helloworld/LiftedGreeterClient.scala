@@ -82,6 +82,4 @@ object LiftedGreeterClient {
     }
   }
 
-
-
 }

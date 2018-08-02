@@ -1,6 +1,6 @@
 package example.myapp
 
-import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
+import java.io.{ ByteArrayOutputStream, FileInputStream, InputStream }
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyFactory
@@ -49,9 +49,9 @@ object CombinedServer {
 
     //#concatOrNotFound
     // explicit types not needed but included in example for clarity
-    val greeterService: PartialFunction[HttpRequest,Future[HttpResponse]] =
-      GreeterServiceHandler.partial(new GreeterServiceImpl(mat))
-    val echoService: PartialFunction[HttpRequest,Future[HttpResponse]] =
+    val greeterService: PartialFunction[HttpRequest, Future[HttpResponse]] =
+      example.myapp.helloworld.grpc.GreeterServiceHandler.partial(new GreeterServiceImpl(mat))
+    val echoService: PartialFunction[HttpRequest, Future[HttpResponse]] =
       EchoServiceHandler.partial(new EchoServiceImpl)
     val serviceHandlers: HttpRequest => Future[HttpResponse] =
       ServiceHandler.concatOrNotFound(greeterService, echoService)
@@ -60,12 +60,11 @@ object CombinedServer {
       serviceHandlers,
       interface = "127.0.0.1",
       port = 8080,
-      connectionContext = serverHttpContext()
-    )
-    //#concatOrNotFound
-    .foreach { binding =>
-      println(s"gRPC server bound to: ${binding.localAddress}")
-    }
+      connectionContext = serverHttpContext())
+      //#concatOrNotFound
+      .foreach { binding =>
+        println(s"gRPC server bound to: ${binding.localAddress}")
+      }
   }
 
   private def serverHttpContext(): HttpsConnectionContext = {
