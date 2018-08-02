@@ -201,6 +201,31 @@ lazy val docs = Project(
     resolvers += Resolver.jcenterRepo,
   )
 
+lazy val pluginTesterScala = Project(
+  id = "akka-grpc-plugin-tester-scala",
+  base = file("plugin-tester-scala")
+)
+  .settings(Dependencies.pluginTester)
+  .settings(commonSettings)
+  .enablePlugins(akka.grpc.NoPublish)
+  .settings(
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package")
+  )
+  .pluginTestingSettings
+
+lazy val pluginTesterJava = Project(
+  id = "akka-grpc-plugin-tester-java",
+  base = file("plugin-tester-java")
+)
+  .settings(Dependencies.pluginTester)
+  .settings(commonSettings)
+  .enablePlugins(akka.grpc.NoPublish)
+  .settings(
+    ReflectiveCodeGen.generatedLanguages := "Java",
+  )
+  .pluginTestingSettings
+
+
 lazy val root = Project(
     id = "akka-grpc",
     base = file(".")
@@ -214,6 +239,8 @@ lazy val root = Project(
     interopTests,
     playInteropTestJava,
     playInteropTestScala,
+    pluginTesterScala,
+    pluginTesterJava,
     docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
