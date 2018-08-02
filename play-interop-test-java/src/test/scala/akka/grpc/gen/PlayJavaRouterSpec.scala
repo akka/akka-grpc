@@ -78,11 +78,6 @@ class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll w
       result shouldBe theSameInstanceAs(router)
     }
 
-    "allow it's expected prefix" in {
-      val result = router.withPrefix(s"/${GreeterService.name}")
-      result shouldBe theSameInstanceAs(router)
-    }
-
     "not allow specifying another prefix" in {
       intercept[UnsupportedOperationException] {
         router.withPrefix("/some")

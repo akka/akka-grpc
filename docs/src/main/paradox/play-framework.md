@@ -101,7 +101,7 @@ Scala
 Java
 :   @@snip[GreeterServiceImpl.java]($root$/../play-interop-test-java/src/main/java/controllers/GreeterServiceImpl.java) { #service-impl }
 
-And then add the router to your Play `conf/routes` file. Note that the router alerady knows its own path since it is
+And then add the router to your Play `conf/routes` file. Note that the router already knows its own path since it is
 based on the package name and service name of the service and therefore the path `/` is enough to get it to end up in the right place
 (in this example the path will be `/helloworld.GreeterService`).
 It cannot be added at an arbitrary path (if you try to do so an exception will be thrown when the router is started).
