@@ -1,4 +1,6 @@
 import akka.grpc.Dependencies
+import akka.grpc.ProjectExtensions._
+import akka.grpc.build.ReflectiveCodeGen
 
 scalaVersion := "2.12.6"
 
@@ -116,19 +118,11 @@ lazy val interopTests = Project(
   )
   .settings(Dependencies.interopTests)
   .settings(commonSettings)
-  .enablePlugins(JavaAgent)
+  .pluginTestingSettings
   .settings(
-    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.AkkaCompositeCodeGenerator",
-    javaAgents += Dependencies.Agents.jettyAlpnAgent % "test",
-    // needed explicitly as we don't directly depend on the codegen project
-    watchSources ++= (watchSources in codegen).value,
-    // yeah ugly, but otherwise, there's a circular dependency between the project values
-    watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value,
+    ReflectiveCodeGen.generatedLanguages := "Scala, Java",
+    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator",
   )
-  .dependsOn(runtime)
-  .enablePlugins(akka.grpc.ReflectiveCodeGen)
-  // needed to be able to override the PB.generate task reliably
-  .disablePlugins(ProtocPlugin)
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
   // * google/protobuf/empty.proto
   // * io/grpc/testing/integration/empty.proto
@@ -139,26 +133,25 @@ lazy val interopTests = Project(
     excludeFilter in PB.generate := new SimpleFileFilter(
       (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
   )
-  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
-    .settings(
-      inConfig(Test)(Seq(
-        mainClass in reStart := (mainClass in run in Test).value,
-        {
-        import spray.revolver.Actions._
-        reStart := Def.inputTask{
-          restartApp(
-            streams.value,
-            reLogTag.value,
-            thisProjectRef.value,
-            reForkOptions.value,
-            (mainClass in reStart).value,
-            (fullClasspath in reStart).value,
-            reStartArgs.value,
-            startArgsParser.parsed
-          )
-        }.dependsOn(products in Compile).evaluated
-      }
-      )))
+  .settings(
+    inConfig(Test)(Seq(
+      mainClass in reStart := (mainClass in run in Test).value,
+      {
+      import spray.revolver.Actions._
+      reStart := Def.inputTask{
+        restartApp(
+          streams.value,
+          reLogTag.value,
+          thisProjectRef.value,
+          reForkOptions.value,
+          (mainClass in reStart).value,
+          (fullClasspath in reStart).value,
+          reStartArgs.value,
+          startArgsParser.parsed
+        )
+      }.dependsOn(products in Compile).evaluated
+    }
+    )))
 
 lazy val playInteropTestScala = Project(
     id="akka-grpc-play-interop-test-scala",
@@ -166,15 +159,11 @@ lazy val playInteropTestScala = Project(
   )
   .settings(Dependencies.playInteropTest)
   .settings(commonSettings)
-  .settings(Seq(
-    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayScalaCompositeCodeGenerator",
-  ))
+  .settings(
+    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+  )
   .enablePlugins(akka.grpc.NoPublish)
-  .enablePlugins(akka.grpc.ReflectiveCodeGen)
-  // needed to be able to override the PB.generate task reliably
-  .disablePlugins(ProtocPlugin)
-  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
-  .dependsOn(runtime)
+  .pluginTestingSettings
 
 lazy val playInteropTestJava = Project(
     id="akka-grpc-play-interop-test-java",
@@ -182,15 +171,12 @@ lazy val playInteropTestJava = Project(
   )
   .settings(Dependencies.playInteropTest)
   .settings(commonSettings)
-  .settings(Seq(
-    ReflectiveCodeGen.reflectiveGeneratorClass := "akka.grpc.sbt.test.PlayJavaCompositeCodeGenerator",
-  ))
+  .settings(
+    ReflectiveCodeGen.generatedLanguages := "Java",
+    ReflectiveCodeGen.extraGenerators := "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator, akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
+  )
   .enablePlugins(akka.grpc.NoPublish)
-  .enablePlugins(akka.grpc.ReflectiveCodeGen)
-  // needed to be able to override the PB.generate task reliably
-  .disablePlugins(ProtocPlugin)
-  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
-  .dependsOn(runtime)
+  .pluginTestingSettings
 
 lazy val docs = Project(
     id = "akka-grpc-docs",

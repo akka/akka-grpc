@@ -1,22 +1,24 @@
-package akka.grpc
+package akka.grpc.build
+
+import java.io.File
 
 import sbt._
 import sbt.Keys._
 import sbtprotoc.ProtocPlugin
 import ProtocPlugin.autoImport.PB
-import protocbridge.{Artifact, Generator, JvmGenerator, Target}
+import protocbridge.Target
+import sbt.ProjectRef
+import sbt.file
 import sbt.internal.inc.classpath.ClasspathUtilities
 
-import scalapb.ScalaPbCodeGenerator
+import scala.collection.mutable.ListBuffer
 
 /** A plugin that allows to use a code generator compiled in one subproject to be used in a test project */
 object ReflectiveCodeGen extends AutoPlugin {
-  val reflectiveGeneratorClass = settingKey[String]("Generator to reflectively run")
-  // In the 'real' plugin we enable the 'flat_package' option by default to get package names
-  // that are more consistent between Scala and Java.
-  // Because the interop tests generate both Scala and Java code, however, here we disable this
-  // option to avoid name clashes in the generated classes:
-  val codeGeneratorSettings = Seq.empty
+  val generatedLanguages = SettingKey[String]("reflectiveGrpcGeneratedLanguages", "Comma-separated list of languages")
+  val generatedSources = SettingKey[String]("reflectiveGrpcGeneratedSources", "Comma-separated list of targets")
+  val extraGenerators = SettingKey[String]("reflectiveGrpcExtraGenerators", "Comma-separated list of extra generators")
+  val codeGeneratorSettings = settingKey[Seq[String]]("Code generator settings")
 
   override def projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(Seq(
@@ -40,61 +42,72 @@ object ReflectiveCodeGen extends AutoPlugin {
             }
           }
         }.value,
-      mutableGenerator := createMutableGenerator(),
-      PB.targets := Seq(
-        // Scala model classes:
-        (JvmGenerator("scala", ScalaPbCodeGenerator), codeGeneratorSettings) -> (sourceManaged in Compile).value,
-        // Java model classes:
-        PB.gens.java -> (sourceManaged in Compile).value,
-        // akka-grpc code:
-        (mutableGenerator in Compile).value.target -> (sourceManaged in Compile).value,
-      ),
+
+      // HACK: make the targets mutable, so we can fill them while running the above PB.generate
+      PB.targets := scala.collection.mutable.ListBuffer.empty,
       setCodeGenerator := loadAndSetGenerator(
-        // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generator from there
+        // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
         (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
-        (reflectiveGeneratorClass in Compile).value,
-        (mutableGenerator in Compile).value
+        generatedLanguages.value,
+        generatedSources.value,
+        extraGenerators.value,
+        sourceManaged.value,
+        codeGeneratorSettings.value,
+        PB.targets.value.asInstanceOf[ListBuffer[Target]]
       ),
       PB.recompile ~= (_ => true),
-      PB.protoSources := Seq(PB.externalIncludePath.value)
-    ))
+      PB.protoSources in Compile := Seq(PB.externalIncludePath.value, sourceDirectory.value / "proto")
+    )) ++ Seq(
+      codeGeneratorSettings in Global := Nil,
+      generatedLanguages in Global := "Scala",
+      generatedSources in Global := "Client, Server",
+      extraGenerators in Global := "",
 
-  final case class MutableGeneratorAccess(setUnderlying: protocbridge.ProtocCodeGenerator => Unit, target: (Generator, Seq[String]))
+      watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
+      watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value,
+    )
+
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
-  val mutableGenerator = settingKey[MutableGeneratorAccess]("mutable Gens for test")
 
-  def createMutableGenerator(): MutableGeneratorAccess = {
-    class MutableProtocCodeGenerator extends protocbridge.ProtocCodeGenerator {
-      private[this] var _underlying: protocbridge.ProtocCodeGenerator = _
-
-      def run(request: Array[Byte]): Array[Byte] =
-        if (_underlying ne null)
-          try _underlying.run(request)
-          finally { _underlying = null }
-        else throw new IllegalStateException("Didn't set mutable generator")
-
-      override def suggestedDependencies: Seq[Artifact] =
-        if (_underlying ne null) _underlying.suggestedDependencies
-        else Nil
-
-      def setUnderlying(generator: protocbridge.ProtocCodeGenerator): Unit = _underlying = generator
-    }
-
-    val adapted = new MutableProtocCodeGenerator
-    MutableGeneratorAccess(adapted.setUnderlying _, (JvmGenerator("mutable", adapted), codeGeneratorSettings))
-  }
-
-  def loadAndSetGenerator(classpath: Classpath, mutableGeneratorClass: String, access: MutableGeneratorAccess): Unit = {
+  def loadAndSetGenerator(classpath: Classpath,
+                          languages: String,
+                          sources: String,
+                          extraGenerators: String,
+                          targetPath: File,
+                          generatorSettings: Seq[String],
+                          targets: ListBuffer[Target]): Unit = {
     val cp = classpath.map(_.data)
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
     val loader = ClasspathUtilities.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
-    val instance = loader.loadClass(mutableGeneratorClass).newInstance()
-    type WithInstance = {
-      def instance(): protocbridge.ProtocCodeGenerator
-    }
-    val generator = instance.asInstanceOf[WithInstance].instance
-    access.setUnderlying(generator)
+    import scala.reflect.runtime.universe
+    import scala.tools.reflect.ToolBox
+
+    val tb = universe.runtimeMirror(loader).mkToolBox()
+    val source =
+      s"""import akka.grpc.sbt.AkkaGrpcPlugin
+          |import AkkaGrpcPlugin.autoImport._
+          |import AkkaGrpc._
+          |import akka.grpc.gen.scaladsl._
+          |import akka.grpc.gen.javadsl._
+          |
+          |val languages: Seq[AkkaGrpc.Language] = Seq($languages)
+          |val sources: Seq[AkkaGrpc.GeneratedSource] = Seq($sources)
+          |
+          |val logger = akka.grpc.gen.StdoutLogger
+          |
+          |(targetPath: java.io.File, settings: Seq[String]) => {
+          |  val generators =
+          |    AkkaGrpcPlugin.generatorsFor(sources, languages, logger) ++
+          |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, akka.grpc.gen.StdoutLogger))
+          |  AkkaGrpcPlugin.targetsFor(targetPath, settings, generators)
+          |}
+        """.stripMargin
+    val generatorsF = tb.eval(tb.parse(source)).asInstanceOf[(File, Seq[String]) => Seq[Target]]
+    val generators = generatorsF(targetPath, generatorSettings)
+
+    targets.clear()
+    targets ++= generators.asInstanceOf[Seq[Target]]
   }
 
   def generateTaskFromProtocPlugin: Def.Initialize[Task[Seq[File]]] = {

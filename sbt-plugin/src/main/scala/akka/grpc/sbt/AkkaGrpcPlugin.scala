@@ -115,7 +115,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
           unmanagedResources := { Defaults.collectFiles(unmanagedResourceDirectories, includeFilter, excludeFilter).value },
           resources := managedResources.value ++ unmanagedResources.value)))
 
-  private def targetsFor(targetPath: File, settings: Seq[String], generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] = {
+  def targetsFor(targetPath: File, settings: Seq[String], generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] = {
     generators.map { generator =>
       protocbridge.Target(generator, targetPath, generator match {
         case PB.gens.java => settings.filterNot(_ == "flat_package")
@@ -125,7 +125,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   // creates a seq of generator and per generator settings
-  private def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], logger: GenLogger): Seq[protocbridge.Generator] = {
+  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], logger: GenLogger): Seq[protocbridge.Generator] = {
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
