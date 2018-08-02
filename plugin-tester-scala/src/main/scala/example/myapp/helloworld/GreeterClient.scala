@@ -1,6 +1,9 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 //#full-client
 package example.myapp.helloworld
-
 
 import akka.Done
 import akka.NotUsed
@@ -14,7 +17,7 @@ import javax.net.ssl.SSLContext
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 object GreeterClient {
 
@@ -93,7 +96,6 @@ object GreeterClient {
       }
     }
   }
-
 
 }
 
