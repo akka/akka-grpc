@@ -4,6 +4,7 @@
 
 @(service: akka.grpc.gen.scaladsl.Service)
 
+@akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
 import javax.inject.{Inject, Singleton, Provider}

@@ -4,8 +4,6 @@
 
 package akka.grpc.gen
 
-import java.nio.file.Path
-
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
