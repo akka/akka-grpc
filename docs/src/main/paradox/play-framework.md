@@ -86,7 +86,7 @@ import akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator
 akkaGrpcExtraGenerators += PlayJavaServerCodeGenerator
 ```
 
-The plugin will look for `.proto` service descriptors in `src/main/protobuf` and output an abstract class per service
+The plugin will look for `.proto` service descriptors in `app/protobuf` and output an abstract class per service
 that you then implement, so for example for the following protobuf descriptor:
 
 @@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
@@ -101,11 +101,13 @@ Scala
 Java
 :   @@snip[GreeterServiceImpl.java]($root$/../play-interop-test-java/src/main/java/controllers/GreeterServiceImpl.java) { #service-impl }
 
-And then add this to your Play `conf/routes` file, note that the path here depends on the package and service name from the
-`.proto` service descriptor and cannot be set to an arbitrary value (if you try to do so an exception will be thrown when the router is started).
+And then add the router to your Play `conf/routes` file. Note that the router already knows its own path since it is
+based on the package name and service name of the service and therefore the path `/` is enough to get it to end up in the right place
+(in this example the path will be `/helloworld.GreeterService`).
+It cannot be added at an arbitrary path (if you try to do so an exception will be thrown when the router is started).
 
 ```
-->     /helloworld.GreeterService   controllers.GreeterServiceController
+->     /   controllers.GreeterServiceController
 ```
 
 A gRPC client can now connect to the server and call the provided services.

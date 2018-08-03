@@ -52,8 +52,8 @@ class PlayScalaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll 
       reply.message shouldBe s"Hello, $name!"
     }
 
-    "allow it's expected prefix" in {
-      val result = router.withPrefix(s"/${GreeterService.name}")
+    "allow / as identity prefix" in {
+      val result = router.withPrefix("/")
       result shouldBe theSameInstanceAs(router)
     }
 
