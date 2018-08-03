@@ -47,6 +47,16 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
          }
         """)
 
+    val clientWithNoServiceName = ConfigFactory.parseString(
+      """
+        akka.grpc.client {
+          "project.WithNoServiceName" {
+            service-discovery-mechanism = "config"
+            port = 43
+          }
+        }
+        """)
+
     implicit val sys = ActorSystem("test", ConfigFactory.parseString(
       """
         //#client-config
@@ -63,6 +73,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         //#client-config
       """)
       .withFallback(clientWithServiceDiscovery)
+      .withFallback(clientWithNoServiceName)
       .withFallback(ConfigFactory.load()))
 
     def sysWithCert(certFileName: String) = {
@@ -92,12 +103,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       ActorSystem("test", clientConfig.withFallback(defaultConfig).withFallback(clientWithServiceDiscovery))
     }
 
-    "provide a useful error message if configuration missing" in {
-      intercept[IllegalArgumentException] {
-        GrpcClientSettings.fromConfig("project.MissingConfiguration")
-      }.getMessage should be("requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
-    }
-
     "use static service discovery for connectToServiceAt" in {
       val settings = GrpcClientSettings.connectToServiceAt("host.com", 8080)
       val resolved = settings.serviceDiscovery.lookup("any", 1.second).futureValue
@@ -116,13 +121,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       parsed.userAgent should be(Some("Akka-gRPC"))
     }
 
-    "fail to parse configuration with non-existent certificate" in {
-      val thrown = the[IllegalArgumentException] thrownBy
-        GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
-      // We want a good message since missing classpath resources are difficult to debug
-      thrown.getMessage should include("certs/no-such-cert.pem")
-    }
-
     "load a user defined service discovery mechanism" in {
       //#sd-settings
       // sys is an ActorSystem which is required for service discovery
@@ -139,5 +137,23 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       resolvedWithNoPort should be(Resolved("from-config-no-port", im.Seq(ResolvedTarget("dog", None))))
     }
 
+    "fail to parse configuration with non-existent certificate" in {
+      val thrown = the[IllegalArgumentException] thrownBy
+        GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
+      // We want a good message since missing classpath resources are difficult to debug
+      thrown.getMessage should include("certs/no-such-cert.pem")
+    }
+
+    "provide a useful error message if configuration missing" in {
+      intercept[IllegalArgumentException] {
+        GrpcClientSettings.fromConfig("project.MissingConfiguration")
+      }.getMessage should be("requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
+    }
+
+    "fail fast if no service name" in {
+      intercept[IllegalArgumentException] {
+        GrpcClientSettings.fromConfig("project.WithNoServiceName")
+      }.getMessage should be("requirement failed: Configuration must contain a service-name")
+    }
   }
 }

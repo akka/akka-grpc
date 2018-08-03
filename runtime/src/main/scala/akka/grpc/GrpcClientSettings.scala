@@ -82,6 +82,7 @@ object GrpcClientSettings {
         require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static")
         staticServiceDiscovery(host, port)
       case other =>
+        require(serviceName.nonEmpty, "Configuration must contain a service-name")
         ServiceDiscovery(sys).loadServiceDiscovery(other)
     }
     new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
