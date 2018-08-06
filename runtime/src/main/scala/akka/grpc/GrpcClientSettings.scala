@@ -91,7 +91,8 @@ object GrpcClientSettings {
         deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
         userAgent = getOptionalString(clientConfiguration, "user-agent"),
         sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
-        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"))
+        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
+        useTls = clientConfiguration.getBoolean("use-tls"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
