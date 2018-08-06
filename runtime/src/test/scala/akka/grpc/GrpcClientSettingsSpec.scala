@@ -119,6 +119,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       parsed.sslContext shouldBe defined
       parsed.deadline should be(10.minutes)
       parsed.userAgent should be(Some("Akka-gRPC"))
+      parsed.useTls should be(true)
     }
 
     "load a user defined service discovery mechanism" in {
