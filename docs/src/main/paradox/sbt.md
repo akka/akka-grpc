@@ -20,15 +20,15 @@ akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
 What language to generate stubs for is also configurable:
 ```
 // default is Scala only
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala)
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala)
 
 // Java only
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java)
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
 // Both Java and Scala, by default the 'flat_package' option is enabled generated sources look
 // consistent between Scala and Java. With both languages enabled you need to disable that option to
 // avoid name conflicts
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java, AkkaGrpc.Scala)
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java, AkkaGrpc.Scala)
 akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_ == "flat_package")
 ```
 
