@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
+// #using-client
 package controllers
 
 import akka.actor.ActorSystem
@@ -12,7 +13,6 @@ import play.api.mvc.{ AbstractController, ControllerComponents }
 
 import scala.concurrent.ExecutionContext
 
-// #using-client
 @Singleton
 class MyController @Inject() (implicit greeterClient: GreeterServiceClient, cc: ControllerComponents, mat: Materializer, exec: ExecutionContext) extends AbstractController(cc) {
 

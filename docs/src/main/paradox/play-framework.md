@@ -28,7 +28,9 @@ With the following `helloworld.proto` file:
 
 @@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
-The module file is generated in `example.myapp.helloworld.grpc.helloworld.AkkaGrpcClientModule`.
+The module file is generated in @scala[`example.myapp.helloworld.grpc.helloworld.AkkaGrpcClientModule` by default for Scala]
+@java[`example.myapp.helloworld.grpc.AkkaGrpcClientModule` by default for Java], which corresponds to the default value
+of `flat_package` for @java[Java]@scala[Scala]. You can read more about this in @ref[Services](proto.md).
 
 The exact package of the module will be based on the package the proto files are generated in, configured through
 the `java_package` option in the proto-file (if there are multiple different gRPC generated clients the module will
@@ -36,7 +38,11 @@ be generated in the longest package prefix shared between the clients).
 
 To hook it into Play, in `application.conf`:
 
-@@snip[application.conf]($root$/../play-interop-test-scala/src/main/resources/application.conf) { #client-module }
+Scala
+:   @@snip[application.conf]($root$/../play-interop-test-scala/src/main/resources/application.conf) { #client-module-scala }
+
+Java
+:   @@snip[application.conf]($root$/../play-interop-test-java/src/main/resources/application.conf) { #client-module-java }
 
 The clients are configured with entries under `akka.grpc.client` named after the client (`gRPC` package name dot `ServiceName`),
 again, in `application.conf`:
@@ -91,9 +97,9 @@ that you then implement, so for example for the following protobuf descriptor:
 
 @@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
-You will get an abstract class named `example.myapp.helloworld.grpc.helloworld.AbstractGreeterServiceRouter`.
-Create a concrete subclass implementing this wherever you see fit in your project, let's say `controller.GreeterServiceImpl`
-like so:
+You will get an abstract class named @scala[`example.myapp.helloworld.grpc.helloworld.AbstractGreeterServiceRouter`]
+@java[`example.myapp.helloworld.grpc.AbstractGreeterServiceRouter`]Create a concrete subclass implementing this 
+wherever you see fit in your project, let's say `controller.GreeterServiceImpl` like so:
 
 Scala
 :   @@snip[GreeterServiceImpl.scala]($root$/../play-interop-test-scala/src/main/scala/controllers/GreeterServiceImpl.scala) { #service-impl }
