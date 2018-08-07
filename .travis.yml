@@ -3,6 +3,10 @@ language: scala
 scala:
   - 2.12.6
 
+# make sure to fetch enough commits, so that git describe still works
+git:
+  depth: false
+
 jobs:
   include:
     - stage: tests
