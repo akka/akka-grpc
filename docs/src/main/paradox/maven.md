@@ -35,11 +35,10 @@ By default both client and server in Java are generated.
 </plugin>
 ```
 
-
 ## Proto source directory
 
 By default the plugin looks for `.proto`-files under `src/main/proto` and `src/main/protobuf`. This can be changed with the `protoPaths` setting,
-which is a relative path to the project basedir.
+which is a relative path to the project basedir. The below configuration overrides the proto path to be only `serc/main/protobuf`:
 
 ```xml
 <plugin>
