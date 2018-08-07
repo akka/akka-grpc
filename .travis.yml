@@ -55,6 +55,7 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot
+    - $HOME/.gradle
 
 env:
   global:
