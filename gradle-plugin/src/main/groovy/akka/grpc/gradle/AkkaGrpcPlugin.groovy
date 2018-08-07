@@ -47,12 +47,17 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                     }
                 }
 
+                sourceSets {
+                    main {
+                        proto {
+                            srcDir 'src/main/protobuf'
+                        }
+                    }
+                }
+
                 if (isScala) {
                     sourceSets {
                         main {
-                            proto {
-                                srcDir 'src/main/protobuf'
-                            }
                             scala {
                                 srcDir 'build/generated/source/proto/main/akkaGrpc'
                                 srcDir 'build/generated/source/proto/main/scalapb'
