@@ -91,6 +91,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
           akkaGrpcCodeGeneratorSettings.value,
           akkaGrpcGenerators.value),
 
+
+      PB.protoSources += sourceDirectory.value / "proto",
       // include proto files extracted from the dependencies with "protobuf" configuration by default
       PB.protoSources += PB.externalIncludePath.value,
     ) ++

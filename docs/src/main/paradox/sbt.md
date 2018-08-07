@@ -46,7 +46,12 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 
 You can configure where your .proto files are located like this:
 
-@@snip[build.sbt]($root$/../plugin-tester-java/build.sbt) { #protoSources }
+```
+// "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto":
+inConfig(Compile)(Seq(
+  PB.protoSources += sourceDirectory.value / "proto"
+))
+```
 
 ## Loading proto files from artifacts
 

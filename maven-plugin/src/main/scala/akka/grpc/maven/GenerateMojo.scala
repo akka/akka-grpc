@@ -16,7 +16,6 @@ import org.sonatype.plexus.build.incremental.BuildContext
 import protocbridge.{ JvmGenerator, Target }
 import scalapb.ScalaPbCodeGenerator
 
-import scala.annotation.tailrec
 import scala.beans.BeanProperty
 import scala.util.control.NoStackTrace
 
@@ -79,10 +78,11 @@ object GenerateMojo {
 }
 
 class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
+
   import GenerateMojo._
 
   @BeanProperty
-  var protoPath: String = _
+  var protoPaths: java.util.List[String] = _
   @BeanProperty
   var language: String = _
   @BeanProperty
@@ -93,20 +93,23 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
 
-    // verify proto dir exists
-    val protoDir = new File(project.getBasedir, protoPath)
-    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
-
-    // generated sources should be compiled
-    val generatedSourcesDir = s"target/generated-sources/akka-grpc-${chosenLanguage.targetDirSuffix}"
-    val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
-    project.addCompileSourceRoot(generatedSourcesDir)
-
-    generate(chosenLanguage, compileSourceRoot, protoDir)
+    var directoryFound = false
+    protoPaths.forEach { protoPath =>
+      // verify proto dir exists
+      val protoDir = new File(project.getBasedir, protoPath)
+      if (protoDir.exists()) {
+        directoryFound = true
+        // generated sources should be compiled
+        val generatedSourcesDir = s"target/generated-sources/akka-grpc-${chosenLanguage.targetDirSuffix}"
+        val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
+        project.addCompileSourceRoot(generatedSourcesDir)
+        generate(chosenLanguage, compileSourceRoot, protoDir)
+      }
+    }
+    if (!directoryFound) sys.error(s"None of protobuf sources directories $protoPaths do not exist")
   }
 
   private def generate(language: Language, generatedSourcesDir: File, protoDir: File): Unit = {
-    if (!protoDir.exists()) sys.error("Protobuf sources directory [%s] does not exist".format(protoDir))
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
