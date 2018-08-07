@@ -13,7 +13,7 @@ object Dependencies {
     val play = "2.7.0-M1"
 
     val scalapb = "0.7.1"
-    val grpc = "1.13.1"
+    val grpc = "1.14.0"
     val config = "1.3.3"
     val sslConfig = "0.2.4"
 
