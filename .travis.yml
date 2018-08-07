@@ -3,6 +3,10 @@ language: scala
 scala:
   - 2.12.6
 
+# make sure to fetch enough commits, so that git describe still works
+git:
+  depth: false
+
 jobs:
   include:
     - stage: tests
@@ -51,6 +55,7 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot
+    - $HOME/.gradle
 
 env:
   global:
