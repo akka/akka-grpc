@@ -6,31 +6,12 @@ To get started with Akka gRPC read the [client](client.md) or [server](server.md
 
 It can be configured to just generate either server or client like so:
 
-```scala
-// This is the default - both client and server
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server, AkkaGrpc.Client)
-
-// only client
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client)
-
-// only server
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
-```
+@@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #sources-both #sources-client #sources-server }
 
 What language to generate stubs for is also configurable:
-```
-// default is Scala only
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Scala)
 
-// Java only
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java)
+@@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
-// Both Java and Scala, by default the 'flat_package' option is enabled generated sources look
-// consistent between Scala and Java. With both languages enabled you need to disable that option to
-// avoid name conflicts
-akkaGrpcTargetLanguages := Seq(AkkaGrpc.Java, AkkaGrpc.Scala)
-akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_ == "flat_package")
-```
 
 Passing generator parameters to the underlying ScalaPB generators can be done through `akkaGrpcCodeGeneratorSettings`
 setting, any specified options will be passed to all underlying generators that are enabled. By default this setting

@@ -23,12 +23,6 @@ javaAgents ++= Seq(
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
-// By default we enable the 'flat_package' option by default to get package names
-// that are more consistent between Scala and Java.
-// Because the interop tests generate both Scala and Java code, however, here we disable this
-// option to avoid name clashes in the generated classes:
-akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_ == "flat_package")
-
 // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
 // * google/protobuf/empty.proto
 // * io/grpc/testing/integration/empty.proto
@@ -38,5 +32,43 @@ akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_
 excludeFilter in PB.generate := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
+//#sources-both
+// This is the default - both client and server
 akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
+
+//#sources-both
+
+/**
+//#sources-client
+// only client
+akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client)
+
+//#sources-client
+
+//#sources-server
+// only server
+akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
+//#sources-server
+
+//#languages-scala
+// default is Scala only
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala)
+
+//#languages-scala
+
+//#languages-java
+// Java only
+akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
+
+//#languages-java
+
+**/
+
+//#languages-both
+// Generate both Java and Scala API's.
+// By default the 'flat_package' option is enabled so that generated
+// package names are consistent between Scala and Java.
+// With both languages enabled we disable that option to avoid name conflicts
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala, AkkaGrpc.Java)
+akkaGrpcCodeGeneratorSettings := akkaGrpcCodeGeneratorSettings.value.filterNot(_ == "flat_package")
+//#languages-both
