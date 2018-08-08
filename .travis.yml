@@ -31,7 +31,7 @@ jobs:
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: publish
       script: sbt publish
-    - script: cd gradle-plugin && echo "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > ~/.gradle/gradle.properties && ./gradlew publishPlugins
+    - script: cd gradle-plugin && echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && ./gradlew publishPlugins
     - stage: techhub-ping
       script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
 
