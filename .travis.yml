@@ -9,6 +9,7 @@ git:
 
 jobs:
   include:
+    - script: echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && md5sum gradle.properties
     - stage: tests
       script: sbt test headerCheck test:headerCheck
     - script: sbt scripted
