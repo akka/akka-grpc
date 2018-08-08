@@ -37,8 +37,8 @@
           <description>Whether to generate server code</description>
         </parameter>
         <parameter>
-          <name>protoPath</name>
-          <type>string</type>
+          <name>protoPaths</name>
+          <type>list</type>
           <required>false</required>
           <editable>true</editable>
           <description>Where to look for proto files</description>
@@ -48,7 +48,7 @@
         <language implementation="enum" default-value="JAVA">${akka-grpc.language}</language>
         <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
-        <protoPath implementation="string" default-value="src/main/proto">${akka-grpc.proto-path}</protoPath>
+        <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
       </configuration>
     </mojo>
   </mojos>

@@ -7,13 +7,28 @@ To get started with Akka gRPC read the [client](client.md) or [server](server.md
 The plugin can be configured to generate either Java or Scala classes, and then server and or client for the chosen language.
 By default both client and server in Java are generated.
 
+: Java
 ```xml
 <plugin>
     <groupId>com.lightbend.akka.grpc</groupId>
     <artifactId>akka-grpc-maven-plugin</artifactId>
     <version>${akka.grpc.version}</version>
     <configuration>
-      <language>Java</language> <!-- or Scala -->
+      <language>Java</language>
+      <generateClient>false</generateClient>
+      <generateServer>true</generateServer>
+    </configuration>
+</plugin>
+```
+
+: Scala
+```xml
+<plugin>
+    <groupId>com.lightbend.akka.grpc</groupId>
+    <artifactId>akka-grpc-maven-plugin</artifactId>
+    <version>${akka.grpc.version}</version>
+    <configuration>
+      <language>Scala</language>
       <generateClient>false</generateClient>
       <generateServer>true</generateServer>
     </configuration>
@@ -22,8 +37,8 @@ By default both client and server in Java are generated.
 
 ## Proto source directory
 
-By default the plugin looks for `.proto`-files under `src/main/proto`. This can be changed with the `protoPath` setting,
-which is a relative path to the project basedir.
+By default the plugin looks for `.proto`-files under `src/main/proto` and `src/main/protobuf`. This can be changed with the `protoPaths` setting,
+which is a relative path to the project basedir. The below configuration overrides the proto path to be only `serc/main/protobuf`:
 
 ```xml
 <plugin>
@@ -31,7 +46,9 @@ which is a relative path to the project basedir.
     <artifactId>akka-grpc-maven-plugin</artifactId>
     <version>${akka.grpc.version}</version>
     <configuration>
-      <protoPath>src/main/protobuf</protoPath>
+      <protoPaths>
+        <protoPath>src/main/protobuf</protoPath>
+      </protoPaths>
     </configuration>
 </plugin>
 ```
