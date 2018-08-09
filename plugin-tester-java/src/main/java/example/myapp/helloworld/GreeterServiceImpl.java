@@ -24,7 +24,6 @@ public class GreeterServiceImpl implements GreeterService {
    this.mat = mat;
   }
 
-
   @Override
   public CompletionStage<HelloReply> sayHello(HelloRequest in) {
     System.out.println("sayHello to " + in.getName());

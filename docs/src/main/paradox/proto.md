@@ -1,4 +1,4 @@
-# Protobuf file format
+# Protobuf Service Descriptors
 
 gRPC uses the Protobuf `.proto` file format to define your messages, services
 and some aspects of the code generation.

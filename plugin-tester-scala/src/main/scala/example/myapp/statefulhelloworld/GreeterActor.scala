@@ -15,11 +15,9 @@ object GreeterActor {
   case class Greeting(greeting: String)
 
   def props(initialGreeting: String) = Props(new GreeterActor(initialGreeting))
-
 }
 
 class GreeterActor(initialGreeting: String) extends Actor {
-
   import GreeterActor._
 
   var greeting = Greeting(initialGreeting)
@@ -29,6 +27,5 @@ class GreeterActor(initialGreeting: String) extends Actor {
     case ChangeGreeting(newGreeting) =>
       greeting = Greeting(newGreeting)
   }
-
 }
 // #actor
