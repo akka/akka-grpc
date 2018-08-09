@@ -10,43 +10,6 @@ git:
 jobs:
   include:
     - script: echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && md5sum gradle.properties
-    - stage: tests
-      script: sbt test headerCheck test:headerCheck
-    - script: sbt scripted
-      env: SCRIPTED
-    - script: sbt publishLocal && cd plugin-tester-java && sbt compile
-      env: SBT-JAVA
-    - script: sbt publishLocal && cd plugin-tester-scala && sbt compile
-      env: SBT-SCALA
-    - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
-      env: MAVEN-JAVA
-    - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate scala:compile
-      env: MAVEN-SCALA
-    - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
-      env: GRADLE-JAVA
-    - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
-      env: GRADLE-SCALA
-    - stage: whitesource-master
-      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
-    - stage: whitesource-release
-      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
-    - stage: publish
-      script: sbt publish
-    - script: cd gradle-plugin && echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && ./gradlew publishPlugins
-    - stage: techhub-ping
-      script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
-
-stages:
-  - name: tests
-    if: NOT tag =~ ^v
-  - name: whitesource-master
-    if: repo = akka/akka-grpc AND branch = master AND type = push
-  - name: whitesource-release
-    if: repo = akka/akka-grpc AND tag =~ ^v
-  - name: publish
-    if: repo = akka/akka-grpc AND tag =~ ^v
-  - name: techhub-ping
-    if: repo = akka/akka-grpc AND tag =~ ^v
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
