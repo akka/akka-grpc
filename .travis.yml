@@ -10,7 +10,7 @@ git:
 jobs:
   include:
     - stage: tests
-      script: echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && md5sum gradle.properties && grep GRADLE gradle.properties
+      script: echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && md5sum gradle.properties && grep key gradle.properties && grep GRADLE gradle.properties
 
 stages:
   - name: tests
