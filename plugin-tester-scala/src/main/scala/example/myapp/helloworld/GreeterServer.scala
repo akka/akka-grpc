@@ -1,7 +1,11 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 //#full-server
 package example.myapp.helloworld
 
-import java.io.{ByteArrayOutputStream, FileInputStream, InputStream}
+import java.io.{ ByteArrayOutputStream, FileInputStream, InputStream }
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyFactory
@@ -55,8 +59,7 @@ class GreeterServer(system: ActorSystem) {
       service,
       interface = "127.0.0.1",
       port = 8080,
-      connectionContext = serverHttpContext()
-    )
+      connectionContext = serverHttpContext())
 
     bound.foreach { binding =>
       println(s"gRPC server bound to: ${binding.localAddress}")

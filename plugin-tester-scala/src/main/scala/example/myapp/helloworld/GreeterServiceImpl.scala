@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 //#full-service-impl
 package example.myapp.helloworld
 
@@ -35,7 +39,6 @@ class GreeterServiceImpl(materializer: Materializer) extends GreeterService {
     println(s"sayHello to stream...")
     in.map(request => HelloReply(s"Hello, ${request.name}"))
   }
-
 
 }
 //#full-service-impl

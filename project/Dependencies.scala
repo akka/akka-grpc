@@ -53,10 +53,6 @@ object Dependencies {
     val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
   }
 
-  object Agents {
-    val jettyAlpnAgent = "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
-  }
-
   object Test {
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
     val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
@@ -124,6 +120,11 @@ object Dependencies {
     Compile.playAkkaHttpServer,
     Test.scalaJava8Compat
   ) ++ testing.map(_.withConfigurations(Some("compile")))
+
+  val pluginTester = l++= Seq(
+    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
+    Compile.grpcStub,
+  ) ++ testing
 
   val playInteropTest = l ++= Seq(
     // TODO #193

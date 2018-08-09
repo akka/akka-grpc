@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package example.myapp.helloworld
 
 import java.util.concurrent.TimeUnit
@@ -81,7 +85,5 @@ object LiftedGreeterClient {
       Await.ready(done, 1.minute)
     }
   }
-
-
 
 }

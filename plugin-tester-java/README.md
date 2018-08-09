@@ -1,4 +1,8 @@
-Test project, detached from the parent, to test our plugins in Java projects.
+# sbt-plugin Tester for Scala
 
-Currently contains a Gradle project, but could be extended with maven and sbt.
+Use this project to test the behavior of the sbt plugin without the need of separately releasing it from within the main build.
 
+```
+project akka-grpc-plugin-tester-java
+test
+```

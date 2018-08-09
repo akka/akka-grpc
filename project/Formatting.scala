@@ -5,7 +5,6 @@
 package akka.grpc
 
 import sbt._
-import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
 object Formatting {

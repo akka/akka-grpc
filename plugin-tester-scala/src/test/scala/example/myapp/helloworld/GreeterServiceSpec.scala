@@ -1,8 +1,12 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package example.myapp.helloworld
 
 import scala.concurrent.Await
 
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -18,9 +22,9 @@ import example.myapp.helloworld.grpc._
 
 class GreeterSpec
   extends Matchers
-    with WordSpecLike
-    with BeforeAndAfterAll
-    with ScalaFutures {
+  with WordSpecLike
+  with BeforeAndAfterAll
+  with ScalaFutures {
 
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 

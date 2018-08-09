@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package example.myapp.statefulhelloworld
 
 import example.myapp.statefulhelloworld.grpc.GreeterService
@@ -23,7 +27,6 @@ class GreeterServiceImpl(system: ActorSystem) extends GreeterService {
     (greeterActor ? GreeterActor.GetGreeting).mapTo[GreeterActor.Greeting]
       .map(message => HelloReply(s"${message.greeting}, ${in.name}"))
   }
-
 
   def changeGreeting(in: ChangeRequest): Future[ChangeResponse] = {
     greeterActor ! GreeterActor.ChangeGreeting(in.newGreeting)

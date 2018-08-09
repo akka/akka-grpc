@@ -1,6 +1,10 @@
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package example.myapp.helloworld
 
-import akka.{Done, NotUsed}
+import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.grpc.scaladsl.RestartingClient
@@ -8,7 +12,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.util.Try
 
