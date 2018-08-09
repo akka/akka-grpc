@@ -27,7 +27,7 @@ jobs:
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: publish
       script: sbt publish
-    - script: cd gradle-plugin && echo -e "gradle.publish.key=AwHNbsVBKA20KPzWQyCRbgGQHWa9Us5Y\ngradle.publish.secret=$GRADLE_SECRET" > gradle.properties && ./gradlew publishPlugins
+    - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
     - stage: techhub-ping
       script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
 
@@ -63,5 +63,3 @@ env:
     - secure: "akusg/u0bTODgL3hyJ8iCEjbPQ7pFuLubUZ8k0yZl34IxHqu4OX3uT42zd+OG/ZFwFhNY+90GKDwe51FyTugk16KNZGzkXnDbIKtjn/x5KbCgMPCHojC4/Mbjjp7OAla/8uphYz00nsgZq8IaB2/7aYIWb24juOmtRqyrRxlrW2Pqx5rbh7QU9v3aFNT0lIW8ro6rWVEd0eiltXxUxH+ZmNpXMco/6DXiQfIuWDSU2D8xKzri+FG1fsh8L+LqpkW1zulBBQj1p1Fg/LpQ40pUcjWNNxDLnLEbUZoRdvyv0iz2QqwJCxyzSs3xbAkBPslrFD11eWtgu1MrqeID7h+WJUL68rozdk1NsBj4E3vdD2rbTxJiRmhUEVhrdSpJKhNo9cuUlpMF3eWZEh/JTTDPskW3dHExx/hIoK2YNCYoUZu6gDc24rzeCB6k966DITFyTga4rm8Xmm+E0KkfOnv5FjDEii9RXAb9HxauYRebLr1XBdcRGj0TTZNZfAXxgMIrusi+Awqj4019WY5Gy+o3AXoVQWr35hW0eRe3pDKQ4zCE0BS/SwZPq9YL/MZApVa4jXXb/pRLnF2MRt8Tg9JE7j0t/k38VAX1DZBQyFQFbYwcEwlfvx2a/IdYZ6mEmWcKTWBVpj5tT7FPWCFeT5+nFMgEASTbjEOlnweCnDz1fk="
     # encrypt with: travis encrypt TECH_HUB_TOKEN=...
     - secure: "sFbpTppagGo56idzNXn3qOYwtRb8q/+Zjcen7KV3uNno3U1asfKVNoEj6UMxwCnmPn8BnrRtq2aVHIjDmItDwMHEPQ51Wm+0hxAw15o9yh15/MIoc+yu+VfOSXAYb9pEcMVbIyYzyR/qi2vsBTIJuloUDK/KPmmrUldx1hgFd567WmwHiXwiu/4BePWqsXGiCEjq5nQuO5XS+4uFDdpXlfX6wcQsU6o2ztD60wNAQwdDL751d8TNZNajWi5R9fD7xWV2wsewhGhl5E43o/HiY+Z/h1Kt/f3UGbhj7vZNTHAd901ZEG9QacFxQXaQWYOutlrO+eDBgRKd+27PLNpTLymF1Ht47xcERjpH0lgps02pDoSoFGzRYoHNQYAjA2BXK3GZHcLYmnPCB+5pbw1D4lsX8xQ8y5yO29gE4uCTx7P15bVt7/KbgUTdWfLtOQGyOd/jS9RTplHNAG2fBW2pa5nS4KNmON1UO3vNcsWv/zEHv48ASSLxpC3NxWkwS+zOkt0uORyXlxi0teOajWA7dmalC+9VpKf5kuAZvKM0xYxN5Yqt+6UELtTQnle3fTLnKcE584+eo/RdCgvGD6N0RJHN/UKl7sP7hvTF7w/SbcAaI/jv31N+oVV79UyMLqm1U8HRGg2HLMSHiRbYFSOYmsQ5/sYWn7RsJIroDKpFd+I="
-    # encrypt with: travis encrypt GRADLE_SECRET=...
-    - secure: "AqKC2pHZAZmnFlC1jxQCYpqPCpAe41sMeu72ltu3cddOFtsRkN8NgpwD54nXvJlaUBJz1exAxd2a01K9DoqajSPJ87RizgwVlQsxtxvV1R71qOFhWpLtwUIUNQePX/uq1dvCr9zHtw/G/8oFDdbh14LX4FkPBOPFyO0pWHKZeEjTgfsRO+PptMmAM6KQRroBs8hFKtr5j3uLKmlYGkwQxNiWSbsWZMh2ra++aO6EEp618+MBGmdotrlbNlkkQGz0izSIkNuBObYRAzQiHSTwMqpKvQf4qyd/dPI9KeBlWFop22D6DFoJEepNjnE+Zk4P5dGRazKPGBmmRRaezjrLFrkBjHAMFwiZ+ZmMY7PJEIzqeI+sLkzZho3TvnH1E+MFVKOalETyaBn4YruGKqkB3NFT8fW8OPqH03AazP6w4wdJH8+9pkXzfBXSXGACOQ1Dve7p/daJCdxO2fnFm88YxEsNvf7gqkeLYsX1Z/Ev2c8IgWm+PAhyd3b8LAnx+8mxmJhD1E9neG43VP2dQts902mllJbatYxdc+tLh6gEsU6AdtG069Uu469lkOfsu4Dg5kDK0NQTD4xAgCigK6rtWHpcIyvRcRu5UdKLmzRqgKPQf8aOXyp5kdWdHX2GgYxdSr9f0k8J+KNIyF2IDduUZ9P/+momwEcQb1YUk7KvHI4="
