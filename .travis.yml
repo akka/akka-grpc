@@ -40,5 +40,4 @@ env:
     - secure: "AqKC2pHZAZmnFlC1jxQCYpqPCpAe41sMeu72ltu3cddOFtsRkN8NgpwD54nXvJlaUBJz1exAxd2a01K9DoqajSPJ87RizgwVlQsxtxvV1R71qOFhWpLtwUIUNQePX/uq1dvCr9zHtw/G/8oFDdbh14LX4FkPBOPFyO0pWHKZeEjTgfsRO+PptMmAM6KQRroBs8hFKtr5j3uLKmlYGkwQxNiWSbsWZMh2ra++aO6EEp618+MBGmdotrlbNlkkQGz0izSIkNuBObYRAzQiHSTwMqpKvQf4qyd/dPI9KeBlWFop22D6DFoJEepNjnE+Zk4P5dGRazKPGBmmRRaezjrLFrkBjHAMFwiZ+ZmMY7PJEIzqeI+sLkzZho3TvnH1E+MFVKOalETyaBn4YruGKqkB3NFT8fW8OPqH03AazP6w4wdJH8+9pkXzfBXSXGACOQ1Dve7p/daJCdxO2fnFm88YxEsNvf7gqkeLYsX1Z/Ev2c8IgWm+PAhyd3b8LAnx+8mxmJhD1E9neG43VP2dQts902mllJbatYxdc+tLh6gEsU6AdtG069Uu469lkOfsu4Dg5kDK0NQTD4xAgCigK6rtWHpcIyvRcRu5UdKLmzRqgKPQf8aOXyp5kdWdHX2GgYxdSr9f0k8J+KNIyF2IDduUZ9P/+momwEcQb1YUk7KvHI4="
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv
-  -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d
+- openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d
