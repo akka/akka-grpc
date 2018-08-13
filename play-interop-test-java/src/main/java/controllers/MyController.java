@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
  */
 
+// #using-client
 package controllers;
 
 import example.myapp.helloworld.grpc.GreeterServiceClient;
@@ -13,7 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.CompletionStage;
 
-// #using-client
 @Singleton
 public class MyController extends Controller {
 
