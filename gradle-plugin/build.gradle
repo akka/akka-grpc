@@ -59,7 +59,7 @@ dependencies {
     compile gradleApi()
 
     // to bring in protobuf dependency trasitively
-    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.5'
+    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
 }
 
 repositories {
