@@ -10,11 +10,11 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.javadsl.JavaClientCodeGenerator
 import akka.grpc.gen.javadsl.JavaServerCodeGenerator
-import akka.grpc.gen.javadsl.play.{PlayJavaBothCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
+import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.ScalaBothCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaClientCodeGenerator
 import akka.grpc.gen.scaladsl.ScalaServerCodeGenerator
-import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
+import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
 
 // This is the protoc plugin that the gradle plugin uses
 object Main extends App {
@@ -67,15 +67,15 @@ object Main extends App {
       } else {
         if (languageScala) {
           // Scala
-          if (generateClient && generateServer) PlayScalaClientCodeGenerator
-          else if (generateClient) PlayScalaClientCodeGenerator
-          else if (generateServer) PlayScalaServerCodeGenerator
+          if (generateClient && generateServer) CombinedPlayScalaBothCodeGenerator
+          else if (generateClient) CombinedPlayScalaClientCodeGenerator
+          else if (generateServer) CombinedPlayScalaServerCodeGenerator
           else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         } else {
           // Java
-          if (generateClient && generateServer) PlayJavaBothCodeGenerator
-          else if (generateClient) PlayJavaClientCodeGenerator
-          else if (generateServer) PlayJavaServerCodeGenerator
+          if (generateClient && generateServer) CombinedPlayJavaBothCodeGenerator
+          else if (generateClient) CombinedPlayJavaClientCodeGenerator
+          else if (generateServer) CombinedPlayJavaServerCodeGenerator
           else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         }
       }
@@ -85,4 +85,16 @@ object Main extends App {
 
   System.out.write(out.toByteArray)
   System.out.flush()
+
+  /**
+   * Generators to generate both the 'plain' akka-grpc code and the play-specific code that depends on it.
+   * In other build tools (Maven and sbt) these are passed to protoc separately, but since Gradle does the
+   * akka-grpc code generation in a single protoc invocation we need to combine those here:
+   */
+  object CombinedPlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator
+  object CombinedPlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator with JavaServerCodeGenerator
+  object CombinedPlayJavaBothCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator with PlayJavaServerCodeGenerator with JavaServerCodeGenerator
+  object CombinedPlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator
+  object CombinedPlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator with ScalaServerCodeGenerator
+  object CombinedPlayScalaBothCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator with PlayScalaServerCodeGenerator with ScalaServerCodeGenerator
 }
