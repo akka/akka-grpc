@@ -51,6 +51,9 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                         proto {
                             srcDir 'src/main/protobuf'
                             srcDir 'src/main/proto'
+                            // Play conventions:
+                            srcDir 'app/protobuf'
+                            srcDir 'app/proto'
                         }
                     }
                 }
