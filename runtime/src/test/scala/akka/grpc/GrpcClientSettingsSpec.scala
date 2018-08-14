@@ -21,8 +21,13 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         //#config-service-discovery
         akka.grpc.client {
           "project.WithConfigServiceDiscovery" {
-            service-discovery-mechanism = "config"
-            service-name = "from-config"
+            service-discovery {
+              mechanism = "config"
+              service-name = "from-config"
+              # optional for discovery
+              protocol = "tcp"
+              port-name = "http"
+            }
             port = 43
           }
         }
@@ -51,7 +56,9 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       """
         akka.grpc.client {
           "project.WithNoServiceName" {
-            service-discovery-mechanism = "config"
+            service-discovery {
+              mechanism = "config"
+            }
             port = 43
           }
         }
@@ -62,7 +69,9 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         //#client-config
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
-            service-name = "my-service"
+            service-discovery {
+              service-name = "my-service"
+            }
             host = "my-host"
             port = 42
             override-authority = "google.fr"
@@ -81,7 +90,9 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         s"""
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
-            service-name = "my-service"
+            service-discovery {
+              service-name = "my-service"
+            }
             host = "my-host"
             port = 42
             override-authority = "google.fr"
@@ -136,6 +147,9 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
       val resolvedWithNoPort = settings.serviceDiscovery.lookup("from-config-no-port", 1.second).futureValue
       resolvedWithNoPort should be(Resolved("from-config-no-port", im.Seq(ResolvedTarget("dog", None))))
+
+      settings.servicePortName should be(Some("http"))
+      settings.serviceProtocol should be(Some("tcp"))
     }
 
     "fail to parse configuration with non-existent certificate" in {

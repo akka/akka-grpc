@@ -9,12 +9,12 @@ import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 
 import akka.Done
 
-import scala.concurrent.duration.FiniteDuration
 import akka.annotation.InternalApi
+import akka.discovery.Lookup
 import akka.grpc.GrpcClientSettings
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.grpc.netty.shaded.io.netty.handler.ssl._
-import io.grpc.{ CallOptions, ManagedChannel }
+import io.grpc.CallOptions
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.duration.FiniteDuration
@@ -32,33 +32,35 @@ object NettyClientUtils {
   @InternalApi
   def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): InternalChannel = {
     val promise = Promise[Done]()
-    val mc = settings.serviceDiscovery.lookup(settings.serviceName, settings.resolveTimeout).flatMap { targets =>
-      if (targets.addresses.nonEmpty) {
-        val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
-        var builder =
-          NettyChannelBuilder
-            .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
-            .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
+    val mc = settings.serviceDiscovery.lookup(
+      Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol),
+      settings.resolveTimeout).flatMap { targets =>
+        if (targets.addresses.nonEmpty) {
+          val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
+          var builder =
+            NettyChannelBuilder
+              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
+              .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
-        if (!settings.useTls)
-          builder = builder.usePlaintext()
-        else {
-          builder = settings.sslContext
-            .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
-            .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+          if (!settings.useTls)
+            builder = builder.usePlaintext()
+          else {
+            builder = settings.sslContext
+              .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
+              .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
 
-          builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+            builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+          }
+
+          builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
+
+          val channel = builder.build()
+          ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
+          Future.successful(channel)
+        } else {
+          Future.failed(new IllegalStateException("No targets returned for name: " + settings.serviceName))
         }
-
-        builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
-
-        val channel = builder.build()
-        ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
-        Future.successful(channel)
-      } else {
-        Future.failed(new IllegalStateException("No targets returned for name: " + settings.serviceName))
       }
-    }
     new InternalChannel(mc, promise)
   }
 
