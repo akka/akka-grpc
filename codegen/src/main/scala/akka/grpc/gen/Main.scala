@@ -91,10 +91,22 @@ object Main extends App {
    * In other build tools (Maven and sbt) these are passed to protoc separately, but since Gradle does the
    * akka-grpc code generation in a single protoc invocation we need to combine those here:
    */
-  object CombinedPlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator
-  object CombinedPlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator with JavaServerCodeGenerator
-  object CombinedPlayJavaBothCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator with PlayJavaServerCodeGenerator with JavaServerCodeGenerator
-  object CombinedPlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator
-  object CombinedPlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator with ScalaServerCodeGenerator
-  object CombinedPlayScalaBothCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator with PlayScalaServerCodeGenerator with ScalaServerCodeGenerator
+  object CombinedPlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator {
+    override def name = "combined-play-java-client"
+  }
+  object CombinedPlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
+    override def name = "combined-play-java-server"
+  }
+  object CombinedPlayJavaBothCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator with PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
+    override def name = "combined-play-java-both"
+  }
+  object CombinedPlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator {
+    override def name = "combined-play-scala-client"
+  }
+  object CombinedPlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
+    override def name = "combined-play-scala-server"
+  }
+  object CombinedPlayScalaBothCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator with PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
+    override def name = "combined-play-scala-both"
+  }
 }
