@@ -54,11 +54,11 @@ This can be done automatically using the `JavaAgent` sbt plugin.
 
 Add the plugin to `project/plugin.sbt`
 
-@@snip [plugin.sbt]($root$/../project/plugins.sbt) { #java-agent-plugin }
+@@snip [plugin.sbt](/project/plugins.sbt) { #java-agent-plugin }
 
 and then tell it to use the ALPN agent:
 
-@@snip [build.sbt]($root$/../project/ProjectExtensions.scala) { #alpn }
+@@snip [build.sbt](/project/ProjectExtensions.scala) { #alpn }
 
 After that you can run it as usual:
 

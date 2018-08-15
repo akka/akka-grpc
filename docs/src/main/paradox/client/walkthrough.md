@@ -100,15 +100,15 @@ the server project are needed.
 
 For example, this is the definition of a Hello World service:
 
-@@snip [helloworld.proto]($root$/../plugin-tester-scala/src/main/protobuf/helloworld.proto)
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto)
 
 From this definition, Akka gRPC generates interfaces that look like this:
 
 Scala
-:  @@snip [helloworld.proto]($root$/../plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
+:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
 
 Java
-:  @@snip [helloworld.proto]($root$/../plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
+:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
 
 and model @scala[case ]classes for `HelloRequest` and `HelloResponse`.
 
@@ -150,10 +150,10 @@ mvn akka-grpc:generate
 A main program that calls the server with the `GreeterService` looks like this:
 
 Scala
-:  @@snip [GreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterClient.scala) { #full-client }
+:  @@snip [GreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterClient.scala) { #full-client }
 
 Java
-:  @@snip [GreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterClient.java) { #full-client }
+:  @@snip [GreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterClient.java) { #full-client }
 
 You can run the example with
 

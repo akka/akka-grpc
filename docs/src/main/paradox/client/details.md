@@ -21,20 +21,20 @@ generated client and do this automatically. When the client is re-created servic
 will be queried again. It is expected in a later version this will happen transparently.
 
 Scala
-:  @@snip [RestartingGreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #restarting-client }
+:  @@snip [RestartingGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #restarting-client }
 
 Java
-:  @@snip [RestartingGreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #restarting-client }
+:  @@snip [RestartingGreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #restarting-client }
 
 
 To use the client use `withClient`. The actual client isn't exposed as it should not be stored
 any where as it can be replaced when a failure happens.
 
 Scala
-:  @@snip [RestartingGreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #usage }
+:  @@snip [RestartingGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #usage }
 
 Java
-:  @@snip [RestartingGreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #usage }
+:  @@snip [RestartingGreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #usage }
 
 
 ## Request Metadata
@@ -48,9 +48,9 @@ client API, each method of the service has an empty parameter list version on th
 After adding the required metadata the request is done by calling `invoke` with the request parameters.
 
 Scala
-:  @@snip [GreeterClient.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
+:  @@snip [GreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
 
 Java
-:  @@snip [GreeterClient.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
+:  @@snip [GreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
 
 

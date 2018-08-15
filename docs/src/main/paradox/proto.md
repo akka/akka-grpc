@@ -10,13 +10,13 @@ but here are a few quick examples:
 
 Messages are defined in the same way protobuf definitions are used for serialization:
 
-@@snip [helloworld.proto]($root$/../plugin-tester-scala/src/main/protobuf/helloworld.proto) { #messages }
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { #messages }
 
 ## Services
 
 Those messages can be used to define services:
 
-@@snip [helloworld.proto]($root$/../plugin-tester-scala/src/main/protobuf/helloworld.proto) { #services }
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { #services }
 
 Both the request and the response consists of either a single message or a stream of messages.
 
@@ -24,7 +24,7 @@ Both the request and the response consists of either a single message or a strea
 
 There are a number of options that can be set in the .proto definition that influence how the code is generated:
 
-@@snip [helloworld.proto]($root$/../plugin-tester-scala/src/main/protobuf/helloworld.proto) { #options }
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { #options }
 
 The (optional) ['package'](https://developers.google.com/protocol-buffers/docs/proto#packages)
 in the `.proto` is used to resolve references from one `.proto` file to another.

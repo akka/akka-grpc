@@ -125,10 +125,10 @@ mvn akka-grpc:generate
 From the above definition, Akka gRPC generates interfaces that look like this:
 
 Scala
-:  @@snip [helloworld.proto]($root$/../plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
+:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
 
 Java
-:  @@snip [helloworld.proto]($root$/../plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
+:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
 
 and model @scala[case ]classes for `HelloRequest` and `HelloResponse`.
 
@@ -153,10 +153,10 @@ There are 4 different types of calls:
 Let's implement these 4 calls in a new class:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServiceImpl.scala) { #full-service-impl }
+:  @@snip [GreeterServiceImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServiceImpl.scala) { #full-service-impl }
 
 Java
-:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServiceImpl.java) { #full-service-impl }
+:  @@snip [GreeterServiceImpl.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServiceImpl.java) { #full-service-impl }
 
 ## Serving the service with Akka HTTP
 
@@ -181,10 +181,10 @@ about safely implementing servers with state see the advice about [stateful](#st
 A complete main program that starts an Akka HTTP server with the `GreeterService` looks like this:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServer.scala) { #full-server }
+:  @@snip [GreeterServiceImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServer.scala) { #full-server }
 
 Java
-:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServer.java) { #full-server }
+:  @@snip [GreeterServiceImpl.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServer.java) { #full-server }
 
 @@@ note
 
@@ -240,17 +240,17 @@ There are two recommended ways to deal with this:
 This is an example based on the Hello World above, but allowing users to change the greeting through a unary call:
 
 Scala
-:  @@snip [GreeterServiceImpl.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterServiceImpl.scala) { #stateful-service }
+:  @@snip [GreeterServiceImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterServiceImpl.scala) { #stateful-service }
 
 Java
-:  @@snip [GreeterServiceImpl.java]($root$/../plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterServiceImpl.java) { #stateful-service }
+:  @@snip [GreeterServiceImpl.java](/plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterServiceImpl.java) { #stateful-service }
 
 The `GreeterActor` is implemented like this:
 
 Scala
-:  @@snip [GreeterActor.scala]($root$/../plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterActor.scala) { #actor }
+:  @@snip [GreeterActor.scala](/plugin-tester-scala/src/main/scala/example/myapp/statefulhelloworld/GreeterActor.scala) { #actor }
 
 Java
-:  @@snip [GreeterActor.java]($root$/../plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterActor.java) { #actor }
+:  @@snip [GreeterActor.java](/plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterActor.java) { #actor }
 
 Now the actor mailbox is used to synchronize accesses to the mutable state.

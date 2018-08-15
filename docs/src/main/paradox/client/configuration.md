@@ -8,36 +8,36 @@ docs are the best reference. An `ActorSystem` is always required as it is used f
 The simplest way to create a client is to provide a static host and port.
 
 Scala
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple }
 
 Java
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple }
 
 Further settings can be added via the `with` methods
 
 Scala
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple-programmatic }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #simple-programmatic }
 
 Java
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple-programmatic }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #simple-programmatic }
 
 ## By Configuration
 
 Instead a client can be defined in configuration. All client configurations need to be under `akka.grpc.client`
 
 Scala
-:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
 
 Java
-:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
 
 Clients defined in configuration pick up defaults from `reference.conf`:
 
 Scala
-:  @@snip [reference]($root$/../runtime/src/main/resources/reference.conf) { #defaults }
+:  @@snip [reference](/runtime/src/main/resources/reference.conf) { #defaults }
 
 Java
-:  @@snip [reference]($root$/../runtime/src/main/resources/reference.conf) { #defaults }
+:  @@snip [reference](/runtime/src/main/resources/reference.conf) { #defaults }
 
 ## Using Akka Discovery for Endpoint Discovery
 
@@ -50,28 +50,28 @@ To see how to config a particular service discovery mechanism see the [Akka Disc
 Once it is configured a service discovery mechanism name can either be passed into settings or put in the client's configuration.
 
 Scala
-:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
 
 Java
-:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #config-service-discovery }
 
 The above example configures the client `project.WithConfigServiceDiscovery` to use `config` based service discovery.
 
 Then to create the `GrpcClientSettings`:
 
 Scala
-:  @@snip [GrpcClientSettingsSpec]($root$/../runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #sd-settings }
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #sd-settings }
 
 Java
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #sd-settings }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #sd-settings }
 
 Alternatively if a `SimpleServiceDiscovery` is available else where in your system is can be passed in:
 
 Scala
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #provide-sd }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #provide-sd }
 
 Java
-:  @@snip [GrpcClientSettingsCompileOnly]($root$/../runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #provide-sd }
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #provide-sd }
 
  
 Currently service discovery is only queried on creation of the client. A client can be automatically re-created, and go via service discovery again,
