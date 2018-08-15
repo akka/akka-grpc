@@ -202,6 +202,14 @@ HTTP/2 can only be served over TLS. That means that you need to configure your s
 The example code contains a snippet about how to set up the TLS context from certificates and keys provided from resources on the
 classpath. In a real application, you would probably want to load the keys from outside the application jar instead.
 
+@@@ note
+
+[Currently](https://github.com/akka/akka-http/issues/2145), Akka HTTP does not allow concurrent requests on a single HTTP/2 connection
+if not configured otherwise. Make sure to provide an argument to the `parallelism` parameter to `bindAndHandleAsync` that
+is greater than one to allow processing more than one request at a time from a given client as shown in the above snippet.
+
+@@@
+
 ## Serving multiple services
 
 When a server handles several services the handlers must be combined with
