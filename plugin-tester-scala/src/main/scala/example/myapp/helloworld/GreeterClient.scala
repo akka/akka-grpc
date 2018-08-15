@@ -5,15 +5,12 @@
 //#full-client
 package example.myapp.helloworld
 
-import akka.Done
-import akka.NotUsed
+import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
-
-import javax.net.ssl.SSLContext
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -101,5 +98,4 @@ object GreeterClient {
   }
 
 }
-
 //#full-client

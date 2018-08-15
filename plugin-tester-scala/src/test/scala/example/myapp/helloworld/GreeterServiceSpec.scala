@@ -46,8 +46,7 @@ class GreeterSpec
     implicit val ec = clientSystem.dispatcher
     new GreeterServiceClient(
       GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
-        .withOverrideAuthority("foo.test.google.fr")
-        .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem")))
+        .withTls(false))
   }
 
   override def afterAll: Unit = {

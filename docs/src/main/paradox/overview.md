@@ -27,7 +27,7 @@ This library is in preview mode: basic functionality is in place, but API's and
 build system plugins are still expected to be improved.
 
 The API on both sides (Client and Server) is a simple Akka Streams-based one.
-We plan to also provide a 'power user' API for each of these ([#191](https://github.com/akka/akka-grpc/issues/191), [#179](https://github.com/akka/akka-grpc/issues/179)).
+The client has a 'power user' API and the planned for the server in [#179](https://github.com/akka/akka-grpc/issues/179)).
 
 The client side is
 currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
