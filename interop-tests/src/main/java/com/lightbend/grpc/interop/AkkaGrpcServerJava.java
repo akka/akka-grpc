@@ -19,10 +19,12 @@ import java.util.concurrent.CompletionStage;
 import javax.net.ssl.*;
 
 import akka.actor.ActorSystem;
+import akka.event.LoggingAdapter;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.*;
 import akka.http.javadsl.*;
+import akka.http.javadsl.settings.ServerSettings;
 import akka.japi.Function;
 import akka.stream.*;
 import com.typesafe.config.ConfigFactory;
@@ -59,6 +61,9 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
         }
       },
       ConnectWithHttps.toHostHttps("127.0.0.1", 0).withCustomHttpsContext(serverHttpContext()),
+      ServerSettings.create(sys),
+      256, // parallelism TODO remove once https://github.com/akka/akka-http/pull/2146 is merged
+      sys.log(),
       mat);
 
     ServerBinding serverBinding = binding.toCompletableFuture().get();
