@@ -72,10 +72,10 @@ object GrpcClientSettings {
    * Configure client via the provided Config. See reference.conf for configuration properties.
    */
   def fromConfig(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
-    val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery-mechanism")
-    val serviceName = clientConfiguration.getString("service-name")
+    val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery.mechanism")
+    val serviceName = clientConfiguration.getString("service-discovery.service-name")
     val port = clientConfiguration.getInt("port")
-    val resolveTimeout = clientConfiguration.getDuration("resolve-timeout").asScala
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val sd = serviceDiscoveryMechanism match {
       case "static" =>
         val host = clientConfiguration.getString("host")
@@ -87,6 +87,8 @@ object GrpcClientSettings {
     }
     new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
       .copy(
+        servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
+        serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
         overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
         deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
         userAgent = getOptionalString(clientConfiguration, "user-agent"),
@@ -146,6 +148,8 @@ final class GrpcClientSettings private (
   val serviceDiscovery: SimpleServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
+  val servicePortName: Option[String] = None,
+  val serviceProtocol: Option[String] = None,
   val connectionAttempts: Option[Int] = None,
   val callCredentials: Option[CallCredentials] = None,
   val overrideAuthority: Option[String] = None,
@@ -194,6 +198,8 @@ final class GrpcClientSettings private (
 
   private def copy(
     serviceName: String = serviceName,
+    servicePortName: Option[String] = servicePortName,
+    serviceProtocol: Option[String] = serviceProtocol,
     defaultPort: Int = defaultPort,
     callCredentials: Option[CallCredentials] = callCredentials,
     overrideAuthority: Option[String] = overrideAuthority,
@@ -205,6 +211,8 @@ final class GrpcClientSettings private (
     connectionAttempts: Option[Int] = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
+    servicePortName = servicePortName,
+    serviceProtocol = serviceProtocol,
     deadline = deadline,
     serviceName = serviceName,
     overrideAuthority = overrideAuthority,
