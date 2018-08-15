@@ -1,6 +1,6 @@
 # sbt
 
-To get started with Akka gRPC read the [client](client.md) or [server](server.md) introductions.
+To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
 ## Configuring what to generate
 

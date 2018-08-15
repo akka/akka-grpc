@@ -4,7 +4,7 @@
 
 @@@index
  
- * [SBT](sbt.md)
+ * [sbt](sbt.md)
  * [Gradle](gradle.md)
  * [Maven](maven.md)
 
