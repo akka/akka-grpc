@@ -25,7 +25,7 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 
 ## Proto source directory
 
-By default protobuf files are looked for in `src/main/protobuf` and `src/main/proto`
+By default protobuf files are looked for in `src/main/protobuf` (and `src/main/proto`).
 You can configure where your .proto files are located like this:
 
 ```
