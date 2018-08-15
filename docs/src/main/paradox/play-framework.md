@@ -117,7 +117,7 @@ based on the package name and service name of the service and therefore the path
 It cannot be added at an arbitrary path (if you try to do so an exception will be thrown when the router is started).
 
 ```
-->     /   controllers.GreeterServiceController
+->     /   controllers.GreeterServiceImpl
 ```
 
 A gRPC client can now connect to the server and call the provided services.
