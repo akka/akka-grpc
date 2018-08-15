@@ -22,24 +22,27 @@ import scala.util.{ Failure, Success }
 object GreeterClient {
 
   def main(args: Array[String]): Unit = {
-
+    // Boot akka
     implicit val sys = ActorSystem("HelloWorldClient")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
+    // Take details how to connect to the service from the config.
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
-    val client = new GreeterServiceClient(clientSettings)
+    // Create a client-side stub for the service
+    val client: GreeterService = new GreeterServiceClient(clientSettings)
 
-    singleRequestReply()
-    streamingRequest()
-    streamingReply()
-    streamingRequestReply()
+    // Run examples for each of the exposed service methods.
+    runSingleRequestReplyExample()
+    runStreamingRequestExample()
+    runStreamingReplyExample()
+    runStreamingRequestReplyExample()
 
     sys.scheduler.schedule(1.second, 1.second) {
-      singleRequestReply()
+      runSingleRequestReplyExample()
     }
 
-    def singleRequestReply(): Unit = {
+    def runSingleRequestReplyExample(): Unit = {
       sys.log.info("Performing request")
       val reply = client.sayHello(HelloRequest("Alice"))
       reply.onComplete {
@@ -50,7 +53,7 @@ object GreeterClient {
       }
     }
 
-    def streamingRequest(): Unit = {
+    def runStreamingRequestExample(): Unit = {
       val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
       val reply = client.itKeepsTalking(Source(requests))
       reply.onComplete {
@@ -61,7 +64,7 @@ object GreeterClient {
       }
     }
 
-    def streamingReply(): Unit = {
+    def runStreamingReplyExample(): Unit = {
       val responseStream = client.itKeepsReplying(HelloRequest("Alice"))
       val done: Future[Done] =
         responseStream.runForeach(reply => println(s"got streaming reply: ${reply.message}"))
@@ -74,7 +77,7 @@ object GreeterClient {
       }
     }
 
-    def streamingRequestReply(): Unit = {
+    def runStreamingRequestReplyExample(): Unit = {
       val requestStream: Source[HelloRequest, NotUsed] =
         Source
           .tick(100.millis, 1.second, "tick")

@@ -1,6 +1,6 @@
 # sbt
 
-To get started with Akka gRPC read the [client](client.md) or [server](server.md) introductions.
+To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
 ## Configuring what to generate
 
@@ -12,6 +12,7 @@ What language to generate stubs for is also configurable:
 
 @@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
+## Passing parameters to the generator
 
 Passing generator parameters to the underlying ScalaPB generators can be done through `akkaGrpcCodeGeneratorSettings`
 setting, any specified options will be passed to all underlying generators that are enabled. By default this setting
@@ -29,9 +30,9 @@ By default protobuf files are looked for in `src/main/protobuf` (and `src/main/p
 You can configure where your .proto files are located like this:
 
 ```
-// "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto":
+// "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto_custom":
 inConfig(Compile)(Seq(
-  PB.protoSources += sourceDirectory.value / "proto"
+  PB.protoSources += sourceDirectory.value / "proto_custom"
 ))
 ```
 
@@ -41,8 +42,7 @@ Instead of duplicating the `.proto` definitions between server and client projec
 that contain proto definitions to your build:
 
 ```scala
-libraryDependencies +=
-  "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
+libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ```
 
 ## Starting your Akka gRPC server from sbt
@@ -50,15 +50,15 @@ libraryDependencies +=
 As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
 you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
 
-This can be done using the `JavaAgent` sbt plugin.
+This can be done automatically using the `JavaAgent` sbt plugin.
 
-Add the plugin `project/plugin.sbt`
+Add the plugin to `project/plugin.sbt`
 
-@@snip [plugin.sbt]($root$/../project/plugins.sbt) { #java-agent-plugin }
+@@snip [plugin.sbt](/project/plugins.sbt) { #java-agent-plugin }
 
 and then tell it to use the ALPN agent:
 
-@@snip [build.sbt]($root$/../project/ProjectExtensions.scala) { #alpn }
+@@snip [build.sbt](/project/ProjectExtensions.scala) { #alpn }
 
 After that you can run it as usual:
 

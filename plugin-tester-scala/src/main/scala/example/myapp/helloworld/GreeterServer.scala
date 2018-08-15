@@ -36,31 +36,37 @@ import example.myapp.helloworld.grpc._
 object GreeterServer {
 
   def main(args: Array[String]): Unit = {
-    // important to enable HTTP/2 in ActorSystem's config
+    // Important: enable HTTP/2 in ActorSystem's config
+    // We do it here programmatically, but you can also set it in the application.conf
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     val system = ActorSystem("HelloWorld", conf)
     new GreeterServer(system).run()
+    // ActorSystem threads will keep the app alive until `system.terminate()` is called
   }
 }
 
 class GreeterServer(system: ActorSystem) {
 
   def run(): Future[Http.ServerBinding] = {
-
+    // Akka boot up code
     implicit val sys: ActorSystem = system
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
+    // Create service handler
     val service: HttpRequest => Future[HttpResponse] =
       GreeterServiceHandler(new GreeterServiceImpl(mat))
 
+    // Bind service handler server to localhost:8080
     val bound = Http().bindAndHandleAsync(
       service,
       interface = "127.0.0.1",
       port = 8080,
+      // HTTP/2 can only be served with TLS so setup everything needed for that
       connectionContext = serverHttpContext())
 
+    // report successful binding
     bound.foreach { binding =>
       println(s"gRPC server bound to: ${binding.localAddress}")
     }
@@ -68,6 +74,10 @@ class GreeterServer(system: ActorSystem) {
     bound
   }
 
+  /**
+   * Read certificate and keys from resources on the classpath. In a real application you
+   * would probably want to provide those from outside.
+   */
   private def serverHttpContext(): HttpsConnectionContext = {
     // FIXME how would end users do this? TestUtils.loadCert? issue #89
     val keyEncoded = read(GreeterServer.getClass.getResourceAsStream("/certs/server1.key"))

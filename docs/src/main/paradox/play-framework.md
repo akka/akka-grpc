@@ -1,4 +1,4 @@
-# Play Framework
+# Usage in Play Framework
 
 Akka gRPC has special support for both consuming gRPC services through an Akka gRPC client and for implementing
 your own gRPC service as a part of a Play Framework application.
@@ -6,7 +6,7 @@ your own gRPC service as a part of a Play Framework application.
 ## Using a gRPC client in a Play Framework app
 
 Akka gRPC has special support to allow for seamless injection of generated clients in Play. To enable this you
-need to first enable the gRPC plugin as described in the @ref[client docs](client.md) and then add an additional
+need to first enable the gRPC plugin as described in the @ref[client docs](client/index.md) and then add an additional
 source generator in `build.sbt`:
 
 Scala

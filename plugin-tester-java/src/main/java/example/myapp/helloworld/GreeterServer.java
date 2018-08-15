@@ -39,20 +39,33 @@ class GreeterServer {
       // important to enable HTTP/2 in ActorSystem's config
       Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
+
+      // Akka ActorSystem Boot
       ActorSystem sys = ActorSystem.create("HelloWorld", conf);
       Materializer mat = ActorMaterializer.create(sys);
 
+      // Instantiate implementation
       GreeterService impl = new GreeterServiceImpl(mat);
 
+      // Bind implementation to localhost:8080
       Http.get(sys).bindAndHandleAsync(
           GreeterServiceHandlerFactory.create(impl, mat),
-          ConnectWithHttps.toHostHttps("127.0.0.1", 8080).withCustomHttpsContext(serverHttpContext()),
+          // HTTP/2 servers are required to use TLS
+          ConnectWithHttps.toHostHttps("127.0.0.1", 8080)
+              // provide TLS certificate and keys
+              .withCustomHttpsContext(serverHttpContext()),
           mat)
       .thenAccept(binding -> {
         System.out.println("gRPC server bound to: " + binding.localAddress());
       });
+
+    // ActorSystem threads will keep the app alive until `system.terminate()` is called
   }
 
+  /**
+   * Read certificate and keys from resources on the classpath. In a real application you
+   * would probably want to provide those from outside.
+   */
   private static HttpsConnectionContext serverHttpContext() throws Exception {
     // FIXME how would end users do this? TestUtils.loadCert? issue #89
     String keyEncoded = read(GreeterServer.class.getResourceAsStream("/certs/server1.key"))
