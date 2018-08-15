@@ -76,7 +76,6 @@
         <version>${akka.grpc.project.version}</version>
         <configuration>
           <language>Scala</language>
-          <protoPath>src/main/protobuf</protoPath>
         </configuration>
         <executions>
           <execution>
