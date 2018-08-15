@@ -8,6 +8,7 @@ import akka.actor.ActorSystem;
 import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.ConnectionContext;
 import akka.http.javadsl.HttpsConnectionContext;
+import akka.http.scaladsl.settings.ServerSettings;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
@@ -64,6 +65,10 @@ class CombinedServer {
       Http.get(sys).bindAndHandleAsync(
           serviceHandlers,
           ConnectWithHttps.toHostHttps("127.0.0.1", 8080).withCustomHttpsContext(serverHttpContext()),
+          ServerSettings.create(sys),
+          // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
+          256,
+          sys.log(),
           mat)
       //#concatOrNotFound
       .thenAccept(binding -> {

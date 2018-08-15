@@ -63,6 +63,8 @@ class GreeterServer(system: ActorSystem) {
       service,
       interface = "127.0.0.1",
       port = 8080,
+      // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
+      parallelism = 256,
       // HTTP/2 can only be served with TLS so setup everything needed for that
       connectionContext = serverHttpContext())
 
