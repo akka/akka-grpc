@@ -35,6 +35,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
       testService,
       interface = "127.0.0.1",
       port = 0,
+      parallelism = 256, // TODO remove once https://github.com/akka/akka-http/pull/2146 is merged
       connectionContext = serverHttpContext())
 
     val binding = Await.result(bindingFuture, 10.seconds)
