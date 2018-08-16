@@ -117,4 +117,4 @@ The server can then be started from the command line with:
 
 ## Play Framework support
 
-See the @ref[Play Framework section of the docs](play-framework.md) for details.
+See the @ref[Play Framework section of the docs](../play-framework.md) for details.

@@ -140,4 +140,4 @@ For a full example project see the
 @java[[Quickstart project](https://github.com/playframework/akka-grpc-play-quickstart-java).]
 @scala[[Quickstart project](https://github.com/playframework/akka-grpc-play-quickstart-scala).]
 
-See the @ref[gradle support docs](gradle.md) for details about the other options.
+See the @ref[gradle support docs](buildtools/gradle.md) for details about the other options.
