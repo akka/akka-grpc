@@ -27,6 +27,7 @@ object Main extends App {
     serviceHandler,
     interface = "localhost",
     port = 8443,
+    parallelism = 256, // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
     connectionContext = serverHttpContext())
 
   private def serverHttpContext() = {

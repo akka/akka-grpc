@@ -19,7 +19,6 @@ import java.util.concurrent.CompletionStage;
 import javax.net.ssl.*;
 
 import akka.actor.ActorSystem;
-import akka.event.LoggingAdapter;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.*;
