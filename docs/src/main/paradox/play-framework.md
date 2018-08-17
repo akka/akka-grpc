@@ -26,7 +26,7 @@ by adding it to the enabled modules in the `application.conf`.
 
 With the following `helloworld.proto` file:
 
-@@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
+@@snip[helloworld.proto](/play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
 The module file is generated in @scala[`example.myapp.helloworld.grpc.helloworld.AkkaGrpcClientModule` by default for Scala]
 @java[`example.myapp.helloworld.grpc.AkkaGrpcClientModule` by default for Java], which corresponds to the default value
@@ -39,15 +39,15 @@ be generated in the longest package prefix shared between the clients).
 To hook it into Play, in `application.conf`:
 
 Scala
-:   @@snip[application.conf]($root$/../play-interop-test-scala/src/main/resources/application.conf) { #client-module-scala }
+:   @@snip[application.conf](/play-interop-test-scala/src/main/resources/application.conf) { #client-module-scala }
 
 Java
-:   @@snip[application.conf]($root$/../play-interop-test-java/src/main/resources/application.conf) { #client-module-java }
+:   @@snip[application.conf](/play-interop-test-java/src/main/resources/application.conf) { #client-module-java }
 
 The clients are configured with entries under `akka.grpc.client` named after the client (`gRPC` package name dot `ServiceName`),
 again, in `application.conf`:
 
-@@snip[application.conf]($root$/../play-interop-test-scala/src/main/resources/application.conf) { #service-client-conf }
+@@snip[application.conf](/play-interop-test-scala/src/main/resources/application.conf) { #service-client-conf }
 
 If a client is generated and use that does not have an entry defined in `application.conf` it will fail with an exception
 when the client is injected. // FIXME depends on #271
@@ -55,10 +55,10 @@ when the client is injected. // FIXME depends on #271
 You can now use the client in a controller by injecting it:
 
 Scala
-:   @@snip[MyController.scala]($root$/../play-interop-test-scala/src/main/scala/controllers/MyController.scala) { #using-client }
+:   @@snip[MyController.scala](/play-interop-test-scala/src/main/scala/controllers/MyController.scala) { #using-client }
 
 Java
-:   @@snip[MyController.java]($root$/../play-interop-test-java/src/main/java/controllers/MyController.java) { #using-client }
+:   @@snip[MyController.java](/play-interop-test-java/src/main/java/controllers/MyController.java) { #using-client }
 
 ## Serving gRPC from a Play Framework app
 
@@ -99,17 +99,17 @@ akkaGrpcExtraGenerators += PlayJavaServerCodeGenerator
 The plugin will look for `.proto` service descriptors in `app/protobuf` and output an abstract class per service
 that you then implement, so for example for the following protobuf descriptor:
 
-@@snip[helloworld.proto]($root$/../play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
+@@snip[helloworld.proto](/play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
 You will get an abstract class named @scala[`example.myapp.helloworld.grpc.helloworld.AbstractGreeterServiceRouter`]
 @java[`example.myapp.helloworld.grpc.AbstractGreeterServiceRouter`]Create a concrete subclass implementing this 
 wherever you see fit in your project, let's say `controller.GreeterServiceImpl` like so:
 
 Scala
-:   @@snip[GreeterServiceImpl.scala]($root$/../play-interop-test-scala/src/main/scala/controllers/GreeterServiceImpl.scala) { #service-impl }
+:   @@snip[GreeterServiceImpl.scala](/play-interop-test-scala/src/main/scala/controllers/GreeterServiceImpl.scala) { #service-impl }
 
 Java
-:   @@snip[GreeterServiceImpl.java]($root$/../play-interop-test-java/src/main/java/controllers/GreeterServiceImpl.java) { #service-impl }
+:   @@snip[GreeterServiceImpl.java](/play-interop-test-java/src/main/java/controllers/GreeterServiceImpl.java) { #service-impl }
 
 And then add the router to your Play `conf/routes` file. Note that the router already knows its own path since it is
 based on the package name and service name of the service and therefore the path `/` is enough to get it to end up in the right place
