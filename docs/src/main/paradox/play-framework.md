@@ -117,7 +117,27 @@ based on the package name and service name of the service and therefore the path
 It cannot be added at an arbitrary path (if you try to do so an exception will be thrown when the router is started).
 
 ```
-->     /   controllers.GreeterServiceController
+->     /   controllers.GreeterServiceImpl
 ```
 
 A gRPC client can now connect to the server and call the provided services.
+
+## Gradle support
+
+To enable the Play support in a Gradle project you need to set the option `generatePlay` to true.
+This will make sure play-specific code is generated in addition to plain Akka gRPC code:
+
+```
+akkaGrpc {
+  language = "Java"
+  generateClient = true
+  generateServer = true
+  generatePlay = true
+}
+```
+
+For a full example project see the
+@java[[Quickstart project](https://github.com/playframework/akka-grpc-play-quickstart-java).]
+@scala[[Quickstart project](https://github.com/playframework/akka-grpc-play-quickstart-scala).]
+
+See the @ref[gradle support docs](buildtools/gradle.md) for details about the other options.

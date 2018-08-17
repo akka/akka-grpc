@@ -9,7 +9,9 @@ import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayScala.txt.Router
 
-object PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
+object PlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator
+
+trait PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name: String = "akka-grpc-play-server-scala"
 
   override def perServiceContent = super.perServiceContent + generateRouter
