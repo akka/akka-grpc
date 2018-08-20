@@ -51,6 +51,7 @@ object Grpc {
     case None ⇒ None
     case Some("identity") ⇒ None
     case Some("gzip") ⇒ Some(Gzip.uncompress)
+    case Some(enc) ⇒ throw new IllegalArgumentException(s"Unknown encoding $enc")
   }
 
   private class GrpcFramingDecoderStage(uncompressor: Option[ByteString ⇒ ByteString]) extends ByteStringParser[ByteString] {
