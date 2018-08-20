@@ -1,17 +1,20 @@
-package akka.grpc.gen
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package akka.grpc.play.api.specs2
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
 import akka.stream.Materializer
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
-import org.scalatestplus.play.NewServerProvider
-import play.api.test.ServerEndpoint
+import play.api.test.{ NewWithServer, ServerEndpoint }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext }
 
-trait GrpcClientSpec { this: NewServerProvider =>
+trait ServerGrpcClient { this: NewWithServer =>
 
   protected def grpcClientSettings: GrpcClientSettings = {
     val sslEndpoint = serverEndpoints.httpsEndpoint.get

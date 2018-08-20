@@ -13,38 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scalatestplus.play // Experimental API changes
+package org.scalatestplus.play
 
-import org.scalatest._
-import org.scalatestplus.play.guice.GuiceFakeApplicationFactory
+import org.scalatest.{ TestData, TestSuite, TestSuiteMixin }
 import play.api.Application
-import play.api.libs.ws.{ WSClient, WSRequest }
-import play.api.mvc.Call
-import play.api.test._
-
-trait NewServerProvider {
-
-  /**
-   * Implicit method that returns a `Application` instance.
-   */
-  implicit def app: Application
-
-  implicit def serverEndpoints: ServerEndpoints
-
-  /**
-   * The port used by the `TestServer`.
-   */
-  // TODO: Document that this has been converted to a final method
-  final def port: Int = portNumber.value
-
-  /**
-   * Implicit `PortNumber` instance that wraps `port`. The value returned from `portNumber.value`
-   * will be same as the value of `port`.
-   *
-   * @return the configured port number, wrapped in a `PortNumber`
-   */
-  implicit def portNumber: PortNumber = PortNumber(serverEndpoints.httpEndpoint.get.port)
-}
+import play.api.test.{ DefaultTestServerFactory, NewTestServer, ServerEndpoints }
 
 trait NewBaseOneServerPerTest extends TestSuiteMixin with NewServerProvider { this: TestSuite with FakeApplicationFactory =>
 
@@ -91,8 +64,4 @@ trait NewBaseOneServerPerTest extends TestSuiteMixin with NewServerProvider { th
       }
     }
   }
-}
-
-trait NewGuiceOneServerPerTest extends NewBaseOneServerPerTest with GuiceFakeApplicationFactory { this: TestSuite =>
-
 }

@@ -1,4 +1,8 @@
-package play.api.test /* Use this file for testing out API changes */
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package play.api.test
 
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
@@ -6,20 +10,19 @@ import org.specs2.specification.Scope
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
-trait HasEndpoint {
-  implicit protected def implicitEndpoint: ServerEndpoint
-}
-
 abstract class NewWithServer(
   val app: Application = GuiceApplicationBuilder().build(),
   testServerFactory: TestServerFactory = new DefaultTestServerFactory) extends Around with Scope {
 
   implicit def implicitMaterializer = app.materializer
   implicit def implicitApp = app
-  implicit def implicitEndpoint: ServerEndpoint = synchronized {
-    assert(runningServer != null, "Can't get server endpoint because test server is not running")
-    runningServer.endpoints.endpoints.head
+
+  protected def serverEndpoints: ServerEndpoints = synchronized {
+    assert(runningServer != null, "Can't get server endpoints because test server is not running")
+    runningServer.endpoints
   }
+
+  implicit protected def implicitEndpoint: ServerEndpoint = serverEndpoints.endpoints.head
 
   // Used by WSTestClient.wsCall/wsUrl
   implicit final def implicitPort: Port = implicitEndpoint.port

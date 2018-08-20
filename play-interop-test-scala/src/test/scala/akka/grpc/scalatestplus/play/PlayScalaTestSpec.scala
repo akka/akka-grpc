@@ -1,4 +1,8 @@
-package akka.grpc.gen
+/*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package akka.grpc.scalatestplus.play
 
 import controllers.GreeterServiceImpl
 import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceClient, HelloRequest }
@@ -16,7 +20,7 @@ import scala.concurrent.duration.Duration
 /**
  * Test to test Play tests.
  */
-class PlayScalaTestSpec extends PlaySpec with GrpcClientSpec
+class PlayScalaTestSpec extends PlaySpec with ServerGrpcClient
   with NewGuiceOneServerPerTest with ScalaFutures with IntegrationPatience {
 
   // Override fakeApplication if you need a Application with other than
