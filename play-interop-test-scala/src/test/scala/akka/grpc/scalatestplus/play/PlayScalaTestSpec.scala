@@ -18,13 +18,11 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 /**
- * Test to test Play tests.
+ * Test for the Play gRPC ScalaTest APIs
  */
 class PlayScalaTestSpec extends PlaySpec with ServerGrpcClient
   with NewGuiceOneServerPerTest with ScalaFutures with IntegrationPatience {
 
-  // Override fakeApplication if you need a Application with other than
-  // default parameters.
   override def fakeApplication(): Application = {
     GuiceApplicationBuilder()
       .overrides(bind[Router].to[GreeterServiceImpl])

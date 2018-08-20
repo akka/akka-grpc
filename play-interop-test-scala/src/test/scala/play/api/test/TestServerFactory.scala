@@ -11,12 +11,25 @@ import play.core.server.{AkkaHttpServer, ServerConfig}
 
 import scala.util.control.NonFatal
 
+// RICH: Not sure if this abstraction is useful or if we should just have
+// another helper method. See Play's Runner's class.
+
+/**
+ * Creates a server for an application.
+ */
 trait TestServerFactory {
   def start(app: Application): NewTestServer
 }
 
 object DefaultTestServerFactory extends DefaultTestServerFactory
 
+/**
+ * Creates a server for an application with both HTTP and HTTPS ports
+ * using a self-signed certificate.
+ *
+ * Most logic in this class is in a protected method so that users can
+ * extend the class and override its logic.
+ */
 class DefaultTestServerFactory extends TestServerFactory {
 
   override def start(app: Application): NewTestServer = {
@@ -44,6 +57,10 @@ class DefaultTestServerFactory extends TestServerFactory {
     }
   }
 
+  /**
+   * Get the lock (if any) that should be used to prevent concurrent
+   * applications from running.
+   */
   protected def optionalGlobalLock(app: Application): Option[Lock] = {
     if (app.globalApplicationEnabled) Some(PlayRunners.mutex) else None
   }

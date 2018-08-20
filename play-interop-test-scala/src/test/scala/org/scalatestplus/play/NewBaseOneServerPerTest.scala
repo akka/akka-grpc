@@ -19,6 +19,8 @@ import org.scalatest.{ TestData, TestSuite, TestSuiteMixin }
 import play.api.Application
 import play.api.test.{ DefaultTestServerFactory, NewTestServer, ServerEndpoints }
 
+// RICH: Replacement for scalatestplusplay's BaseOneServerPerTest class
+// RICH: Adds support for multiple endpoints; also fixes a bug with concurrent tests
 trait NewBaseOneServerPerTest extends TestSuiteMixin with NewServerProvider { this: TestSuite with FakeApplicationFactory =>
 
   @volatile private var privateApp: Application = _

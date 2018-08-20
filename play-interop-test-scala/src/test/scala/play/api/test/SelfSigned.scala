@@ -12,6 +12,7 @@ import play.core.server.ServerConfig
 import play.core.server.ssl.FakeKeyStore
 import play.server.api.SSLEngineProvider
 
+// RICH: When merging into Play refactor the existing class in the Play integration tests
 /**
  * Contains a statically initialized self-signed certificate.
  */

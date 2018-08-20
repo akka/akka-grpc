@@ -18,6 +18,7 @@ package org.scalatestplus.play
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceFakeApplicationFactory
 
+// RICH: Replacement for scalatestplusplay's GuiceOneServerPerTest class
 trait NewGuiceOneServerPerTest extends NewBaseOneServerPerTest with GuiceFakeApplicationFactory { this: TestSuite =>
 
 }

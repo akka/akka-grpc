@@ -15,19 +15,16 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.routing.Router
 import play.api.test.{ NewWithServer, _ }
-//import play.api.test.Helpers._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 /**
- * Test to test Play tests.
+ * Test for the Play gRPC Specs2 APIs
  */
 @RunWith(classOf[JUnitRunner])
 class PlaySpecs2Spec extends Specification with PlaySpecification {
 
-  // Override fakeApplication if you need a Application with other than
-  // default parameters.
   def fakeApplication(): Application = {
     GuiceApplicationBuilder()
       .overrides(bind[Router].to[GreeterServiceImpl])
@@ -35,7 +32,7 @@ class PlaySpecs2Spec extends Specification with PlaySpecification {
   }
 
   class WithGreeterServer extends NewWithServer(app = fakeApplication()) with ServerGrpcClient {
-    // Hardcode a helper; TODO: figure out how to do this in a reusable way
+    // RICH: Hardcode a helper for now because too hard for now to work out how to make WSClient work with endpoints
     def wsUrl(path: String): WSRequest = {
       val ws = app.injector.instanceOf[WSClient]
       val url = implicitEndpoint.pathUrl(path)

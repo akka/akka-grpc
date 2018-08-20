@@ -18,6 +18,8 @@ package org.scalatestplus.play
 import play.api.Application
 import play.api.test.ServerEndpoints
 
+// RICH: A new version of scalatestplusplay's ServerProvider.
+// The changes should be merged into scalatestplusplay.
 trait NewServerProvider {
 
   /**
@@ -25,11 +27,17 @@ trait NewServerProvider {
    */
   implicit def app: Application
 
+  /**
+   * The endpoints of the running test server.
+   * @return
+   */
+  // RICH: new property
   implicit protected def serverEndpoints: ServerEndpoints
 
   /**
    * The port used by the `TestServer`.
    */
+  // RICH: changed to final because most people read this rather than override it
   // TODO: Document that this has been converted to a final method
   final def port: Int = portNumber.value
 
