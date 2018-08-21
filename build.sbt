@@ -161,6 +161,11 @@ lazy val playInteropTestScala = Project(
   .settings(commonSettings)
   .settings(
     ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+    excludeFilter in (Test, headerSources) := {
+      val orig = (excludeFilter in (Test, headerSources)).value
+      // The following files have a different license
+      orig || "NewGuiceOneServerPerTest.scala" || "NewServerProvider.scala" || "NewBaseOneServerPerTest.scala"
+    },
   )
   .enablePlugins(akka.grpc.NoPublish)
   .pluginTestingSettings
