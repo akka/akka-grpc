@@ -94,7 +94,7 @@ class DefaultTestServerFactory extends TestServerFactory {
       scheme = "https",
       host = "localhost",
       port = port,
-      httpVersions = Set("1.0", "1.1", "2.0"),
+      httpVersions = Set("1.0", "1.1", "2"),
       ssl = Some(ServerEndpoint.ClientSsl(SelfSigned.sslContext, SelfSigned.trustManager))
     ))
     ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)

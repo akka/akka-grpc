@@ -30,14 +30,14 @@ final case class ServerEndpoint(
 
 object ServerEndpoint {
   /** Contains SSL information for a client that wants to connect to a [[ServerEndpoint]]. */
-  case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
+  final case class ClientSsl(sslContext: SSLContext, trustManager: X509TrustManager)
 }
 
 /**
  * Wrapper for a sequence of [[ServerEndpoints]]. Has a few convenience methods. Also
  * can be used as an implicit parameter to pass around server endpoint information.
  */
-case class ServerEndpoints(endpoints: Seq[ServerEndpoint]) {
+final case class ServerEndpoints(endpoints: Seq[ServerEndpoint]) {
   private def endpointForScheme(scheme: String): Option[ServerEndpoint] = endpoints.filter(_.scheme == scheme).headOption
   /** Convenient way to get an HTTP endpoint */
   val httpEndpoint: Option[ServerEndpoint] = endpointForScheme("http")

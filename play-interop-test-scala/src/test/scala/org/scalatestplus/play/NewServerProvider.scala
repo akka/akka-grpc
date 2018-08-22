@@ -16,7 +16,7 @@
 package org.scalatestplus.play
 
 import play.api.Application
-import play.api.test.ServerEndpoints
+import play.api.test.RunningServer
 
 // RICH: A new version of scalatestplusplay's ServerProvider.
 // The changes should be merged into scalatestplusplay.
@@ -32,7 +32,7 @@ trait NewServerProvider {
    * @return
    */
   // RICH: new property
-  implicit protected def serverEndpoints: ServerEndpoints
+  implicit protected def runningServer: RunningServer
 
   /**
    * The port used by the `TestServer`.
@@ -47,5 +47,7 @@ trait NewServerProvider {
    *
    * @return the configured port number, wrapped in a `PortNumber`
    */
-  implicit def portNumber: PortNumber = PortNumber(serverEndpoints.httpEndpoint.get.port)
+  implicit def portNumber: PortNumber = {
+    PortNumber(runningServer.endpoints.httpEndpoint.fold(throw new IllegalStateException("No HTTP port available for test server"))(_.port))
+  }
 }

@@ -7,11 +7,11 @@ package akka.grpc.internal
 import java.util.concurrent.CompletionStage
 
 import akka.Done
-import akka.annotation.{ ApiMayChange, InternalApi }
+import akka.annotation.{ApiMayChange, InternalApi}
 import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * INTERNAL API
@@ -27,6 +27,28 @@ trait AkkaGrpcClient {
 trait AkkaGrpcClientFactory[T <: AkkaGrpcClient] {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T
 }
+
+
+object AkkaGrpcClientFactory {
+  /**
+   * A function to create an AkkaGrpcClient, bundling its own configuration. These objects are convenient to
+   * pass around as implicit values.
+   */
+  trait Configured[T <: AkkaGrpcClient] {
+    /** Create the gRPC client. */
+    def apply(): T
+  }
+
+  /**
+   * Bind configuration to a [[AkkaGrpcClientFactory]], creating a [[Configured]].
+   */
+  def configure[T <: AkkaGrpcClient](
+      clientSettings: GrpcClientSettings,
+      materializer: Materializer,
+      executionContext: ExecutionContext)(implicit factory: AkkaGrpcClientFactory[T]): Configured[T] =
+    () => factory(clientSettings)(materializer, executionContext)
+}
+
 
 /**
  * INTERNAL API

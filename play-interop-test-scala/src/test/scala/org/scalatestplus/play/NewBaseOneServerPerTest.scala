@@ -17,9 +17,10 @@ package org.scalatestplus.play
 
 import org.scalatest.{ TestData, TestSuite, TestSuiteMixin }
 import play.api.Application
-import play.api.test.{ DefaultTestServerFactory, NewTestServer, ServerEndpoints }
+import play.api.test.{ DefaultTestServerFactory, NewTestServer, RunningServer }
 
 // RICH: Replacement for scalatestplusplay's BaseOneServerPerTest class
+// RICH: Remember to make the same changes for BaseOneServerPerSuite
 // RICH: Adds support for multiple endpoints; also fixes a bug with concurrent tests
 trait NewBaseOneServerPerTest extends TestSuiteMixin with NewServerProvider { this: TestSuite with FakeApplicationFactory =>
 
@@ -29,9 +30,17 @@ trait NewBaseOneServerPerTest extends TestSuiteMixin with NewServerProvider { th
   /**
    * Implicit method that returns the `Application` instance for the current test.
    */
-  implicit final def app: Application = privateApp
+  implicit final def app: Application = {
+    val a = privateApp
+    if (a == null) { throw new IllegalStateException("Test isn't running yet so application is not available") }
+    a
+  }
 
-  implicit final def serverEndpoints: ServerEndpoints = testServer.endpoints
+  implicit final def runningServer: RunningServer = {
+    val ts = testServer
+    if (ts == null) { throw new IllegalStateException("Test isn't running yet so the server endpoints are not available") }
+    RunningServer(app, ts.endpoints)
+  }
 
   /**
    * Creates new instance of `Application` with parameters set to their defaults. Override this method if you
