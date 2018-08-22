@@ -8,15 +8,15 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.grpc.internal.{AkkaGrpcClient, AkkaGrpcClientFactory}
+import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
 import akka.stream.Materializer
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import javax.net.ssl.SSLContext
 import play.api.Application
-import play.api.test.{ServerEndpoint, ServerEndpoints}
+import play.api.test.{ ServerEndpoint, ServerEndpoints }
 
-import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, ExecutionContext }
 
 /**
  * Helpers to test gRPC clients with Play. The methods in this class require
@@ -49,11 +49,10 @@ trait AkkaGrpcClientHelpers {
    * to close it afterwards, or use [[withGrpcClient]] to have it closed automatically.
    */
   def grpcClient[T <: AkkaGrpcClient](implicit factory: AkkaGrpcClientFactory.Configured[T]): T =
-    factory()
+    factory.create()
 
   /** The close timeout used by gRPC clients. */
   protected def grpcClientCloseTimeout: Duration = Duration(30, TimeUnit.SECONDS)
-
 
 }
 

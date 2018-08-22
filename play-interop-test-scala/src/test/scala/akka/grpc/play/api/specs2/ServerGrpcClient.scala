@@ -4,9 +4,9 @@
 
 package akka.grpc.play.api.specs2
 
-import akka.grpc.internal.{AkkaGrpcClient, AkkaGrpcClientFactory}
+import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
 import akka.grpc.play.AkkaGrpcClientHelpers
-import play.api.test.{NewForServer, RunningServer}
+import play.api.test.{ NewForServer, RunningServer }
 
 /**
  * Helpers to test gRPC clients with Play using Specs2.
@@ -17,8 +17,8 @@ import play.api.test.{NewForServer, RunningServer}
 trait ServerGrpcClient extends AkkaGrpcClientHelpers { this: NewForServer =>
 
   /** Configure the factory by combining the app and the current implicit server information */
-  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: AkkaGrpcClientFactory](implicit server: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
-    AkkaGrpcClientHelpers.factoryForAppEndpoints(app, server.endpoints)
+  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: AkkaGrpcClientFactory](implicit running: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
+    AkkaGrpcClientHelpers.factoryForAppEndpoints(running.app, running.endpoints)
   }
 
 }

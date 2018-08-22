@@ -18,16 +18,15 @@ import play.api.test._
  * Test for the Play gRPC Specs2 APIs
  */
 @RunWith(classOf[JUnitRunner])
-class PlaySpecs2Spec extends NewForServer(app = GuiceApplicationBuilder()
-  .overrides(bind[Router].to[GreeterServiceImpl])
-  .build()) with ServerGrpcClient with PlaySpecification {
+class PlaySpecs2Spec extends NewForServer with ServerGrpcClient with PlaySpecification with ApplicationFactories {
 
-  isolated // TODO: RICH: Work out why this is necessary. Tests should be independent.
+  protected def applicationFactory: ApplicationFactory =
+    appFromGuice(GuiceApplicationBuilder().overrides(bind[Router].to[GreeterServiceImpl]))
 
-  // RICH: Hardcode a helper for now because too hard for now to work out how to make WSClient work with endpoints
-  def wsUrl(path: String)(implicit server: RunningServer): WSRequest = {
-    val ws = app.injector.instanceOf[WSClient]
-    val url = server.endpoints.httpEndpoint.get.pathUrl(path)
+  // RICH: Still need to work out how to make WSClient work properly with endpoints
+  def wsUrl(path: String)(implicit running: RunningServer): WSRequest = {
+    val ws = running.app.injector.instanceOf[WSClient]
+    val url = running.endpoints.httpEndpoint.get.pathUrl(path)
     ws.url(url)
   }
 

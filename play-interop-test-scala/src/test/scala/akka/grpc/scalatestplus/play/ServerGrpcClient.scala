@@ -4,7 +4,7 @@
 
 package akka.grpc.scalatestplus.play
 
-import akka.grpc.internal.{AkkaGrpcClient, AkkaGrpcClientFactory}
+import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
 import akka.grpc.play.AkkaGrpcClientHelpers
 import org.scalatestplus.play.NewServerProvider
 import play.api.test.RunningServer
@@ -17,8 +17,8 @@ import play.api.test.RunningServer
 trait ServerGrpcClient extends AkkaGrpcClientHelpers { this: NewServerProvider =>
 
   /** Configure the factory by combining the current app and server information */
-  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: AkkaGrpcClientFactory](implicit server: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
-    AkkaGrpcClientHelpers.factoryForAppEndpoints(app, server.endpoints)
+  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: AkkaGrpcClientFactory](implicit running: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
+    AkkaGrpcClientHelpers.factoryForAppEndpoints(running.app, running.endpoints)
   }
 
 }
