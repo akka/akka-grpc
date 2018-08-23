@@ -25,17 +25,11 @@ trait AkkaGrpcClient {
   def closed(): Future[Done]
 }
 
-trait AkkaGrpcClientFactory[T <: AkkaGrpcClient] {
-  def create(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T
-}
-
 object AkkaGrpcClientFactory {
-  implicit def createFactory[T <: AkkaGrpcClient: ClassTag]: AkkaGrpcClientFactory[T] = new AkkaGrpcClientFactory[T] {
-    override def create(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T = {
-      implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
-        .getConstructor(classOf[GrpcClientSettings], classOf[Materializer], classOf[ExecutionContext])
-        .newInstance(settings, mat, ex)
-    }
+  def create[T <: AkkaGrpcClient: ClassTag](settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T = {
+    implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
+      .getConstructor(classOf[GrpcClientSettings], classOf[Materializer], classOf[ExecutionContext])
+      .newInstance(settings, mat, ex)
   }
 
   /**
@@ -50,12 +44,12 @@ object AkkaGrpcClientFactory {
   /**
    * Bind configuration to a [[AkkaGrpcClientFactory]], creating a [[Configured]].
    */
-  def configure[T <: AkkaGrpcClient](
-    clientSettings: GrpcClientSettings,
+  def configure[T <: AkkaGrpcClient: ClassTag](
+    clientSettings: GrpcClientSettings)(implicit
     materializer: Materializer,
-    executionContext: ExecutionContext)(implicit factory: AkkaGrpcClientFactory[T]): Configured[T] =
+    executionContext: ExecutionContext): Configured[T] =
     new Configured[T] {
-      override def create(): T = factory.create(clientSettings)(materializer, executionContext)
+      override def create(): T = AkkaGrpcClientFactory.create[T](clientSettings)
     }
 }
 

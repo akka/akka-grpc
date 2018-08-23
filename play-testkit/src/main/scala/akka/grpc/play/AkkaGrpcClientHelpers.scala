@@ -17,6 +17,7 @@ import play.api.test.{ ServerEndpoint, ServerEndpoints }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext }
+import scala.reflect.ClassTag
 
 /**
  * Helpers to test gRPC clients with Play. The methods in this class require
@@ -60,7 +61,7 @@ object AkkaGrpcClientHelpers {
   /**
    * Configure a factory from an application and some server endpoints. Expects to have exactly one HTTP/2 endpoint.
    */
-  def factoryForAppEndpoints[T <: AkkaGrpcClient](app: Application, serverEndpoints: ServerEndpoints)(implicit factory: AkkaGrpcClientFactory[T]): AkkaGrpcClientFactory.Configured[T] = {
+  def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoints: ServerEndpoints): AkkaGrpcClientFactory.Configured[T] = {
     val possibleEndpoints = serverEndpoints.endpoints.filter(e => e.scheme == "https" && e.httpVersions.contains("2"))
     if (possibleEndpoints.size != 1) { throw new IllegalArgumentException(s"gRPC client can't automatically find HTTP/2 connection: ${possibleEndpoints.size} valid endpoints available: ${serverEndpoints}") }
     factoryForAppEndpoints(app, possibleEndpoints.head)
@@ -69,11 +70,11 @@ object AkkaGrpcClientHelpers {
   /**
    * Configure a factory from an application and a server endpoints.
    */
-  def factoryForAppEndpoints[T <: AkkaGrpcClient](app: Application, serverEndpoint: ServerEndpoint)(implicit factory: AkkaGrpcClientFactory[T]): AkkaGrpcClientFactory.Configured[T] = {
+  def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoint: ServerEndpoint): AkkaGrpcClientFactory.Configured[T] = {
     val config: Config = app.configuration.underlying
     implicit val sys: ActorSystem = app.actorSystem
-    val materializer: Materializer = app.materializer
-    val executionContext: ExecutionContext = sys.dispatcher
+    implicit val materializer: Materializer = app.materializer
+    implicit val executionContext: ExecutionContext = sys.dispatcher
 
     val clientConfig = ConfigFactory.empty() // TODO: Could load the client config by name
       .withValue("host", ConfigValueFactory.fromAnyRef(serverEndpoint.host))
@@ -82,6 +83,6 @@ object AkkaGrpcClientHelpers {
     val sslContext: SSLContext = serverEndpoint.ssl.get.sslContext
 
     val settings = GrpcClientSettings.fromConfig(clientConfig).withSSLContext(sslContext)
-    AkkaGrpcClientFactory.configure[T](settings, materializer, executionContext)
+    AkkaGrpcClientFactory.configure[T](settings)
   }
 }
