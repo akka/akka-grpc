@@ -182,9 +182,14 @@ lazy val docs = Project(
     id = "akka-grpc-docs",
     base = file("docs"),
   )
+  // Make sure code generation is ran:
+  .dependsOn(pluginTesterScala)
+  .dependsOn(pluginTesterJava)
   .enablePlugins(AkkaParadoxPlugin)
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
+    // Make sure code generation is ran before paradox:
+    (Compile / paradox) := ((Compile / paradox) dependsOn (Compile / compile)).value,
     paradoxGroups := Map(
       "Language" -> Seq("Scala", "Java"),
       "Buildtool" -> Seq("sbt", "Gradle", "Maven"),
