@@ -47,8 +47,7 @@ class GreeterServer(system: ActorSystem) {
       port = 8080,
       // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
       parallelism = 256,
-      connectionContext = HttpConnectionContext(http2 = Always)
-    )
+      connectionContext = HttpConnectionContext(http2 = Always))
 
     // report successful binding
     bound.foreach { binding =>

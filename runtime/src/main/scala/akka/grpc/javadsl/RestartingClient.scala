@@ -8,8 +8,7 @@ import java.util.concurrent.{ CompletionStage, Executor }
 
 import akka.Done
 import akka.annotation.{ ApiMayChange, InternalApi }
-import akka.grpc.internal.{ AkkaGrpcClient, JavaAkkaGrpcClient }
-import akka.grpc.scaladsl.{ RestartingClient => ScalaRestartingClient }
+import akka.grpc.scaladsl.{ RestartingClient => ScalaRestartingClient, AkkaGrpcClient => ScalaAkkaGrpcClient }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.compat.java8.FutureConverters._
@@ -20,7 +19,7 @@ import scala.compat.java8.FutureConverters._
  * a [ClientClosedException].
  */
 @ApiMayChange
-class RestartingClient[T <: JavaAkkaGrpcClient](create: () => T, ec: Executor) {
+class RestartingClient[T <: AkkaGrpcClient](create: () => T, ec: Executor) {
   private val delegate: ScalaRestartingClient[JavaClientWrapper[T]] = new ScalaRestartingClient[JavaClientWrapper[T]](() => new JavaClientWrapper[T](create()))(ExecutionContext.fromExecutor(ec))
 
   def withClient[A](f: T => A): A = delegate.withClient(t => f(t.javaClient))
@@ -32,7 +31,7 @@ class RestartingClient[T <: JavaAkkaGrpcClient](create: () => T, ec: Executor) {
  * INTERNAL API
  */
 @InternalApi
-private class JavaClientWrapper[T <: JavaAkkaGrpcClient](val javaClient: T) extends AkkaGrpcClient {
+private class JavaClientWrapper[T <: AkkaGrpcClient](val javaClient: T) extends ScalaAkkaGrpcClient {
   /**
    * INTERNAL API
    */
