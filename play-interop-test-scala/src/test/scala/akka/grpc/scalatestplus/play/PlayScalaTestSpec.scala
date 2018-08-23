@@ -48,7 +48,6 @@ class PlayScalaTestSpec extends PlaySpec with ServerGrpcClient
     "work with a gRPC client" in withGrpcClient[GreeterServiceClient] { client: GreeterServiceClient =>
       val reply = client.sayHello(HelloRequest("Alice")).futureValue
       reply.message must be("Hello, Alice!")
-      Await.result(client.close(), Duration.Inf)
     }
   }
 }
