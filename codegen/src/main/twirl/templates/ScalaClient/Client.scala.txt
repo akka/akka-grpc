@@ -98,11 +98,6 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
 
 object @{service.name}Client { clientObj =>
 
-  implicit val factory: AkkaGrpcClientFactory[@{service.name}Client] = new AkkaGrpcClientFactory[@{service.name}Client] {
-    override def create(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
-      clientObj.apply(settings)(mat, ex)
-  }
-
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
     new @{service.name}Client(settings)
 

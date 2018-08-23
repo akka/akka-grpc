@@ -12,6 +12,7 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.Materializer
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.reflect.ClassTag
 
 /**
  * INTERNAL API
@@ -29,6 +30,14 @@ trait AkkaGrpcClientFactory[T <: AkkaGrpcClient] {
 }
 
 object AkkaGrpcClientFactory {
+  implicit def createFactory[T <: AkkaGrpcClient: ClassTag]: AkkaGrpcClientFactory[T] = new AkkaGrpcClientFactory[T] {
+    override def create(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T = {
+      implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
+        .getConstructor(classOf[GrpcClientSettings], classOf[Materializer], classOf[ExecutionContext])
+        .newInstance(settings, mat, ex)
+    }
+  }
+
   /**
    * A function to create an AkkaGrpcClient, bundling its own configuration. These objects are convenient to
    * pass around as implicit values.
