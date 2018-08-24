@@ -6,10 +6,13 @@ of Akka Streams.
 This library is meant to be used as a building block in projects using the Akka
 toolkit.
 
+## Documentation
+
+- [Akka gRPC reference](http://developer.lightbend.com/docs/akka-grpc/current/) documentation 
+
 ## Project Status
 
-This library is in preview mode: basic functionality is in place, but API's and
-build system plugins are still expected to be improved.
+This library is ready to be used in production, but API's and build system plugins are still expected to be improved and [may change](https://doc.akka.io/docs/akka/current/common/may-change.html).
 
 The API on both sides (Client and Server) is a simple Akka Streams-based one.
 We plan to also provide a 'power user' API for each of these ([#191](https://github.com/akka/akka-grpc/issues/191), [#179](https://github.com/akka/akka-grpc/issues/179)).
