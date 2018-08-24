@@ -7,7 +7,7 @@ object Dependencies {
 
   object Versions {
     val akka = "2.5.14"
-    val akkaHttp = "10.1.4"
+    val akkaHttp = "10.1.3"
     val akkaDiscovery = "0.17.0"
 
     val play = "2.7.0-M1" // TODO: Update to M2
