@@ -120,6 +120,7 @@ public final class @{service.name}Client implements @{service.name}, JavaAkkaGrp
         .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
         .setRequestMarshaller(new ProtoMarshaller<@method.inputTypeUnboxed>(@method.deserializer.name))
         .setResponseMarshaller(new ProtoMarshaller<@method.outputTypeUnboxed>(@method.serializer.name))
+        .setSampledToLocalTracing(true)
         .build();
     }
 
