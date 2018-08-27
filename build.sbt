@@ -153,11 +153,18 @@ lazy val interopTests = Project(
     }
     )))
 
+lazy val playTestkit = Project(
+    id="akka-grpc-play-testkit",
+    base = file("play-testkit")
+  )
+  .settings(Dependencies.playTestkit)
+
 lazy val playInteropTestScala = Project(
     id="akka-grpc-play-interop-test-scala",
     base = file("play-interop-test-scala")
   )
-  .settings(Dependencies.playInteropTest)
+  .dependsOn(playTestkit % "test")
+  .settings(Dependencies.playInteropTestScala)
   .settings(commonSettings)
   .settings(
     ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
@@ -174,7 +181,8 @@ lazy val playInteropTestJava = Project(
     id="akka-grpc-play-interop-test-java",
     base = file("play-interop-test-java")
   )
-  .settings(Dependencies.playInteropTest)
+  .dependsOn(playTestkit % "test")
+  .settings(Dependencies.playInteropTestJava)
   .settings(commonSettings)
   .settings(
     ReflectiveCodeGen.generatedLanguages := "Java",
