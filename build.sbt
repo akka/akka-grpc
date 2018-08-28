@@ -157,6 +157,7 @@ lazy val playTestkit = Project(
     id="akka-grpc-play-testkit",
     base = file("play-testkit")
   )
+  .dependsOn(runtime)
   .settings(Dependencies.playTestkit)
 
 lazy val playInteropTestScala = Project(
