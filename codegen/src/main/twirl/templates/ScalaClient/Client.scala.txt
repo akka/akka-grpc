@@ -110,6 +110,7 @@ object @{service.name}Client {
         .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
         .setRequestMarshaller(new Marshaller(@method.deserializer.name))
         .setResponseMarshaller(new Marshaller(@method.serializer.name))
+        .setSampledToLocalTracing(true)
         .build()
   }
 }
