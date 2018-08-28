@@ -7,7 +7,7 @@ object Dependencies {
 
   object Versions {
     val akka = "2.5.14"
-    val akkaHttp = "10.1.3"
+    val akkaHttp = "10.1.4"
     val akkaDiscovery = "0.17.0"
 
     val play = "2.7.0-M1" // TODO: Update to M2
@@ -143,7 +143,7 @@ object Dependencies {
   ) ++ testing
 
   val playInteropTestScala = l ++= Seq(
-
+    Compile.akkaHttpCore.withRevision("10.1.3").force(), // FIXME: Remove this when Akka HTTP 10.1.5 is out
     // TODO #193
     Compile.grpcStub,
     Compile.play,
@@ -154,6 +154,7 @@ object Dependencies {
   ) ++ testing
 
   val playInteropTestJava = l ++= Seq(
+    Compile.akkaHttpCore.withRevision("10.1.3").force(), // FIXME: Remove this when Akka HTTP 10.1.5 is out
     // TODO #193
     Compile.grpcStub,
     Compile.play,
