@@ -8,9 +8,11 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.{WSClient, WSRequest}
+import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.routing.Router
 import play.api.test._
+
+import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceImpl, GreeterServiceClient, HelloRequest }
 
 /**
  * Test for the Play gRPC Specs2 APIs

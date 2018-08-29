@@ -119,6 +119,12 @@ object Dependencies {
     addSbtPlugin(Plugins.sbtProtoc),
   )
 
+  val playTestdata = l ++= Seq(
+    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
+    Compile.play,
+    Compile.grpcStub,
+  )
+
   val playTestkit = l ++= Seq(
     Compile.play
   ) ++ (Seq(

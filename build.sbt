@@ -153,11 +153,24 @@ lazy val interopTests = Project(
     }
     )))
 
+lazy val playTestdata = Project(
+    id="akka-grpc-play-testdata",
+    base=file("play-testdata")
+  )
+  .settings(Dependencies.playTestdata)
+  .settings(commonSettings)
+  .settings(
+    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+  )
+  .enablePlugins(akka.grpc.NoPublish)
+  .pluginTestingSettings
+
 lazy val playTestkit = Project(
     id="akka-grpc-play-testkit",
     base = file("play-testkit")
   )
   .dependsOn(runtime)
+  .dependsOn(playTestdata % "test")
   .settings(Dependencies.playTestkit)
 
 lazy val playInteropTestScala = Project(
@@ -258,6 +271,8 @@ lazy val root = Project(
     interopTests,
     playInteropTestJava,
     playInteropTestScala,
+    playTestkit,
+    playTestdata,
     pluginTesterScala,
     pluginTesterJava,
     docs,

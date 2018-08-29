@@ -4,13 +4,15 @@
 
 package akka.grpc.scalatestplus.play
 
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.play.{NewGuiceOneServerPerTest, PlaySpec}
+import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
+import org.scalatestplus.play.{ NewGuiceOneServerPerTest, PlaySpec }
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
+
+import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceImpl, GreeterServiceClient, HelloRequest }
 
 /**
  * Test for the Play gRPC ScalaTest APIs
