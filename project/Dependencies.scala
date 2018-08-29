@@ -126,6 +126,7 @@ object Dependencies {
   )
 
   val playTestkit = l ++= Seq(
+    Compile.akkaHttpCore.withRevision("10.1.3").force(), // FIXME: Remove this when Akka HTTP 10.1.5 is out
     Compile.play
   ) ++ (Seq(
     Compile.play,
