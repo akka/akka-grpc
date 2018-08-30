@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.ActorSystem
 import akka.Done
-import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient }
+import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
 import akka.grpc.scaladsl.RestartingClientSpec.FakeClient
 import org.scalatest.Inspectors._
