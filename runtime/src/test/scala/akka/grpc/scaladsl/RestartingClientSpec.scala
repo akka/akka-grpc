@@ -7,6 +7,7 @@ package akka.grpc.scaladsl
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.actor.ActorSystem
 import akka.Done
 import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException, JavaAkkaGrpcClient }
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
@@ -14,11 +15,14 @@ import akka.grpc.scaladsl.RestartingClientSpec.FakeClient
 import org.scalatest.Inspectors._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.time.{ Millis, Span }
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.duration._
+
+import akka.testkit._
 
 object RestartingClientSpec {
 
@@ -58,10 +62,11 @@ object RestartingClientSpec {
 
 }
 
-class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with Eventually {
+class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
 
   implicit val patience: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(20, Millis))
-  val queueTimeoutMs = 25
+  implicit val system = ActorSystem("RestartingCientSpec")
+  val queueTimeoutMs = 25.milliseconds.dilated.toMillis
 
   def fakeRestartingClient(capacity: Int = 2): (BlockingQueue[FakeClient], RestartingClient[FakeClient]) = {
     val clientCreations = new ArrayBlockingQueue[FakeClient](capacity)
@@ -155,5 +160,10 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
         forAll(clients) { c => c.beenClosed shouldBe true }
       }
     }
+  }
+
+  override def afterAll() {
+    super.afterAll()
+    Await.result(system.terminate(), 10.seconds)
   }
 }
