@@ -96,7 +96,7 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
-object @{service.name}Client { clientObj =>
+object @{service.name}Client {
 
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
     new @{service.name}Client(settings)
