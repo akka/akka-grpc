@@ -71,18 +71,12 @@ object AkkaGrpcClientHelpers {
    * Configure a factory from an application and a server endpoints.
    */
   def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoint: ServerEndpoint): AkkaGrpcClientFactory.Configured[T] = {
-    val config: Config = app.configuration.underlying
     implicit val sys: ActorSystem = app.actorSystem
     implicit val materializer: Materializer = app.materializer
     implicit val executionContext: ExecutionContext = sys.dispatcher
 
-    val clientConfig = ConfigFactory.empty() // TODO: Could load the client config by name
-      .withValue("host", ConfigValueFactory.fromAnyRef(serverEndpoint.host))
-      .withValue("port", ConfigValueFactory.fromAnyRef(serverEndpoint.port))
-      .withFallback(sys.settings.config.getConfig("akka.grpc.client.\"*\""))
     val sslContext: SSLContext = serverEndpoint.ssl.get.sslContext
-
-    val settings = GrpcClientSettings.fromConfig(clientConfig).withSSLContext(sslContext)
+    val settings = GrpcClientSettings.connectToServiceAt(serverEndpoint.host, serverEndpoint.port).withSSLContext(sslContext)
     AkkaGrpcClientFactory.configure[T](settings)
   }
 }
