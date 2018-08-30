@@ -4,8 +4,8 @@
 
 package akka.grpc.gen.scaladsl
 
+import akka.grpc.gen.CodeGenerator
 import scala.collection.immutable
-
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
 import scalapb.compiler.{ DescriptorPimps, GeneratorParams }
@@ -30,4 +30,7 @@ object Service {
       fileDesc.getPackage + "." + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)).to[immutable.Seq])
   }
+
+  private[scaladsl] def commonPackage(allServices: Seq[Service]): String =
+    CodeGenerator.commonPackage(allServices.map(_.packageName))
 }

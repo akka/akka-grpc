@@ -16,7 +16,7 @@ import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.{ ActorMaterializer, Materializer }
 import akka.util.ByteString
 import controllers.GreeterServiceImpl
-import example.myapp.helloworld.grpc.{ GreeterService, HelloReply, HelloRequest }
+import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceRouter, HelloReply, HelloRequest }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import play.api.inject.SimpleInjector
@@ -50,7 +50,7 @@ class PlayJavaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll w
   implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer, codec: Codec): ToResponseMarshaller[Source[T, NotUsed]] =
     Marshaller.opaque((response: Source[T, NotUsed]) ⇒ GrpcMarshalling.marshalStream(response)(serializer, mat, codec))
 
-  val router = new GreeterServiceImpl(mat)
+  val router = new GreeterServiceRouter(new GreeterServiceImpl(), mat)
 
   "The generated Play (Java) Router" should {
 

@@ -4,23 +4,17 @@
 
 package akka.grpc.internal
 
-import java.util.Optional
 import java.util.concurrent.CompletionStage
 
 import akka.annotation.InternalApi
-import akka.dispatch.{ Dispatchers, ExecutionContexts }
+import akka.dispatch.ExecutionContexts
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.stream.Materializer
-import play.api.inject.Injector
-import play.api.mvc.Handler
 import play.api.mvc.akkahttp.AkkaHttpHandler
 import play.api.routing.Router
 import play.api.routing.Router.Routes
-import play.mvc.Http
 
-import scala.concurrent.Future
 import scala.compat.java8.FutureConverters._
-import scala.compat.java8.OptionConverters._
+import scala.concurrent.Future
 
 /**
  * INTERNAL API
@@ -38,19 +32,10 @@ import scala.compat.java8.OptionConverters._
  *
  * INTERNAL API
  */
-@InternalApi abstract class PlayRouter(mat: Materializer, serviceName: String) extends play.api.routing.Router {
-
-  private val prefix = s"/$serviceName"
-
-  /**
-   * INTERNAL API
-   */
-  @InternalApi
-  protected def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse]
+@InternalApi abstract class PlayRouter(prefix: String, underlyingHandler: HttpRequest => Future[HttpResponse]) extends play.api.routing.Router {
 
   private val handler = new AkkaHttpHandler {
-    val handler = createHandler(serviceName, mat)
-    override def apply(request: HttpRequest): Future[HttpResponse] = handler(request)
+    override def apply(request: HttpRequest): Future[HttpResponse] = underlyingHandler(request)
   }
 
   // Scala API
@@ -65,7 +50,7 @@ import scala.compat.java8.OptionConverters._
    * so therefore not supported.
    */
   final override def withPrefix(prefix: String): Router =
-    if (prefix == "/") this
+    if (prefix == "/") this // Prefixing with / is the identity operation, which is allowed
     else
       throw new UnsupportedOperationException("Prefixing gRPC services is not widely supported by clients, " +
         s"strongly discouraged by the specification and therefore not supported. " +

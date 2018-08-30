@@ -4,8 +4,8 @@
 
 package akka.grpc.gen.scaladsl.play
 
-import akka.grpc.gen.Logger
 import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, Service }
+import akka.grpc.gen.{ CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayScala.txt.{ AkkaGrpcClientModule, ClientProvider }
 
@@ -30,7 +30,7 @@ trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   override def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = {
     if (allServices.nonEmpty) {
-      val packageName = packageForSharedModuleFile(allServices)
+      val packageName = Service.commonPackage(allServices)
       val b = CodeGeneratorResponse.File.newBuilder()
       b.setContent(AkkaGrpcClientModule(packageName, allServices).body)
       b.setName(s"${packageName.replace('.', '/')}/${ClientModuleName}.scala")
@@ -40,32 +40,6 @@ trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
         "client instances.")
       set
     } else Set.empty
-  }
-
-  def packageForSharedModuleFile(allServices: Seq[Service]): String =
-    // single service or all services in single package - use that
-    if (allServices.forall(_.packageName == allServices.head.packageName)) allServices.head.packageName
-    else {
-      // try to find longest common prefix
-      allServices.tail.foldLeft(allServices.head.packageName)((packageName, service) =>
-        if (packageName == service.packageName) packageName
-        else commonPackage(packageName, service.packageName))
-    }
-
-  /** extract the longest common package prefix for two classes */
-  def commonPackage(a: String, b: String): String = {
-    val aPackages = a.split('.')
-    val bPackages = b.split('.')
-    @tailrec
-    def countIdenticalPackage(pos: Int): Int = {
-      if (aPackages(pos) == bPackages(pos)) countIdenticalPackage(pos + 1)
-      else pos
-    }
-
-    val prefixLength = countIdenticalPackage(0)
-    if (prefixLength == 0) "" // no common, use root package
-    else aPackages.take(prefixLength).mkString(".")
-
   }
 
 }

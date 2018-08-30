@@ -16,17 +16,19 @@ import scala.collection.Seq;
 import @{service.packageName}.*;
 }
 
+import akka.grpc.scaladsl.play.AbstractAkkaGrpcServiceModule;
+
 /**
- * Add this generated AkkaGrpcClientModule to play.modules.enabled
- * in your application.conf to have the available gRPC clients injectable
+ * Add this generated AkkaGrpcServiceModule to play.modules.enabled
+ * in your application.conf to have the available gRPC services injectable
  */
-public class AkkaGrpcClientModule extends Module {
+public class AkkaGrpcServiceModule extends AbstractAkkaGrpcServiceModule {
   @@Override
-  public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-    return seq(
+  public Seq<Class<?>> services() {
+    return classSeq(
         @services.map { service =>
-           bind(@{service.name}Client.class).toProvider(@{service.name}ClientProvider.class)
-        }.mkString(", ")
+            @{service.name}.class
+        }.mkString(",")
     );
   }
 }
