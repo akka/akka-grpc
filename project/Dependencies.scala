@@ -10,7 +10,7 @@ object Dependencies {
     val akkaHttp = "10.1.4"
     val akkaDiscovery = "0.17.0"
 
-    val play = "2.7.0-M1" // TODO: Update to M2
+    val play = "2.7.0-M1"
 
     val scalapb = "0.7.1"
     val grpc = "1.14.0"
@@ -18,7 +18,7 @@ object Dependencies {
     val sslConfig = "0.2.4"
 
     val scalaTest = "3.0.4"
-    val scalaTestPlusPlay = "4.0.0-M1" // TODO: Update to M2 when we update Play to M2 
+    val scalaTestPlusPlay = "4.0.0-M1"
     val scalaJava8Compat = "0.8.0"
 
     val maven = "3.5.3"
