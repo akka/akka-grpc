@@ -153,11 +153,40 @@ lazy val interopTests = Project(
     }
     )))
 
+lazy val playTestdata = Project(
+    id="akka-grpc-play-testdata",
+    base=file("play-testdata")
+  )
+  .settings(Dependencies.playTestdata)
+  .settings(commonSettings)
+  .settings(
+    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+  )
+  .enablePlugins(akka.grpc.NoPublish)
+  .pluginTestingSettings
+
+lazy val playTestkit = Project(
+    id="akka-grpc-play-testkit",
+    base = file("play-testkit")
+  )
+  .dependsOn(runtime)
+  .dependsOn(playTestdata % "test")
+  .settings(Dependencies.playTestkit)
+  .settings(
+    excludeFilter in (Compile, headerSources) := {
+      val orig = (excludeFilter in (Test, headerSources)).value
+      // The following files have a different license
+      orig || "NewGuiceOneServerPerTest.scala" || "NewServerProvider.scala" || "NewBaseOneServerPerTest.scala"
+    },
+  )
+  .pluginTestingSettings
+
 lazy val playInteropTestScala = Project(
     id="akka-grpc-play-interop-test-scala",
     base = file("play-interop-test-scala")
   )
-  .settings(Dependencies.playInteropTest)
+  .dependsOn(playTestkit % "test")
+  .settings(Dependencies.playInteropTestScala)
   .settings(commonSettings)
   .settings(
     ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
@@ -169,7 +198,8 @@ lazy val playInteropTestJava = Project(
     id="akka-grpc-play-interop-test-java",
     base = file("play-interop-test-java")
   )
-  .settings(Dependencies.playInteropTest)
+  .dependsOn(playTestkit % "test")
+  .settings(Dependencies.playInteropTestJava)
   .settings(commonSettings)
   .settings(
     ReflectiveCodeGen.generatedLanguages := "Java",
@@ -244,6 +274,8 @@ lazy val root = Project(
     interopTests,
     playInteropTestJava,
     playInteropTestScala,
+    playTestkit,
+    playTestdata,
     pluginTesterScala,
     pluginTesterJava,
     docs,
