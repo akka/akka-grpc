@@ -80,7 +80,7 @@ public class AsyncClient {
     if (!config.tls)
       system.log().info("Using plaintext gRPC HTTP/2 connections");
 
-    GrpcClientSettings settings = Utils.createGrpcClientSettings(socketAddress, config.tls);
+    GrpcClientSettings settings = Utils.createGrpcClientSettings(socketAddress, config.tls, system);
 
     List<BenchmarkServiceClient> clients = new ArrayList<BenchmarkServiceClient>(config.channels);
     for (int i = 0; i < config.channels; i++) {

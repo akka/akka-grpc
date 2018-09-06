@@ -17,6 +17,7 @@
 
 package akka.grpc.benchmarks;
 
+import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.SSLContextUtils;
 import akka.grpc.benchmarks.proto.Control;
@@ -185,13 +186,13 @@ public final class Utils {
     return ConnectionContext.https(context);
   }
 
-  public static GrpcClientSettings createGrpcClientSettings(InetSocketAddress socketAddress, boolean useTls) {
-    GrpcClientSettings settings = GrpcClientSettings.create(socketAddress.getHostName(), socketAddress.getPort());
+  public static GrpcClientSettings createGrpcClientSettings(InetSocketAddress socketAddress, boolean useTls, ActorSystem system) {
+    GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt(socketAddress.getHostName(), socketAddress.getPort(), system);
     if (useTls) // having security params means --tls
       // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
       return settings
           .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
-          .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
+          .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     else
       return settings;
 

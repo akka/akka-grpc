@@ -19,7 +19,6 @@ package akka.grpc.benchmarks.qps;
 
 import akka.NotUsed;
 import akka.actor.ActorSystem;
-import akka.grpc.benchmarks.Unencrypted;
 import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.BenchmarkService;
 import akka.grpc.benchmarks.proto.BenchmarkServiceHandlerFactory;
@@ -88,7 +87,8 @@ public class AsyncServer {
           System.out.println("gRPC server bound to: https://" + address);
         });
     } else {
-      Unencrypted.connect(system,  BenchmarkServiceHandlerFactory.create(benchmarkService, mat),
+      Http.get(system).bindAndHandleAsync(
+        BenchmarkServiceHandlerFactory.create(benchmarkService, mat),
         ConnectHttp.toHost(address.getHostName(), address.getPort(), UseHttp2.always()),
         mat
         ).thenAccept(binding -> {
