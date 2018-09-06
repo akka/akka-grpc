@@ -10,7 +10,7 @@ object Dependencies {
     val akkaHttp = "10.1.4"
     val akkaDiscovery = "0.17.0"
 
-    val play = "2.7.0-M1"
+    val play = "2.7.0-M3"
 
     val scalapb = "0.7.1"
     val grpc = "1.14.0"
