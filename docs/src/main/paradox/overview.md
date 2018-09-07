@@ -12,7 +12,7 @@ of Akka Streams.
 
 It features:
 
- * A generator that starting from a protobuf service definitions, Akka gRPC generates
+ * A generator, that starts from a protobuf service definitions, for:
     - Model classes
     - The service API as a @scala[Scala trait]@java[Java interface] using Akka Stream `Source`s
     - On the @ref[server side](server/index.md), code to create an Akka HTTP route based on your implementation of the service
@@ -23,11 +23,11 @@ It features:
 
 ## Project Status
 
-This library is in preview mode: basic functionality is in place, but API's and
-build system plugins are still expected to be improved.
+This library is in preview mode: basic functionality is in place, but APIs and
+build plugins are still expected to be improved.
 
 The API on both sides (Client and Server) is a simple Akka Streams-based one.
-The client has a 'power user' API and the planned for the server in [#179](https://github.com/akka/akka-grpc/issues/179)).
+The client has a 'power user' API, which also planned for the server (see [#179](https://github.com/akka/akka-grpc/issues/179)).
 
 The client side is
 currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
