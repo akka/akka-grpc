@@ -36,4 +36,9 @@ public final class PlayJavaFunctionalTest extends WithServer {
     assertEquals(200, rsp.getStatus());
   }
 
+  @Test public void returns500OnEmptyRequestToAGrpcMethod() throws Exception {
+    final WSResponse rsp = wsUrl("/" + GreeterService$.MODULE$.name() + "/SayHello").get().toCompletableFuture().get();
+    assertEquals(500, rsp.getStatus());
+  }
+
 }
