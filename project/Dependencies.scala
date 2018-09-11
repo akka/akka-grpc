@@ -126,7 +126,6 @@ object Dependencies {
   )
 
   val playTestkit = l ++= Seq(
-    Compile.akkaHttpCore,
     Compile.play
   ) ++ (Seq(
     Compile.play,
@@ -150,7 +149,6 @@ object Dependencies {
   ) ++ testing
 
   val playInteropTestScala = l ++= Seq(
-    Compile.akkaHttpCore,
     // TODO #193
     Compile.grpcStub,
     Compile.play,
@@ -161,7 +159,6 @@ object Dependencies {
   ) ++ testing
 
   val playInteropTestJava = l ++= Seq(
-    Compile.akkaHttpCore,
     // TODO #193
     Compile.grpcStub,
     Compile.play,
