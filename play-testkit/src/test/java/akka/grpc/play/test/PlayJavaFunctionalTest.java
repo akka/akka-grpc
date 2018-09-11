@@ -14,6 +14,7 @@ import static org.junit.Assert.*;
 import static play.inject.Bindings.*;
 
 public final class PlayJavaFunctionalTest extends WithServer {
+  private static final GreeterService$ GreeterService = GreeterService$.MODULE$;
 
   @Override
   protected Application provideApplication() {
@@ -32,12 +33,12 @@ public final class PlayJavaFunctionalTest extends WithServer {
   }
 
   @Test public void returns200OnNonExistentGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService$.MODULE$.name() + "/FooBar").get().toCompletableFuture().get();
+    final WSResponse rsp = wsUrl("/" + GreeterService.name() + "/FooBar").get().toCompletableFuture().get();
     assertEquals(200, rsp.getStatus());
   }
 
   @Test public void returns500OnEmptyRequestToAGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService$.MODULE$.name() + "/SayHello").get().toCompletableFuture().get();
+    final WSResponse rsp = wsUrl("/" + GreeterService.name() + "/SayHello").get().toCompletableFuture().get();
     assertEquals(500, rsp.getStatus());
   }
 
