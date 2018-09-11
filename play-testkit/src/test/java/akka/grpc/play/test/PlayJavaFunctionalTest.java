@@ -23,7 +23,7 @@ public final class PlayJavaFunctionalTest extends WithServer {
   }
 
   private WSRequest wsUrl(final String path) {
-    return WSTestClient.newClient(testServer.port()).url(path);
+    return WSTestClient.newClient((int) testServer.runningHttpPort().get()).url(path);
   }
 
   @Test public void returns404OnNonGrpcRequest() throws Exception {
