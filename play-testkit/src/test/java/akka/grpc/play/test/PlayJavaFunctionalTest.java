@@ -31,4 +31,9 @@ public final class PlayJavaFunctionalTest extends WithServer {
     assertEquals(404, rsp.getStatus());
   }
 
+  @Test public void returns200OnNonExistentGrpcMethod() throws Exception {
+    final WSResponse rsp = wsUrl("/" + GreeterService$.MODULE$.name() + "/FooBar").get().toCompletableFuture().get();
+    assertEquals(200, rsp.getStatus());
+  }
+
 }
