@@ -90,8 +90,8 @@ lazy val sbtPlugin = Project(
   )
   .settings(commonSettings)
   .settings(Dependencies.sbtPlugin)
+  .enablePlugins(SbtPlugin)
   .settings(
-    Keys.sbtPlugin := true,
     publishMavenStyle := false,
     bintrayPackage := "sbt-akka-grpc",
     bintrayRepository := "sbt-plugin-releases",
