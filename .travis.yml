@@ -21,6 +21,8 @@ jobs:
       env: GRADLE-JAVA
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
       env: GRADLE-SCALA
+    - script: cd benchmark-java && sbt test:compile
+      env: COMPILE-BENCHMARK
     - stage: whitesource-master
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: whitesource-release

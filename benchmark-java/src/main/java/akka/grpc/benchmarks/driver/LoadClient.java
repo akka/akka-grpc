@@ -85,7 +85,7 @@ class LoadClient {
       InetSocketAddress socketAddress = (InetSocketAddress) Utils.parseSocketAddress(
           config.getServerTargets(i % config.getServerTargetsCount()));
 
-      GrpcClientSettings settings = Utils.createGrpcClientSettings(socketAddress, config.hasSecurityParams());
+      GrpcClientSettings settings = Utils.createGrpcClientSettings(socketAddress, config.hasSecurityParams(), system);
 
       BenchmarkServiceClient client = BenchmarkServiceClient.create(settings, mat, system.dispatcher());
 
