@@ -25,6 +25,8 @@ import play.inject.guice.*;
 import play.libs.ws.*;
 import play.test.*;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.Assert.*;
 import static play.inject.Bindings.*;
 
@@ -67,7 +69,8 @@ public final class PlayJavaFunctionalTest implements AkkaGrpcClientHelpers {
       app = null;
     }
     if (greeterServiceClient != null) {
-      FutureConverters.toJava(greeterServiceClient.close()).toCompletableFuture().get();
+      FutureConverters.toJava(greeterServiceClient.close())
+          .toCompletableFuture().get(30, TimeUnit.SECONDS);
     }
   }
 
