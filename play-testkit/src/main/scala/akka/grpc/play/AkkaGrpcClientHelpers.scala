@@ -62,9 +62,7 @@ object AkkaGrpcClientHelpers {
    * Configure a factory from an application and some server endpoints. Expects to have exactly one HTTP/2 endpoint.
    */
   def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoints: ServerEndpoints): AkkaGrpcClientFactory.Configured[T] = {
-    val possibleEndpoints = serverEndpoints.endpoints.filter(e => e.scheme == "https" && e.httpVersions.contains("2"))
-    if (possibleEndpoints.size != 1) { throw new IllegalArgumentException(s"gRPC client can't automatically find HTTP/2 connection: ${possibleEndpoints.size} valid endpoints available: ${serverEndpoints}") }
-    factoryForAppEndpoints(app, possibleEndpoints.head)
+    factoryForAppEndpoints(app, JavaAkkaGrpcClientHelpers.unsafeGetHttp2Endpoint(serverEndpoints))
   }
 
   /**
@@ -74,9 +72,6 @@ object AkkaGrpcClientHelpers {
     implicit val sys: ActorSystem = app.actorSystem
     implicit val materializer: Materializer = app.materializer
     implicit val executionContext: ExecutionContext = sys.dispatcher
-
-    val sslContext: SSLContext = serverEndpoint.ssl.get.sslContext
-    val settings = GrpcClientSettings.connectToServiceAt(serverEndpoint.host, serverEndpoint.port).withSSLContext(sslContext)
-    AkkaGrpcClientFactory.configure[T](settings)
+    AkkaGrpcClientFactory.configure[T](JavaAkkaGrpcClientHelpers.grpcClientSettings(serverEndpoint, sys))
   }
 }
