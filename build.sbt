@@ -160,10 +160,13 @@ lazy val playTestdata = Project(
   .settings(Dependencies.playTestdata)
   .settings(commonSettings)
   .settings(
+    ReflectiveCodeGen.generatedLanguages := Seq("Java", "Scala"),
     ReflectiveCodeGen.extraGenerators := Seq(
       "ScalaMarshallersCodeGenerator",
       "akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator",
       "akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+      "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator",
+      "akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
     ),
   )
   .enablePlugins(akka.grpc.NoPublish)

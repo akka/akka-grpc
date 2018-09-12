@@ -123,6 +123,7 @@ object Dependencies {
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.play,
     Compile.grpcStub,
+    Compile.playAkkaHttpServer,
   )
 
   val playTestkit = l ++= Seq(
