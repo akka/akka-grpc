@@ -15,9 +15,9 @@ import scala.collection.mutable.ListBuffer
 
 /** A plugin that allows to use a code generator compiled in one subproject to be used in a test project */
 object ReflectiveCodeGen extends AutoPlugin {
-  val generatedLanguages = SettingKey[String]("reflectiveGrpcGeneratedLanguages", "Comma-separated list of languages")
-  val generatedSources = SettingKey[String]("reflectiveGrpcGeneratedSources", "Comma-separated list of targets")
-  val extraGenerators = SettingKey[String]("reflectiveGrpcExtraGenerators", "Comma-separated list of extra generators")
+  val generatedLanguages = SettingKey[Seq[String]]("reflectiveGrpcGeneratedLanguages")
+  val generatedSources = SettingKey[Seq[String]]("reflectiveGrpcGeneratedSources")
+  val extraGenerators = SettingKey[Seq[String]]("reflectiveGrpcExtraGenerators")
   val codeGeneratorSettings = settingKey[Seq[String]]("Code generator settings")
 
   override def projectSettings: Seq[Def.Setting[_]] =
@@ -59,9 +59,9 @@ object ReflectiveCodeGen extends AutoPlugin {
       PB.protoSources in Compile := Seq(PB.externalIncludePath.value, sourceDirectory.value / "proto")
     )) ++ Seq(
       codeGeneratorSettings in Global := Nil,
-      generatedLanguages in Global := "Scala",
-      generatedSources in Global := "Client, Server",
-      extraGenerators in Global := "",
+      generatedLanguages in Global := Seq("Scala"),
+      generatedSources in Global := Seq("Client", "Server"),
+      extraGenerators in Global := Seq.empty,
 
       watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
       watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value,
@@ -69,13 +69,19 @@ object ReflectiveCodeGen extends AutoPlugin {
 
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
 
-  def loadAndSetGenerator(classpath: Classpath,
-                          languages: String,
-                          sources: String,
-                          extraGenerators: String,
-                          targetPath: File,
-                          generatorSettings: Seq[String],
-                          targets: ListBuffer[Target]): Unit = {
+  def loadAndSetGenerator(
+      classpath: Classpath,
+      languages0: Seq[String],
+      sources0: Seq[String],
+      extraGenerators0: Seq[String],
+      targetPath: File,
+      generatorSettings: Seq[String],
+      targets: ListBuffer[Target],
+  ): Unit = {
+    val languages = languages0 mkString ", "
+    val sources = sources0 mkString ", "
+    val extraGenerators = extraGenerators0 mkString ", "
+
     val cp = classpath.map(_.data)
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
