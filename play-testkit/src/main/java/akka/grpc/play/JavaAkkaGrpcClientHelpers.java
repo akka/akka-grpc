@@ -33,7 +33,7 @@ public final class JavaAkkaGrpcClientHelpers {
    */
   public static ServerEndpoint unsafeGetHttp2Endpoint(final ServerEndpoints serverEndpoints) {
     final scala.collection.Traversable<ServerEndpoint> possibleEndpoints =
-        serverEndpoints.endpoints().filter(e->e.scheme().equals("https") && e.httpVersions().contains("2"));
+        serverEndpoints.endpoints().filter(e->e.httpVersions().contains("2"));
     if (possibleEndpoints.size() != 1) {
       throw new IllegalArgumentException(String.format(
           "gRPC client can't automatically find HTTP/2 connection: " +
