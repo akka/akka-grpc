@@ -120,8 +120,8 @@ lazy val interopTests = Project(
   .settings(commonSettings)
   .pluginTestingSettings
   .settings(
-    ReflectiveCodeGen.generatedLanguages := "Scala, Java",
-    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator",
+    ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
   )
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
   // * google/protobuf/empty.proto
@@ -160,7 +160,11 @@ lazy val playTestdata = Project(
   .settings(Dependencies.playTestdata)
   .settings(commonSettings)
   .settings(
-    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+    ReflectiveCodeGen.extraGenerators := Seq(
+      "ScalaMarshallersCodeGenerator",
+      "akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator",
+      "akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+    ),
   )
   .enablePlugins(akka.grpc.NoPublish)
   .pluginTestingSettings
@@ -189,7 +193,11 @@ lazy val playInteropTestScala = Project(
   .settings(Dependencies.playInteropTestScala)
   .settings(commonSettings)
   .settings(
-    ReflectiveCodeGen.extraGenerators := "ScalaMarshallersCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator, akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
+    ReflectiveCodeGen.extraGenerators := Seq(
+      "ScalaMarshallersCodeGenerator",
+      "akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator",
+      "akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator"
+    ),
   )
   .enablePlugins(akka.grpc.NoPublish)
   .pluginTestingSettings
@@ -202,8 +210,11 @@ lazy val playInteropTestJava = Project(
   .settings(Dependencies.playInteropTestJava)
   .settings(commonSettings)
   .settings(
-    ReflectiveCodeGen.generatedLanguages := "Java",
-    ReflectiveCodeGen.extraGenerators := "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator, akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
+    ReflectiveCodeGen.generatedLanguages := Seq("Java"),
+    ReflectiveCodeGen.extraGenerators := Seq(
+      "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator",
+      "akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
+    ),
   )
   .enablePlugins(akka.grpc.NoPublish)
   .pluginTestingSettings
@@ -256,7 +267,7 @@ lazy val pluginTesterJava = Project(
   .settings(commonSettings)
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
-    ReflectiveCodeGen.generatedLanguages := "Java",
+    ReflectiveCodeGen.generatedLanguages := Seq("Java"),
   )
   .pluginTestingSettings
 
