@@ -19,7 +19,7 @@ Java
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
         // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
+        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
       }
     }
     plugins {
@@ -51,7 +51,7 @@ Scala
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
         // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
+        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
       }
     }
     plugins {

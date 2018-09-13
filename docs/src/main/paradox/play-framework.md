@@ -75,7 +75,7 @@ sbt
 :   @@@vars
     ```scala
     // in project/plugins.sbt:
-    addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
+    addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
     ```
     @@@
 
