@@ -45,7 +45,7 @@ object GrpcClientSettings {
     val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
       .withValue("service-name", ConfigValueFactory.fromAnyRef(serviceName))
       .withValue("port", ConfigValueFactory.fromAnyRef(defaultPort))
-      .withValue("service-discovery-mechanism", ConfigValueFactory.fromAnyRef(serviceDiscoveryMechanism))
+      .withValue("service-discovery.mechanism", ConfigValueFactory.fromAnyRef(serviceDiscoveryMechanism))
     GrpcClientSettings.fromConfig(defaultServiceConfig)
   }
 
