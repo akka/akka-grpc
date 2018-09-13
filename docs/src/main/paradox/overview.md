@@ -21,6 +21,14 @@ It features:
  * Support for @ref[sbt](buildtools/sbt.md), @ref[gradle](buildtools/gradle.md), and @ref[Maven](buildtools/maven.md),
    and the @ref[Play Framework](play-framework.md).  
 
+## Project Information
+
+* Akka gRPC $project.version$ ([Github](https://github.com/akka/akka-grpc))
+* Scala $scala.binary.version$
+* Akka Http $akka-http.version$ (@extref[Docs](akka-http:index.html), [Github](https://github.com/akka/akka-http))
+
+Release notes are found at [Github releases](https://github.com/akka/akka-grpc/releases).
+
 ## Project Status
 
 This library is in preview mode: basic functionality is in place, but APIs and

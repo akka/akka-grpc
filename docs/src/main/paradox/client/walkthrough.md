@@ -14,7 +14,7 @@ sbt
 :   @@@vars
 ```scala
 // in project/plugins.sbt:
-addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$projectversion$")
+addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
 // in build.sbt:
 enablePlugins(AkkaGrpcPlugin)
 ```
@@ -28,7 +28,7 @@ buildscript {
     // version here is a placeholder,
     // it is replaced with a project dependency during integration tests
     // by adding --include-build <path> to gradlew
-    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$projectversion$'
+    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
   }
 }
 plugins {
@@ -51,7 +51,7 @@ Maven
   <properties>
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
-      <akka.grpc.version>$projectversion$</akka.grpc.version>
+      <akka.grpc.version>$project.version$</akka.grpc.version>
       <grpc.version>$grpc.version$</grpc.version>
       <project.encoding>UTF-8</project.encoding>
     </properties>

@@ -225,13 +225,9 @@ lazy val docs = Project(
       "Buildtool" -> Seq("sbt", "Gradle", "Maven"),
     ),
     paradoxProperties ++= Map(
-      "projectversion" → version.value,
       "grpc.version" → Dependencies.Versions.grpc,
-      "scala.version" -> scalaVersion.value,
-      "scala.binary_version" -> scalaBinaryVersion.value,
-      "snip.code.base_dir" -> (sourceDirectory in Test).value.getAbsolutePath,
-      "snip.root.base_dir" -> (baseDirectory in ThisBuild).value.getAbsolutePath,
-      "extref.akka-http.base_url" -> "https://doc.akka.io/docs/akka-http/current/%s",
+      "akka-http.version" → Dependencies.Versions.akkaHttp,
+      "extref.akka-http.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
     ),
     resolvers += Resolver.jcenterRepo,
   )
