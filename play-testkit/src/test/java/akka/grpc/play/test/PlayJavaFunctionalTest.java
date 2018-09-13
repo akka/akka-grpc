@@ -61,23 +61,23 @@ public final class PlayJavaFunctionalTest {
     }
   }
 
-  private WSRequest wsUrl(final String path) {
-    return WSTestClient.newClient(testServer.endpoints().httpEndpoint().get().port()).url(path);
+  private WSResponse wsGet(final String path) throws Exception {
+    final int port = testServer.endpoints().httpEndpoint().get().port();
+    try (final WSClient wsClient = WSTestClient.newClient(port)) {
+      return wsClient.url(path).get().toCompletableFuture().get();
+    }
   }
 
   @Test public void returns404OnNonGrpcRequest() throws Exception {
-    final WSResponse rsp = wsUrl("/").get().toCompletableFuture().get();
-    assertEquals(404, rsp.getStatus());
+    assertEquals(404, wsGet("/").getStatus());
   }
 
   @Test public void returns200OnNonExistentGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService.name + "/FooBar").get().toCompletableFuture().get();
-    assertEquals(200, rsp.getStatus());
+    assertEquals(200, wsGet("/" + GreeterService.name + "/FooBar").getStatus());
   }
 
   @Ignore public void returns500OnEmptyRequestToAGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService.name + "/SayHello").get().toCompletableFuture().get();
-    assertEquals(500, rsp.getStatus());
+    assertEquals(500, wsGet("/" + GreeterService.name + "/SayHello").getStatus());
   }
 
   @Test public void worksWithAGrpcClient() throws Exception {
