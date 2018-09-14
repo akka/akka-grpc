@@ -16,7 +16,6 @@ import play.api.routing.*;
 import play.api.test.*;
 import play.inject.guice.*;
 import play.libs.ws.*;
-import play.test.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -62,10 +61,9 @@ public final class PlayJavaFunctionalTest {
   }
 
   private WSResponse wsGet(final String path) throws Exception {
-    final int port = testServer.endpoints().httpEndpoint().get().port();
-    try (final WSClient wsClient = WSTestClient.newClient(port)) {
-      return wsClient.url(path).get().toCompletableFuture().get();
-    }
+    final WSClient wsClient = app.injector().instanceOf(WSClient.class);
+    final String url = testServer.endpoints().httpEndpoint().get().pathUrl(path);
+    return wsClient.url(url).get().toCompletableFuture().get();
   }
 
   @Test public void returns404OnNonGrpcRequest() throws Exception {
