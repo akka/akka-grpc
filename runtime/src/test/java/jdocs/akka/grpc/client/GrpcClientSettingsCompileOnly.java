@@ -5,6 +5,7 @@
 package jdocs.akka.grpc.client;
 
 import akka.actor.ActorSystem;
+import akka.discovery.ServiceDiscovery;
 import akka.discovery.ServiceDiscovery$;
 import akka.discovery.SimpleServiceDiscovery;
 import akka.grpc.GrpcClientSettings;
@@ -26,15 +27,13 @@ public class GrpcClientSettingsCompileOnly {
                 .withTls(false);
         //#simple-programmatic
 
-        SimpleServiceDiscovery serviceDiscovery= ServiceDiscovery$.MODULE$.apply(actorSystem).discovery();
+        SimpleServiceDiscovery serviceDiscovery = ServiceDiscovery.get(actorSystem).discovery();
 
         //#provide-sd
         // An ActorSystem's default service discovery mechanism
-        GrpcClientSettings.connectTo(
-                "my-service",
-                serviceDiscovery,
-                actorSystem
-        );
+        GrpcClientSettings
+                .usingServiceDiscovery("my-service", actorSystem)
+                .withServicePortName("https"); // (optional) refine the lookup operation to only https ports
         //#provide-sd
 
         //#sd-settings

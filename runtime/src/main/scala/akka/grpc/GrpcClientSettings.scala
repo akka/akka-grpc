@@ -53,26 +53,19 @@ object GrpcClientSettings {
   }
 
   /**
-   * Configure the client to lookup a valid hostname:port from a service registry accessed via the Service
-   * Discovery implementation provided. Other than the provided parameters, this factory method will read all other
-   * values from `application.conf`.
+   * Configure the client to lookup a valid hostname:port from a service registry accessed via the `ServiceDiscovery`
+   * instance registered in the `actorSystem` provided. When invoking a lookup operation on the service registry, a
+   * name is required and optionally a port name and a protocol. This factory method only requires a `serviceName`.
+   * Use `withServicePortName` and `withServiceProtocol` to refine the lookup on the service registry.
    *
    * @param serviceName name of the remote service to lookup.
-   * @param discovery   service discovery instance to resolve the lookup.
    */
-  def connectTo(serviceName: String, discovery: SimpleServiceDiscovery)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+  def usingServiceDiscovery(serviceName: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
     val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
-    new GrpcClientSettings(serviceName, discovery, -1, resolveTimeout)
-      .copy(
-        servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
-        serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
-        overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
-        deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
-        userAgent = getOptionalString(clientConfiguration, "user-agent"),
-        sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
-        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
-        useTls = clientConfiguration.getBoolean("use-tls"))
+    val discovery = ServiceDiscovery.get(actorSystem).discovery
+    val settings = new GrpcClientSettings(serviceName, discovery, -1, resolveTimeout)
+    withConfigDefaults(settings, clientConfiguration)
   }
 
   /**
@@ -92,16 +85,23 @@ object GrpcClientSettings {
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
         ServiceDiscovery(sys).loadServiceDiscovery(other)
     }
-    new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
-      .copy(
-        servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
-        serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
-        overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
-        deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
-        userAgent = getOptionalString(clientConfiguration, "user-agent"),
-        sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
-        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
-        useTls = clientConfiguration.getBoolean("use-tls"))
+    val settings = new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
+    withConfigDefaults(settings, clientConfiguration)
+  }
+
+  /**
+   * Given a base GrpcClientSettings, it generates a new instance with all values provided in config.
+   */
+  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config): GrpcClientSettings = {
+    initialSettings.copy(
+      servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
+      serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
+      overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
+      deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
+      userAgent = getOptionalString(clientConfiguration, "user-agent"),
+      sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
+      connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
+      useTls = clientConfiguration.getBoolean("use-tls"))
   }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
