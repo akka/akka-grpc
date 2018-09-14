@@ -22,7 +22,7 @@ import scala.concurrent.duration.{ Duration, _ }
 object GrpcClientSettings {
 
   /**
-   * Create a client hat uses a static host and port. Default configuration
+   * Create a client that uses a static host and port. Default configuration
    * is loaded from reference.conf
    */
   def connectToServiceAt(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
@@ -30,22 +30,6 @@ object GrpcClientSettings {
     val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
       .withValue("host", ConfigValueFactory.fromAnyRef(host))
       .withValue("port", ConfigValueFactory.fromAnyRef(port))
-    GrpcClientSettings.fromConfig(defaultServiceConfig)
-  }
-
-  /**
-   * Create a client with the given service discovery mechanism. Default configuration
-   * is loaded from reference.conf
-   *
-   * @param serviceName               Name to look up in serviceDiscovery
-   * @param defaultPort               Port to use if service discovery only returns a host name
-   * @param serviceDiscoveryMechanism Service discovery mechanism to use. Must be correctly configured in the ActorSystem's config
-   */
-  def discoverService(serviceName: String, defaultPort: Int, serviceDiscoveryMechanism: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
-    val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
-      .withValue("service-name", ConfigValueFactory.fromAnyRef(serviceName))
-      .withValue("port", ConfigValueFactory.fromAnyRef(defaultPort))
-      .withValue("service-discovery.mechanism", ConfigValueFactory.fromAnyRef(serviceDiscoveryMechanism))
     GrpcClientSettings.fromConfig(defaultServiceConfig)
   }
 
@@ -66,6 +50,29 @@ object GrpcClientSettings {
     }
 
     GrpcClientSettings.fromConfig(clientConfig)
+  }
+
+  /**
+   * Configure the client to lookup a valid hostname:port from a service registry accessed via the Service
+   * Discovery implementation provided. Other than the provided parameters, this factory method will read all other
+   * values from `application.conf`.
+   *
+   * @param serviceName name of the remote service to lookup.
+   * @param discovery   service discovery instance to resolve the lookup.
+   */
+  def connectTo(serviceName: String, discovery: SimpleServiceDiscovery)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+    val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
+    new GrpcClientSettings(serviceName, discovery, -1, resolveTimeout)
+      .copy(
+        servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
+        serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
+        overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
+        deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
+        userAgent = getOptionalString(clientConfiguration, "user-agent"),
+        sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
+        connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
+        useTls = clientConfiguration.getBoolean("use-tls"))
   }
 
   /**
@@ -166,6 +173,14 @@ final class GrpcClientSettings private (
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withSSLContext(context: SSLContext) = copy(sslContext = Option(context))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
+
+  /**
+   * When using service discovery, port name is the optional parameter to filter the requests. Looking up a service
+   * may return multiple ports (http/https/...) if the remote process only serves the grpc service on a specific port
+   * you must use this setting.
+   */
+  def withServicePortName(servicePortName: String): GrpcClientSettings = copy(servicePortName = Some(servicePortName))
+  def withServiceProtocol(serviceProtocol: String): GrpcClientSettings = copy(serviceProtocol = Some(serviceProtocol))
   /**
    * Each call will have this deadline.
    */

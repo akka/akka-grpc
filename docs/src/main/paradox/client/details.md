@@ -8,7 +8,7 @@ avoid leaking in the latter case, you should call `.close()` on the client.
 
 When the connection breaks, the client will start failing requests and try reconnecting
 to the server automatically.  If a connection can not be established after the configured number of attempts then
-the client closes its self. When this happens the @scala[`Future`]@java[`CompletionStage`] 
+the client closes itself. When this happens the @scala[`Future`]@java[`CompletionStage`] 
 returned by `closed()` will complete with a failure. You do not need to call `close()` in
 this case. The default number of reconnection attempts is infinite.
 
@@ -28,7 +28,7 @@ Java
 
 
 To use the client use `withClient`. The actual client isn't exposed as it should not be stored
-any where as it can be replaced when a failure happens.
+anywhere as it can be replaced when a failure happens.
 
 Scala
 :  @@snip [RestartingGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #usage }

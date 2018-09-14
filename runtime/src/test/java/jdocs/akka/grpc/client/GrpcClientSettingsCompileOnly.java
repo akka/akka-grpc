@@ -5,7 +5,10 @@
 package jdocs.akka.grpc.client;
 
 import akka.actor.ActorSystem;
+import akka.discovery.ServiceDiscovery$;
+import akka.discovery.SimpleServiceDiscovery;
 import akka.grpc.GrpcClientSettings;
+import scala.Some;
 
 import java.time.Duration;
 
@@ -23,12 +26,13 @@ public class GrpcClientSettingsCompileOnly {
                 .withTls(false);
         //#simple-programmatic
 
+        SimpleServiceDiscovery serviceDiscovery= ServiceDiscovery$.MODULE$.apply(actorSystem).discovery();
+
         //#provide-sd
         // An ActorSystem's default service discovery mechanism
-        GrpcClientSettings.discoverService(
+        GrpcClientSettings.connectTo(
                 "my-service",
-                443,
-                "config", // config based service discovery must be defined in the ActorSystems' config
+                serviceDiscovery,
                 actorSystem
         );
         //#provide-sd
