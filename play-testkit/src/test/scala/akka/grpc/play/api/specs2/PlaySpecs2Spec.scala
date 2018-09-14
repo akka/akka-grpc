@@ -33,16 +33,16 @@ class PlaySpecs2Spec extends NewForServer with ServerGrpcClient with PlaySpecifi
   "A Play server bound to a gRPC router" should {
     "give a 404 when routing a non-gRPC request" >> { implicit rs: RunningServer =>
       val result = await(wsUrl("/").get)
-      result.status must ===(404)
+      result.status must ===(404) // Maybe should be a 426, see #396
     }
     "give an Ok header (and hopefully a not implemented trailer) when routing a non-existent gRPC method" >> { implicit rs: RunningServer =>
       val result = await(wsUrl(s"/${GreeterService.name}/FooBar").get)
-      result.status must ===(200)
+      result.status must ===(200) // Maybe should be a 426, see #396
       // TODO: Test that trailer has a not implemented status
     }
     "give a 500 when routing an empty request to a gRPC method" >> { implicit rs: RunningServer =>
       val result = await(wsUrl(s"/${GreeterService.name}/SayHello").get)
-      result.status must ===(500)
+      result.status must ===(500) // Maybe should be a 426, see #396
     }
     "work with a gRPC client" >> { implicit rs: RunningServer =>
       withGrpcClient[GreeterServiceClient] { client: GreeterServiceClient =>

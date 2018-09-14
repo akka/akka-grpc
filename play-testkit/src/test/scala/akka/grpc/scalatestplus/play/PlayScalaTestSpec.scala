@@ -29,18 +29,18 @@ class PlayScalaTestSpec extends PlaySpec with ServerGrpcClient
   implicit def ws: WSClient = app.injector.instanceOf(classOf[WSClient])
 
   "A Play server bound to a gRPC router" must {
-    "give a 404 when routing a non-gRPC request" in { // Maybe should be a 426
+    "give a 404 when routing a non-gRPC request" in {
       val result = wsUrl("/").get.futureValue
-      result.status must be(404)
+      result.status must be(404) // Maybe should be a 426, see #396
     }
-    "give an Ok header (and hopefully a not implemented trailer) when routing a non-existent gRPC method" in { // Maybe should be a 426
+    "give an Ok header (and hopefully a not implemented trailer) when routing a non-existent gRPC method" in {
       val result = wsUrl(s"/${GreeterService.name}/FooBar").get.futureValue
-      result.status must be(200)
+      result.status must be(200) // Maybe should be a 426, see #396
       // TODO: Test that trailer has a not implemented status
     }
-    "give a 500 when routing an empty request to a gRPC method" in { // Maybe should be a 426
+    "give a 500 when routing an empty request to a gRPC method" in {
       val result = wsUrl(s"/${GreeterService.name}/SayHello").get.futureValue
-      result.status must be(500)
+      result.status must be(500) // Maybe should be a 426, see #396
     }
     "work with a gRPC client" in withGrpcClient[GreeterServiceClient] { client: GreeterServiceClient =>
       val reply = client.sayHello(HelloRequest("Alice")).futureValue

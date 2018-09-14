@@ -59,15 +59,17 @@ public final class PlayJavaFunctionalTest {
   }
 
   @Test public void returns404OnNonGrpcRequest() throws Exception {
-    assertEquals(404, wsGet("/").getStatus());
+    assertEquals(404, wsGet("/").getStatus()); // Maybe should be a 426, see #396
   }
 
   @Test public void returns200OnNonExistentGrpcMethod() throws Exception {
-    assertEquals(200, wsGet("/" + GreeterService.name + "/FooBar").getStatus());
+    final WSResponse rsp = wsGet("/" + GreeterService.name + "/FooBar");
+    assertEquals(200, rsp.getStatus()); // Maybe should be a 426, see #396
   }
 
-  @Ignore public void returns500OnEmptyRequestToAGrpcMethod() throws Exception {
-    assertEquals(500, wsGet("/" + GreeterService.name + "/SayHello").getStatus());
+  @Test public void returns200OnEmptyRequestToAGrpcMethod() throws Exception {
+    final WSResponse rsp = wsGet("/" + GreeterService.name + "/SayHello");
+    assertEquals(200, rsp.getStatus()); // Maybe should be a 426, see #396
   }
 
   @Test public void worksWithAGrpcClient() throws Exception {
