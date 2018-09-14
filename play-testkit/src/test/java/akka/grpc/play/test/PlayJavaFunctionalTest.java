@@ -16,7 +16,6 @@ import play.api.routing.*;
 import play.api.test.*;
 import play.inject.guice.*;
 import play.libs.ws.*;
-import play.test.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +27,6 @@ public final class PlayJavaFunctionalTest {
 
   private Application app;
   private NewTestServer testServer;
-  private GreeterServiceClient greeterServiceClient;
 
   private Application provideApplication() {
     return new GuiceApplicationBuilder()
@@ -43,10 +41,6 @@ public final class PlayJavaFunctionalTest {
     app = provideApplication();
     final play.api.Application app = this.app.asScala();
     testServer = testServerFactory.start(app);
-    final GrpcClientSettings grpcClientSettings =
-        JavaAkkaGrpcClientHelpers.grpcClientSettings(testServer);
-    greeterServiceClient = GreeterServiceClient.create(
-        grpcClientSettings, app.materializer(), app.actorSystem().dispatcher());
   }
 
   @After
@@ -56,34 +50,40 @@ public final class PlayJavaFunctionalTest {
       testServer = null;
       app = null;
     }
-    if (greeterServiceClient != null) {
-      greeterServiceClient.close().toCompletableFuture().get(30, TimeUnit.SECONDS);
-    }
   }
 
-  private WSRequest wsUrl(final String path) {
-    return WSTestClient.newClient(testServer.endpoints().httpEndpoint().get().port()).url(path);
+  private WSResponse wsGet(final String path) throws Exception {
+    final WSClient wsClient = app.injector().instanceOf(WSClient.class);
+    final String url = testServer.endpoints().httpEndpoint().get().pathUrl(path);
+    return wsClient.url(url).get().toCompletableFuture().get();
   }
 
   @Test public void returns404OnNonGrpcRequest() throws Exception {
-    final WSResponse rsp = wsUrl("/").get().toCompletableFuture().get();
-    assertEquals(404, rsp.getStatus());
+    assertEquals(404, wsGet("/").getStatus()); // Maybe should be a 426, see #396
   }
 
   @Test public void returns200OnNonExistentGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService.name + "/FooBar").get().toCompletableFuture().get();
-    assertEquals(200, rsp.getStatus());
+    final WSResponse rsp = wsGet("/" + GreeterService.name + "/FooBar");
+    assertEquals(200, rsp.getStatus()); // Maybe should be a 426, see #396
   }
 
-  @Ignore public void returns500OnEmptyRequestToAGrpcMethod() throws Exception {
-    final WSResponse rsp = wsUrl("/" + GreeterService.name + "/SayHello").get().toCompletableFuture().get();
-    assertEquals(500, rsp.getStatus());
+  @Test public void returns200OnEmptyRequestToAGrpcMethod() throws Exception {
+    final WSResponse rsp = wsGet("/" + GreeterService.name + "/SayHello");
+    assertEquals(200, rsp.getStatus()); // Maybe should be a 426, see #396
   }
 
   @Test public void worksWithAGrpcClient() throws Exception {
     final HelloRequest req = HelloRequest.newBuilder().setName("Alice").build();
-    final HelloReply helloReply = greeterServiceClient.sayHello(req).toCompletableFuture().get();
-    assertEquals("Hello, Alice!", helloReply.getMessage());
+    final GrpcClientSettings grpcClientSettings =
+        JavaAkkaGrpcClientHelpers.grpcClientSettings(testServer);
+    final GreeterServiceClient greeterServiceClient = GreeterServiceClient.create(
+        grpcClientSettings, app.asScala().materializer(), app.asScala().actorSystem().dispatcher());
+    try {
+      final HelloReply helloReply = greeterServiceClient.sayHello(req).toCompletableFuture().get();
+      assertEquals("Hello, Alice!", helloReply.getMessage());
+    } finally {
+      greeterServiceClient.close().toCompletableFuture().get(30, TimeUnit.SECONDS);
+    }
   }
 
 }
