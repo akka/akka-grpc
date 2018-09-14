@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.annotation.ApiMayChange
-import akka.grpc.internal.{ AkkaGrpcClient, ClientConnectionException }
+import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
 
 import scala.annotation.tailrec
