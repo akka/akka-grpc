@@ -27,7 +27,6 @@ public final class PlayJavaFunctionalTest {
 
   private Application app;
   private NewTestServer testServer;
-  private GreeterServiceClient greeterServiceClient;
 
   private Application provideApplication() {
     return new GuiceApplicationBuilder()
@@ -42,10 +41,6 @@ public final class PlayJavaFunctionalTest {
     app = provideApplication();
     final play.api.Application app = this.app.asScala();
     testServer = testServerFactory.start(app);
-    final GrpcClientSettings grpcClientSettings =
-        JavaAkkaGrpcClientHelpers.grpcClientSettings(testServer);
-    greeterServiceClient = GreeterServiceClient.create(
-        grpcClientSettings, app.materializer(), app.actorSystem().dispatcher());
   }
 
   @After
@@ -54,9 +49,6 @@ public final class PlayJavaFunctionalTest {
       testServer.stopServer().close();
       testServer = null;
       app = null;
-    }
-    if (greeterServiceClient != null) {
-      greeterServiceClient.close().toCompletableFuture().get(30, TimeUnit.SECONDS);
     }
   }
 
@@ -80,8 +72,16 @@ public final class PlayJavaFunctionalTest {
 
   @Test public void worksWithAGrpcClient() throws Exception {
     final HelloRequest req = HelloRequest.newBuilder().setName("Alice").build();
-    final HelloReply helloReply = greeterServiceClient.sayHello(req).toCompletableFuture().get();
-    assertEquals("Hello, Alice!", helloReply.getMessage());
+    final GrpcClientSettings grpcClientSettings =
+        JavaAkkaGrpcClientHelpers.grpcClientSettings(testServer);
+    final GreeterServiceClient greeterServiceClient = GreeterServiceClient.create(
+        grpcClientSettings, app.asScala().materializer(), app.asScala().actorSystem().dispatcher());
+    try {
+      final HelloReply helloReply = greeterServiceClient.sayHello(req).toCompletableFuture().get();
+      assertEquals("Hello, Alice!", helloReply.getMessage());
+    } finally {
+      greeterServiceClient.close().toCompletableFuture().get(30, TimeUnit.SECONDS);
+    }
   }
 
 }
