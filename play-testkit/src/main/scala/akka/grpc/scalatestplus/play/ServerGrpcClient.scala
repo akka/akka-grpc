@@ -4,8 +4,9 @@
 
 package akka.grpc.scalatestplus.play
 
-import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
+import akka.grpc.internal.AkkaGrpcClientFactory
 import akka.grpc.play.AkkaGrpcClientHelpers
+import akka.grpc.scaladsl.AkkaGrpcClient
 import org.scalatestplus.play.NewServerProvider
 import play.api.test.RunningServer
 import scala.reflect.ClassTag

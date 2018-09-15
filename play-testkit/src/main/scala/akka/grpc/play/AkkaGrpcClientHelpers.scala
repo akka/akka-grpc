@@ -8,7 +8,8 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.grpc.internal.{ AkkaGrpcClient, AkkaGrpcClientFactory }
+import akka.grpc.internal.AkkaGrpcClientFactory
+import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.stream.Materializer
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
 import javax.net.ssl.SSLContext

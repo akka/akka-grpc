@@ -8,7 +8,6 @@ import akka.Done;
 import akka.actor.ActorSystem;
 import akka.grpc.JUnitEventually;
 import akka.grpc.internal.ClientConnectionException;
-import akka.grpc.internal.JavaAkkaGrpcClient;
 import akka.grpc.scaladsl.RestartingClientSpec;
 import org.junit.Test;
 import org.scalactic.source.Position;
@@ -27,7 +26,7 @@ public class RestartingClientTest extends JUnitEventually {
 
     private static final long QUEUE_TIMEOUT = 50;
 
-    public static class FakeJavaClient implements JavaAkkaGrpcClient {
+    public static class FakeJavaClient implements AkkaGrpcClient {
 
         private RestartingClientSpec.FakeClient delegate = new RestartingClientSpec.FakeClient();
 

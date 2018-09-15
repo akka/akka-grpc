@@ -12,6 +12,7 @@ import akka.Done;
 import akka.annotation.*;
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.javadsl.AkkaGrpcClient;
 import akka.grpc.javadsl.SingleResponseRequestBuilder;
 import akka.grpc.javadsl.StreamResponseRequestBuilder;
 import akka.stream.ActorMaterializer;
@@ -34,7 +35,7 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Promise;
 
 
-public final class @{service.name}Client implements @{service.name}, JavaAkkaGrpcClient {
+public final class @{service.name}Client implements @{service.name}, AkkaGrpcClient {
 
   private final InternalChannel internalChannel;
   private final scala.concurrent.Future<ManagedChannel> channel;
