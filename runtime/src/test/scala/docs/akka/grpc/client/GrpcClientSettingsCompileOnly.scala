@@ -23,11 +23,12 @@ object GrpcClientSettingsCompileOnly {
     .withTls(false)
   //#simple-programmatic
 
+  val serviceDiscovery: SimpleServiceDiscovery = ServiceDiscovery.get(actorSystem).discovery
+
   //#provide-sd
   // An ActorSystem's default service discovery mechanism
-  GrpcClientSettings.discoverService(
-    serviceName = "my-service",
-    defaultPort = 443,
-    serviceDiscoveryMechanism = "config")
+  GrpcClientSettings
+    .usingServiceDiscovery(serviceName = "my-service")
+    .withServicePortName("https") // (optional) refine the lookup operation to only https ports
   //#provide-sd
 }

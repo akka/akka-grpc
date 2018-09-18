@@ -5,14 +5,16 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{Lookup, ServiceDiscovery, SimpleServiceDiscovery}
+import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
 import akka.discovery.config.ConfigSimpleServiceDiscovery
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.duration._
-import scala.collection.{ immutable => im }
+import scala.collection.{immutable => im}
+import scala.concurrent.Future
 
 class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
   "The gRPC client settings spec" should {
@@ -169,6 +171,32 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       intercept[IllegalArgumentException] {
         GrpcClientSettings.fromConfig("project.WithNoServiceName")
       }.getMessage should be("requirement failed: Configuration must contain a service-name")
+
     }
+    "fail fast when no service discovery is configured on the actor system" in {
+      intercept[IllegalArgumentException] {
+        val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")
+      }
+    }
+
+    "use the service discovery configured on the actor system" in {
+      // given an ActorSystem with a ServiceDiscovery method configured
+      val sdConfig =
+        s"""
+          |akka.discovery {
+          |  method = "${classOf[FakeServiceDiscovery].getName}"
+          |}
+        """.stripMargin
+      val actorSystem = ActorSystem("test-with-service-discovery", ConfigFactory.parseString(sdConfig))
+
+      // invoking usingServiceDiscovery provides a GrpcClientSettings instance
+      // that uses the ServiceDiscovery in the ActorSystem
+      val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
+      settings.serviceDiscovery should not be null
+    }
+
   }
+}
+class FakeServiceDiscovery extends SimpleServiceDiscovery{
+  override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = ???
 }
