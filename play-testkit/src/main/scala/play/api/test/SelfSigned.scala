@@ -24,15 +24,20 @@ object SelfSigned {
   lazy val (sslContext, trustManager): (SSLContext, X509TrustManager) = {
     val keyStore: KeyStore = FakeKeyStore.generateKeyStore
 
-    val kmf: KeyManagerFactory = KeyManagerFactory.getInstance("SunX509")
-    kmf.init(keyStore, "".toCharArray)
-    val kms: Array[KeyManager] = kmf.getKeyManagers
+    buildContextAndTrust(keyStore)
+  }
 
-    val tmf: TrustManagerFactory = TrustManagerFactory
-      .getInstance(TrustManagerFactory.getDefaultAlgorithm())
+  // TODO: this should be moved to `ssl-config`
+  private def buildContextAndTrust(keyStore: KeyStore) = {
+
+    val tmf: TrustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
     tmf.init(keyStore)
     val tms: Array[TrustManager] = tmf.getTrustManagers
     val x509TrustManager: X509TrustManager = tms(0).asInstanceOf[X509TrustManager]
+
+    val kmf: KeyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+    kmf.init(keyStore, Array.emptyCharArray)
+    val kms: Array[KeyManager] = kmf.getKeyManagers
 
     val sslContext: SSLContext = SSLContext.getInstance("TLS")
     sslContext.init(kms, tms, null)
