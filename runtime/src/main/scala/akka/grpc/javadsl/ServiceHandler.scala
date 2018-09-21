@@ -31,13 +31,13 @@ object ServiceHandler {
       remainingHandlers match {
         case Nil => response
         case head :: tail =>
-          response.thenCompose { rsp =>
+          response.thenCompose(javaFunction { rsp =>
             if (rsp.status == StatusCodes.NOT_FOUND) {
               val nextResponse = head(req)
               cont(req, nextResponse, tail)
             } else
               response
-          }
+          })
       }
     }
 

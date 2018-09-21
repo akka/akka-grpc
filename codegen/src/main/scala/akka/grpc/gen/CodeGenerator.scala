@@ -18,7 +18,8 @@ trait CodeGenerator {
 
   def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse
 
-  def suggestedDependencies: Seq[Artifact]
+  /** Takes Scala binary version (ex.: "2.12") and returns suggested dependency Seq **/
+  def suggestedDependencies: String => Seq[Artifact]
 
   final def run(request: Array[Byte], logger: Logger): Array[Byte] =
     run(CodeGeneratorRequest.parseFrom(request), logger: Logger).toByteArray

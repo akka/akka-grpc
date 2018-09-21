@@ -21,7 +21,8 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
   def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
-  override def suggestedDependencies = Seq(Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version))
+  override def suggestedDependencies = (scalaBinaryVersion: String) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion, BuildInfo.version))
 
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {

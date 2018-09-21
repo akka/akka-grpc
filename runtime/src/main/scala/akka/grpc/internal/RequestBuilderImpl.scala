@@ -287,7 +287,7 @@ final class ScalaServerStreamingRequestBuilder[I, O](
       case Some(Success(c)) => invokeWithMetadata(source, c)
       case Some(Failure(t)) => Future.failed(t)
       case None => channel.flatMap(c => invokeWithMetadata(source, c))
-    }).mapMaterializedValue(_.flatten)
+    }).mapMaterializedValue(_.flatMap(identity))
   }
 
   private def invokeWithMetadata(source: I, c: Channel) = {
@@ -387,7 +387,7 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
       case Some(Success(c)) => invokeWithMetadata(source, c)
       case Some(Failure(t)) => Future.failed(t)
       case None => channel.flatMap(c => invokeWithMetadata(source, c))
-    }).mapMaterializedValue(_.flatten)
+    }).mapMaterializedValue(_.flatMap(identity))
   }
 
   private def invokeWithMetadata(source: Source[I, NotUsed], c: Channel) = {

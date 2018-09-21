@@ -18,9 +18,8 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
 
   override def perServiceContent = Set(generateMarshalling)
 
-  override def suggestedDependencies: Seq[Artifact] =
-    // FIXME Scala version missing in artifact name here
-    Artifact("com.typesafe.akka", "akka-http", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies
+  override def suggestedDependencies = (scalaBinaryVersion: String) =>
+    Artifact("com.typesafe.akka", s"akka-http_$scalaBinaryVersion", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies(scalaBinaryVersion)
 
   def generateMarshalling(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()

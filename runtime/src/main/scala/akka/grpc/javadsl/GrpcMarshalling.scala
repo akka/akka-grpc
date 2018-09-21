@@ -22,7 +22,7 @@ import akka.grpc.scaladsl.headers.`Message-Encoding`
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] = {
     val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
-    (req.entity.getDataBytes via Grpc.grpcFramingDecoder(messageEncoding)).map(u.deserialize).runWith(Sink.head[T], mat)
+    (req.entity.getDataBytes via Grpc.grpcFramingDecoder(messageEncoding)).map(japiFunction(u.deserialize)).runWith(Sink.head[T], mat)
   }
 
   def unmarshalStream[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
@@ -30,11 +30,11 @@ object GrpcMarshalling {
     CompletableFuture.completedFuture(
       req.entity.getDataBytes
         .via(Grpc.grpcFramingDecoder(messageEncoding))
-        .map(u.deserialize)
+        .map(japiFunction(u.deserialize))
         // In gRPC we signal failure by returning an error code, so we
         // don't want the cancellation bubbled out
         .via(new CancellationBarrierGraphStage)
-        .mapMaterializedValue(_ ⇒ NotUsed))
+        .mapMaterializedValue(japiFunction(_ ⇒ NotUsed)))
   }
 
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =

@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{BuildInfo, Logger}
+import akka.grpc.gen.{ BuildInfo, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.JavaServer.txt.Handler
@@ -24,9 +24,8 @@ trait JavaServerCodeGenerator extends JavaCodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
-  )
+  override val suggestedDependencies = (scalaBinaryVersion: String) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion, BuildInfo.version))
 }
 
 object JavaServerCodeGenerator extends JavaServerCodeGenerator

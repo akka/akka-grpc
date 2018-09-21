@@ -24,8 +24,8 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
+  override val suggestedDependencies = (scalaBinaryVersion: String) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion, BuildInfo.version),
     // TODO: remove grpc-stub dependency once we have a akka-http based client #193
     Artifact("io.grpc", "grpc-stub", scalapb.compiler.Version.grpcJavaVersion))
 }

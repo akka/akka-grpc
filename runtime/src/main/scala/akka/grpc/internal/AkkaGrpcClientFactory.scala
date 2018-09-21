@@ -12,15 +12,13 @@ import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.stream.Materializer
 
 object AkkaGrpcClientFactory {
-  def create[T <: AkkaGrpcClient : ClassTag](settings: GrpcClientSettings)
-      (implicit mat: Materializer, ex: ExecutionContext): T = {
+  def create[T <: AkkaGrpcClient: ClassTag](settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T = {
     classTag[T].runtimeClass.asInstanceOf[Class[T]]
-        .getConstructor(
-          classOf[GrpcClientSettings],
-          classOf[Materializer],
-          classOf[ExecutionContext],
-        )
-        .newInstance(settings, mat, ex)
+      .getConstructor(
+        classOf[GrpcClientSettings],
+        classOf[Materializer],
+        classOf[ExecutionContext])
+      .newInstance(settings, mat, ex)
   }
 
   /**
@@ -33,8 +31,9 @@ object AkkaGrpcClientFactory {
   }
 
   /** Bind configuration to a [[AkkaGrpcClientFactory]], creating a [[Configured]]. */
-  def configure[T <: AkkaGrpcClient : ClassTag](
-      clientSettings: GrpcClientSettings,
-  )(implicit mat: Materializer, ec: ExecutionContext): Configured[T] =
-    () => AkkaGrpcClientFactory.create[T](clientSettings)
+  def configure[T <: AkkaGrpcClient: ClassTag](
+    clientSettings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext): Configured[T] =
+    new Configured[T] {
+      def create() = AkkaGrpcClientFactory.create[T](clientSettings)
+    }
 }

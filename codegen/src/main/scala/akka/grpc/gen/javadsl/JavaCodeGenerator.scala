@@ -4,9 +4,9 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{BuildInfo, CodeGenerator, Logger}
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.Descriptors._
-import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
+import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
 
@@ -39,7 +39,6 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       serviceDesc ← fileDesc.getServices.asScala
     } yield Service(fileDesc, serviceDesc)).toVector
 
-
     for {
       service <- services
       generator ← perServiceContent
@@ -60,9 +59,8 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
-  )
+  override val suggestedDependencies = (scalaBinaryVersion: String) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion, BuildInfo.version))
 }
 
 object JavaCodeGenerator {
