@@ -206,7 +206,8 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       def warn(text: String): Unit = getLog.warn(text)
       def error(text: String): Unit = getLog.error(text)
     }
-    val adapted = new ProtocBridgeCodeGenerator(generator, logger)
+    // scala binary version is not used from here, as gradle protoc plugin does not use suggested dependencies
+    val adapted = new ProtocBridgeCodeGenerator(generator, CodeGenerator.ScalaBinaryVersion("2.12"), logger)
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }

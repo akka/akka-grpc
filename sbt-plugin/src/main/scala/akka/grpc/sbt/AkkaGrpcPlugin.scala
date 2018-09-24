@@ -11,6 +11,7 @@ import Keys._
 import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator }
 import akka.grpc.gen.{ Logger => GenLogger }
+import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
@@ -80,7 +81,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
       akkaGrpcGenerators := {
-        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, scalaBinaryVersion.value, generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, scalaBinaryVersion.value, generatorLogger))
+        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
       },
 
       // configure the proto gen automatically by adding our codegen:
@@ -125,7 +126,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   // creates a seq of generator and per generator settings
-  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], scalaBinaryVersion: String, logger: GenLogger): Seq[protocbridge.Generator] = {
+  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
@@ -154,7 +155,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   // this transforms the Akka gRPC API generators to the right protocbridge type
-  def toGenerator(codeGenerator: akka.grpc.gen.CodeGenerator, scalaBinaryVersion: String, logger: GenLogger): protocbridge.Generator = {
+  def toGenerator(codeGenerator: akka.grpc.gen.CodeGenerator, scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): protocbridge.Generator = {
     val adapter = new ProtocBridgeSbtPluginCodeGenerator(codeGenerator, scalaBinaryVersion, logger)
     protocbridge.JvmGenerator(codeGenerator.name, adapter)
   }
@@ -162,7 +163,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   /**
    * Adapts existing [[akka.grpc.gen.CodeGenerator]] into the protocbridge required type
    */
-  private[akka] class ProtocBridgeSbtPluginCodeGenerator(impl: akka.grpc.gen.CodeGenerator, scalaBinaryVersion: String, logger: GenLogger) extends protocbridge.ProtocCodeGenerator {
+  private[akka] class ProtocBridgeSbtPluginCodeGenerator(impl: akka.grpc.gen.CodeGenerator, scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger) extends protocbridge.ProtocCodeGenerator {
     override def run(request: Array[Byte]): Array[Byte] = impl.run(request, logger)
     override def suggestedDependencies: Seq[protocbridge.Artifact] = impl.suggestedDependencies(scalaBinaryVersion)
     override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${impl.name}: $impl)"

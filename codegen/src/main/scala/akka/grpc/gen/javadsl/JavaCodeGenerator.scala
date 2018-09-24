@@ -59,8 +59,8 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = (scalaBinaryVersion: String) => Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion, BuildInfo.version))
+  override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version))
 }
 
 object JavaCodeGenerator {

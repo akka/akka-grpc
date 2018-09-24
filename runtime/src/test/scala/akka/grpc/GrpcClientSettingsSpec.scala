@@ -5,15 +5,15 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.discovery.{Lookup, ServiceDiscovery, SimpleServiceDiscovery}
-import akka.discovery.SimpleServiceDiscovery.{Resolved, ResolvedTarget}
+import akka.discovery.{ Lookup, ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.discovery.config.ConfigSimpleServiceDiscovery
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.duration._
-import scala.collection.{immutable => im}
+import scala.collection.{ immutable => im }
 import scala.concurrent.Future
 
 class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
@@ -197,6 +197,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
   }
 }
-class FakeServiceDiscovery extends SimpleServiceDiscovery{
+class FakeServiceDiscovery extends SimpleServiceDiscovery {
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = ???
 }

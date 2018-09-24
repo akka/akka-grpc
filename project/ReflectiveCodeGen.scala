@@ -53,7 +53,8 @@ object ReflectiveCodeGen extends AutoPlugin {
         extraGenerators.value,
         sourceManaged.value,
         codeGeneratorSettings.value,
-        PB.targets.value.asInstanceOf[ListBuffer[Target]]
+        PB.targets.value.asInstanceOf[ListBuffer[Target]],
+        scalaBinaryVersion.value,
       ),
       PB.recompile ~= (_ => true),
       PB.protoSources in Compile := Seq(PB.externalIncludePath.value, sourceDirectory.value / "proto")
@@ -77,6 +78,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       targetPath: File,
       generatorSettings: Seq[String],
       targets: ListBuffer[Target],
+      scalaBinaryVersion: String
   ): Unit = {
     val languages = languages0 mkString ", "
     val sources = sources0 mkString ", "
@@ -96,16 +98,18 @@ object ReflectiveCodeGen extends AutoPlugin {
           |import AkkaGrpc._
           |import akka.grpc.gen.scaladsl._
           |import akka.grpc.gen.javadsl._
+          |import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
           |
           |val languages: Seq[AkkaGrpc.Language] = Seq($languages)
           |val sources: Seq[AkkaGrpc.GeneratedSource] = Seq($sources)
+          |val scalaBinaryVersion = ScalaBinaryVersion("$scalaBinaryVersion")
           |
           |val logger = akka.grpc.gen.StdoutLogger
           |
           |(targetPath: java.io.File, settings: Seq[String]) => {
           |  val generators =
-          |    AkkaGrpcPlugin.generatorsFor(sources, languages, logger) ++
-          |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, akka.grpc.gen.StdoutLogger))
+          |    AkkaGrpcPlugin.generatorsFor(sources, languages, scalaBinaryVersion, logger) ++
+          |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, scalaBinaryVersion, akka.grpc.gen.StdoutLogger))
           |  AkkaGrpcPlugin.targetsFor(targetPath, settings, generators)
           |}
         """.stripMargin
