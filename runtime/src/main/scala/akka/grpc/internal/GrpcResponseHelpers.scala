@@ -7,9 +7,9 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers
-import akka.grpc.{Codec, Grpc, GrpcServiceException, ProtobufSerializer}
+import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpResponse}
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
@@ -53,8 +53,7 @@ object GrpcResponseHelpers {
 
     HttpResponse(
       headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
-      entity = HttpEntity.Chunked(Grpc.contentType, outChunks),
-    )
+      entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
   }
 
   def status(status: Status): HttpResponse =

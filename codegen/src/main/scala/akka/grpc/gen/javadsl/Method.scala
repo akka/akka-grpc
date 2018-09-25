@@ -5,14 +5,15 @@
 package akka.grpc.gen.javadsl
 
 import akka.grpc.gen._
-import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
+import com.google.protobuf.Descriptors.{ Descriptor, MethodDescriptor }
 
-final case class Method(name: String,
-                  grpcName: String,
-                  inputType: Descriptor,
-                  inputStreaming: Boolean,
-                  outputType: Descriptor,
-                  outputStreaming: Boolean) {
+final case class Method(
+  name: String,
+  grpcName: String,
+  inputType: Descriptor,
+  inputStreaming: Boolean,
+  outputType: Descriptor,
+  outputStreaming: Boolean) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -32,9 +33,9 @@ final case class Method(name: String,
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {
       case (false, false) => Unary
-      case (true, false)  => ClientStreaming
-      case (false, true)  => ServerStreaming
-      case (true, true)   => BidiStreaming
+      case (true, false) => ClientStreaming
+      case (false, true) => ServerStreaming
+      case (true, true) => BidiStreaming
     }
   }
 
@@ -47,7 +48,6 @@ final case class Method(name: String,
     else s"CompletionStage<${getMessageType(outputType)}>"
 }
 
-
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
     Method(
@@ -56,8 +56,7 @@ object Method {
       descriptor.getInputType,
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
-      descriptor.toProto.getServerStreaming,
-    )
+      descriptor.toProto.getServerStreaming)
   }
 
   private def methodName(name: String) =

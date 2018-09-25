@@ -60,14 +60,16 @@ object ChannelUtils {
         if (currentState == ConnectivityState.SHUTDOWN) {
           done.trySuccess(Done)
         } else {
-          channel.notifyWhenStateChanged(currentState, () => {
-            if (currentState == ConnectivityState.TRANSIENT_FAILURE) {
-              monitor(currentState, connectionAttempts + 1)
-            } else if (currentState == ConnectivityState.READY) {
-              monitor(currentState, 0)
-            } else {
-              // IDLE / CONNECTING / SHUTDOWN
-              monitor(currentState, connectionAttempts)
+          channel.notifyWhenStateChanged(currentState, new Runnable {
+            def run() = {
+              if (currentState == ConnectivityState.TRANSIENT_FAILURE) {
+                monitor(currentState, connectionAttempts + 1)
+              } else if (currentState == ConnectivityState.READY) {
+                monitor(currentState, 0)
+              } else {
+                // IDLE / CONNECTING / SHUTDOWN
+                monitor(currentState, connectionAttempts)
+              }
             }
           })
         }

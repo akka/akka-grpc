@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{ BuildInfo, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.JavaClient.txt.Client
@@ -24,8 +24,8 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
     b.build
   }
 
-  override val suggestedDependencies = Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName, BuildInfo.version),
+  override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
+    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version),
     // TODO: remove grpc-stub dependency once we have a akka-http based client #193
     Artifact("io.grpc", "grpc-stub", scalapb.compiler.Version.grpcJavaVersion))
 }
