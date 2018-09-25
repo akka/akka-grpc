@@ -6,14 +6,14 @@ package akka.grpc.gen.scaladsl
 
 import com.google.protobuf.Descriptors.{Descriptor, MethodDescriptor}
 import akka.grpc.gen._
-import scalapb.compiler.DescriptorPimps
+import scalapb.compiler.DescriptorImplicits
 
 case class Method(name: String,
                   grpcName: String,
                   inputType: Descriptor,
                   inputStreaming: Boolean,
                   outputType: Descriptor,
-                  outputStreaming: Boolean)(implicit ops: DescriptorPimps) {
+                  outputStreaming: Boolean)(implicit ops: DescriptorImplicits) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -50,7 +50,7 @@ case class Method(name: String,
 
 
 object Method {
-  def apply(descriptor: MethodDescriptor)(implicit ops: DescriptorPimps): Method = {
+  def apply(descriptor: MethodDescriptor)(implicit ops: DescriptorImplicits): Method = {
     Method(
       name = methodName(descriptor.getName),
       grpcName = descriptor.getName,
@@ -64,7 +64,7 @@ object Method {
   private def methodName(name: String) =
     name.head.toLower +: name.tail
 
-  def messageType(messageType: Descriptor)(implicit ops: DescriptorPimps) = {
+  def messageType(messageType: Descriptor)(implicit ops: DescriptorImplicits) = {
     import ops._
     messageType.scalaTypeName
   }

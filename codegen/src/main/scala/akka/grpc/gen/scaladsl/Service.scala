@@ -8,7 +8,7 @@ import scala.collection.immutable
 
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
-import scalapb.compiler.{ DescriptorPimps, GeneratorParams }
+import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
@@ -17,9 +17,7 @@ case class Service(packageName: String, name: String, grpcName: String, methods:
 
 object Service {
   def apply(generatorParams: GeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
-    implicit val ops = new DescriptorPimps() {
-      override def params: GeneratorParams = generatorParams
-    }
+    implicit val ops = new DescriptorImplicits(generatorParams, List(fileDesc))
     import ops._
 
     val serviceClassName = serviceDescriptor.getName
