@@ -50,6 +50,9 @@ lazy val runtime = Project(
   )
   .settings(Dependencies.runtime)
   .settings(commonSettings)
+  .settings(
+    crossScalaVersions := Seq("2.11.12", "2.12.6")
+  )
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 lazy val scalapbProtocPlugin = Project(
@@ -103,7 +106,11 @@ lazy val sbtPlugin = Project(
       val p1 = publishLocal.value
       val p2 = (publishLocal in codegen).value
 
-      // 00-interop scripted test dependency
+      // publish runtime for Scala 2.11 as well as some scripted tests use that 
+      val extracted = Project.extract(state.value)
+      val differentScalaVersion = extracted.appendWithSession(List(scalaVersion in runtime := "2.11.12"), state.value)
+      extracted.runTask(publishLocal in runtime, differentScalaVersion)
+
       val p3 = (publishLocal in runtime).value
       val p4 = (publishLocal in interopTests).value
     },
