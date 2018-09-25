@@ -1,0 +1,29 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(packageName: String, services: Seq[akka.grpc.gen.scaladsl.Service])
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @{packageName}
+
+import akka.grpc.scaladsl.play.AbstractAkkaGrpcServiceModule
+import play.api.inject.Binding
+import play.api.{Configuration, Environment}
+@services.map { service =>
+import @{service.packageName}._
+}
+
+/**
+ * Add this generated AkkaGrpcServiceModule to play.modules.enabled
+ * in your application.conf to have the available gRPC services injectable
+ */
+class AkkaGrpcServiceModule extends AbstractAkkaGrpcServiceModule {
+  override protected def services: Seq[Class[_]] = {
+    Seq(
+      @services.map { service =>
+      classOf[@{service.name}],
+      }
+    )
+  }
+}

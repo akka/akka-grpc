@@ -8,6 +8,8 @@
 package @service.packageName;
 
 import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import akka.japi.Function;
 import scala.concurrent.Future;
@@ -17,25 +19,20 @@ import akka.http.scaladsl.model.HttpResponse;
 import akka.stream.Materializer;
 
 import akka.grpc.internal.PlayRouter;
+import akka.grpc.internal.PlayRouterHelper;
 
 /**
  * Abstract base class for implementing @{service.name} in Java and using as a play Router
  */
-public abstract class Abstract@{service.name}Router extends PlayRouter implements @{service.name} {
+public class @{service.name}Router extends PlayRouter {
 
-  public Abstract@{service.name}Router(Materializer mat) {
-    super(mat, @{service.name}.name);
+  @@Inject
+  public @{service.name}Router(@@Named("impl") @{service.name} service, Materializer mat) {
+    super(
+        '/' + @{service.name}.name,
+        PlayRouterHelper.handlerFor(@{service.name}HandlerFactory.create(service, @{service.name}.name, mat))
+    );
   }
-
-  /**
-   * INTERNAL API
-   */
-  final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
-     return akka.grpc.internal.PlayRouterHelper.handlerFor(
-        @{service.name}HandlerFactory.create(this, prefix, mat)
-     );
-  }
-
 
 }
 

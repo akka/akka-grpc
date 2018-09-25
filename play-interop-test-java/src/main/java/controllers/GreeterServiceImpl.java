@@ -3,26 +3,31 @@
  */
 
 // #service-impl
-package controllers;
+package controllers; // TODO: Move into 'services' package?
 
-import akka.stream.Materializer;
-import com.google.inject.Inject;
-import example.myapp.helloworld.grpc.AbstractGreeterServiceRouter;
+import example.myapp.helloworld.grpc.GreeterService;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /** User implementation, with support for dependency injection etc */
 @Singleton
-public class GreeterServiceImpl extends AbstractGreeterServiceRouter {
+public class GreeterServiceImpl implements GreeterService {
 
   @Inject
-  public GreeterServiceImpl(Materializer mat) {
-    super(mat);
+  public GreeterServiceImpl() {
   }
+
+
+  // FIXME: We don't actually need a Materializer here for this example, but should we include it anyway?
+  //  @Inject
+  //  public GreeterServiceImpl(Materializer mat) {
+  //    super(mat);
+  //  }
 
   @Override
   public CompletionStage<HelloReply> sayHello(HelloRequest in) {

@@ -15,6 +15,7 @@ import play.api.mvc.request.{ RemoteConnection, RequestFactory, RequestTarget }
 import controllers.GreeterServiceImpl
 import example.myapp.helloworld.grpc.helloworld._
 import GreeterServiceMarshallers._
+import akka.grpc.internal.PlayRouter
 import akka.grpc.{ Grpc, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.Chunk
 import akka.stream.scaladsl.{ Sink, Source }
@@ -29,7 +30,7 @@ class PlayScalaRouterSpec extends WordSpec with Matchers with BeforeAndAfterAll 
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 3.seconds, interval = 15.milliseconds)
 
-  val router = new GreeterServiceImpl
+  val router = new GreeterServiceRouter(new GreeterServiceImpl)
 
   "The generated Play Router" should {
 

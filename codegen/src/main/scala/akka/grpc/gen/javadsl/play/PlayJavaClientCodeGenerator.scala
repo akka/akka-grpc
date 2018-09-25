@@ -4,14 +4,11 @@
 
 package akka.grpc.gen.javadsl.play
 
-import akka.grpc.gen.Logger
 import akka.grpc.gen.javadsl.{ JavaCodeGenerator, Service }
 import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
+import akka.grpc.gen.{ CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayJava.txt.{ AkkaGrpcClientModule, ClientProvider }
-
-import scala.annotation.tailrec
-import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 
 object PlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator
 
@@ -43,13 +40,5 @@ trait PlayJavaClientCodeGenerator extends JavaCodeGenerator {
   }
 
   private[play] def packageForSharedModuleFile(allServices: Seq[Service]): String =
-    // single service or all services in single package - use that
-    if (allServices.forall(_.packageName == allServices.head.packageName)) allServices.head.packageName
-    else {
-      // try to find longest common prefix
-      allServices.tail.foldLeft(allServices.head.packageName)((packageName, service) =>
-        if (packageName == service.packageName) packageName
-        else PlayScalaClientCodeGenerator.commonPackage(packageName, service.packageName))
-    }
-
+    CodeGenerator.commonPackage(allServices.map(_.packageName))
 }

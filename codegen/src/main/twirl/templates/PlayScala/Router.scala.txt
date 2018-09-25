@@ -7,6 +7,7 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
+import javax.inject.{ Inject, Named }
 import scala.concurrent.Future
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
@@ -15,11 +16,7 @@ import akka.stream.Materializer
 import akka.grpc.internal.PlayRouter
 
 /**
- * Abstract base class for implementing @{service.name} and using as a play Router
+ * A class for routing gRPC requests to service @{service.name}.
  */
-abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name} {
-
-  final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
-    @{service.name}Handler(this, serviceName)(mat)
-
-}
+class @{service.name}Router @@Inject() (@@Named("impl") service: @{service.name})(implicit mat: Materializer)
+    extends PlayRouter('/' + @{service.name}.name, @{service.name}Handler(service, @{service.name}.name)(mat))
