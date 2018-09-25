@@ -6,9 +6,9 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
-    val akka = "2.5.14"
+    val akka = "2.5.16"
     val akkaHttp = "10.1.5"
-    val akkaDiscovery = "0.17.0"
+    val akkaDiscovery = "0.18.0"
 
     val play = "2.7.0-M3"
 
@@ -17,11 +17,11 @@ object Dependencies {
     val config = "1.3.3"
     val sslConfig = "0.2.4"
 
-    val scalaTest = "3.0.4"
-    val scalaTestPlusPlay = "4.0.0-M1"
-    val scalaJava8Compat = "0.8.0"
+    val scalaTest = "3.0.5"
+    val scalaTestPlusPlay = "4.0.0-M3"
+    val scalaJava8Compat = "0.9.0"
 
-    val maven = "3.5.3"
+    val maven = "3.5.4"
   }
 
   object Compile {
