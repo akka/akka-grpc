@@ -179,6 +179,7 @@ lazy val playTestkit = Project(
   .dependsOn(runtime)
   .dependsOn(playTestdata % "test")
   .settings(Dependencies.playTestkit)
+  .settings(commonSettings)
   .settings(
     excludeFilter in (Compile, headerSources) := {
       val orig = (excludeFilter in (Test, headerSources)).value
