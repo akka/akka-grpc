@@ -168,6 +168,7 @@ lazy val playTestdata = Project(
   .settings(Dependencies.playTestdata)
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := Seq(scala211, scala212),
     ReflectiveCodeGen.generatedLanguages := Seq("Java", "Scala"),
     ReflectiveCodeGen.extraGenerators := Seq(
       "ScalaMarshallersCodeGenerator",
@@ -189,6 +190,7 @@ lazy val playTestkit = Project(
   .settings(Dependencies.playTestkit)
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := Seq(scala211, scala212),
     excludeFilter in (Compile, headerSources) := {
       val orig = (excludeFilter in (Test, headerSources)).value
       // The following files have a different license

@@ -77,7 +77,7 @@ class DefaultTestServerFactory extends TestServerFactory {
 
   protected def overrideServerConfiguration(app: Application): Configuration = Configuration(
     "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName,
-    "play.server.akka.http2.enabled" -> true,
+    "play.server.akka.http2.enabled" -> true
   )
 
   protected def serverProvider(app: Application): play.core.server.ServerProvider = AkkaHttpServer.provider
