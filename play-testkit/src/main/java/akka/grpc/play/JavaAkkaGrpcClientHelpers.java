@@ -4,6 +4,8 @@
 
 package akka.grpc.play;
 
+import static scala.compat.java8.JFunction.*;
+
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.GrpcClientSettings$;
@@ -33,7 +35,7 @@ public final class JavaAkkaGrpcClientHelpers {
    */
   public static ServerEndpoint unsafeGetHttp2Endpoint(final ServerEndpoints serverEndpoints) {
     final scala.collection.Traversable<ServerEndpoint> possibleEndpoints =
-        serverEndpoints.endpoints().filter(e->e.httpVersions().contains("2"));
+        serverEndpoints.endpoints().filter(func(e->e.httpVersions().contains("2")));
     if (possibleEndpoints.size() != 1) {
       throw new IllegalArgumentException(String.format(
           "gRPC client can't automatically find HTTP/2 connection: " +

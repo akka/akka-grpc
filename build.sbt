@@ -1,8 +1,9 @@
 import akka.grpc.Dependencies
+import akka.grpc.Dependencies.Versions.{ scala211, scala212 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 
-scalaVersion := "2.12.6"
+scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
@@ -51,7 +52,7 @@ lazy val runtime = Project(
   .settings(Dependencies.runtime)
   .settings(commonSettings)
   .settings(
-    crossScalaVersions := Seq("2.11.12", "2.12.6")
+    crossScalaVersions := Seq(scala211, scala212)
   )
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
@@ -108,7 +109,7 @@ lazy val sbtPlugin = Project(
 
       // publish runtime for Scala 2.11 as well as some scripted tests use that 
       val extracted = Project.extract(state.value)
-      val differentScalaVersion = extracted.appendWithSession(List(scalaVersion in runtime := "2.11.12"), state.value)
+      val differentScalaVersion = extracted.appendWithSession(List(scalaVersion in runtime := scala211), state.value)
       extracted.runTask(publishLocal in runtime, differentScalaVersion)
 
       val p3 = (publishLocal in runtime).value
@@ -167,6 +168,7 @@ lazy val playTestdata = Project(
   .settings(Dependencies.playTestdata)
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := Seq(scala211, scala212),
     ReflectiveCodeGen.generatedLanguages := Seq("Java", "Scala"),
     ReflectiveCodeGen.extraGenerators := Seq(
       "ScalaMarshallersCodeGenerator",
@@ -188,6 +190,7 @@ lazy val playTestkit = Project(
   .settings(Dependencies.playTestkit)
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := Seq(scala211, scala212),
     excludeFilter in (Compile, headerSources) := {
       val orig = (excludeFilter in (Test, headerSources)).value
       // The following files have a different license

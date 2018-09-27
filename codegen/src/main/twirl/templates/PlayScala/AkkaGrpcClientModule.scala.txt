@@ -22,8 +22,8 @@ class AkkaGrpcClientModule extends play.api.inject.Module {
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     Seq(
       @services.map { service =>
-        bind[@{service.name}Client].toProvider[@{service.name}ClientProvider],
-      }
+        bind[@{service.name}Client].toProvider[@{service.name}ClientProvider]
+      }.mkString(",")
     )
   }
 }
