@@ -6,8 +6,8 @@ package play.api.test
 
 import java.util.concurrent.locks.Lock
 
-import play.api.{Application, Configuration, Mode}
-import play.core.server.{AkkaHttpServer, ServerConfig}
+import play.api.{ Application, Configuration, Mode }
+import play.core.server.{ AkkaHttpServer, ServerConfig }
 
 import scala.util.control.NonFatal
 
@@ -34,8 +34,7 @@ class DefaultTestServerFactory extends TestServerFactory {
 
   override def start(app: Application): NewTestServer = {
     val testServer: play.api.test.TestServer = new play.api.test.TestServer(
-      serverConfig(app), app, Some(serverProvider(app))
-    )
+      serverConfig(app), app, Some(serverProvider(app)))
 
     // TODO: Maybe move this logic into Helpers
     val appLock: Option[Lock] = optionalGlobalLock(app)
@@ -70,15 +69,13 @@ class DefaultTestServerFactory extends TestServerFactory {
       port = Some(0),
       sslPort = Some(0),
       mode = Mode.Test,
-      rootDir = app.path
-    )
+      rootDir = app.path)
     sc.copy(configuration = sc.configuration ++ overrideServerConfiguration(app))
   }
 
   protected def overrideServerConfiguration(app: Application): Configuration = Configuration(
     "play.server.https.engineProvider" -> classOf[SelfSignedSSLEngineProvider].getName,
-    "play.server.akka.http2.enabled" -> true
-  )
+    "play.server.akka.http2.enabled" -> true)
 
   protected def serverProvider(app: Application): play.core.server.ServerProvider = AkkaHttpServer.provider
 
@@ -88,15 +85,13 @@ class DefaultTestServerFactory extends TestServerFactory {
       host = "localhost",
       port = port,
       httpVersions = Set("1.0", "1.1"),
-      ssl = None
-    ))
+      ssl = None))
     val httpsEndpoint: Option[ServerEndpoint] = testServer.runningHttpsPort.map(port => ServerEndpoint(
       scheme = "https",
       host = "localhost",
       port = port,
       httpVersions = Set("1.0", "1.1", "2"),
-      ssl = Some(ServerEndpoint.ClientSsl(SelfSigned.sslContext, SelfSigned.trustManager))
-    ))
+      ssl = Some(ServerEndpoint.ClientSsl(SelfSigned.sslContext, SelfSigned.trustManager))))
     ServerEndpoints(httpEndpoint.toSeq ++ httpsEndpoint.toSeq)
   }
 
