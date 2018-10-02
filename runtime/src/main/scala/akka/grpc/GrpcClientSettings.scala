@@ -224,7 +224,7 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-    connectionAttempts: Option[Int] = connectionAttempts,
+    connectionAttempts: Option[Int] = connectionAttempts
   ): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
@@ -238,7 +238,7 @@ final class GrpcClientSettings private (
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,
-    connectionAttempts = connectionAttempts,
+    connectionAttempts = connectionAttempts
   )
 
 }
