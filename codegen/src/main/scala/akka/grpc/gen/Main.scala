@@ -48,65 +48,65 @@ object Main extends App {
     case _ => SilencedLogger
   }
 
-  val out = {
-    val codeGenerator =
-      if (!generatePlay) {
-        if (languageScala) {
-          // Scala
-          if (generateClient && generateServer) ScalaBothCodeGenerator
-          else if (generateClient) ScalaClientCodeGenerator
-          else if (generateServer) ScalaServerCodeGenerator
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        } else {
-          // Java
-          if (generateClient && generateServer) JavaBothCodeGenerator
-          else if (generateClient) JavaClientCodeGenerator
-          else if (generateServer) JavaServerCodeGenerator
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        }
-      } else {
-        if (languageScala) {
-          // Scala
-          if (generateClient && generateServer) CombinedPlayScalaBothCodeGenerator
-          else if (generateClient) CombinedPlayScalaClientCodeGenerator
-          else if (generateServer) CombinedPlayScalaServerCodeGenerator
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        } else {
-          // Java
-          if (generateClient && generateServer) CombinedPlayJavaBothCodeGenerator
-          else if (generateClient) CombinedPlayJavaClientCodeGenerator
-          else if (generateServer) CombinedPlayJavaServerCodeGenerator
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        }
-      }
-
-    codeGenerator.run(req, logger)
-  }
-
-  System.out.write(out.toByteArray)
-  System.out.flush()
-
-  /**
-   * Generators to generate both the 'plain' akka-grpc code and the play-specific code that depends on it.
-   * In other build tools (Maven and sbt) these are passed to protoc separately, but since Gradle does the
-   * akka-grpc code generation in a single protoc invocation we need to combine those here:
-   */
-  object CombinedPlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator {
-    override def name = "combined-play-java-client"
-  }
-  object CombinedPlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
-    override def name = "combined-play-java-server"
-  }
-  object CombinedPlayJavaBothCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator with PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
-    override def name = "combined-play-java-both"
-  }
-  object CombinedPlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator {
-    override def name = "combined-play-scala-client"
-  }
-  object CombinedPlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
-    override def name = "combined-play-scala-server"
-  }
-  object CombinedPlayScalaBothCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator with PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
-    override def name = "combined-play-scala-both"
-  }
+  //  val out = {
+  //    val codeGenerator =
+  //      if (!generatePlay) {
+  //        if (languageScala) {
+  //          // Scala
+  //          if (generateClient && generateServer) ScalaBothCodeGenerator
+  //          else if (generateClient) ScalaClientCodeGenerator
+  //          else if (generateServer) ScalaServerCodeGenerator()
+  //          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+  //        } else {
+  //          // Java
+  //          if (generateClient && generateServer) JavaBothCodeGenerator
+  //          else if (generateClient) JavaClientCodeGenerator
+  //          else if (generateServer) JavaServerCodeGenerator
+  //          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+  //        }
+  //      } else {
+  //        if (languageScala) {
+  //          // Scala
+  //          if (generateClient && generateServer) CombinedPlayScalaBothCodeGenerator
+  //          else if (generateClient) CombinedPlayScalaClientCodeGenerator
+  //          else if (generateServer) CombinedPlayScalaServerCodeGenerator
+  //          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+  //        } else {
+  //          // Java
+  //          if (generateClient && generateServer) CombinedPlayJavaBothCodeGenerator
+  //          else if (generateClient) CombinedPlayJavaClientCodeGenerator
+  //          else if (generateServer) CombinedPlayJavaServerCodeGenerator
+  //          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
+  //        }
+  //      }
+  //
+  //    codeGenerator.run(req, logger)
+  //  }
+  //
+  //  System.out.write(out.toByteArray)
+  //  System.out.flush()
+  //
+  //  /**
+  //   * Generators to generate both the 'plain' akka-grpc code and the play-specific code that depends on it.
+  //   * In other build tools (Maven and sbt) these are passed to protoc separately, but since Gradle does the
+  //   * akka-grpc code generation in a single protoc invocation we need to combine those here:
+  //   */
+  //  object CombinedPlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator {
+  //    override def name = "combined-play-java-client"
+  //  }
+  //  object CombinedPlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
+  //    override def name = "combined-play-java-server"
+  //  }
+  //  object CombinedPlayJavaBothCodeGenerator extends PlayJavaClientCodeGenerator with JavaClientCodeGenerator with PlayJavaServerCodeGenerator with JavaServerCodeGenerator {
+  //    override def name = "combined-play-java-both"
+  //  }
+  //  object CombinedPlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator {
+  //    override def name = "combined-play-scala-client"
+  //  }
+  //  object CombinedPlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
+  //    override def name = "combined-play-scala-server"
+  //  }
+  //  object CombinedPlayScalaBothCodeGenerator extends PlayScalaClientCodeGenerator with ScalaClientCodeGenerator with PlayScalaServerCodeGenerator with ScalaServerCodeGenerator {
+  //    override def name = "combined-play-scala-both"
+  //  }
 }

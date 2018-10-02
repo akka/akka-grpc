@@ -1,0 +1,27 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service)
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @service.packageName
+
+import scala.concurrent.Future
+
+import akka.NotUsed
+import akka.stream.scaladsl.Source
+import akka.grpc.scaladsl.MetadataMap
+import akka.grpc.GrpcServiceException
+
+import io.grpc.Status
+
+trait @{service.name}PowerApi extends @{service.name} {
+  @for(method <- service.methods) {
+  def @{method.name}(in: @method.parameterType, metadata: MetadataMap): @method.returnType
+  }
+
+  @for(method <- service.methods) {
+  override def @{method.name}(in: @method.parameterType): @method.returnType = throw new GrpcServiceException(Status.UNIMPLEMENTED)
+  }
+}

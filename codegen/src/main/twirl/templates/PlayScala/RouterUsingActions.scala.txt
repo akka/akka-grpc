@@ -1,0 +1,28 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean)
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @service.packageName
+
+import scala.concurrent.Future
+
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.stream.Materializer
+
+import akka.grpc.internal.PlayRouterUsingActions
+
+import play.api.mvc.{ControllerComponents, EssentialAction, RequestHeader}
+
+/**
+ * Abstract base class for implementing @{service.name} and using as a play Router
+ */
+@defining(service.name + (if (powerApis) "PowerApi" else "")) { serviceName =>
+  abstract class Abstract@{serviceName}RouterUsingActions(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{serviceName} {
+
+    final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction =
+      new @{serviceName}HandlerUsingActions(cc).apply(this, serviceName)(mat)
+  }
+}

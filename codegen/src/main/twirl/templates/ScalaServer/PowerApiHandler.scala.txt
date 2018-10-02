@@ -1,0 +1,91 @@
+@*
+ * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service)
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @service.packageName
+
+import scala.concurrent.{ ExecutionContext, Future }
+
+import akka.grpc.scaladsl
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, MetadataMap }
+import akka.grpc.{Codecs, GrpcServiceException }
+
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+
+import akka.stream.Materializer
+
+@defining(service.name + "PowerApi") { powerApiServiceName =>
+  object @{powerApiServiceName}Handler {
+    private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
+
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{powerApiServiceName}Handler.partial` when combining
+     * several services.
+     */
+    def apply(implementation: @powerApiServiceName)(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+      partial(implementation).orElse { case _ => notFound }
+
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{powerApiServiceName}Handler.partial` when combining
+     * several services.
+     *
+     * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
+     */
+    def apply(implementation: @powerApiServiceName, prefix: String)(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+      partial(implementation, prefix).orElse { case _ => notFound }
+
+    /**
+     * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
+     * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example
+     * `Http().bindAndHandleAsync`.
+     *
+     * Use `@{powerApiServiceName}Handler.apply` if the server is only handling one service.
+     */
+    def partial(implementation: @powerApiServiceName)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] =
+      partial(implementation, @{service.name}.name)
+
+    /**
+     * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
+     * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example
+     * `Http().bindAndHandleAsync`.
+     *
+     * Use `@{powerApiServiceName}Handler.apply` if the server is only handling one service.
+     *
+     * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
+     */
+    def partial(implementation: @powerApiServiceName, prefix: String)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+      implicit val ec: ExecutionContext = mat.executionContext
+      import @{service.name}.Serializers._
+
+      def handle(request: HttpRequest, method: String): Future[HttpResponse] = method match {
+        @for(method <- service.methods) {
+        case "@method.grpcName" =>
+          val responseCodec = Codecs.negotiate(request)
+          val metadataMap = MetadataMap(request.headers)
+          @{method.unmarshal}(request)(@method.deserializer.name, mat)
+            .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_, metadataMap))
+            .map(e => @{method.marshal}(e)(@method.serializer.name, mat, responseCodec))
+        }
+        case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
+      }
+
+      Function.unlift((req: HttpRequest) => req.uri.path match {
+        case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) ⇒
+          Some(handle(req, method).recoverWith(GrpcExceptionHandler.default))
+        case _ =>
+          None
+      })
+    }
+  }
+}

@@ -4,14 +4,15 @@
 
 package akka.grpc.sbt
 
-import java.io.{ ByteArrayOutputStream, PrintStream }
+import java.io.{ByteArrayOutputStream, PrintStream}
 
-import sbt.{ GlobFilter, _ }
+import sbt.{GlobFilter, _}
 import Keys._
-import akka.grpc.gen.javadsl.{ JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.scaladsl.{ ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator }
-import akka.grpc.gen.{ Logger => GenLogger }
+import akka.grpc.gen.javadsl.{JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator}
+import akka.grpc.gen.{Logger => GenLogger}
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
+import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
@@ -36,18 +37,28 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
     object AkkaGrpc {
       sealed trait GeneratedSource
-      case object Client extends GeneratedSource
-      case object Server extends GeneratedSource
+      sealed trait GeneratedServer extends GeneratedSource
+      sealed trait GeneratedClient extends GeneratedSource
+
+      case object Client extends GeneratedClient
+      case object Server extends GeneratedServer
+      case object PlayClient extends GeneratedClient
+      case object PlayServer extends GeneratedServer
 
       sealed trait Language
       case object Scala extends Language
       case object Java extends Language
+
+      sealed trait GeneratorOption
+      case object ServerPowerApis extends GeneratorOption
+      case object UsePlayActions extends GeneratorOption
     }
 
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]](
       "Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
     val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]](
-      "Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client)")
+      "Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client, AkkaGrpc.PlayServer, AkkaGrpc.PlayClient)")
+    val akkaGrpcGeneratorOptions = settingKey[Seq[AkkaGrpc.GeneratorOption]]("Generator options (AkkaGrpc.ServerPowerApis). Empty by default")
     val akkaGrpcExtraGenerators = settingKey[Seq[akka.grpc.gen.CodeGenerator]]("Extra generators to evaluate. Empty by default")
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]]("Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generators")
@@ -63,6 +74,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
+      akkaGrpcGeneratorOptions := Seq.empty,
       akkaGrpcExtraGenerators := Seq.empty,
       PB.recompile in Compile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
@@ -81,7 +93,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
       akkaGrpcGenerators := {
-        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
+        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, akkaGrpcGeneratorOptions.value, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
       },
 
       // configure the proto gen automatically by adding our codegen:
@@ -126,32 +138,34 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   // creates a seq of generator and per generator settings
-  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
+  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], options: Seq[AkkaGrpc.GeneratorOption], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
+    import AkkaGrpc._
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
-    stubs match {
-      case Seq(_, _) =>
-        languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator, scalaBinaryVersion, logger), JavaGenerator, toGenerator(JavaBothCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaBothCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaBothCodeGenerator, scalaBinaryVersion, logger))
-        }
-      case Seq(AkkaGrpc.Client) =>
-        languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, scalaBinaryVersion, logger), JavaGenerator, toGenerator(JavaClientCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaClientCodeGenerator, scalaBinaryVersion, logger))
-        }
-      case Seq(AkkaGrpc.Server) =>
-        languages match {
-          case Seq(_, _) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator, scalaBinaryVersion, logger), JavaGenerator, toGenerator(JavaServerCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator, scalaBinaryVersion, logger))
-          case Seq(AkkaGrpc.Java) => Seq(JavaGenerator, toGenerator(JavaServerCodeGenerator, scalaBinaryVersion, logger))
-        }
-    }
+//    val (clientGenerators, serverGenerators) = stubs.groupBy()
+//    val clientGenerators = stubs.filter(_.isInstanceOf[AkkaGrpc.GeneratedClient])
+//    val serverGenerators = stubs.filter(_.isInstanceOf[AkkaGrpc.GeneratedServer])
+//
+//    val clientGenerators = stubs.map {
+//      case AkkaGrpc.
+//    }
+
+    val serverPowerApis = options.contains(AkkaGrpc.ServerPowerApis)
+    val usePlayActions = options.contains(AkkaGrpc.UsePlayActions)
+
+    (for {
+      stub <- stubs
+      language <- languages
+    } yield (stub, language) match {
+      case (_, Java) => logger.error("Livongo: java code generators not yet available"); Seq.empty
+      case (Client, Scala) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, scalaBinaryVersion, logger))
+      case (PlayClient, Scala) => Seq(ScalaGenerator, toGenerator(PlayScalaClientCodeGenerator, scalaBinaryVersion, logger))
+      case (Server, Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
+      case (PlayServer, Scala) => Seq(ScalaGenerator, toGenerator(PlayScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), scalaBinaryVersion, logger))
+    }).flatten.distinct
   }
 
   // this transforms the Akka gRPC API generators to the right protocbridge type

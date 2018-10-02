@@ -122,26 +122,28 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
 
-      val targets = language match {
-        case Java ⇒
-          val glueGenerator =
-            if (generateServer)
-              if (generateClient) JavaBothCodeGenerator
-              else JavaServerCodeGenerator
-            else JavaClientCodeGenerator
-          Seq[Target](
-            protocbridge.gens.java -> generatedSourcesDir,
-            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
-        case Scala ⇒
-          val glueGenerator =
-            if (generateServer)
-              if (generateClient) ScalaBothCodeGenerator
-              else ScalaServerCodeGenerator
-            else ScalaClientCodeGenerator
-          Seq[Target](
-            (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → generatedSourcesDir,
-            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
-      }
+      //      val targets = language match {
+      //        case Java ⇒
+      //          val glueGenerator =
+      //            if (generateServer)
+      //              if (generateClient) JavaBothCodeGenerator
+      //              else JavaServerCodeGenerator
+      //            else JavaClientCodeGenerator
+      //          Seq[Target](
+      //            protocbridge.gens.java -> generatedSourcesDir,
+      //            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
+      //        case Scala ⇒
+      //          val glueGenerator =
+      //            if (generateServer)
+      //              if (generateClient) ScalaBothCodeGenerator
+      //              else ScalaServerCodeGenerator
+      //            else ScalaClientCodeGenerator
+      //          Seq[Target](
+      //            (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → generatedSourcesDir,
+      //            adaptAkkaGenerator(generatedSourcesDir, glueGenerator, akkaGrpcCodeGeneratorSettings))
+      //      }
+
+      val targets = Seq.empty
 
       val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
       val protocOptions = Seq.empty

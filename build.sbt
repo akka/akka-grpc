@@ -7,6 +7,7 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
+  version := "0.4.1.livongo",
 
   scalacOptions ++= List(
     "-unchecked",
@@ -289,17 +290,17 @@ lazy val root = Project(
   .aggregate(
     runtime,
     codegen,
-    mavenPlugin,
+//    mavenPlugin,
     sbtPlugin,
     scalapbProtocPlugin,
-    interopTests,
-    playInteropTestJava,
-    playInteropTestScala,
-    playTestkit,
-    playTestdata,
-    pluginTesterScala,
-    pluginTesterJava,
-    docs,
+//    interopTests,
+//    playInteropTestJava,
+//    playInteropTestScala,
+//    playTestkit,
+//    playTestdata,
+//    pluginTesterScala,
+//    pluginTesterJava,
+//    docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
   .settings(

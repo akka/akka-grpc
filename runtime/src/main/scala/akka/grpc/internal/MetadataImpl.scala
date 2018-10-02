@@ -7,15 +7,12 @@ package akka.grpc.internal
 import java.util.Optional
 
 import akka.annotation.InternalApi
+import akka.grpc.scaladsl.{ BytesEntry, MetadataEntry, StringEntry }
 import akka.grpc.{ javadsl, scaladsl }
 import akka.util.ByteString
 import io.grpc.Metadata
-import scala.compat.java8.OptionConverters._
 
-// the io.grpc.Metadata class is mutable and has a horrible API, let's hide it
-@InternalApi private[akka] sealed trait MetadataEntry
-@InternalApi private[akka] case class StringEntry(value: String) extends MetadataEntry
-@InternalApi private[akka] case class BytesEntry(value: ByteString) extends MetadataEntry
+import scala.compat.java8.OptionConverters._
 
 @InternalApi private[akka] object MetadataImpl {
   val empty = new MetadataImpl(List.empty)
