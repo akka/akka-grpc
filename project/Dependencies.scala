@@ -18,7 +18,7 @@ object Dependencies {
     val scalapb = "0.8.0"
     val grpc = "1.14.0"
     val config = "1.3.3"
-    val sslConfig = "0.2.4"
+    val sslConfig = "0.3.3"
 
     val scalaTest = "3.0.5"
     val scalaTestPlusPlay = "4.0.0-M3"
