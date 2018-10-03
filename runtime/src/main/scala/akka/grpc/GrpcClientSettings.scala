@@ -12,6 +12,7 @@ import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
+import com.typesafe.sslconfig.akka.util.AkkaLoggerFactory
 import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
 import javax.net.ssl.SSLContext
@@ -92,7 +93,7 @@ object GrpcClientSettings {
   /**
    * Given a base GrpcClientSettings, it generates a new instance with all values provided in config.
    */
-  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config): GrpcClientSettings = {
+  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
     initialSettings.copy(
       servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
       serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
@@ -127,10 +128,10 @@ object GrpcClientSettings {
    * @param config The config to parse, assumes already at the right path.
    */
   @InternalApi
-  private def getSSLContext(config: Config): SSLContext = {
+  private def getSSLContext(config: Config)(implicit actorSystem: ActorSystem): SSLContext = {
     val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(config)
     val sslContext: SSLContext = new ConfigSSLContextBuilder(
-      com.typesafe.sslconfig.util.NoopLogger.factory, // FIXME
+      new AkkaLoggerFactory(actorSystem),
       sslConfigSettings,
       new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
       new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)).build()
@@ -141,7 +142,7 @@ object GrpcClientSettings {
    * INTERNAL API
    */
   @InternalApi
-  private def getOptionalSSLContext(config: Config, path: String): Option[SSLContext] = {
+  private def getOptionalSSLContext(config: Config, path: String)(implicit actorSystem: ActorSystem): Option[SSLContext] = {
     if (config.hasPath(path))
       Some(getSSLContext(config.getConfig(path)))
     else
