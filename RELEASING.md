@@ -13,7 +13,11 @@
 1. Update quick start guides with the new version:
   - https://github.com/akka/akka-grpc-quickstart-java.g8
   - https://github.com/akka/akka-grpc-quickstart-scala.g8
-  
+
+Due to https://github.com/akka/akka-grpc/issues/365, when the tag is created
+before that commit has been been successfully built for the 'master' branch,
+the maven tests for the build of the 'master' branch will fail for that
+commit. The release build and the next commit on 'master' should be fine.
 
 ## Gradle plugin release details
 
