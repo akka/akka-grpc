@@ -18,7 +18,7 @@ val commonSettings = Seq(
     "-Xlint:unchecked",
     "-Xlint:deprecation"
   )
-)
+) ++ akka.grpc.Formatting.formatSettings
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
