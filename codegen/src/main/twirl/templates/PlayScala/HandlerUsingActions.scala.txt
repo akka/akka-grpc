@@ -193,7 +193,7 @@ import scala.util.{Failure, Success, Try}
               LastChunk(akkaToPlayHeaders(trailer))
             case HttpEntity.Chunk(data, ext) => Chunk(data)
           }
-          Chunked(playChunks, Some(ct.toString())
+          Chunked(playChunks, Some(ct.toString()))
         case _ => ???
       }
       Result(akkaToPlayResponseHeaders(akkaResp), playEntity)
@@ -212,7 +212,7 @@ import scala.util.{Failure, Success, Try}
               LastChunk(akkaToPlayHeaders(trailer))
             case HttpEntity.Chunk(data, ext) => Chunk(data)
           }
-          Chunked(playChunks, None)
+          Chunked(playChunks, Some(ct.toString()))
         case _ => ???
       }
       Result(akkaToPlayResponseHeaders(akkaResp), playEntity)
