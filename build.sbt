@@ -191,11 +191,6 @@ lazy val playTestkit = Project(
   .settings(commonSettings)
   .settings(
     crossScalaVersions := Seq(scala211, scala212),
-    excludeFilter in (Compile, headerSources) := {
-      val orig = (excludeFilter in (Test, headerSources)).value
-      // The following files have a different license
-      orig || "NewGuiceOneServerPerTest.scala" || "NewServerProvider.scala" || "NewBaseOneServerPerTest.scala"
-    },
   )
   .pluginTestingSettings
 
@@ -214,6 +209,11 @@ val playScalaTest = Project("akka-grpc-play-scalatest", file("play-scalatest"))
     commonSettings,
     crossScalaVersions := Seq(scala211, scala212),
     Dependencies.playScalaTest,
+    excludeFilter in (Compile, headerSources) := {
+      val orig = (excludeFilter in (Test, headerSources)).value
+      // The following files have a different license
+      orig || "NewGuiceOneServerPerTest.scala" || "NewServerProvider.scala" || "NewBaseOneServerPerTest.scala"
+    },
   )
   .pluginTestingSettings
 
