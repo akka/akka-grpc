@@ -49,8 +49,13 @@ public final class JavaAkkaGrpcClientHelpers {
       final ServerEndpoint http2Endpoint,
       final ActorSystem actorSystem
   ) {
-    final SSLContext sslContext = http2Endpoint.ssl().get().sslContext();
-    return grpcClientSettings(http2Endpoint, sslContext, actorSystem);
+
+    final ServerEndpoint.ClientSsl clientSsl = http2Endpoint.ssl().getOrElse(func(() -> {
+      throw new IllegalArgumentException(
+          "GrpcClientSettings requires a server endpoint with ssl, but non provided");
+    }));
+
+    return grpcClientSettings(http2Endpoint, clientSsl.sslContext(), actorSystem);
   }
 
   public static GrpcClientSettings grpcClientSettings(
