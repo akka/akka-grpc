@@ -199,11 +199,29 @@ lazy val playTestkit = Project(
   )
   .pluginTestingSettings
 
+val playSpecs2 = Project("akka-grpc-play-specs2", file("play-specs2"))
+  .dependsOn(playTestkit, playTestkit % "test->test")
+  .settings(
+    commonSettings,
+    crossScalaVersions := Seq(scala211, scala212),
+    Dependencies.playSpecs2,
+  )
+  .pluginTestingSettings
+
+val playScalaTest = Project("akka-grpc-play-scalatest", file("play-scalatest"))
+  .dependsOn(playTestkit, playTestkit % "test->test")
+  .settings(
+    commonSettings,
+    crossScalaVersions := Seq(scala211, scala212),
+    Dependencies.playScalaTest,
+  )
+  .pluginTestingSettings
+
 lazy val playInteropTestScala = Project(
     id="akka-grpc-play-interop-test-scala",
     base = file("play-interop-test-scala")
   )
-  .dependsOn(playTestkit % "test")
+  .dependsOn(playSpecs2 % Test, playScalaTest % Test)
   .settings(Dependencies.playInteropTestScala)
   .settings(commonSettings)
   .settings(
@@ -220,7 +238,7 @@ lazy val playInteropTestJava = Project(
     id="akka-grpc-play-interop-test-java",
     base = file("play-interop-test-java")
   )
-  .dependsOn(playTestkit % "test")
+  .dependsOn(playSpecs2 % Test, playScalaTest % Test)
   .settings(Dependencies.playInteropTestJava)
   .settings(commonSettings)
   .settings(
@@ -296,6 +314,8 @@ lazy val root = Project(
     playInteropTestJava,
     playInteropTestScala,
     playTestkit,
+    playSpecs2,
+    playScalaTest,
     playTestdata,
     pluginTesterScala,
     pluginTesterJava,
