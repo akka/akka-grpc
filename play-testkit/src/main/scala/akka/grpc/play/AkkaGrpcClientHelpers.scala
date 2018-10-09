@@ -63,7 +63,7 @@ object AkkaGrpcClientHelpers {
    * Configure a factory from an application and some server endpoints. Expects to have exactly one HTTP/2 endpoint.
    */
   def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoints: ServerEndpoints): AkkaGrpcClientFactory.Configured[T] = {
-    factoryForAppEndpoints(app, JavaAkkaGrpcClientHelpers.unsafeGetHttp2Endpoint(serverEndpoints))
+    factoryForAppEndpoints(app, JavaAkkaGrpcClientHelpers.getHttp2Endpoint(serverEndpoints))
   }
 
   /**
