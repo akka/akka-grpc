@@ -8,7 +8,6 @@ import static scala.compat.java8.JFunction.*;
 
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
-import akka.grpc.GrpcClientSettings$;
 
 import play.api.test.NewTestServer;
 import play.api.test.ServerEndpoint;
@@ -18,8 +17,6 @@ import javax.net.ssl.SSLContext;
 
 /** Helpers to test Java Akka gRPC clients with Play. */
 public final class JavaAkkaGrpcClientHelpers {
-  private static final GrpcClientSettings$ GrpcClientSettings = GrpcClientSettings$.MODULE$;
-
   private JavaAkkaGrpcClientHelpers() {}
 
   /** Creates a GrpcClientSettings from the given NewTestServer. */
