@@ -28,7 +28,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = sys.dispatcher
 
-  private val awaitTimeout = 7.seconds
+  private val awaitTimeout = 15.seconds
 
   def setUp(): Unit = {
     val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
