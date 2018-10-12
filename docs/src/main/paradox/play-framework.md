@@ -49,7 +49,7 @@ again, in `application.conf`:
 
 @@snip[application.conf](/play-interop-test-scala/src/main/resources/application.conf) { #service-client-conf }
 
-If a client is generated and use that does not have an entry defined in `application.conf` it will fail with an exception
+See @ref[Client Configuration](client/configuration.md) for more information on the available options. If a client is generated and use that does not have an entry defined in `application.conf` it will fail with an exception
 when the client is injected. // FIXME depends on #271
 
 You can now use the client in a controller by injecting it:
