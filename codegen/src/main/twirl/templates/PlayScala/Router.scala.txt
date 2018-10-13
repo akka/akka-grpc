@@ -21,5 +21,4 @@ abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRout
 
   final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
     @{service.name}@{if(powerApis) { "PowerApi"} else { "" }}Handler(this, serviceName)(mat)
-
 }
