@@ -36,7 +36,7 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
   private val generateHandlerUsingActions: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(HandlerUsingActions(service, powerApis).body)
-    b.setName(s"${service.packageDir}/${service.name}HandlerUsingActions.scala")
+    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
     b.build
   }
@@ -44,7 +44,7 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
   private val generateRouterUsingActions: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(RouterUsingActions(service, powerApis).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}RouterUsingActions.scala")
+    b.setName(s"${service.packageDir}/Abstract${service.name}Router.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
     b.build
   }

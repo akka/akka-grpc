@@ -19,10 +19,8 @@ import play.api.mvc.{ControllerComponents, EssentialAction, RequestHeader}
 /**
  * Abstract base class for implementing @{service.name} and using as a play Router
  */
-@defining(service.name + (if (powerApis) "PowerApi" else "")) { serviceName =>
-  abstract class Abstract@{serviceName}RouterUsingActions(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{serviceName} {
+abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
 
-    final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction =
-      new @{serviceName}HandlerUsingActions(cc).apply(this, serviceName)(mat)
-  }
+  final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction =
+    new @{serviceName}Handler(cc).apply(this, serviceName)(mat)
 }

@@ -48,7 +48,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 @defining(service.name + (if (powerApis) "PowerApi" else "")) { serviceName =>
-  class @{serviceName}HandlerUsingActions(cc: ControllerComponents) extends InjectedController with Results {
+  class @{serviceName}Handler(cc: ControllerComponents) extends InjectedController with Results {
     setControllerComponents(cc)
     val notFound = Action(NotFound)
 
