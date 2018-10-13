@@ -37,7 +37,7 @@ object ScalaServerCodeGenerator {
   val generatePowerHandler: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(PowerApiHandler(service).body)
-    b.setName(s"${service.packageDir}/${service.name}PowerApiHandler.scala")
+    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
     //    logger.info(s"Generating Akka gRPC extended server handler ${service.packageName}.${service.name}ExtendedHandler")
     b.build
