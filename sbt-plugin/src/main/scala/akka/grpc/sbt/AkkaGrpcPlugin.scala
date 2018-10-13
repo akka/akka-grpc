@@ -143,14 +143,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
-//    val (clientGenerators, serverGenerators) = stubs.groupBy()
-//    val clientGenerators = stubs.filter(_.isInstanceOf[AkkaGrpc.GeneratedClient])
-//    val serverGenerators = stubs.filter(_.isInstanceOf[AkkaGrpc.GeneratedServer])
-//
-//    val clientGenerators = stubs.map {
-//      case AkkaGrpc.
-//    }
-
     val serverPowerApis = options.contains(AkkaGrpc.ServerPowerApis)
 
     (for {
