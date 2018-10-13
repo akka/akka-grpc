@@ -6,12 +6,13 @@ package akka.grpc.sbt
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
+import sbt.{GlobFilter, _}
+import Keys._
+import akka.grpc.gen.javadsl.{JavaBothCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaBothCodeGenerator, ScalaClientCodeGenerator, ScalaMarshallersCodeGenerator, ScalaServerCodeGenerator}
+import akka.grpc.gen.{Logger => GenLogger}
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
-import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaServerCodeGenerator}
-import akka.grpc.gen.{Logger => GenLogger}
-import sbt.Keys._
-import sbt.{GlobFilter, _}
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
@@ -50,6 +51,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
       sealed trait GeneratorOption
       case object ServerPowerApis extends GeneratorOption
+      case object UsePlayActions extends GeneratorOption
     }
 
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]](
@@ -144,6 +146,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
     val serverPowerApis = options.contains(AkkaGrpc.ServerPowerApis)
+    val usePlayActions = options.contains(AkkaGrpc.UsePlayActions)
 
     (for {
       stub <- stubs
@@ -153,7 +156,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case (Client, Scala) => Seq(ScalaGenerator, toGenerator(ScalaClientCodeGenerator, scalaBinaryVersion, logger))
       case (PlayClient, Scala) => Seq(ScalaGenerator, toGenerator(PlayScalaClientCodeGenerator, scalaBinaryVersion, logger))
       case (Server, Scala) => Seq(ScalaGenerator, toGenerator(ScalaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
-      case (PlayServer, Scala) => Seq(ScalaGenerator, toGenerator(PlayScalaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
+      case (PlayServer, Scala) => Seq(ScalaGenerator, toGenerator(PlayScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), scalaBinaryVersion, logger))
     }).flatten.distinct
   }
 
