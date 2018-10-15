@@ -21,8 +21,8 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
     super.perServiceContent ++ Set(ScalaCodeGenerator.generateServiceFile) ++ ((powerApis, usePlayActions) match {
       case (true, true) => Set(generatePowerService, generateHandlerUsingActions, generateRouterUsingActions)
       case (false, true) => Set(generateHandlerUsingActions, generateRouterUsingActions)
-      case (true, false) => Set(generatePowerService, generatePowerHandler, generateRouter)
-      case (false, false) => Set(generateHandler, generateRouter)
+      case (true, false) => Set(generatePowerService, generateHandler(powerApis), generateRouter)
+      case (false, false) => Set(generateHandler(powerApis), generateRouter)
     })
 
   private val generateRouter: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
