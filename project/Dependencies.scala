@@ -22,7 +22,6 @@ object Dependencies {
 
     val scalaTest = "3.0.5"
     val scalaTestPlusPlay = "4.0.0-M3"
-    val scalaJava8Compat = "0.9.0"
 
     val maven = "3.5.4"
   }
@@ -65,7 +64,6 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
-    val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
@@ -150,7 +148,6 @@ object Dependencies {
     Compile.akkaHttp,
     Compile.play,
     Compile.playAkkaHttpServer,
-    Test.scalaJava8Compat
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 
   val pluginTester = l++= Seq(
