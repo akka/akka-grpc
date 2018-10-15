@@ -19,7 +19,7 @@ import akka.http.scaladsl.model.Uri.Path.Segment
 
 import akka.stream.Materializer
 
-@defining(service.name + "PowerApi") { serviceName =>
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   object @{service.name}Handler {
     private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
 
