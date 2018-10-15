@@ -20,5 +20,5 @@ import akka.grpc.internal.PlayRouter
 abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
 
   final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
-    @{service.name}@{if(powerApis) { "PowerApi"} else { "" }}Handler(this, serviceName)(mat)
+    @{service.name}Handler(this, serviceName)(mat)
 }

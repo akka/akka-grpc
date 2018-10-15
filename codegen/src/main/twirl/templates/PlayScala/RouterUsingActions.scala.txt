@@ -22,5 +22,5 @@ import play.api.mvc.{ControllerComponents, EssentialAction, RequestHeader}
 abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
 
   final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction =
-    new {service.name}Handler(cc).apply(this, serviceName)(mat)
+    new @{service.name}Handler(cc).apply(this, serviceName)(mat)
 }
