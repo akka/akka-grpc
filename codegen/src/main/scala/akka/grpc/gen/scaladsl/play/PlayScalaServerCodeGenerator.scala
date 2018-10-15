@@ -16,9 +16,8 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false) extends Scal
   override def name: String = "akka-grpc-play-server-scala"
 
   override def perServiceContent = super.perServiceContent ++ Set(ScalaCodeGenerator.generateServiceFile) ++ {
-    if (powerApis) Set(generatePowerService, generatePowerHandler, generateRouter)
-    else Set(generateHandler, generateRouter)
-  }
+    if (powerApis) Set(generatePowerService) else Set.empty
+  } ++ Set(generateHandler(powerApis), generateRouter)
 
   private val generateRouter: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()

@@ -13,8 +13,9 @@ case class ScalaServerCodeGenerator(powerApis: Boolean = false) extends ScalaCod
   override def name = "akka-grpc-scaladsl-server"
 
   override def perServiceContent =
-    if (powerApis) super.perServiceContent + ScalaCodeGenerator.generateServiceFile + ScalaServerCodeGenerator.generatePowerService + generatePowerHandler
-    else super.perServiceContent + ScalaCodeGenerator.generateServiceFile + generateHandler
+    super.perServiceContent + ScalaCodeGenerator.generateServiceFile ++ {
+      if (powerApis) Set(generatePowerService) else Set.empty
+    } + generateHandler(powerApis)
 }
 
 object ScalaServerCodeGenerator {
@@ -27,19 +28,10 @@ object ScalaServerCodeGenerator {
     b.build
   }
 
-  val generateHandler: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  def generateHandler(powerApis: Boolean): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(Handler(service).body)
+    b.setContent(Handler(service, powerApis).body)
     b.setName(s"${service.packageDir}/${service.name}Handler.scala")
-    b.build
-  }
-
-  val generatePowerHandler: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(PowerApiHandler(service).body)
-    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
-    logger.info(s"Generating Akka gRPC file ${b.getName}")
-    //    logger.info(s"Generating Akka gRPC extended server handler ${service.packageName}.${service.name}ExtendedHandler")
     b.build
   }
 }
