@@ -17,8 +17,8 @@ import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterService
 /**
  * Test for the Play gRPC ScalaTest APIs
  */
-class PlayScalaTestSpec extends PlaySpec with ServerGrpcClient
-  with GuiceOneServerPerTest with ScalaFutures with IntegrationPatience {
+class PlayScalaTestSpec extends PlaySpec with GuiceOneServerPerTest with ServerGrpcClient
+  with ScalaFutures with IntegrationPatience {
 
   override def fakeApplication(): Application = {
     GuiceApplicationBuilder()
