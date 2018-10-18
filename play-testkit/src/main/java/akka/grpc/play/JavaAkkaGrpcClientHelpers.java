@@ -9,9 +9,9 @@ import static scala.compat.java8.JFunction.*;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 
-import play.api.test.NewTestServer;
-import play.api.test.ServerEndpoint;
-import play.api.test.ServerEndpoints;
+import play.api.test.RunningServer;
+import play.core.server.ServerEndpoint;
+import play.core.server.ServerEndpoints;
 
 import javax.net.ssl.SSLContext;
 
@@ -20,9 +20,9 @@ public final class JavaAkkaGrpcClientHelpers {
   private JavaAkkaGrpcClientHelpers() {}
 
   /** Creates a GrpcClientSettings from the given NewTestServer. */
-  public static GrpcClientSettings grpcClientSettings(final NewTestServer testServer) {
-    final ServerEndpoint http2Endpoint = getHttp2Endpoint(testServer.endpoints());
-    return grpcClientSettings(http2Endpoint, testServer.testServer().application().actorSystem());
+  public static GrpcClientSettings grpcClientSettings(final RunningServer runningServer) {
+    final ServerEndpoint http2Endpoint = getHttp2Endpoint(runningServer.endpoints());
+    return grpcClientSettings(http2Endpoint, runningServer.app().actorSystem());
   }
 
   /**
@@ -32,7 +32,7 @@ public final class JavaAkkaGrpcClientHelpers {
    */
   public static ServerEndpoint getHttp2Endpoint(final ServerEndpoints serverEndpoints) {
     final scala.collection.Traversable<ServerEndpoint> possibleEndpoints =
-        serverEndpoints.endpoints().filter(func(e->e.httpVersions().contains("2")));
+        serverEndpoints.endpoints().filter(func(e->e.expectedHttpVersions().contains("2")));
     if (possibleEndpoints.size() != 1) {
       throw new IllegalArgumentException(String.format(
           "gRPC client can't automatically find HTTP/2 connection: " +
