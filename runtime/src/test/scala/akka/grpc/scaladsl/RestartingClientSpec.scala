@@ -111,6 +111,18 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
       restartingClient.withClient(c => c should be(firstClient))
     }
 
+    "provide a future to await on until it the client completes closing down" in {
+      val (clientCreations, restartingClient) = fakeRestartingClient()
+      val firstClient = clientCreations.poll(queueTimeoutMs, TimeUnit.MILLISECONDS)
+      firstClient shouldNot be(null)
+
+      val closed = restartingClient.closed()
+
+      closed.isCompleted should be(false)
+      firstClient.succeed()
+      closed.isCompleted should be(true)
+    }
+
     "not catch user exceptions on creation" in {
       intercept[RuntimeException] {
         new RestartingClient[FakeClient](() => throw new RuntimeException("I don't want to create a client"))

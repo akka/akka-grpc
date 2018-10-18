@@ -12,6 +12,15 @@ import akka.annotation.DoNotInherit
 /** Common trait of all generated Akka gRPC clients. Not for user extension. */
 @DoNotInherit
 trait AkkaGrpcClient {
+  /**
+   * Initiates a shutdown in which preexisting and new calls are cancelled.
+   */
   def close(): CompletionStage[Done]
+
+  /**
+   * Returns a CompletionStage that completes successfully when shutdown via close()
+   * or exceptionally if a connection can not be established or reestablished
+   * after maxConnectionAttempts.
+   */
   def closed(): CompletionStage[Done]
 }

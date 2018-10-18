@@ -14,17 +14,17 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.compat.java8.FutureConverters._
 
 /**
- * Wraps a Akka gRPC  client and restarts it if a [ClientConnectionException] is thrown.
- * All other exceptions result in closing and any calls to withClient throwing
+ * Wraps a Akka gRPC client and restarts it if a [ClientConnectionException] is thrown.
+ * All other exceptions result in closing any calls to withClient throwing
  * a [ClientClosedException].
  */
 @ApiMayChange
-class RestartingClient[T <: AkkaGrpcClient](create: () => T, ec: Executor) {
+class RestartingClient[T <: AkkaGrpcClient](create: () => T, ec: Executor) extends AkkaGrpcClient {
   private val delegate: ScalaRestartingClient[JavaClientWrapper[T]] = new ScalaRestartingClient[JavaClientWrapper[T]](() => new JavaClientWrapper[T](create()))(ExecutionContext.fromExecutor(ec))
 
   def withClient[A](f: T => A): A = delegate.withClient(t => f(t.javaClient))
-  def close(): CompletionStage[Done] = delegate.close().toJava
-
+  override def close(): CompletionStage[Done] = delegate.close().toJava
+  override def closed(): CompletionStage[Done] = delegate.closed().toJava
 }
 
 /**

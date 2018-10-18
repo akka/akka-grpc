@@ -33,7 +33,7 @@ object RestartingClient {
  */
 
 @ApiMayChange
-final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implicit ec: ExecutionContext) {
+final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implicit ec: ExecutionContext) extends AkkaGrpcClient {
 
   private val clientRef = new AtomicReference[T](create())
 
@@ -46,7 +46,7 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
   }
 
   @tailrec
-  def close(): Future[Done] = {
+  override def close(): Future[Done] = {
     val c = clientRef.get()
     if (c != null) {
       val done = c.close()
@@ -56,7 +56,19 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
         close()
     } else
       Future.successful(Done)
+  }
 
+  /**
+   * Returns a Future that completes successfully when shutdown via close()
+   * or exceptionally if a connection can not be established or reestablished
+   * after maxConnectionAttempts.
+   */
+  override def closed(): Future[Done] = {
+    val c = clientRef.get()
+    if (c != null) {
+      c.closed()
+    } else
+      Future.successful(Done)
   }
 
   private def create(): T = {
