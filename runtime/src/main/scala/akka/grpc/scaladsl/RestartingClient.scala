@@ -10,9 +10,10 @@ import akka.Done
 import akka.annotation.ApiMayChange
 import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.RestartingClient.ClientClosedException
+import play.libs.F.PromiseTimeoutException
 
 import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Failure
 
 object RestartingClient {
@@ -20,22 +21,23 @@ object RestartingClient {
     new RestartingClient[T](createClient)
 
   /**
-   * Thrown if a withClient call is called after
-   */
+    * Thrown if a withClient call is called after
+    */
   class ClientClosedException() extends RuntimeException("withClient called after close()")
 
 }
 
 /**
- * Wraps a Akka gRPC  client and restarts it if a [ClientConnectionException] is thrown.
- * All other exceptions result in closing and any calls to withClient throwing
- * a [ClientClosedException].
- */
+  * Wraps a Akka gRPC  client and restarts it if a [ClientConnectionException] is thrown.
+  * All other exceptions result in closing and any calls to withClient throwing
+  * a [ClientClosedException].
+  */
 
 @ApiMayChange
 final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implicit ec: ExecutionContext) extends AkkaGrpcClient {
 
   private val clientRef = new AtomicReference[T](create())
+  private val closeDemand : Promise[Done] = Promise[Done]()
 
   def withClient[A](f: T => A): A = {
     val c = clientRef.get()
@@ -47,6 +49,7 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
 
   @tailrec
   override def close(): Future[Done] = {
+    closeDemand.trySuccess(Done)
     val c = clientRef.get()
     if (c != null) {
       val done = c.close()
@@ -58,17 +61,17 @@ final class RestartingClient[T <: AkkaGrpcClient](createClient: () => T)(implici
       Future.successful(Done)
   }
 
-  /**
-   * Returns a Future that completes successfully when shutdown via close()
-   * or exceptionally if a connection can not be established or reestablished
-   * after maxConnectionAttempts.
-   */
   override def closed(): Future[Done] = {
-    val c = clientRef.get()
-    if (c != null) {
-      c.closed()
-    } else
-      Future.successful(Done)
+    // while there's no request to close this RestartingClient, it will continue to restart.
+    // Once there's demand, the `closed` future will redeem flatMapping with the `closed()`
+    // future of the clientRef that's active at that moment.
+    closeDemand.future.flatMap { _ =>
+        val c = clientRef.get()
+        if (c != null)
+          c.closed()
+        else
+          Future.successful(Done)
+    }
   }
 
   private def create(): T = {
