@@ -122,7 +122,9 @@ class RestartingClientSpec extends WordSpec with Matchers with ScalaFutures with
       firstClient.succeed()
       closed.isCompleted should be(false)
       restartingClient.close()
-      closed.isCompleted should be(true)
+      eventually {
+        closed.isCompleted should be(true)
+      }
     }
 
     "not catch user exceptions on creation" in {
