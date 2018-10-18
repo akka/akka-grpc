@@ -7,14 +7,11 @@ package akka.grpc.play
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.AkkaGrpcClientFactory
 import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.stream.Materializer
-import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
-import javax.net.ssl.SSLContext
 import play.api.Application
-import play.api.test.{ ServerEndpoint, ServerEndpoints }
+import play.core.server.{ ServerEndpoint, ServerEndpoints }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext }

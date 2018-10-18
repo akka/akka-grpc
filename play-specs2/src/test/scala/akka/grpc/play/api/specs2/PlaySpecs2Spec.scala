@@ -18,10 +18,10 @@ import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterService
  * Test for the Play gRPC Specs2 APIs
  */
 @RunWith(classOf[JUnitRunner])
-class PlaySpecs2Spec extends NewForServer with ServerGrpcClient with PlaySpecification with ApplicationFactories {
+class PlaySpecs2Spec extends ForServer with ServerGrpcClient with PlaySpecification with ApplicationFactories {
 
   protected def applicationFactory: ApplicationFactory =
-    appFromGuice(GuiceApplicationBuilder().overrides(bind[Router].to[GreeterServiceImpl]))
+    withGuiceApp(GuiceApplicationBuilder().overrides(bind[Router].to[GreeterServiceImpl]))
 
   // RICH: Still need to work out how to make WSClient work properly with endpoints
   def wsUrl(path: String)(implicit running: RunningServer): WSRequest = {
