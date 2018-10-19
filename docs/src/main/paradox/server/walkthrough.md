@@ -204,14 +204,6 @@ That means that you need to configure your server with TLS information to provid
 
 TODO Document how to configure TLS ([#191](https://github.com/akka/akka-grpc/issues/352)
 
-@@@ note
-
-[Currently](https://github.com/akka/akka-http/issues/2145), Akka HTTP does not allow concurrent requests on a single HTTP/2 connection
-if not configured otherwise. Make sure to provide an argument to the `parallelism` parameter to `bindAndHandleAsync` that
-is greater than one to allow processing more than one request at a time from a given client as shown in the above snippet.
-
-@@@
-
 ## Serving multiple services
 
 When a server handles several services the handlers must be combined with
