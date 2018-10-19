@@ -33,9 +33,9 @@ class LiftedGreeterClient {
     Materializer materializer = ActorMaterializer.create(system);
 
     GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
-    GreeterServiceClient client = null;
+    RawGreeterServiceClient client = null;
     try {
-      client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
+      client = RawGreeterServiceClient.create(settings, materializer, system.dispatcher());
 
       singleRequestReply(client);
       streamingRequest(client);
@@ -55,7 +55,7 @@ class LiftedGreeterClient {
   }
 
   //#with-metadata
-  private static void singleRequestReply(GreeterServiceClient client) throws Exception {
+  private static void singleRequestReply(RawGreeterServiceClient client) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
     CompletionStage<HelloReply> reply = client.sayHello()
         .addHeader("key", "value")
@@ -64,7 +64,7 @@ class LiftedGreeterClient {
   }
   //#with-metadata
 
-  private static void streamingRequest(GreeterServiceClient client) throws Exception {
+  private static void streamingRequest(RawGreeterServiceClient client) throws Exception {
     List<HelloRequest> requests = Arrays.asList("Alice", "Bob", "Peter")
         .stream().map(name -> HelloRequest.newBuilder().setName(name).build())
         .collect(Collectors.toList());
@@ -75,7 +75,7 @@ class LiftedGreeterClient {
         reply.toCompletableFuture().get(5, TimeUnit.SECONDS));
   }
 
-  private static void streamingReply(GreeterServiceClient client, Materializer mat) throws Exception {
+  private static void streamingReply(RawGreeterServiceClient client, Materializer mat) throws Exception {
     HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
     Source<HelloReply, NotUsed> responseStream = client.itKeepsReplying()
         .addHeader("key", "value")
@@ -87,7 +87,7 @@ class LiftedGreeterClient {
     done.toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
-  private static void streamingRequestReply(GreeterServiceClient client, Materializer mat) throws Exception {
+  private static void streamingRequestReply(RawGreeterServiceClient client, Materializer mat) throws Exception {
     Duration interval = Duration.ofSeconds(1);
     Source<HelloRequest, NotUsed> requestStream = Source
         .tick(interval, interval, "tick")

@@ -11,8 +11,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.routing.Router
 import play.api.test._
-
-import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceImpl, GreeterServiceClient, HelloRequest }
+import example.myapp.helloworld.grpc.helloworld._
 
 /**
  * Test for the Play gRPC Specs2 APIs
@@ -45,7 +44,7 @@ class PlaySpecs2Spec extends ForServer with ServerGrpcClient with PlaySpecificat
       result.status must ===(500) // Maybe should be a 426, see #396
     }
     "work with a gRPC client" >> { implicit rs: RunningServer =>
-      withGrpcClient[GreeterServiceClient] { client: GreeterServiceClient =>
+      withGrpcClient[RawGreeterServiceClient] { client: GreeterServiceClient =>
         val reply = await(client.sayHello(HelloRequest("Alice")))
         reply.message must ===("Hello, Alice!")
       }

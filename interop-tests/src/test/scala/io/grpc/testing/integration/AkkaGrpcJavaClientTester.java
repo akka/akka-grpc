@@ -39,7 +39,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   private final ExecutionContext ec;
   private final ActorSystem as;
 
-  private TestServiceClient client;
+  private RawTestServiceClient client;
   private UnimplementedServiceClient clientUnimplementedService;
 
   private static int AWAIT_TIME_SECONDS = 3;
@@ -57,7 +57,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
         GrpcClientSettings.connectToServiceAt(settings.serverHost(), settings.serverPort(), as)
           .withOverrideAuthority(settings.serverHostOverride())
           .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
-    client = TestServiceClient.create(grpcSettings, mat, ec);
+    client = RawTestServiceClient.create(grpcSettings, mat, ec);
     clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
   }
 
