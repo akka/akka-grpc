@@ -29,7 +29,7 @@ object LiftedGreeterClient {
     implicit val ec = sys.dispatcher
 
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
-    val client = new GreeterServiceClient(clientSettings)
+    val client: RawGreeterServiceClient = RawGreeterServiceClient(clientSettings)
 
     singleRequestReply()
     streamingRequest()

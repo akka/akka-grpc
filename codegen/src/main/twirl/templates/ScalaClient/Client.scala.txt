@@ -23,8 +23,11 @@ import io.grpc._
 import io.grpc.stub.{ ClientCalls, StreamObserver }
 import @{service.name}Client._
 
-final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} with AkkaGrpcClient {
-  import @{service.name}Client._
+trait @{service.name}Client extends @{service.name} with AkkaGrpcClient
+
+final class Raw@{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext)
+extends @{service.name}Client {
+  import Raw@{service.name}Client._
 
   private val internalChannel: InternalChannel = NettyClientUtils.createChannel(settings)
   private val channel: Future[ManagedChannel] = internalChannel.managedChannel
@@ -96,10 +99,9 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
-object @{service.name}Client {
-
-  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
-    new @{service.name}Client(settings)
+object Raw@{service.name}Client {
+  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): Raw@{service.name}Client =
+    new Raw@{service.name}Client(settings)
 
   import @{service.name}.Serializers._
 
@@ -113,4 +115,9 @@ object @{service.name}Client {
         .setSampledToLocalTracing(true)
         .build()
   }
+}
+
+object @{service.name}Client {
+  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+    new Raw@{service.name}Client(settings)
 }

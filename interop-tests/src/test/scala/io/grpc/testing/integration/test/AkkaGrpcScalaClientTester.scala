@@ -29,7 +29,9 @@ import scala.util.control.NoStackTrace
 
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
 
-  private var client: TestServiceClient = null
+  // must use DefaultTestServiceClient instead of TestServiceClient because we need access
+  // to the lifted version of the methods. e.g. client.unaryCall()
+  private var client: RawTestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
 
@@ -40,7 +42,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
-    client = TestServiceClient(grpcSettings)
+    client = RawTestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
 

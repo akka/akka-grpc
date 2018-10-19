@@ -41,10 +41,10 @@ class GreeterSpec
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  val client = {
+  val client: GreeterServiceClient = {
     implicit val mat = ActorMaterializer.create(clientSystem)
     implicit val ec = clientSystem.dispatcher
-    new GreeterServiceClient(
+    new RawGreeterServiceClient(
       GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
         .withTls(false))
   }

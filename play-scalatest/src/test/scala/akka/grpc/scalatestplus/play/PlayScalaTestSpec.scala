@@ -12,7 +12,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
-import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceClient, GreeterServiceImpl, HelloRequest }
+import example.myapp.helloworld.grpc.helloworld._
 
 /**
  * Test for the Play gRPC ScalaTest APIs
@@ -42,7 +42,7 @@ class PlayScalaTestSpec extends PlaySpec with GuiceOneServerPerTest with ServerG
       val result = wsUrl(s"/${GreeterService.name}/SayHello").get.futureValue
       result.status must be(500) // Maybe should be a 426, see #396
     }
-    "work with a gRPC client" in withGrpcClient[GreeterServiceClient] { client: GreeterServiceClient =>
+    "work with a gRPC client" in withGrpcClient[RawGreeterServiceClient] { client: GreeterServiceClient =>
       val reply = client.sayHello(HelloRequest("Alice")).futureValue
       reply.message must be("Hello, Alice!")
     }

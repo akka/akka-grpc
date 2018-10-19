@@ -27,7 +27,7 @@ object RestartingGreeterClient {
     //#restarting-client
     // Function for creating a client
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
-    val clientConstructor = () => new GreeterServiceClient(clientSettings)
+    val clientConstructor = () => GreeterServiceClient(clientSettings)
 
     // Wrapped in a restarting client
     val restartingClient = new RestartingClient[GreeterServiceClient](clientConstructor)
