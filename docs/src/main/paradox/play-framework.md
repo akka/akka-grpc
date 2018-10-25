@@ -24,7 +24,7 @@ akkaGrpcExtraGenerators += PlayJavaClientCodeGenerator
 This will generate a Play module that provides all generated clients for injection. The module must be enabled
 by adding it to the enabled modules in the `application.conf`.
 
-You can the put the following `helloworld.proto` file in `app/protobuf`:
+You can then put the following `helloworld.proto` file in `app/protobuf`:
 
 @@snip[helloworld.proto](/play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
