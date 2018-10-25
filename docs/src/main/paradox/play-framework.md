@@ -51,7 +51,7 @@ again, in `application.conf`:
 
 See @ref[Client Configuration](client/configuration.md) for more information on the available options. If the configuration
 is not present for that client and it is used by some other component, the application start will fail with an exception
-when injecting the client. // FIXME depends on #271
+when injecting the client (see [#271](https://github.com/akka/akka-grpc/issues/271)).
 
 You can now use the client in a controller by injecting it:
 
