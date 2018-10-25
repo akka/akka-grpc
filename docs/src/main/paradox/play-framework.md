@@ -5,8 +5,8 @@ your own gRPC service as a part of a Play Framework application.
 
 ## Using a gRPC client in a Play Framework app
 
-Akka gRPC has special support to allow for seamless injection of generated clients in Play. To enable this you
-need to first enable the gRPC plugin as described in the @ref[client docs](client/index.md) and then add an additional
+Akka gRPC has special support to allow for seamless injection of generated clients in Play. To enable this, you
+need first to enable the gRPC plugin as described in the @ref[client docs](client/walkthrough.md) and then add a
 source generator in `build.sbt`:
 
 Scala
@@ -24,7 +24,7 @@ akkaGrpcExtraGenerators += PlayJavaClientCodeGenerator
 This will generate a Play module that provides all generated clients for injection. The module must be enabled
 by adding it to the enabled modules in the `application.conf`.
 
-With the following `helloworld.proto` file:
+You can the put the following `helloworld.proto` file in `app/protobuf`:
 
 @@snip[helloworld.proto](/play-interop-test-scala/src/main/protobuf/helloworld.proto) { #protoSources }
 
@@ -49,8 +49,9 @@ again, in `application.conf`:
 
 @@snip[application.conf](/play-interop-test-scala/src/main/resources/application.conf) { #service-client-conf }
 
-See @ref[Client Configuration](client/configuration.md) for more information on the available options. If a client is generated and use that does not have an entry defined in `application.conf` it will fail with an exception
-when the client is injected. // FIXME depends on #271
+See @ref[Client Configuration](client/configuration.md) for more information on the available options. If the configuration
+is not present for that client and it is used by some other component, the application start will fail with an exception
+when injecting the client. // FIXME depends on #271
 
 You can now use the client in a controller by injecting it:
 
@@ -63,7 +64,7 @@ Java
 ## Serving gRPC from a Play Framework app
 
 To be able to serve gRPC from a Play Framework app you must enable [HTTP/2 Support](https://www.playframework.com/documentation/2.6.x/AkkaHttpServer#HTTP%2F2-support-%28experimental%29)
-with HTTPS and the ALPN agent. (This is still somewhat involved and we hope to simplify it)
+with HTTPS and the ALPN agent. (This is still somewhat involved and we hope to simplify it).
 
 @@@ warning
   To use gRPC in Play Framework you must enable [HTTP/2 Support](https://www.playframework.com/documentation/2.6.x/AkkaHttpServer#HTTP%2F2-support-%28experimental%29).
