@@ -16,16 +16,7 @@ object Formatting {
     ScalariformKeys.preferences in Test := setPreferences(ScalariformKeys.preferences.value)
   )
 
-  lazy val docFormatSettings = Seq(
-    ScalariformKeys.preferences := setPreferences(ScalariformKeys.preferences.value, rewriteArrowSymbols = false),
-    ScalariformKeys.preferences in Compile := setPreferences(ScalariformKeys.preferences.value, rewriteArrowSymbols = false),
-    ScalariformKeys.preferences in Test := setPreferences(ScalariformKeys.preferences.value, rewriteArrowSymbols = false)
-  )
-
-  def setPreferences(preferences: IFormattingPreferences, rewriteArrowSymbols: Boolean = true) = preferences
-    .setPreference(RewriteArrowSymbols, rewriteArrowSymbols)
-    .setPreference(AlignParameters, true)
-    .setPreference(AlignSingleLineCaseStatements, true)
+  def setPreferences(preferences: IFormattingPreferences) = preferences
     .setPreference(DoubleIndentConstructorArguments, false)
     .setPreference(DoubleIndentMethodDeclaration, false)
     .setPreference(DanglingCloseParenthesis, Preserve)

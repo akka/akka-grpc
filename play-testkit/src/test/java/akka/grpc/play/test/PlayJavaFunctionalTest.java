@@ -26,7 +26,7 @@ public final class PlayJavaFunctionalTest {
   private final TestServerFactory testServerFactory = new DefaultTestServerFactory();
 
   private Application app;
-  private NewTestServer testServer;
+  private RunningServer runningServer;
 
   private Application provideApplication() {
     return new GuiceApplicationBuilder()
@@ -36,25 +36,25 @@ public final class PlayJavaFunctionalTest {
 
   @Before
   public void startServer() throws Exception {
-    if (testServer != null)
-      testServer.stopServer().close();
+    if (runningServer != null)
+      runningServer.stopServer().close();
     app = provideApplication();
     final play.api.Application app = this.app.asScala();
-    testServer = testServerFactory.start(app);
+    runningServer = testServerFactory.start(app);
   }
 
   @After
   public void stopServer() throws Exception {
-    if (testServer != null) {
-      testServer.stopServer().close();
-      testServer = null;
+    if (runningServer != null) {
+      runningServer.stopServer().close();
+      runningServer = null;
       app = null;
     }
   }
 
   private WSResponse wsGet(final String path) throws Exception {
     final WSClient wsClient = app.injector().instanceOf(WSClient.class);
-    final String url = testServer.endpoints().httpEndpoint().get().pathUrl(path);
+    final String url = runningServer.endpoints().httpEndpoint().get().pathUrl(path);
     return wsClient.url(url).get().toCompletableFuture().get();
   }
 
@@ -75,7 +75,7 @@ public final class PlayJavaFunctionalTest {
   @Test public void worksWithAGrpcClient() throws Exception {
     final HelloRequest req = HelloRequest.newBuilder().setName("Alice").build();
     final GrpcClientSettings grpcClientSettings =
-        JavaAkkaGrpcClientHelpers.grpcClientSettings(testServer);
+        JavaAkkaGrpcClientHelpers.grpcClientSettings(runningServer);
     final GreeterServiceClient greeterServiceClient = GreeterServiceClient.create(
         grpcClientSettings, app.asScala().materializer(), app.asScala().actorSystem().dispatcher());
     try {
