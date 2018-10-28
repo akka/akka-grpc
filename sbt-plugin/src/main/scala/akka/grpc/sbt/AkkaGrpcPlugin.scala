@@ -38,9 +38,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
   private object GeneratorOption extends Enumeration {
     protected case class Val(setting: String) extends super.Val
     implicit def valueToGeneratorOptionVal(x: Value): Val = x.asInstanceOf[Val]
-    val settings: Set[String] = values.map(_.setting)
 
     val ServerPowerApis = Val("server_power_apis")
+
+    val settings: Set[String] = values.map(_.setting)
   }
 
   trait Keys { _: autoImport.type =>
