@@ -36,7 +36,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     def error(text: String): Unit = logger.error(text)
   }
 
-  private object GeneratorOption extends Enumeration {
+  object GeneratorOption extends Enumeration {
     protected case class Val(setting: String) extends super.Val
     implicit def valueToGeneratorOptionVal(x: Value): Val = x.asInstanceOf[Val]
 
