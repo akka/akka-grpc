@@ -15,6 +15,8 @@ import sbt.{GlobFilter, _}
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
+import scala.util.Try
+
 object AkkaGrpcPlugin extends AutoPlugin {
   import sbtprotoc.ProtocPlugin.autoImport._
 
@@ -30,6 +32,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
     def info(text: String): Unit = logger.info(text)
     def warn(text: String): Unit = logger.warn(text)
     def error(text: String): Unit = logger.error(text)
+  }
+
+  private object GeneratorOption extends Enumeration {
+    protected case class Val(name: String) extends super.Val
+    val ServerPowerApis = Val("server_power_apis")
   }
 
   trait Keys { _: autoImport.type =>
@@ -48,18 +55,16 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case object Scala extends Language
       case object Java extends Language
 
-      sealed trait GeneratorOption
-      case object ServerPowerApis extends GeneratorOption
     }
 
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]](
       "Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
     val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]](
       "Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client, AkkaGrpc.PlayServer, AkkaGrpc.PlayClient)")
-    val akkaGrpcGeneratorOptions = settingKey[Seq[AkkaGrpc.GeneratorOption]]("Generator options (AkkaGrpc.ServerPowerApis). Empty by default")
+//    val akkaGrpcGeneratorOptions = settingKey[Seq[AkkaGrpc.GeneratorOption]]("Generator options (AkkaGrpc.ServerPowerApis). Empty by default")
     val akkaGrpcExtraGenerators = settingKey[Seq[akka.grpc.gen.CodeGenerator]]("Extra generators to evaluate. Empty by default")
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]]("Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
-    val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Settings to pass to the code generators")
+    val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string. Akka gRPC settings: server_power_apis")
   }
 
   object autoImport extends Keys
@@ -72,7 +77,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcCodeGeneratorSettings := Seq("flat_package"),
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
-      akkaGrpcGeneratorOptions := Seq.empty,
       akkaGrpcExtraGenerators := Seq.empty,
       PB.recompile in Compile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
@@ -91,7 +95,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
       watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
       akkaGrpcGenerators := {
-        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, akkaGrpcGeneratorOptions.value, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
+        generatorsFor(akkaGrpcGeneratedSources.value, akkaGrpcGeneratedLanguages.value, akkaGrpcCodeGeneratorSettings.value, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g => toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
       },
 
       // configure the proto gen automatically by adding our codegen:
@@ -127,23 +131,24 @@ object AkkaGrpcPlugin extends AutoPlugin {
           resources := managedResources.value ++ unmanagedResources.value)))
 
   def targetsFor(targetPath: File, settings: Seq[String], generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] = {
+    val baseSettings = settings.filterNot(s => Try(GeneratorOption.withName(s)).isSuccess)
     generators.map { generator =>
       protocbridge.Target(generator, targetPath, generator match {
-        case PB.gens.java => settings.filterNot(_ == "flat_package")
-        case _ => settings
+        case PB.gens.java => baseSettings.filterNot(_ == "flat_package")
+        case _ => baseSettings
       })
     }
   }
 
   // creates a seq of generator and per generator settings
-  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], options: Seq[AkkaGrpc.GeneratorOption], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
+  def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], options: Seq[String], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
     import AkkaGrpc._
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
-    val serverPowerApis = options.contains(AkkaGrpc.ServerPowerApis)
+    val serverPowerApis = options.contains(GeneratorOption.ServerPowerApis.name)
 
     (for {
       stub <- stubs
@@ -195,4 +200,3 @@ object AkkaGrpcPlugin extends AutoPlugin {
     (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 }
-
