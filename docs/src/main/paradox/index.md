@@ -12,5 +12,6 @@
  * [Build Tools](buildtools/index.md)
  * [Akka gRPC in Play](play-framework.md)
  * [gRPC API Design](apidesign.md)
+ * [Troubleshooting](troubleshooting.md)
 
 @@@

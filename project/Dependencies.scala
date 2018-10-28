@@ -13,16 +13,15 @@ object Dependencies {
     val akkaHttp = "10.1.5"
     val akkaDiscovery = "0.18.0"
 
-    val play = "2.7.0-M3"
+    val play = "2.7.0-M4"
 
     val scalapb = "0.8.0"
     val grpc = "1.14.0"
     val config = "1.3.3"
-    val sslConfig = "0.2.4"
+    val sslConfig = "0.3.6"
 
     val scalaTest = "3.0.5"
-    val scalaTestPlusPlay = "4.0.0-M3"
-    val scalaJava8Compat = "0.9.0"
+    val scalaTestPlusPlay = "4.0.0-M5"
 
     val maven = "3.5.4"
   }
@@ -56,17 +55,22 @@ object Dependencies {
     val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache M2
     val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache M2
     val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
+
+    val playTest = "com.typesafe.play" %% "play-test" % Versions.play // Apache M2
+    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play // Apache M2
+    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay // ApacheV2
   }
 
   object Test {
+    final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
-    val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % Versions.scalaJava8Compat % "test" // BSD 3-clause
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
-    val playTest = "com.typesafe.play" %% "play-test" % Versions.play % "test" // Apache M2
-    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play % "test" // Apache M2
-    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay % "test" // ApacheV2
+    val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % Versions.play % Test // Apache M2
+    val playTest = Compile.playTest % Test
+    val playSpecs2 = Compile.playSpecs2 % Test
+    val scalaTestPlusPlay = Compile.scalaTestPlusPlay % Test
   }
 
   object Plugins {
@@ -130,13 +134,13 @@ object Dependencies {
   )
 
   val playTestkit = l ++= Seq(
-    Compile.play
-  ) ++ (Seq(
     Compile.play,
-    Test.playTest,
-    Test.playSpecs2,
-    Test.scalaTestPlusPlay
-  ).map(_.withConfigurations(Some("provided"))))
+    Compile.playTest,
+    Test.playAhcWs,
+  )
+
+  val playSpecs2    = l += Compile.playSpecs2
+  val playScalaTest = l += Compile.scalaTestPlusPlay
 
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting,
@@ -144,7 +148,6 @@ object Dependencies {
     Compile.akkaHttp,
     Compile.play,
     Compile.playAkkaHttpServer,
-    Test.scalaJava8Compat
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 
   val pluginTester = l++= Seq(

@@ -7,14 +7,11 @@ package akka.grpc.play
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.AkkaGrpcClientFactory
 import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.stream.Materializer
-import com.typesafe.config.{ Config, ConfigFactory, ConfigValueFactory }
-import javax.net.ssl.SSLContext
 import play.api.Application
-import play.api.test.{ ServerEndpoint, ServerEndpoints }
+import play.core.server.{ ServerEndpoint, ServerEndpoints }
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext }
@@ -63,7 +60,7 @@ object AkkaGrpcClientHelpers {
    * Configure a factory from an application and some server endpoints. Expects to have exactly one HTTP/2 endpoint.
    */
   def factoryForAppEndpoints[T <: AkkaGrpcClient: ClassTag](app: Application, serverEndpoints: ServerEndpoints): AkkaGrpcClientFactory.Configured[T] = {
-    factoryForAppEndpoints(app, JavaAkkaGrpcClientHelpers.unsafeGetHttp2Endpoint(serverEndpoints))
+    factoryForAppEndpoints(app, JavaAkkaGrpcClientHelpers.getHttp2Endpoint(serverEndpoints))
   }
 
   /**
