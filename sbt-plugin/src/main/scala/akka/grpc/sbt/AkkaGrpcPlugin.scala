@@ -16,6 +16,7 @@ import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
 import scala.util.Try
+import language.implicitConversions
 
 object AkkaGrpcPlugin extends AutoPlugin {
   import sbtprotoc.ProtocPlugin.autoImport._
@@ -35,7 +36,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
   }
 
   private object GeneratorOption extends Enumeration {
-    protected case class Val(name: String) extends super.Val
+    protected case class Val(setting: String) extends super.Val
+    implicit def valueToGeneratorOptionVal(x: Value): Val = x.asInstanceOf[Val]
+    val settings: Set[String] = values.map(_.setting)
+
     val ServerPowerApis = Val("server_power_apis")
   }
 
@@ -131,7 +135,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
           resources := managedResources.value ++ unmanagedResources.value)))
 
   def targetsFor(targetPath: File, settings: Seq[String], generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] = {
-    val baseSettings = settings.filterNot(s => Try(GeneratorOption.withName(s)).isSuccess)
+    val baseSettings = settings.filterNot(GeneratorOption.settings.contains)
     generators.map { generator =>
       protocbridge.Target(generator, targetPath, generator match {
         case PB.gens.java => baseSettings.filterNot(_ == "flat_package")
@@ -148,7 +152,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
-    val serverPowerApis = options.contains(GeneratorOption.ServerPowerApis.name)
+    val serverPowerApis = options.contains(GeneratorOption.ServerPowerApis.setting)
 
     (for {
       stub <- stubs
