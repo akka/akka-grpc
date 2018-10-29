@@ -9,18 +9,150 @@ package @service.packageName
 
 import scala.concurrent.Future
 
+import io.grpc.{Status => GrpcStatus}
+
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 
 import akka.grpc.internal.PlayRouterUsingActions
 
-import play.api.mvc.{ControllerComponents, EssentialAction, RequestHeader}
+import play.api.mvc.{InjectedController, ControllerComponents, EssentialAction, RequestHeader}
+import scala.concurrent.{ ExecutionContext, Future }
+
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, MetadataMap }
+import akka.grpc.Codecs
+
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+
+import akka.stream.Materializer
+
+import io.grpc.{Status => GrpcStatus}
+import play.api.http.HttpChunk
+import play.api.http.HttpChunk.{Chunk, LastChunk}
+import play.api.http.HttpEntity.Chunked
+import play.api.libs.streams.Accumulator
+import play.api.mvc._
+
+import akka.NotUsed
+import akka.grpc.scaladsl
+import akka.grpc.scaladsl.{GrpcMarshalling, MetadataMap}
+import akka.grpc.{Codecs, Grpc, GrpcServiceException, ProtobufSerializer}
+import akka.http.scaladsl.model.HttpHeader.ParsingResult
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+import akka.http.scaladsl.model._
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.http.HttpChunk
+import play.api.http.HttpChunk.{Chunk, LastChunk}
+import play.api.http.HttpEntity.Chunked
+import play.api.libs.streams.Accumulator
+import play.api.mvc._
+
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * Abstract base class for implementing @{service.name} and using as a play Router
  */
-abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
+abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} with InjectedController {
 
-  final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction =
-    new @{service.name}Handler(cc).apply(this, serviceName)(mat)
+  @{
+    val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = service.methods.partition(_.inputStreaming) match {
+      case (streaming, unary) => (streaming.map(_.grpcName), unary.map(_.grpcName))
+    }
+    "val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = (Seq(" + streamingInputMethods.mkString("\"", "\", \"", "\"") + "), Seq(" + unaryInputMethods.mkString("\"", "\", \"", "\"") + "))"
+  }
+
+    //new @{service.name}Handler(cc).apply(this, serviceName)(mat)
+  final override def createHandler(serviceName: String, mat: Materializer, cc: ControllerComponents): RequestHeader => EssentialAction = { reqOuter =>
+    implicit val ec: ExecutionContext = mat.executionContext
+    val handler = @{service.name}Handler(this, serviceName)(mat)
+    Path(reqOuter.path) match {
+      case Path.Slash(Segment(`serviceName`, Path.Slash(Segment(method, Path.Empty)))) =>
+        if (streamingInputMethods.contains(method)) createStreamingAction(handler)
+        else if (unaryInputMethods.contains(method)) createUnaryAction(handler)
+        else throw new NotImplementedError(s"Not implemented: $method")
+      case _ => throw new GrpcServiceException(GrpcStatus.INTERNAL.withDescription(s"Unexpected/handled path ${reqOuter.path}"))
+    }
+  }
+
+  def createStreamingAction(handler: HttpRequest => Future[HttpResponse])(implicit ec: ExecutionContext): EssentialAction = Action.async(streamBodyParser) { req =>
+    handler(playToAkkaRequestStream(req)).map(akkaToPlayResp(_))
+  }
+
+  def createUnaryAction(handler: HttpRequest => Future[HttpResponse])(implicit ec: ExecutionContext): EssentialAction = Action.async(parse.byteString) { req =>
+    handler(playToAkkaRequest(req)).map(akkaToPlayResp(_))
+  }
+
+  def streamBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser("stream") { _ =>
+    Accumulator
+      .source[ByteString]
+      .map(Right.apply)
+  }
+
+  def playToAkkaRequest(request: Request[ByteString]): HttpRequest = {
+    val method = HttpMethods.getForKey(request.method.toUpperCase)
+    val entity =
+      HttpEntity.Chunked.fromData(Grpc.contentType, chunks = Source.single(request.body))
+    HttpRequest(
+      method   = HttpMethods.getForKey(request.method.toUpperCase).get,
+      uri      = Uri(request.uri),
+      headers  = playToAkkaHeaders(request),
+      entity   = entity,
+      protocol = HttpProtocols.getForKey(request.version.toUpperCase).get
+    )
+  }
+
+  def playToAkkaRequestStream(request: Request[Source[ByteString, _]]): HttpRequest = {
+    val method = HttpMethods.getForKey(request.method.toUpperCase)
+    val entity =
+      HttpEntity.Chunked.fromData(Grpc.contentType, chunks = request.body)
+    HttpRequest(
+      method   = HttpMethods.getForKey(request.method.toUpperCase).get,
+      uri      = Uri(request.uri),
+      headers  = playToAkkaHeaders(request),
+      entity   = entity,
+      protocol = HttpProtocols.getForKey(request.version.toUpperCase).get
+    )
+  }
+
+  def playToAkkaHeaders(req: Request[_]): immutable.Seq[HttpHeader] = {
+    immutable.Seq(req.headers.headers: _*).map { h =>
+      HttpHeader.parse(h._1, h._2) match {
+        case ParsingResult.Ok(header, errors) => header
+        case ParsingResult.Error(error)       => throw new Exception("header parsing")
+      }
+    }
+  }
+
+  def akkaToPlayResp(akkaResp: HttpResponse): Result = {
+    val playEntity = akkaResp.entity match {
+      case HttpEntity.Chunked(ct, chunks) =>
+        val playChunks: Source[HttpChunk, Any] = chunks.map {
+          case HttpEntity.LastChunk(_, trailer) =>
+            LastChunk(akkaToPlayHeaders(trailer))
+          case HttpEntity.Chunk(data, ext) => Chunk(data)
+        }
+        Chunked(playChunks, Some(ct.toString()))
+      case _ => ???
+    }
+    Result(akkaToPlayResponseHeaders(akkaResp), playEntity)
+  }
+
+  def akkaToPlayHeaders(headers: immutable.Seq[HttpHeader]): Headers = {
+    Headers(headers.map(h => (h.name(), h.value())): _*)
+  }
+
+  def akkaToPlayResponseHeaders(resp: HttpResponse): ResponseHeader = {
+    ResponseHeader(
+      status  = OK,
+      headers = akkaToPlayHeaders(resp.headers).toSimpleMap
+    )
+  }
 }

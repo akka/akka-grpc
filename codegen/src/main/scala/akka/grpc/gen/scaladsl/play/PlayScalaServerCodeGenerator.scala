@@ -19,8 +19,8 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
 
   override def perServiceContent =
     super.perServiceContent ++ Set(ScalaCodeGenerator.generateServiceFile) ++ ((powerApis, usePlayActions) match {
-      case (true, true) => Set(generatePowerService, generateHandlerUsingActions, generateRouterUsingActions)
-      case (false, true) => Set(generateHandlerUsingActions, generateRouterUsingActions)
+      case (true, true) => Set(generatePowerService, generateHandler(powerApis), generateRouterUsingActions)
+      case (false, true) => Set(generateHandler(powerApis), generateRouterUsingActions)
       case (true, false) => Set(generatePowerService, generateHandler(powerApis), generateRouter)
       case (false, false) => Set(generateHandler(powerApis), generateRouter)
     })
@@ -29,14 +29,6 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Router(service, powerApis).body)
     b.setName(s"${service.packageDir}/Abstract${service.name}Router.scala")
-    logger.info(s"Generating Akka gRPC file ${b.getName}")
-    b.build
-  }
-
-  private val generateHandlerUsingActions: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(HandlerUsingActions(service, powerApis).body)
-    b.setName(s"${service.packageDir}/${service.name}Handler.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
     b.build
   }
