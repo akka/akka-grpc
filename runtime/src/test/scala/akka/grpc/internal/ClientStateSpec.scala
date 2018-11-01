@@ -6,18 +6,18 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import io.grpc.ConnectivityState._
 import io.grpc.ManagedChannel
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, Matchers}
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.{Await, Future, Promise}
 
 class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
 
   implicit val sys = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher
-  implicit val patience = PatienceConfig(timeout = 3.seconds, interval = 15.milliseconds)
+  implicit val patience = PatienceConfig(timeout = 5.seconds, interval = 150.milliseconds)
 
   private val mockSettings: GrpcClientSettings = GrpcClientSettings.connectToServiceAt("somehost.com", 3434)
 
@@ -42,6 +42,14 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       val channel = state withChannel userCodeToLiftChannel
       channel should not be null
     }
+    "reuse a valid channel" in {
+      // given a state
+      val state = clientState()
+      // it provides a channel when needed
+      val c1 = state withChannel userCodeToLiftChannel
+      val c2 = state withChannel userCodeToLiftChannel
+      c1 should be(c2)
+    }
     "fail to provide a channel when the client state has been closed" in {
       // given a state
       val state = clientState()
@@ -58,13 +66,17 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       val channelCompletion = Promise[Done]()
       val state = clientState(channelCompletion)
       // it provides a channel when needed
-      state withChannel userCodeToLiftChannel
+      val c1 = state withChannel userCodeToLiftChannel
       // and, if the channel is failed
       channelCompletion.tryFailure(new ClientConnectionException(s"Unable to establish connection"))
 
-      // the state can still provide new channels.
-      val channel = state withChannel userCodeToLiftChannel
-      channel should not be null
+
+      eventually{
+      // eventually the state produces a new channel
+        val channel = state withChannel userCodeToLiftChannel
+        channel should not be null
+        channel should not be c1
+      }
     }
   }
 }
