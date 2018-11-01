@@ -18,7 +18,7 @@ import scala.compat.java8.FutureConverters._
  * Used from generated code so can't be private.
  */
 @InternalApi
-class InternalChannel(val managedChannel: Future[ManagedChannel], private[this] val promiseDone: Promise[Done]) {
+class InternalChannel(val managedChannel: Future[ManagedChannel], promiseDone: Promise[Done]) {
 
   val doneCS: CompletionStage[Done] = promiseDone.future.toJava
   val done: Future[Done] = promiseDone.future

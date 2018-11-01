@@ -21,8 +21,7 @@ import scala.util.Failure
 @InternalApi
 class ClientState(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) {
 
-  // private[this] to access it from tests
-  private[this] val internalChannelRef: AtomicReference[InternalChannel] = new AtomicReference[InternalChannel](create())
+  private val internalChannelRef: AtomicReference[InternalChannel] = new AtomicReference[InternalChannel](create())
   private val closeDemand: Promise[Done] = Promise[Done]()
 
   mat match {
