@@ -62,7 +62,7 @@ object CombinedServer {
       serviceHandlers,
       interface = "127.0.0.1",
       port = 8080,
-      connectionContext = HttpConnectionContext(http2 = UseHttp2.Always)
+      connectionContext = HttpConnectionContext(http2 = Always)
     )
       //#concatOrNotFound
       .foreach { binding =>
