@@ -62,10 +62,6 @@ class CombinedServer {
       Http.get(sys).bindAndHandleAsync(
           serviceHandlers,
           ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
-          ServerSettings.create(sys),
-          // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
-          256,
-          sys.log(),
           mat)
       //#concatOrNotFound
       .thenAccept(binding -> {
