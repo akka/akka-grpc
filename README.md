@@ -51,8 +51,8 @@ The project is split up in a number of subprojects:
 Additionally, 'plugin-tester-java' and 'plugin-tester-scala' contain an example
 project in Java and Scala respectively, with both sbt and Gradle configurations.
 
-## Caveat Emptor
+## Compatibility & support
 
-A component in this project does not yet have to obey the rule of staying binary compatible between releases. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback. A module may be dropped in any release without prior deprecation.
+This project does not yet have to obey the rule of staying binary compatible between releases that is common for Akka libraries. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback.
 
-The Lightbend subscription does not cover support for these modules.
+The Lightbend subscription does not yet cover support for this project.
