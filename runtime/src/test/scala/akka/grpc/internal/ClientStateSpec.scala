@@ -10,11 +10,11 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import io.grpc.ConnectivityState._
 import io.grpc.ManagedChannel
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{ Await, Future, Promise }
 
 class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
 
@@ -74,9 +74,8 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       // and, if the channel is failed
       channelCompletion.tryFailure(new ClientConnectionException(s"Unable to establish connection"))
 
-
-      eventually{
-      // eventually the state produces a new channel
+      eventually {
+        // eventually the state produces a new channel
         val channel = state withChannel userCodeToLiftChannel
         channel should not be null
         channel should not be c1
