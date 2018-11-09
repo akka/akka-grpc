@@ -9,11 +9,11 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.Done
 import akka.annotation.InternalApi
 import akka.grpc.GrpcClientSettings
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.Failure
 
 /**
