@@ -10,7 +10,6 @@ import akka.Done
 import akka.annotation.InternalApi
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ActorMaterializer, Materializer}
-import akka.util.OptionVal
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
@@ -18,18 +17,21 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Failure
 
 /**
-  * INTERNAL API
-  * Used from generated code so can't be private.
-  *
-  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
-  */
+ * INTERNAL API
+ * Used from generated code so can't be private.
+ *
+ * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
+ */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) {
+final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(implicit mat: Materializer, ex: ExecutionContext) {
 
-  private val internalChannelRef: AtomicReference[OptionVal[InternalChannel]] =
-    new AtomicReference[OptionVal[InternalChannel]](OptionVal(create()))
-  // usually null, it'll have a value when the underlying InternalChannel is closing or closed.
-  private val closing: AtomicReference[Future[Done]] = new AtomicReference[Future[Done]](null)
+  def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
+    this(settings, s => NettyClientUtils.createChannel(s))
+
+  private val internalChannelRef =
+    new AtomicReference[Option[InternalChannel]](Some(create()))
+  // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
+  private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
 
   mat match {
@@ -52,53 +54,53 @@ final class ClientState(settings: GrpcClientSettings)(implicit mat: Materializer
     // future which is a reference to promise of the internalChannel close status.
     closeDemand.future.flatMap { _ =>
       // `closeDemand` guards the read access to `closing`
-      closing.get()
+      closing.get().get
     }
   }
 
   @tailrec
   def close(): Future[Done] = {
     val maybeChannel = internalChannelRef.get()
-    if (maybeChannel.isDefined) {
-      val channel = maybeChannel.get
-      // invoke `close` on the channel and capture the `channel.done` returned
-      val done = ChannelUtils.close(channel)
-      // set the `closing` to the current `channel.done`
-      closing.compareAndSet(null, done)
-      // notify there's been close demand (see `def closed()` above)
-      closeDemand.trySuccess(Done)
+    maybeChannel match {
+      case Some(channel) =>
+        // invoke `close` on the channel and capture the `channel.done` returned
+        val done = ChannelUtils.close(channel)
+        // set the `closing` to the current `channel.done`
+        closing.compareAndSet(None, Some(done))
+        // notify there's been close demand (see `def closed()` above)
+        closeDemand.trySuccess(Done)
 
-      if (internalChannelRef.compareAndSet(maybeChannel, OptionVal.None)) {
-        closing.get()
-      } else {
-        // when internalChannelRef was not maybeChannel
-        if (internalChannelRef.get.isDefined) {
-          // client has had a ClientConnectionException and been re-created, need to shutdown the new one
-          close()
+        if (internalChannelRef.compareAndSet(maybeChannel, None)) {
+          done
         } else {
-          // or a competing thread already set `internalChannelRef` to None and CAS failed.
-          closing.get()
+          // when internalChannelRef was not maybeChannel
+          if (internalChannelRef.get.isDefined) {
+            // client has had a ClientConnectionException and been re-created, need to shutdown the new one
+            close()
+          } else {
+            // or a competing thread already set `internalChannelRef` to None and CAS failed.
+            done
+          }
         }
-      }
-    } else {
-      closing.compareAndSet(null, Future.successful(Done))
-      closeDemand.trySuccess(Done)
-      closing.get()
+      case _ =>
+        // set the `closing` to immediate success
+        val done = Future.successful(Done)
+        closing.compareAndSet(None, Some(done))
+        // notify there's been close demand (see `def closed()` above)
+        closeDemand.trySuccess(Done)
+        done
     }
   }
 
-  // not private to overwrite it on unit tests
-  def channelFactory: InternalChannel = NettyClientUtils.createChannel(settings)
-
   private def create(): InternalChannel = {
-    val internalChannel: InternalChannel = channelFactory
+    val internalChannel: InternalChannel = channelFactory(settings)
     internalChannel.done.onComplete {
       case Failure(_: ClientConnectionException) =>
         val old = internalChannelRef.get()
         if (old.isDefined) {
           val newInternalChannel = create()
           // Only one client is alive at a time. However a close() could have happened between the get() and this set
-          if (!internalChannelRef.compareAndSet(old, OptionVal(newInternalChannel))) {
+          if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
             // close the newly created client we've been shutdown
             ChannelUtils.close(newInternalChannel)
           }
@@ -113,10 +115,10 @@ final class ClientState(settings: GrpcClientSettings)(implicit mat: Materializer
 }
 
 /**
-  * INTERNAL API
-  * Used from generated code so can't be private.
-  *
-  * Thrown if a withChannel call is called after closing the internal channel
-  */
+ * INTERNAL API
+ * Used from generated code so can't be private.
+ *
+ * Thrown if a withChannel call is called after closing the internal channel
+ */
 @InternalApi
 final class ClientClosedException() extends RuntimeException("withChannel called after close()")
