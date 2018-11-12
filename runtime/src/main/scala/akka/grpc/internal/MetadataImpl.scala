@@ -7,8 +7,8 @@ package akka.grpc.internal
 import java.util.Optional
 
 import akka.annotation.InternalApi
-import akka.grpc.scaladsl.{ BytesEntry, MetadataEntry, StringEntry }
-import akka.grpc.{ javadsl, scaladsl }
+import akka.grpc.javadsl
+import akka.grpc.scaladsl.{ BytesEntry, MetadataEntry, MetadataMap, StringEntry }
 import akka.util.ByteString
 import io.grpc.Metadata
 
@@ -52,6 +52,8 @@ import scala.compat.java8.OptionConverters._
         case Some(multiple) => multiple.reverseIterator.collectFirst { case BytesEntry(bytes) => bytes }
         case _ => None
       }
+
+      def asMap: MetadataMap = metadata
       override def toString: String = s"Metadata(${niceStringRep(metadata)})"
     }
   }
