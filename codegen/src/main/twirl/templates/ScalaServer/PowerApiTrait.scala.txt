@@ -11,14 +11,14 @@ import scala.concurrent.Future
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import akka.grpc.scaladsl.MetadataMap
+import akka.grpc.scaladsl.Metadata
 import akka.grpc.GrpcServiceException
 
 import io.grpc.Status
 
 trait @{service.name}PowerApi extends @{service.name} {
   @for(method <- service.methods) {
-  def @{method.name}(in: @method.parameterType, metadata: MetadataMap): @method.returnType
+  def @{method.name}(in: @method.parameterType, metadata: Metadata): @method.returnType
   }
 
   @for(method <- service.methods) {

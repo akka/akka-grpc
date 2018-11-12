@@ -10,7 +10,7 @@ package @service.packageName
 import scala.concurrent.{ ExecutionContext, Future }
 
 import akka.grpc.scaladsl
-import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, MetadataMap }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, Metadata, MetadataImpl }
 import akka.grpc.{Codecs, GrpcServiceException }
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
@@ -72,13 +72,13 @@ import akka.stream.Materializer
         @for(method <- service.methods) {
         case "@method.grpcName" =>
           val responseCodec = Codecs.negotiate(request)
-          @{if(powerApis) { "val metadataMap = MetadataMap(request.headers)" } else { "" }}
+          @{if(powerApis) { "val metadata = new MetadataImpl(request.headers)" } else { "" }}
           @{method.unmarshal}(request)(@method.deserializer.name, mat)
             .@{if(method.outputStreaming) {
                "map"
             } else {
               "flatMap"
-            }}(implementation.@{method.name}(_@{if(powerApis) { ", metadataMap" } else { "" }}))
+            }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
             .map(e => @{method.marshal}(e)(@method.serializer.name, mat, responseCodec))
         }
         case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
