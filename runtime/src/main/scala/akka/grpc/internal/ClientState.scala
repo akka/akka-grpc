@@ -4,6 +4,7 @@
 
 package akka.grpc.internal
 
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
@@ -15,6 +16,7 @@ import io.grpc.ManagedChannel
 import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.Failure
+import scala.compat.java8.FutureConverters._
 
 /**
  * INTERNAL API
@@ -47,6 +49,9 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
         .getOrElse(throw new ClientClosedException)
         .managedChannel
     }
+
+  def closedCS(): CompletionStage[Done] = closed().toJava
+  def closeCS(): CompletionStage[Done] = close().toJava
 
   def closed(): Future[Done] = {
     // while there's no request to close this RestartingClient, it will continue to restart.

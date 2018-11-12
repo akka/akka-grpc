@@ -32,59 +32,61 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 import java.util.concurrent.CompletionStage;
 import scala.concurrent.ExecutionContext;
 import scala.compat.java8.FutureConverters;
+import scala.concurrent.Future;
 import scala.concurrent.Promise;
 
 
 public final class @{service.name}Client implements @{service.name}, AkkaGrpcClient {
 
-  private final InternalChannel internalChannel;
-  private final scala.concurrent.Future<ManagedChannel> channel;
+  private final ClientState clientState;
+  private final GrpcClientSettings settings;
+  private final CallOptions options;
+  private final Materializer mat;
   private final ExecutionContext ec;
 
-  @for(method <- service.methods) {
-    @if(method.methodType == akka.grpc.gen.Unary) {
-      private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder;
-    } else if(method.methodType == akka.grpc.gen.ClientStreaming){
-      private final SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder;
-    } else if(method.methodType == akka.grpc.gen.ServerStreaming){
-      private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder;
-    } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-      private final StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder;
-    }
-  }
 
   private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    this.internalChannel = NettyClientUtils.createChannel(settings, ec);
-    this.channel = internalChannel.managedChannel();
+    this.settings = settings;
+    this.mat = mat;
     this.ec = ec;
-    final CallOptions options = NettyClientUtils.callOptions(settings);
+    this.clientState = new ClientState(settings, mat, ec);
+    this.options = NettyClientUtils.callOptions(settings);
 
     if (mat instanceof ActorMaterializer) {
       ((ActorMaterializer) mat).system().getWhenTerminated().whenComplete((v, e) -> close());
     }
 
-    @for(method <- service.methods) {
-      @if(method.methodType == akka.grpc.gen.Unary) {
-        @{method.name}RequestBuilder = new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
-      } else {
-        @defining(service.grpcName + "." + method.grpcName){ fqName =>
-          @if(method.methodType == akka.grpc.gen.ClientStreaming){
-            @{method.name}RequestBuilder = new JavaClientStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
-          } else if(method.methodType == akka.grpc.gen.ServerStreaming){
-            @{method.name}RequestBuilder = new JavaServerStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
-          } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-            @{method.name}RequestBuilder = new JavaBidirectionalStreamingRequestBuilder<>(
-              @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
-          }
-        }
-      }
-    }
   }
 
   public static @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
     return new @{service.name}Client(settings, mat, ex);
+  }
+
+  @for(method <- service.methods) {
+    @if(method.methodType == akka.grpc.gen.Unary) {
+      private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
+      }
+    } else {
+      @defining(service.grpcName + "." + method.grpcName){ fqName =>
+        @if(method.methodType == akka.grpc.gen.ClientStreaming){
+          private final SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+            return new JavaClientStreamingRequestBuilder<>(
+                                 @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
+          }
+        } else if(method.methodType == akka.grpc.gen.ServerStreaming){
+          private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+            return new JavaServerStreamingRequestBuilder<>(
+                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
+          }
+        } else if(method.methodType == akka.grpc.gen.BidiStreaming){
+          private final StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+            return new JavaBidirectionalStreamingRequestBuilder<>(
+                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
+          }
+        }
+      }
+    }
   }
 
   @for(method <- service.methods) {
@@ -110,7 +112,7 @@ public final class @{service.name}Client implements @{service.name}, AkkaGrpcCli
       public StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
     }
     {
-      return @{method.name}RequestBuilder;
+      return clientState.withChannel( this::@{method.name}RequestBuilder);
     }
   }
 
@@ -129,7 +131,7 @@ public final class @{service.name}Client implements @{service.name}, AkkaGrpcCli
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   public CompletionStage<Done> close() {
-    return ChannelUtils.closeCS(internalChannel, ec);
+    return clientState.closeCS() ;
   }
 
  /**
@@ -137,7 +139,7 @@ public final class @{service.name}Client implements @{service.name}, AkkaGrpcCli
   * or exceptionally if a connection can not be established after maxConnectionAttempts.
   */
   public CompletionStage<Done> closed() {
-    return internalChannel.doneCS();
+    return clientState.closedCS();
   }
 }
 
