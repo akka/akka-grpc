@@ -18,16 +18,16 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 import io.grpc._
 
-trait @{service.name}Client extends @{service.name} with @{service.name}LiftedClient, AkkaGrpcClient
+// Not sealed so users can extend to write their stubs
+trait @{service.name}Client extends @{service.name} with @{service.name}LiftedClient with AkkaGrpcClient
 
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
     new Raw@{service.name}Client(settings)
 }
 
-
 final class Raw@{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name}Client {
-  import @{service.name}Client._
+  import Raw@{service.name}Client._
 
   private val options = NettyClientUtils.callOptions(settings)
   private val clientState = new ClientState(settings)
@@ -55,10 +55,10 @@ final class Raw@{service.name}Client(settings: GrpcClientSettings)(implicit mat:
      * prefer @{method.name}(@method.parameterType) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+      override def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
         clientState.withChannel(@{method.name}RequestBuilder _)
     } else {
-      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+      override def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
         clientState.withChannel(@{method.name}RequestBuilder _)
     }
 
@@ -101,16 +101,16 @@ private object Raw@{service.name}Client {
 }
 
 
-trait @{service.name}LiftedClient extends @{service.name} with AkkaGrpcClient{
+trait @{service.name}LiftedClient {
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.
      * prefer @{method.name}(@method.parameterType) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed]
+      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     } else {
-      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed]
+      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     }
   }
 

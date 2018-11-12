@@ -36,31 +36,30 @@ import scala.concurrent.Future;
 import scala.concurrent.Promise;
 
 
-public final class @{service.name}Client implements @{service.name}, AkkaGrpcClient {
-
-  private final ClientState clientState;
-  private final GrpcClientSettings settings;
-  private final CallOptions options;
-  private final Materializer mat;
-  private final ExecutionContext ec;
-
-
-  private @{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    this.settings = settings;
-    this.mat = mat;
-    this.ec = ec;
-    this.clientState = new ClientState(settings, mat, ec);
-    this.options = NettyClientUtils.callOptions(settings);
-
-    if (mat instanceof ActorMaterializer) {
-      ((ActorMaterializer) mat).system().getWhenTerminated().whenComplete((v, e) -> close());
-    }
-
+public abstract class @{service.name}Client extends @{service.name}LiftedClient implements @{service.name}, AkkaGrpcClient {
+  public static final @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
+    return new Raw@{service.name}Client(settings, mat, ec);
   }
 
-  public static @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ex) {
-    return new @{service.name}Client(settings, mat, ex);
-  }
+  protected final static class Raw@{service.name}Client extends @{service.name}Client {
+
+      private final ClientState clientState;
+      private final GrpcClientSettings settings;
+      private final CallOptions options;
+      private final Materializer mat;
+      private final ExecutionContext ec;
+
+      private Raw@{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
+        this.settings = settings;
+        this.mat = mat;
+        this.ec = ec;
+        this.clientState = new ClientState(settings, mat, ec);
+        this.options = NettyClientUtils.callOptions(settings);
+
+        if (mat instanceof ActorMaterializer) {
+          ((ActorMaterializer) mat).system().getWhenTerminated().whenComplete((v, e) -> close());
+        }
+      }
 
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
@@ -89,59 +88,62 @@ public final class @{service.name}Client implements @{service.name}, AkkaGrpcCli
     }
   }
 
-  @for(method <- service.methods) {
+      @for(method <- service.methods) {
 
-    /**
-     * For access to method metadata use the parameterless version of @{method.name}
-     */
-    public @{method.getReturnType} @{method.name}(@{method.getParameterType} request) {
-      return @{method.name}().invoke(request);
-    }
+        /**
+         * For access to method metadata use the parameterless version of @{method.name}
+         */
+        public @{method.getReturnType} @{method.name}(@{method.getParameterType} request) {
+          return @{method.name}().invoke(request);
+        }
 
-    /**
-     * Lower level "lifted" version of the method, giving access to request metadata etc.
-     * prefer @{method.name}(@method.inputTypeUnboxed) if possible.
-     */
-    @if(method.methodType == akka.grpc.gen.Unary) {
-      public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.ClientStreaming){
-      public SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.ServerStreaming){
-      public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.BidiStreaming){
-      public StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
-    }
-    {
-      return clientState.withChannel( this::@{method.name}RequestBuilder);
-    }
+        /**
+         * Lower level "lifted" version of the method, giving access to request metadata etc.
+         * prefer @{method.name}(@method.inputTypeUnboxed) if possible.
+         */
+        @if(method.methodType == akka.grpc.gen.Unary) {
+          public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+        }else if(method.methodType == akka.grpc.gen.ClientStreaming){
+          public SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+        }else if(method.methodType == akka.grpc.gen.ServerStreaming){
+          public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+        }else if(method.methodType == akka.grpc.gen.BidiStreaming){
+          public StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+        }
+        {
+          return clientState.withChannel( this::@{method.name}RequestBuilder);
+        }
+      }
+
+      @for(method <- service.methods) {
+        private static MethodDescriptor<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}Descriptor =
+          MethodDescriptor.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>newBuilder()
+            .setType(@mapMethodType(method.methodType))
+            .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
+            .setRequestMarshaller(new ProtoMarshaller<@method.inputTypeUnboxed>(@method.deserializer.name))
+            .setResponseMarshaller(new ProtoMarshaller<@method.outputTypeUnboxed>(@method.serializer.name))
+            .setSampledToLocalTracing(true)
+            .build();
+        }
+
+      /**
+       * Initiates a shutdown in which preexisting and new calls are cancelled.
+       */
+      public CompletionStage<Done> close() {
+        return clientState.closeCS() ;
+      }
+
+     /**
+      * Returns a CompletionState that completes successfully when shutdown via close()
+      * or exceptionally if a connection can not be established after maxConnectionAttempts.
+      */
+      public CompletionStage<Done> closed() {
+        return clientState.closedCS();
+      }
   }
 
-  @for(method <- service.methods) {
-    private static MethodDescriptor<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}Descriptor =
-      MethodDescriptor.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>newBuilder()
-        .setType(@mapMethodType(method.methodType))
-        .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-        .setRequestMarshaller(new ProtoMarshaller<@method.inputTypeUnboxed>(@method.deserializer.name))
-        .setResponseMarshaller(new ProtoMarshaller<@method.outputTypeUnboxed>(@method.serializer.name))
-        .setSampledToLocalTracing(true)
-        .build();
-    }
-
-  /**
-   * Initiates a shutdown in which preexisting and new calls are cancelled.
-   */
-  public CompletionStage<Done> close() {
-    return clientState.closeCS() ;
-  }
-
- /**
-  * Returns a CompletionState that completes successfully when shutdown via close()
-  * or exceptionally if a connection can not be established after maxConnectionAttempts.
-  */
-  public CompletionStage<Done> closed() {
-    return clientState.closedCS();
-  }
 }
+
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
   @if(methodType == akka.grpc.gen.Unary) { MethodDescriptor.MethodType.UNARY }

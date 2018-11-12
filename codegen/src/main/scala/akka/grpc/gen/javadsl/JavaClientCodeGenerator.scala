@@ -7,20 +7,32 @@ package akka.grpc.gen.javadsl
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
-import templates.JavaClient.txt.Client
+import templates.JavaClient.txt.{ Client, LiftedClient }
 
 trait JavaClientCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-client"
 
-  override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = super.perServiceContent +
-    JavaCodeGenerator.generateServiceFile + generateStub
+  override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] =
+    super.perServiceContent +
+      JavaCodeGenerator.generateServiceFile +
+      generateInterface +
+      generateRaw
 
-  def generateStub(logger: Logger, service: Service): CodeGeneratorResponse.File = {
+  def generateInterface(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
     val clientPath = s"${service.packageDir}/${service.name}Client.java"
     b.setName(clientPath)
-    logger.info(s"Generating Akka gRPC client [${service.packageName}.${service.name}]")
+    logger.info(s"Generating Akka gRPC Client [${service.packageName}.${service.name}]")
+    b.build
+  }
+
+  def generateRaw(logger: Logger, service: Service): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(LiftedClient(service).body)
+    val clientPath = s"${service.packageDir}/${service.name}LiftedClient.java"
+    b.setName(clientPath)
+    logger.info(s"Generating Akka gRPC Lifted Client interface[${service.packageName}.${service.name}]")
     b.build
   }
 
