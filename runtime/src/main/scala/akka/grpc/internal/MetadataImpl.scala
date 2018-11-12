@@ -8,7 +8,7 @@ import java.util.Optional
 
 import akka.annotation.InternalApi
 import akka.grpc.javadsl
-import akka.grpc.scaladsl.{ BytesEntry, MetadataEntry, MetadataMap, StringEntry }
+import akka.grpc.scaladsl.{ BytesEntry, MetadataEntry, StringEntry }
 import akka.util.ByteString
 import io.grpc.Metadata
 
@@ -53,7 +53,7 @@ import scala.compat.java8.OptionConverters._
         case _ => None
       }
 
-      def asMap: MetadataMap = metadata
+      def asMap: Map[String, List[MetadataEntry]] = metadata
       override def toString: String = s"Metadata(${niceStringRep(metadata)})"
     }
   }
