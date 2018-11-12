@@ -18,7 +18,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 import io.grpc._
 
-trait @{service.name}Client extends @{service.name} with AkkaGrpcClient
+trait @{service.name}Client extends @{service.name} with @{service.name}LiftedClient, AkkaGrpcClient
 
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
@@ -98,4 +98,20 @@ private object Raw@{service.name}Client {
         .setSampledToLocalTracing(true)
         .build()
   }
+}
+
+
+trait @{service.name}LiftedClient extends @{service.name} with AkkaGrpcClient{
+  @for(method <- service.methods) {
+    /**
+     * Lower level "lifted" version of the method, giving access to request metadata etc.
+     * prefer @{method.name}(@method.parameterType) if possible.
+     */
+    @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
+      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed]
+    } else {
+      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed]
+    }
+  }
+
 }
