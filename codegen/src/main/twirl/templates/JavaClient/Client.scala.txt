@@ -38,10 +38,10 @@ import scala.concurrent.Promise;
 
 public abstract class @{service.name}Client extends @{service.name}LiftedClient implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
-    return new Raw@{service.name}Client(settings, mat, ec);
+    return new Default@{service.name}Client(settings, mat, ec);
   }
 
-  protected final static class Raw@{service.name}Client extends @{service.name}Client {
+  protected final static class Default@{service.name}Client extends @{service.name}Client {
 
       private final ClientState clientState;
       private final GrpcClientSettings settings;
@@ -49,7 +49,7 @@ public abstract class @{service.name}Client extends @{service.name}LiftedClient 
       private final Materializer mat;
       private final ExecutionContext ec;
 
-      private Raw@{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
+      private Default@{service.name}Client(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
         this.settings = settings;
         this.mat = mat;
         this.ec = ec;
