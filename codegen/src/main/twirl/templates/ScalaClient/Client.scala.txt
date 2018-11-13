@@ -19,7 +19,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import io.grpc._
 
 // Not sealed so users can extend to write their stubs
-trait @{service.name}Client extends @{service.name} with @{service.name}LiftedClient with AkkaGrpcClient
+trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
@@ -100,8 +100,7 @@ private object Default@{service.name}Client {
   }
 }
 
-
-trait @{service.name}LiftedClient {
+trait @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.

@@ -35,7 +35,7 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 import scala.concurrent.Promise;
 
-public abstract class  @{service.name}LiftedClient {
+public abstract class  @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.

@@ -7,7 +7,7 @@ package akka.grpc.gen.javadsl
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
-import templates.JavaClient.txt.{ Client, LiftedClient }
+import templates.JavaClient.txt.{ Client, ClientPowerApi }
 
 trait JavaClientCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-client"
@@ -29,8 +29,8 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
 
   def generateRaw(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(LiftedClient(service).body)
-    val clientPath = s"${service.packageDir}/${service.name}LiftedClient.java"
+    b.setContent(ClientPowerApi(service).body)
+    val clientPath = s"${service.packageDir}/${service.name}ClientPowerApi.java"
     b.setName(clientPath)
     logger.info(s"Generating Akka gRPC Lifted Client interface[${service.packageName}.${service.name}]")
     b.build

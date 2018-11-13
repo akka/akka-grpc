@@ -36,7 +36,7 @@ import scala.concurrent.Future;
 import scala.concurrent.Promise;
 
 
-public abstract class @{service.name}Client extends @{service.name}LiftedClient implements @{service.name}, AkkaGrpcClient {
+public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
     return new Default@{service.name}Client(settings, mat, ec);
   }
