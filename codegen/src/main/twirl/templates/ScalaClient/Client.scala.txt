@@ -24,9 +24,6 @@ trait @{service.name}Client extends @{service.name} with @{service.name}ClientPo
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
     new Default@{service.name}Client(settings)
-  // A factory method use by some tooling to reflectively create a @{service.name}Client.
-  private def create(settings: GrpcClientSettings, mat: Materializer, ex: ExecutionContext): @{service.name}Client =
-    new Default@{service.name}Client(settings)(mat, ex)
 }
 
 final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name}Client {

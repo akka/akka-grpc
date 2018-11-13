@@ -12,7 +12,6 @@ import play.api.test.{ DefaultTestServerFactory, RunningServer }
 import scala.reflect.ClassTag
 import org.scalatest.TestData
 import org.scalatestplus.play.BaseOneServerPerTest
-import scala.reflect.runtime.{ universe => ru }
 
 /**
  * Helpers to test gRPC clients with Play using ScalaTest.
@@ -22,7 +21,7 @@ import scala.reflect.runtime.{ universe => ru }
 trait ServerGrpcClient extends AkkaGrpcClientHelpers { this: BaseOneServerPerTest =>
 
   /** Configure the factory by combining the current app and server information */
-  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: ru.TypeTag](implicit running: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
+  implicit def configuredAkkaGrpcClientFactory[T <: AkkaGrpcClient: ClassTag](implicit running: RunningServer): AkkaGrpcClientFactory.Configured[T] = {
     AkkaGrpcClientHelpers.factoryForAppEndpoints(running.app, running.endpoints)
   }
 
