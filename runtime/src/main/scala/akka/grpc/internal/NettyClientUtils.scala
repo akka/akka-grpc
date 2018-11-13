@@ -8,13 +8,12 @@ import java.lang.reflect.Field
 import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 
 import akka.Done
-
 import akka.annotation.InternalApi
 import akka.discovery.Lookup
 import akka.grpc.GrpcClientSettings
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.grpc.netty.shaded.io.netty.handler.ssl._
-import io.grpc.CallOptions
+import io.grpc.{ CallOptions, ManagedChannel }
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.duration.FiniteDuration
@@ -32,7 +31,7 @@ object NettyClientUtils {
   @InternalApi
   def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): InternalChannel = {
     val promise = Promise[Done]()
-    val mc = settings.serviceDiscovery.lookup(
+    val mc: Future[ManagedChannel] = settings.serviceDiscovery.lookup(
       Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol),
       settings.resolveTimeout).flatMap { targets =>
         if (targets.addresses.nonEmpty) {

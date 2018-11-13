@@ -8,34 +8,15 @@ avoid leaking in the latter case, you should call `.close()` on the client.
 
 When the connection breaks, the client will start failing requests and try reconnecting
 to the server automatically.  If a connection can not be established after the configured number of attempts then
-the client closes itself. When this happens the @scala[`Future`]@java[`CompletionStage`] 
-returned by `closed()` will complete with a failure. You do not need to call `close()` in
-this case. The default number of reconnection attempts is infinite.
+the client will try to use the `ServiceDiscovery` implementation to connect to a different instance. This mechanism separates the physical connection from the logical one and gives an extra layer of flexibility to support both client-side and server-side balancing. The default number of attempts to reconnect to the same host and port is infinite and configurable via `GrpcClientSettings`'s `connectionAttempts`. The number of times a client will reuse the `ServiceDiscovery` instance to locate a new remote instance is infinite.
 
-If you're using a static name for your server then it will
-be re-resolved between connection attempts so infinite is a sensible default. However
-if another service discovery mechanism is used then set the reconnection attempts to
-a small value i.e. 5 and re-create the client if the `closed()` @scala[`Future`]@java[`CompletionStage`]
-is completed exceptionally. A `RestartingClient` utility is included that can wrap any
-generated client and do this automatically. When the client is re-created service discovery
-will be queried again. It is expected in a later version this will happen transparently.
+The client offers a method `closed()` that returns a @scala[`Future`]@java[`CompletionStage`] 
+that will complete once the client is explicitly closed after invoking `close()`.
 
-Scala
-:  @@snip [RestartingGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #restarting-client }
-
-Java
-:  @@snip [RestartingGreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #restarting-client }
-
-
-To use the client use `withClient`. The actual client isn't exposed as it should not be stored
-anywhere as it can be replaced when a failure happens.
-
-Scala
-:  @@snip [RestartingGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/RestartingGreeterClient.scala) { #usage }
-
-Java
-:  @@snip [RestartingGreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/RestartingGreeterClient.java) { #usage }
-
+If you're using a static name for your server (or a Service Discovery with hard-corded values) then the server will
+be re-resolved between connection attempts and infinite is a sensible default value for `GrpcClientSettings#connectionAttempts`. However,
+if you setup another service discovery mechanism (e.g. a service discovery based on DNS-SRV in Kubernetes) then the reconnection attempts should be set to
+a small value (i.e. 5) so the client can recreate the connection to a different server instance when the connection is dropped and can't be restablished. 
 
 ## Request Metadata
 
