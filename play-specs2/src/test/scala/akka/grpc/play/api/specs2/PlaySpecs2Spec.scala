@@ -12,7 +12,7 @@ import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.routing.Router
 import play.api.test._
 
-import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceImpl, GreeterServiceClient, HelloRequest }
+import example.myapp.helloworld.grpc.helloworld._
 
 /**
  * Test for the Play gRPC Specs2 APIs
