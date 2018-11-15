@@ -98,7 +98,7 @@ configurations {
 
 dependencies {
   // Configuration for modules that use Jetty ALPN agent
-  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.7'
+  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
 }
 
 task runServer(type: JavaExec) {
