@@ -15,7 +15,7 @@ object AkkaGrpcClientFactory {
   def create[T <: AkkaGrpcClient: ClassTag](settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): T = {
     // this reflection requires:
     //    object @{service.name}Client {
-    //      private def create(GrpcClientSettings, Materializer, ExecutionContext): @{service.name}Client
+    //      private def apply(GrpcClientSettings)(Materializer, ExecutionContext): @{service.name}Client
     //    }
     val classT: Class[_] = classTag[T].runtimeClass
     val module: AnyRef = getClass.getClassLoader.loadClass(classT.getName + "$").getField("MODULE$").get(null)
