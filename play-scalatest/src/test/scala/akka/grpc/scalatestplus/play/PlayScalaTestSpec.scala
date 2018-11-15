@@ -12,7 +12,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
-import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceClient, GreeterServiceImpl, HelloRequest }
+import example.myapp.helloworld.grpc.helloworld._
 
 /**
  * Test for the Play gRPC ScalaTest APIs

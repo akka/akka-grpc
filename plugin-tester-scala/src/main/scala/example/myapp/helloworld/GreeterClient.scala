@@ -27,7 +27,7 @@ object GreeterClient {
     // Take details how to connect to the service from the config.
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
     // Create a client-side stub for the service
-    val client: GreeterService = new GreeterServiceClient(clientSettings)
+    val client: GreeterService = GreeterServiceClient(clientSettings)
 
     // Run examples for each of the exposed service methods.
     runSingleRequestReplyExample()
