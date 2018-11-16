@@ -51,23 +51,23 @@ object Dependencies {
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
 
-    val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")  // Apache M2 (exclusion is "either GPL or CDDL")
-    val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache M2
-    val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache M2
-    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
+    val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")  // Apache V2 (exclusion is "either GPL or CDDL")
+    val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache V2
+    val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache V2
+    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache V2
 
-    val playTest = "com.typesafe.play" %% "play-test" % Versions.play // Apache M2
-    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play // Apache M2
-    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay // ApacheV2
+    val playTest = "com.typesafe.play" %% "play-test" % Versions.play // Apache V2
+    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play // Apache V2
+    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay // Apache V2
   }
 
   object Test {
     final val Test = sbt.Test
-    val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
+    val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
-    val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % Versions.play % Test // Apache M2
+    val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % Versions.play % Test // Apache V2
     val playTest = Compile.playTest % Test
     val playSpecs2 = Compile.playSpecs2 % Test
     val scalaTestPlusPlay = Compile.scalaTestPlusPlay % Test
