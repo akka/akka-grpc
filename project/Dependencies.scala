@@ -51,7 +51,7 @@ object Dependencies {
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
 
-    val play = "com.typesafe.play" %% "play" % Versions.play // Apache M2
+    val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")
     val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache M2
     val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache M2
     val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
