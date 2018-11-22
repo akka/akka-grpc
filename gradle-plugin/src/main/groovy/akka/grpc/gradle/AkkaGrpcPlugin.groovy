@@ -12,7 +12,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
     final String pluginVersion = AkkaGrpcPlugin.class.package.implementationVersion
 
     final String protocVersion = "3.4.0"
-    final String grpcVersion = "1.14.0"
+    final String grpcVersion = "1.16.1" // keep synced with project/Dependencies.scala
 
     Project project
 

@@ -16,7 +16,9 @@ object Dependencies {
     val play = "2.7.0-RC3"
 
     val scalapb = "0.8.0"
-    val grpc = "1.14.0"
+    // The gRPC version is also hardcoded in other files
+    // Be sure to find and replace all
+    val grpc = "1.16.1"
     val config = "1.3.3"
     val sslConfig = "0.3.6"
 
@@ -39,7 +41,10 @@ object Dependencies {
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
-    val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    // Excluding grpc-alts works around a complex resolution bug
+    // Details are in https://github.com/akka/akka-grpc/pull/469
+    val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc exclude("io.grpc", "grpc-alts")
 
     val config = "com.typesafe" % "config" % Versions.config
     val sslConfigCore = "com.typesafe" %% "ssl-config-core" % Versions.sslConfig
