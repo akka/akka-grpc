@@ -16,9 +16,7 @@ object Dependencies {
     val play = "2.7.0-RC3"
 
     val scalapb = "0.8.0"
-    // The gRPC version is also hardcoded in other files
-    // Be sure to find and replace all
-    val grpc = "1.16.1"
+    val grpc = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
     val sslConfig = "0.3.6"
 
