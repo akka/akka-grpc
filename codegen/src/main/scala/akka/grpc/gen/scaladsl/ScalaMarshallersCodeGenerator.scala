@@ -21,11 +21,11 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
   override def suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
     Artifact("com.typesafe.akka", s"akka-http_${scalaBinaryVersion.prefix}", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies(scalaBinaryVersion)
 
-  def generateMarshalling(logger: Logger, service: Service): CodeGeneratorResponse.File = {
+  def generateMarshalling(logger: Logger, service: Service): Option[CodeGeneratorResponse.File] = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Marshallers(service).body)
     b.setName(s"${service.packageDir}/${service.name}Marshallers.scala")
-    b.build
+    Option(b.build)
   }
 }
 
