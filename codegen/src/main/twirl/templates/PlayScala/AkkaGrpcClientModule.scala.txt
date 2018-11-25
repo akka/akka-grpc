@@ -5,7 +5,7 @@
 @(packageName: String, services: Seq[akka.grpc.gen.scaladsl.Service])
 
 @akka.grpc.gen.Constants.DoNotEditComment
-@{if (packageName.nonEmpty) s"package $packageName" else ""}
+package @{packageName}
 
 import play.api.inject.Binding
 import play.api.{Configuration, Environment}
