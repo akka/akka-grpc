@@ -2,7 +2,7 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  *@
 
-@(service: akka.grpc.gen.scaladsl.Service)
+@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean)
 
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
@@ -19,7 +19,7 @@ import akka.http.scaladsl.model.Uri.Path.Segment
 
 import akka.stream.Materializer
 
-@defining(if (service.serverPowerApis) service.name + "PowerApi" else service.name) { serviceName =>
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   object @{service.name}Handler {
     private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
 
@@ -72,13 +72,13 @@ import akka.stream.Materializer
         @for(method <- service.methods) {
         case "@method.grpcName" =>
           val responseCodec = Codecs.negotiate(request)
-          @{if(service.serverPowerApis) { "val metadata = new MetadataImpl(request.headers)" } else { "" }}
+          @{if(powerApis) { "val metadata = new MetadataImpl(request.headers)" } else { "" }}
           @{method.unmarshal}(request)(@method.deserializer.name, mat)
             .@{if(method.outputStreaming) {
                "map"
             } else {
               "flatMap"
-            }}(implementation.@{method.name}(_@{if(service.serverPowerApis) { ", metadata" } else { "" }}))
+            }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
             .map(e => @{method.marshal}(e)(@method.serializer.name, mat, responseCodec))
         }
         case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))

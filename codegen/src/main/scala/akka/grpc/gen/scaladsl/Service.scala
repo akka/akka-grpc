@@ -8,16 +8,16 @@ import scala.collection.immutable
 
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
-import scalapb.compiler.DescriptorImplicits
+import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
-case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method], serverPowerApis: Boolean) {
+case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method]) {
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
   def packageDir = packageName.replace('.', '/')
 }
 
 object Service {
-  def apply(generatorParams: ExtendedGeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
-    implicit val ops = new DescriptorImplicits(generatorParams.baseParams, List(fileDesc))
+  def apply(generatorParams: GeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
+    implicit val ops = new DescriptorImplicits(generatorParams, List(fileDesc))
     import ops._
 
     val serviceClassName = serviceDescriptor.getName
@@ -26,7 +26,6 @@ object Service {
       fileDesc.scalaPackageName,
       serviceClassName,
       fileDesc.getPackage + "." + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)).to[immutable.Seq],
-      generatorParams.serverPowerApis)
+      serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)).to[immutable.Seq])
   }
 }

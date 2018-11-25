@@ -2,7 +2,7 @@
  * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
  *@
 
-@(service: akka.grpc.gen.scaladsl.Service)
+@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean)
 
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
@@ -17,7 +17,7 @@ import akka.grpc.internal.PlayRouter
 /**
  * Abstract base class for implementing @{service.name} and using as a play Router
  */
-abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name}@{if(service.serverPowerApis) { "PowerApi"} else { "" }} {
+abstract class Abstract@{service.name}Router(mat: Materializer) extends PlayRouter(mat, @{service.name}.name) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
 
   final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
     @{service.name}Handler(this, serviceName)(mat)
