@@ -9,7 +9,7 @@ javaOptions in run ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+Pr
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.12.0"
+val grpcVersion = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
 
 val root = project.in(file("."))
   .dependsOn(
