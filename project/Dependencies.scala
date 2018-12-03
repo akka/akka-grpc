@@ -15,7 +15,6 @@ object Dependencies {
 
     val play = "2.7.0-RC3"
 
-    val scalapb = "0.8.0"
     val grpc = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
     val sslConfig = "0.3.6"
@@ -33,8 +32,8 @@ object Dependencies {
     val akkaHttp2Support = "com.typesafe.akka"            %% "akka-http2-support" % Versions.akkaHttp
     val akkaDiscovery    = "com.lightbend.akka.discovery" %% "akka-discovery"     % Versions.akkaDiscovery
 
-    val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % Versions.scalapb
-    val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
+    val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % scalapb.compiler.Version.scalapbVersion
+    val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion exclude("io.grpc", "grpc-netty")
 
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
