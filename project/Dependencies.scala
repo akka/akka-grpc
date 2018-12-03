@@ -21,7 +21,6 @@ object Dependencies {
     val sslConfig = "0.3.6"
 
     val scalaTest = "3.0.5"
-    val scalaTestPlusPlay = "4.0.0-RC1"
 
     val maven = "3.5.4"
   }
@@ -55,13 +54,7 @@ object Dependencies {
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
 
     val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")  // Apache V2 (exclusion is "either GPL or CDDL")
-    val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache V2
-    val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache V2
     val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache V2
-
-    val playTest = "com.typesafe.play" %% "play-test" % Versions.play // Apache V2
-    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play // Apache V2
-    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay // Apache V2
   }
 
   object Test {
@@ -70,10 +63,6 @@ object Dependencies {
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
-    val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % Versions.play % Test // Apache V2
-    val playTest = Compile.playTest % Test
-    val playSpecs2 = Compile.playSpecs2 % Test
-    val scalaTestPlusPlay = Compile.scalaTestPlusPlay % Test
   }
 
   object Plugins {
@@ -129,22 +118,6 @@ object Dependencies {
     addSbtPlugin(Plugins.sbtProtoc),
   )
 
-  val playTestdata = l ++= Seq(
-    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
-    Compile.play,
-    Compile.grpcStub,
-    Compile.playAkkaHttpServer,
-  )
-
-  val playTestkit = l ++= Seq(
-    Compile.play,
-    Compile.playTest,
-    Test.playAhcWs,
-  )
-
-  val playSpecs2    = l += Compile.playSpecs2
-  val playScalaTest = l += Compile.scalaTestPlusPlay
-
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting,
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
@@ -156,24 +129,5 @@ object Dependencies {
   val pluginTester = l++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.grpcStub,
-  ) ++ testing
-
-  val playInteropTestScala = l ++= Seq(
-    // TODO #193
-    Compile.grpcStub,
-    Compile.play,
-    Compile.playGuice,
-    Compile.playAkkaHttpServer,
-    Test.playSpecs2,
-    Test.scalaTestPlusPlay,
-  ) ++ testing
-
-  val playInteropTestJava = l ++= Seq(
-    // TODO #193
-    Compile.grpcStub,
-    Compile.play,
-    Compile.playGuice,
-    Compile.playAkkaHttpServer,
-    Compile.playJava,
   ) ++ testing
 }
