@@ -60,7 +60,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * Abstract base class for implementing @{service.name} and using as a play Router
  */
-abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouterUsingActions(mat, @{service.name}.name, cc) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} with InjectedController {
+abstract class Abstract@{service.name}Router(mat: Materializer, cc: ControllerComponents) extends PlayRouter(mat, @{service.name}.name) with @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} with InjectedController {
 
   @{
     val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = service.methods.partition(_.inputStreaming) match {
