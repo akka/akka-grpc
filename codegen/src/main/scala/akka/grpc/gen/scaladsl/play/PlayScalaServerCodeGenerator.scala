@@ -9,8 +9,6 @@ import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, ScalaServerCodeGenerator, Se
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayScala.txt._
 
-//object PlayScalaServerCodeGenerator extends PlayScalaServerCodeGenerator
-
 case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActions: Boolean = false) extends ScalaCodeGenerator {
 
   import ScalaServerCodeGenerator._
@@ -18,7 +16,7 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
   override def name: String = "akka-grpc-play-server-scala"
 
   override def perServiceContent =
-    super.perServiceContent ++ Set(ScalaCodeGenerator.generateServiceFile) ++ ((powerApis, usePlayActions) match {
+    super.perServiceContent ++ ((powerApis, usePlayActions) match {
       case (true, true) => Set(generatePowerService, generateHandler(powerApis), generateRouterUsingActions)
       case (false, true) => Set(generateHandler(powerApis), generateRouterUsingActions)
       case (true, false) => Set(generatePowerService, generateHandler(powerApis), generateRouter)

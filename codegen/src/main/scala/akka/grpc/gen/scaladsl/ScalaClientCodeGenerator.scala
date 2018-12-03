@@ -13,7 +13,7 @@ import templates.ScalaClient.txt._
 trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-client"
 
-  override def perServiceContent = super.perServiceContent + ScalaCodeGenerator.generateServiceFile + generateStub
+  override def perServiceContent = super.perServiceContent + generateStub
 
   def generateStub(logger: Logger, service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
