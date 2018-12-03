@@ -14,7 +14,7 @@ import io.grpc.{Status => GrpcStatus}
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 
-import akka.grpc.internal.PlayRouterUsingActions
+import akka.grpc.internal.PlayRouter
 
 import play.api.mvc.{InjectedController, ControllerComponents, EssentialAction, RequestHeader}
 import scala.concurrent.{ ExecutionContext, Future }
