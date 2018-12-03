@@ -13,7 +13,7 @@ case class ScalaServerCodeGenerator(powerApis: Boolean = false) extends ScalaCod
   override def name = "akka-grpc-scaladsl-server"
 
   override def perServiceContent =
-    super.perServiceContent + ScalaCodeGenerator.generateServiceFile ++ {
+    super.perServiceContent ++ {
       if (powerApis) Set(generatePowerService) else Set.empty
     } + generateHandler(powerApis)
 }
