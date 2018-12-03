@@ -19,7 +19,7 @@ import akka.grpc.internal.PlayRouter
 import play.api.mvc.{InjectedController, ControllerComponents, EssentialAction, RequestHeader}
 import scala.concurrent.{ ExecutionContext, Future }
 
-import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, MetadataMap }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer }
 import akka.grpc.Codecs
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
@@ -37,7 +37,7 @@ import play.api.mvc._
 
 import akka.NotUsed
 import akka.grpc.scaladsl
-import akka.grpc.scaladsl.{GrpcMarshalling, MetadataMap}
+import akka.grpc.scaladsl.GrpcMarshalling
 import akka.grpc.{Codecs, Grpc, GrpcServiceException, ProtobufSerializer}
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
 import akka.http.scaladsl.model.Uri.Path
