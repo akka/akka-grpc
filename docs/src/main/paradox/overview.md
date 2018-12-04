@@ -17,9 +17,9 @@ It features:
     - The service API as a @scala[Scala trait]@java[Java interface] using Akka Stream `Source`s
     - On the @ref[server side](server/index.md), code to create an Akka HTTP route based on your implementation of the service
     - On the @ref[client side](client/index.md) side, a client for the service
- * gRPC Runtime implementation that uses Akka HTTP/2 support for the server side and grpc-netty-shaded for the client side. 
+ * gRPC Runtime implementation that uses Akka HTTP/2 support for the server side and grpc-netty-shaded for the client side.
  * Support for @ref[sbt](buildtools/sbt.md), @ref[gradle](buildtools/gradle.md), and @ref[Maven](buildtools/maven.md),
-   and the @ref[Play Framework](play-framework.md).  
+   and the [Play Framework](https://github.com/playframework/play-grpc/blob/docs/docs/src/main/paradox/play-framework.md).
 
 ## Project Information
 
