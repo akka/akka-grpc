@@ -117,4 +117,4 @@ The server can then be started from the command line with:
 
 ## Play Framework support
 
-See the [Play gRPC docs](https://github.com/playframework/play-grpc/blob/docs/docs/src/main/paradox/play-framework.md) for details.
+See the [Play gRPC docs](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md) for details.
