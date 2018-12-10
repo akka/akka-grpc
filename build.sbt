@@ -7,7 +7,6 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
-  resolvers += "Staging Repo" at "https://oss.sonatype.org/content/repositories/comtypesafe-2276",
 
   scalacOptions ++= List(
     "-unchecked",
