@@ -83,6 +83,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     val languages = languages0 mkString ", "
     val sources = sources0 mkString ", "
     val extraGenerators = extraGenerators0 mkString ", "
+    val generatorSettings1 = generatorSettings.mkString("\"", "\", \"", "\"")
 
     val cp = classpath.map(_.data)
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
@@ -103,12 +104,13 @@ object ReflectiveCodeGen extends AutoPlugin {
           |val languages: Seq[AkkaGrpc.Language] = Seq($languages)
           |val sources: Seq[AkkaGrpc.GeneratedSource] = Seq($sources)
           |val scalaBinaryVersion = ScalaBinaryVersion("$scalaBinaryVersion")
+          |val generatorSettings: Seq[String] = Seq($generatorSettings1)
           |
           |val logger = akka.grpc.gen.StdoutLogger
           |
           |(targetPath: java.io.File, settings: Seq[String]) => {
           |  val generators =
-          |    AkkaGrpcPlugin.generatorsFor(sources, languages, scalaBinaryVersion, logger) ++
+          |    AkkaGrpcPlugin.generatorsFor(sources, languages, generatorSettings, scalaBinaryVersion, logger) ++
           |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, scalaBinaryVersion, akka.grpc.gen.StdoutLogger))
           |  AkkaGrpcPlugin.targetsFor(targetPath, settings, generators)
           |}

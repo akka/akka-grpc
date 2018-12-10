@@ -318,7 +318,7 @@ lazy val root = Project(
 //    playSpecs2,
 //    playScalaTest,
 //    playTestdata,
-//    pluginTesterScala,
+    pluginTesterScala,
 //    pluginTesterJava,
 //    docs,
   )
