@@ -11,7 +11,6 @@ object Dependencies {
 
     val akka = "2.5.19"
     val akkaHttp = "10.1.5"
-    val akkaDiscovery = "0.18.0"
 
     val play = "2.7.0-RC3"
 
@@ -30,7 +29,7 @@ object Dependencies {
     val akkaHttp         = "com.typesafe.akka"            %% "akka-http"          % Versions.akkaHttp
     val akkaHttpCore     = "com.typesafe.akka"            %% "akka-http-core"     % Versions.akkaHttp
     val akkaHttp2Support = "com.typesafe.akka"            %% "akka-http2-support" % Versions.akkaHttp
-    val akkaDiscovery    = "com.lightbend.akka.discovery" %% "akka-discovery"     % Versions.akkaDiscovery
+    val akkaDiscovery    = "com.typesafe.akka"            %% "akka-discovery"     % Versions.akka
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % Versions.scalapb
     val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
@@ -61,7 +60,7 @@ object Dependencies {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
-    val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
+    val akkaDiscoveryConfig    = "com.typesafe.akka" %% "akka-discovery"     % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }
 
