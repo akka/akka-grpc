@@ -4,13 +4,13 @@
 
 package akka.grpc.internal
 
-import akka.discovery.{ Lookup, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.Resolved
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.Resolved
 
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-class HardcodedServiceDiscovery(resolved: Resolved) extends SimpleServiceDiscovery {
+class HardcodedServiceDiscovery(resolved: Resolved) extends ServiceDiscovery {
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] =
     Future.successful(resolved)
 }
