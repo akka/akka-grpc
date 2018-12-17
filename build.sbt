@@ -319,7 +319,7 @@ lazy val root = Project(
 //    playScalaTest,
 //    playTestdata,
     pluginTesterScala,
-//    pluginTesterJava,
+    pluginTesterJava,
 //    docs,
   )
   .enablePlugins(akka.grpc.NoPublish)

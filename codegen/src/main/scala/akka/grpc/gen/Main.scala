@@ -7,7 +7,6 @@ package akka.grpc.gen
 import java.io.ByteArrayOutputStream
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
-import akka.grpc.gen.javadsl.JavaBothCodeGenerator
 import akka.grpc.gen.javadsl.JavaClientCodeGenerator
 import akka.grpc.gen.javadsl.JavaServerCodeGenerator
 import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
