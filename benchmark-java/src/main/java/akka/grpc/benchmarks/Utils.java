@@ -194,7 +194,7 @@ public final class Utils {
           .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
           .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     else
-      return settings;
+      return settings.withTls(false);
 
   }
 }
