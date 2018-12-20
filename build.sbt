@@ -131,6 +131,11 @@ lazy val interopTests = Project(
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
+
+    // setting 'skip in publish' would be more elegant, but we need
+    // to be able to `publishLocal` to run the interop tests as an
+    // sbt scripted test
+    whitesourceIgnore := true,
   )
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
   // * google/protobuf/empty.proto
