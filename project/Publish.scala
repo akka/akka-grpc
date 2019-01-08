@@ -9,7 +9,7 @@ object NoPublish extends AutoPlugin {
   override def requires = plugins.JvmPlugin
 
   override def projectSettings = Seq(
-    skip in publish := true,
+    skip in publish := true
   )
 }
 
@@ -29,7 +29,7 @@ object Publish extends AutoPlugin {
     developers += Developer("contributors",
       "Contributors",
       "https://gitter.im/akka/dev",
-      url("https://github.com/akka/akka-grpc/graphs/contributors")),
+      url("https://github.com/akka/akka-grpc/graphs/contributors"))
   )
 }
 

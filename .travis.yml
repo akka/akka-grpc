@@ -28,7 +28,7 @@ jobs:
     - stage: whitesource-release
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: publish
-      script: sbt "; ++2.11.12 publish ; ++2.12.8 publish"
+      script: sbt "; ++2.10.7 publish ; ++2.11.12 publish ; ++2.12.8 publish"
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
     - stage: techhub-ping
       script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN

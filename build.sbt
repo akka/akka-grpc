@@ -1,5 +1,5 @@
 import akka.grpc.Dependencies
-import akka.grpc.Dependencies.Versions.{ scala211, scala212 }
+import akka.grpc.Dependencies.Versions.{ scala210, scala211, scala212 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 
@@ -30,6 +30,7 @@ lazy val codegen = Project(
   .settings(Dependencies.codegen)
   .settings(commonSettings)
   .settings(Seq(
+    crossScalaVersions := Seq(scala210, scala212),
     buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
     buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
@@ -117,7 +118,7 @@ lazy val sbtPlugin = Project(
       val p4 = (publishLocal in interopTests).value
     },
     scriptedBufferLog := false,
-    crossSbtVersions := Seq("1.0.0"),
+    crossSbtVersions := Seq("0.13.17", "1.0.0"),
   )
   .dependsOn(codegen)
 

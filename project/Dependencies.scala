@@ -6,6 +6,7 @@ import sbt.Keys._
 object Dependencies {
 
   object Versions {
+    val scala210 = "2.10.7"
     val scala211 = "2.11.12"
     val scala212 = "2.12.8"
 
@@ -100,7 +101,7 @@ object Dependencies {
     Compile.play % "provided",
     Compile.playAkkaHttpServer % "provided",
     Test.akkaDiscoveryConfig,
-    Test.akkaTestkit,
+    Test.akkaTestkit
   ) ++ testing
 
   val mavenPlugin = l ++= Seq(
@@ -108,13 +109,13 @@ object Dependencies {
     Compile.mavenPluginApi,
     Compile.mavenCore,
     Compile.protocJar,
-    Compile.plexusBuildApi,
+    Compile.plexusBuildApi
   ) ++ testing
 
   val sbtPlugin = Seq(
     l += Compile.scalapbCompilerPlugin,
     // we depend on it in the settings of the plugin since we set keys of the sbt-protoc plugin
-    addSbtPlugin(Plugins.sbtProtoc),
+    addSbtPlugin(Plugins.sbtProtoc)
   )
 
   val interopTests = l ++= Seq(
@@ -122,11 +123,11 @@ object Dependencies {
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
     Compile.play,
-    Compile.playAkkaHttpServer,
+    Compile.playAkkaHttpServer
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 
   val pluginTester = l++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
-    Compile.grpcStub,
+    Compile.grpcStub
   ) ++ testing
 }

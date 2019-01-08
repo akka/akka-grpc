@@ -27,6 +27,6 @@ object Whitesource extends AutoPlugin {
           .getOrElse("adhoc"))
     },
     whitesourceForceCheckAllDependencies := true,
-    whitesourceFailOnError := true,
+    whitesourceFailOnError := true
   )
 }

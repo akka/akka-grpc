@@ -8,3 +8,4 @@ target
 .DS_Store
 /gradle-plugin/.gradle/
 /gradle-plugin/build/
+.metals

@@ -40,7 +40,7 @@ object GrpcVersionSyncCheckPlugin extends AutoPlugin {
     val knownFiles = Seq(
       Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPlugin.groovy"),
       Paths.get("plugin-tester-java/pom.xml"),
-      Paths.get("plugin-tester-scala/pom.xml"),
+      Paths.get("plugin-tester-scala/pom.xml")
     )
     val mismatchVersions = grpcVersions(knownFiles.iterator).filter(_._2 != expectedVersion).toVector
     if (mismatchVersions.isEmpty) {

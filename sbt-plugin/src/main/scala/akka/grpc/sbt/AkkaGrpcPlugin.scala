@@ -73,7 +73,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
         (PB.recompile in Test).value
-      },
+      }
     )
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
@@ -92,10 +92,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
           akkaGrpcCodeGeneratorSettings.value,
           akkaGrpcGenerators.value),
 
-
       PB.protoSources += sourceDirectory.value / "proto",
       // include proto files extracted from the dependencies with "protobuf" configuration by default
-      PB.protoSources += PB.externalIncludePath.value,
+      PB.protoSources += PB.externalIncludePath.value
     ) ++
 
       inTask(PB.recompile)(

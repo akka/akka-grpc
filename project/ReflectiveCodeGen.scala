@@ -54,7 +54,7 @@ object ReflectiveCodeGen extends AutoPlugin {
         sourceManaged.value,
         codeGeneratorSettings.value,
         PB.targets.value.asInstanceOf[ListBuffer[Target]],
-        scalaBinaryVersion.value,
+        scalaBinaryVersion.value
       ),
       PB.recompile ~= (_ => true),
       PB.protoSources in Compile := Seq(PB.externalIncludePath.value, sourceDirectory.value / "proto")
@@ -65,7 +65,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       extraGenerators in Global := Seq.empty,
 
       watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
-      watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value,
+      watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value
     )
 
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
