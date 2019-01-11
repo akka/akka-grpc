@@ -5,7 +5,7 @@
 @(packageName: String, services: Seq[akka.grpc.gen.javadsl.Service])
 
 @akka.grpc.gen.Constants.DoNotEditComment
-package @{packageName};
+@{if (packageName.nonEmpty) s"package $packageName" else ""}
 
 import play.api.Configuration;
 import play.api.Environment;
