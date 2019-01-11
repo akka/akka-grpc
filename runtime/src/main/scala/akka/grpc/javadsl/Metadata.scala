@@ -4,8 +4,7 @@
 
 package akka.grpc.javadsl
 
-import java.lang.{Iterable => jIterable}
-import java.util.{Optional, Map => jMap}
+import java.util.Optional
 
 import akka.annotation.DoNotInherit
 import akka.util.ByteString
@@ -26,8 +25,4 @@ import akka.util.ByteString
    *         that is a text key is used.
    */
   def getBinary(key: String): Optional[ByteString]
-  /**
-    * @return The metadata as a map.
-    */
-  def asMap: jMap[String, jIterable[MetadataEntry]]
 }
