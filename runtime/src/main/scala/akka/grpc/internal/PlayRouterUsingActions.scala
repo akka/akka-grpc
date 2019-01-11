@@ -1,6 +1,6 @@
 /**
-  * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
-  */
+ * Copyright (C) 2009-2018 Lightbend Inc. <https://www.lightbend.com>
+ */
 package akka.grpc.internal
 
 import akka.annotation.InternalApi
@@ -10,24 +10,24 @@ import play.api.routing.Router
 import play.api.routing.Router.Routes
 
 /**
-  * Boiler plate needed for the generated Play routers allowing for adding a service implementation in a Play app,
-  * inherited by the generated abstract service router (both Java and Scala) which is then implemented by the user.
-  *
-  * INTERNAL API
-  */
+ * Boiler plate needed for the generated Play routers allowing for adding a service implementation in a Play app,
+ * inherited by the generated abstract service router (both Java and Scala) which is then implemented by the user.
+ *
+ * INTERNAL API
+ */
 @InternalApi abstract class PlayRouterUsingActions(mat: Materializer, serviceName: String, cc: ControllerComponents)
   extends play.api.routing.Router {
 
   private val prefix = s"/$serviceName"
 
   /**
-    * INTERNAL API
-    */
+   * INTERNAL API
+   */
   @InternalApi
   protected def createHandler(
-                               serviceName: String,
-                               mat: Materializer,
-                               cc: ControllerComponents): RequestHeader => EssentialAction
+    serviceName: String,
+    mat: Materializer,
+    cc: ControllerComponents): RequestHeader => EssentialAction
 
   private val handler = createHandler(serviceName, mat, cc)
 
@@ -39,9 +39,9 @@ import play.api.routing.Router.Routes
   final override def documentation: Seq[(String, String, String)] = Seq.empty
 
   /**
-    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification
-    * so therefore not supported.
-    */
+   * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification
+   * so therefore not supported.
+   */
   final override def withPrefix(prefix: String): Router =
     if (prefix == "/") this
     else
