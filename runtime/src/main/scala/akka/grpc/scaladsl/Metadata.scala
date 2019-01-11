@@ -42,7 +42,7 @@ class MetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empty)
     // REVIEWER NOTE: modeled after akka.grpc.internal.MetadataImpl.metadataMapFromGoogleGrpcMetadata
     var entries = Map.empty[String, List[MetadataEntry]]
     headers.foreach { header =>
-      val key = header.name()
+      val key = header.lowercaseName()
       val entry =
         if (key.endsWith("-bin")) {
           val bytes = Base64.getDecoder.decode(header.value())
