@@ -24,7 +24,6 @@ object ScalaServerCodeGenerator {
     b.setContent(PowerApiTrait(service).body)
     b.setName(s"${service.packageDir}/${service.name}PowerApi.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
-    //    logger.info(s"Generating Akka gRPC extended service interface ${service.packageName}.${service.name}Extended")
     b.build
   }
 

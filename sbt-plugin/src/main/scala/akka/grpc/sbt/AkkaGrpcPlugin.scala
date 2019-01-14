@@ -175,8 +175,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case (PlayServer, Scala) => Seq(toGenerator(PlayScalaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
       case (Client, Java) => Seq(toGenerator(JavaClientCodeGenerator, scalaBinaryVersion, logger))
       case (PlayClient, Java) => Seq(toGenerator(PlayJavaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator, scalaBinaryVersion, logger))
-      case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator, scalaBinaryVersion, logger))
+      case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
+      case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
     }).flatten.distinct
 
 
