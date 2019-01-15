@@ -19,7 +19,7 @@ It features:
     - On the @ref[client side](client/index.md) side, a client for the service
  * gRPC Runtime implementation that uses Akka HTTP/2 support for the server side and grpc-netty-shaded for the client side.
  * Support for @ref[sbt](buildtools/sbt.md), @ref[gradle](buildtools/gradle.md), and @ref[Maven](buildtools/maven.md),
-   and the [Play Framework](https://github.com/playframework/play-grpc/blob/docs/docs/src/main/paradox/play-framework.md).
+   and the [Play Framework](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md).
 
 ## Project Information
 
