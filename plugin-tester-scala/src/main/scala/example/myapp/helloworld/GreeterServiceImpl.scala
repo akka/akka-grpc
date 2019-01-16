@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 //#full-service-impl
@@ -26,7 +26,7 @@ class GreeterServiceImpl(materializer: Materializer) extends GreeterService {
   override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
     println(s"sayHello to in stream...")
     in.runWith(Sink.seq)
-      .map(elements => HelloReply(s"Hello, ${elements.mkString(", ")}"))
+      .map(elements => HelloReply(s"Hello, ${elements.map(_.name).mkString(", ")}"))
   }
 
   override def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {

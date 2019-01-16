@@ -6,7 +6,7 @@ $ exists target/scala-2.11/src_managed/main/example/myapp/helloworld/grpc/Hellow
 $ exists target/scala-2.11/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala
 
 > clean
-> ++2.12.6 compile
+> ++2.12.8 compile
 
 $ exists target/scala-2.12/src_managed
 $ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloRequest.scala

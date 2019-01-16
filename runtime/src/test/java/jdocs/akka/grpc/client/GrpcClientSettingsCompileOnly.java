@@ -1,13 +1,12 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package jdocs.akka.grpc.client;
 
 import akka.actor.ActorSystem;
+import akka.discovery.Discovery;
 import akka.discovery.ServiceDiscovery;
-import akka.discovery.ServiceDiscovery$;
-import akka.discovery.SimpleServiceDiscovery;
 import akka.grpc.GrpcClientSettings;
 import scala.Some;
 
@@ -27,7 +26,7 @@ public class GrpcClientSettingsCompileOnly {
                 .withTls(false);
         //#simple-programmatic
 
-        SimpleServiceDiscovery serviceDiscovery = ServiceDiscovery.get(actorSystem).discovery();
+        ServiceDiscovery serviceDiscovery = Discovery.get(actorSystem).discovery();
 
         //#provide-sd
         // An ActorSystem's default service discovery mechanism

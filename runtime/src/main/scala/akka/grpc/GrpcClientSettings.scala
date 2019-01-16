@@ -1,13 +1,13 @@
 /**
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc
 
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.{ Discovery, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
@@ -64,7 +64,7 @@ object GrpcClientSettings {
   def usingServiceDiscovery(serviceName: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
     val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
-    val discovery = ServiceDiscovery.get(actorSystem).discovery
+    val discovery = Discovery.get(actorSystem).discovery
     val settings = new GrpcClientSettings(serviceName, discovery, -1, resolveTimeout)
     withConfigDefaults(settings, clientConfiguration)
   }
@@ -84,7 +84,7 @@ object GrpcClientSettings {
         staticServiceDiscovery(host, port)
       case other =>
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
-        ServiceDiscovery(sys).loadServiceDiscovery(other)
+        Discovery(sys).loadServiceDiscovery(other)
     }
     val settings = new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
     withConfigDefaults(settings, clientConfiguration)
@@ -153,7 +153,7 @@ object GrpcClientSettings {
 
 final class GrpcClientSettings private (
   val serviceName: String,
-  val serviceDiscovery: SimpleServiceDiscovery,
+  val serviceDiscovery: ServiceDiscovery,
   val defaultPort: Int,
   val resolveTimeout: FiniteDuration,
   val servicePortName: Option[String] = None,

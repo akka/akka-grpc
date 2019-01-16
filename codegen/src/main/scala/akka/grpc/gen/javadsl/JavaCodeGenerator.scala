@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc.gen.javadsl
@@ -8,6 +8,7 @@ import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
+import templates.JavaCommon.txt.ApiInterface
 
 import scala.collection.JavaConverters._
 
@@ -51,6 +52,23 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     b.build()
   }
 
+  def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(ApiInterface(service).body)
+    b.setName(s"${service.packageDir}/${service.name}.java")
+    b.build
+  }
+
   override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
     Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version))
+}
+
+object JavaCodeGenerator {
+  val generateServiceFile: (Logger, Service) ⇒ CodeGeneratorResponse.File = (logger, service) ⇒ {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(ApiInterface(service).body)
+    b.setName(s"${service.packageDir}/${service.name}.java")
+    logger.info(s"Generating Akka gRPC service interface for [${service.packageName}.${service.name}]")
+    b.build
+  }
 }

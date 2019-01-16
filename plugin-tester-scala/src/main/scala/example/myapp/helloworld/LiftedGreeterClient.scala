@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package example.myapp.helloworld
@@ -29,7 +29,7 @@ object LiftedGreeterClient {
     implicit val ec = sys.dispatcher
 
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
-    val client = new GreeterServiceClient(clientSettings)
+    val client = GreeterServiceClient(clientSettings)
 
     singleRequestReply()
     streamingRequest()

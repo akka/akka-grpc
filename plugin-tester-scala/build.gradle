@@ -49,7 +49,7 @@ dependencies {
   testRuntime 'org.pegdown:pegdown:1.1.0'
 
   // Configuration for modules that use Jetty ALPN agent
-  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.7'
+  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
 }
 
 test {

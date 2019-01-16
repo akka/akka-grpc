@@ -15,7 +15,7 @@ object ProjectExtensions {
         .enablePlugins(JavaAgent)
         .settings(
           // #alpn
-          javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7"
+          javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
           // #alpn
             % "test"
         )

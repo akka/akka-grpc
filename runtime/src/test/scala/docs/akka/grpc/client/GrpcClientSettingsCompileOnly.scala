@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package docs.akka.grpc.client
 
 import akka.actor.ActorSystem
-import akka.discovery.{ ServiceDiscovery, SimpleServiceDiscovery }
+import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.grpc.GrpcClientSettings
 
 import scala.concurrent.duration._
@@ -23,7 +23,7 @@ object GrpcClientSettingsCompileOnly {
     .withTls(false)
   //#simple-programmatic
 
-  val serviceDiscovery: SimpleServiceDiscovery = ServiceDiscovery.get(actorSystem).discovery
+  val serviceDiscovery: ServiceDiscovery = Discovery.get(actorSystem).discovery
 
   //#provide-sd
   // An ActorSystem's default service discovery mechanism

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <http://www.lightbend.com>
  * Copyright 2015, gRPC Authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -194,7 +194,7 @@ public final class Utils {
           .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
           .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
     else
-      return settings;
+      return settings.withTls(false);
 
   }
 }

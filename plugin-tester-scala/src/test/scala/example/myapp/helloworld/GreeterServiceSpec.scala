@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package example.myapp.helloworld
@@ -44,7 +44,7 @@ class GreeterSpec
   val client = {
     implicit val mat = ActorMaterializer.create(clientSystem)
     implicit val ec = clientSystem.dispatcher
-    new GreeterServiceClient(
+    GreeterServiceClient(
       GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
         .withTls(false))
   }
