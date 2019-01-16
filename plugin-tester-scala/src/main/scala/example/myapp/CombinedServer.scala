@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package example.myapp
@@ -62,9 +62,8 @@ object CombinedServer {
       serviceHandlers,
       interface = "127.0.0.1",
       port = 8080,
-      // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
-      parallelism = 256,
-      connectionContext = HttpConnectionContext(http2 = Always))
+      connectionContext = HttpConnectionContext(http2 = Always)
+    )
       //#concatOrNotFound
       .foreach { binding =>
         println(s"gRPC server bound to: ${binding.localAddress}")

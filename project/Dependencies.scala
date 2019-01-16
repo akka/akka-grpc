@@ -7,21 +7,19 @@ object Dependencies {
 
   object Versions {
     val scala211 = "2.11.12"
-    val scala212 = "2.12.6"
+    val scala212 = "2.12.8"
 
-    val akka = "2.5.16"
+    val akka = "2.5.19"
     val akkaHttp = "10.1.5"
-    val akkaDiscovery = "0.18.0"
 
-    val play = "2.7.0-M4"
+    val play = "2.7.0-RC3"
 
     val scalapb = "0.8.0"
-    val grpc = "1.14.0"
+    val grpc = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
     val sslConfig = "0.3.6"
 
     val scalaTest = "3.0.5"
-    val scalaTestPlusPlay = "4.0.0-M5"
 
     val maven = "3.5.4"
   }
@@ -31,7 +29,7 @@ object Dependencies {
     val akkaHttp         = "com.typesafe.akka"            %% "akka-http"          % Versions.akkaHttp
     val akkaHttpCore     = "com.typesafe.akka"            %% "akka-http-core"     % Versions.akkaHttp
     val akkaHttp2Support = "com.typesafe.akka"            %% "akka-http2-support" % Versions.akkaHttp
-    val akkaDiscovery    = "com.lightbend.akka.discovery" %% "akka-discovery"     % Versions.akkaDiscovery
+    val akkaDiscovery    = "com.typesafe.akka"            %% "akka-discovery"     % Versions.akka
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % Versions.scalapb
     val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % Versions.scalapb exclude("io.grpc", "grpc-netty")
@@ -39,7 +37,10 @@ object Dependencies {
     val grpcCore           = "io.grpc" % "grpc-core"            % Versions.grpc
     val grpcStub           = "io.grpc" % "grpc-stub"            % Versions.grpc
     val grpcNettyShaded    = "io.grpc" % "grpc-netty-shaded"    % Versions.grpc
-    val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc
+
+    // Excluding grpc-alts works around a complex resolution bug
+    // Details are in https://github.com/akka/akka-grpc/pull/469
+    val grpcInteropTesting = "io.grpc" % "grpc-interop-testing" % Versions.grpc exclude("io.grpc", "grpc-alts")
 
     val config = "com.typesafe" % "config" % Versions.config
     val sslConfigCore = "com.typesafe" %% "ssl-config-core" % Versions.sslConfig
@@ -51,26 +52,16 @@ object Dependencies {
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
 
-    val play = "com.typesafe.play" %% "play" % Versions.play // Apache M2
-    val playJava = "com.typesafe.play" %% "play-java" % Versions.play // Apache M2
-    val playGuice = "com.typesafe.play" %% "play-guice" % Versions.play  // Apache M2
-    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache M2
-
-    val playTest = "com.typesafe.play" %% "play-test" % Versions.play // Apache M2
-    val playSpecs2 = "com.typesafe.play" %% "play-specs2" % Versions.play // Apache M2
-    val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % Versions.scalaTestPlusPlay // ApacheV2
+    val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")  // Apache V2 (exclusion is "either GPL or CDDL")
+    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache V2
   }
 
   object Test {
     final val Test = sbt.Test
-    val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // ApacheV2
+    val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
     val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
-    val akkaDiscoveryConfig    = "com.lightbend.akka.discovery" %% "akka-discovery-config"     % Versions.akkaDiscovery % "test"
+    val akkaDiscoveryConfig    = "com.typesafe.akka" %% "akka-discovery"     % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
-    val playAhcWs = "com.typesafe.play" %% "play-ahc-ws" % Versions.play % Test // Apache M2
-    val playTest = Compile.playTest % Test
-    val playSpecs2 = Compile.playSpecs2 % Test
-    val scalaTestPlusPlay = Compile.scalaTestPlusPlay % Test
   }
 
   object Plugins {
@@ -126,22 +117,6 @@ object Dependencies {
     addSbtPlugin(Plugins.sbtProtoc),
   )
 
-  val playTestdata = l ++= Seq(
-    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
-    Compile.play,
-    Compile.grpcStub,
-    Compile.playAkkaHttpServer,
-  )
-
-  val playTestkit = l ++= Seq(
-    Compile.play,
-    Compile.playTest,
-    Test.playAhcWs,
-  )
-
-  val playSpecs2    = l += Compile.playSpecs2
-  val playScalaTest = l += Compile.scalaTestPlusPlay
-
   val interopTests = l ++= Seq(
     Compile.grpcInteropTesting,
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
@@ -153,24 +128,5 @@ object Dependencies {
   val pluginTester = l++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.grpcStub,
-  ) ++ testing
-
-  val playInteropTestScala = l ++= Seq(
-    // TODO #193
-    Compile.grpcStub,
-    Compile.play,
-    Compile.playGuice,
-    Compile.playAkkaHttpServer,
-    Test.playSpecs2,
-    Test.scalaTestPlusPlay,
-  ) ++ testing
-
-  val playInteropTestJava = l ++= Seq(
-    // TODO #193
-    Compile.grpcStub,
-    Compile.play,
-    Compile.playGuice,
-    Compile.playAkkaHttpServer,
-    Compile.playJava,
   ) ++ testing
 }

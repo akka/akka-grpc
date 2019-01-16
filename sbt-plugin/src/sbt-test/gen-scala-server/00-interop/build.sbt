@@ -3,8 +3,12 @@ organization := "com.lightbend.akka.grpc"
 // For the akka-http snapshot
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
+val grpcVersion = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
+
 libraryDependencies ++= Seq(
-  "io.grpc"                  % "grpc-interop-testing"    % "1.14.0"                     % "protobuf",
+  // Excluding grpc-alts works around a complex resolution bug
+  // Details are in https://github.com/akka/akka-grpc/pull/469
+  "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf" exclude("io.grpc", "grpc-alts"),
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
   "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
   )
@@ -17,7 +21,7 @@ scalacOptions ++= List(
 )
 
 javaAgents ++= Seq(
-  "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.7" % "test"
+  "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "test"
 )
 
 enablePlugins(JavaAgent)

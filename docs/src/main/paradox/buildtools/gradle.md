@@ -98,7 +98,7 @@ configurations {
 
 dependencies {
   // Configuration for modules that use Jetty ALPN agent
-  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.7'
+  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
 }
 
 task runServer(type: JavaExec) {
@@ -117,4 +117,4 @@ The server can then be started from the command line with:
 
 ## Play Framework support
 
-See the @ref[Play Framework section of the docs](../play-framework.md) for details.
+See the [Play gRPC docs](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md) for details.

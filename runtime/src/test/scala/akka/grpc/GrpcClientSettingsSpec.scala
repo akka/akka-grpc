@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.discovery.{ Lookup, ServiceDiscovery, SimpleServiceDiscovery }
-import akka.discovery.SimpleServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.config.ConfigSimpleServiceDiscovery
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.config.ConfigServiceDiscovery
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpec }
@@ -142,7 +142,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         clientName = "project.WithConfigServiceDiscovery")
       //#sd-settings
 
-      settings.serviceDiscovery shouldBe a[ConfigSimpleServiceDiscovery]
+      settings.serviceDiscovery shouldBe a[ConfigServiceDiscovery]
 
       val resolvedWithPort = settings.serviceDiscovery.lookup("from-config", 1.second).futureValue
       resolvedWithPort should be(Resolved("from-config", im.Seq(ResolvedTarget("cat", Some(1234)))))
@@ -184,7 +184,8 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       val sdConfig =
         s"""
           |akka.discovery {
-          |  method = "${classOf[FakeServiceDiscovery].getName}"
+          |  method = "fake-discovery"
+          |  fake-discovery.class = "${classOf[FakeServiceDiscovery].getName}"
           |}
         """.stripMargin
       val actorSystem = ActorSystem("test-with-service-discovery", ConfigFactory.parseString(sdConfig))
@@ -197,6 +198,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
 
   }
 }
-class FakeServiceDiscovery extends SimpleServiceDiscovery {
+class FakeServiceDiscovery extends ServiceDiscovery {
   override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = ???
 }

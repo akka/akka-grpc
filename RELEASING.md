@@ -10,9 +10,6 @@
   - Gradle plugin directly to the Gradle plugin portal (no further steps required)
   - Library jars to [Bintray](https://bintray.com/akka/maven) that needs to be synced with Maven Central
 1. Login to [Bintray](https://bintray.com/akka/maven/akka-grpc) and sync to Maven Central.
-1. Update quick start guides with the new version:
-  - https://github.com/akka/akka-grpc-quickstart-java.g8
-  - https://github.com/akka/akka-grpc-quickstart-scala.g8
 
 Due to https://github.com/akka/akka-grpc/issues/365, when the tag is created
 before that commit has been been successfully built for the 'master' branch,

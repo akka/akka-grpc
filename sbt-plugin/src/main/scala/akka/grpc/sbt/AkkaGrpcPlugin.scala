@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc.sbt
@@ -177,8 +177,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case (PlayServer, Scala) => Seq(toGenerator(PlayScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), scalaBinaryVersion, logger))
       case (Client, Java) => Seq(toGenerator(JavaClientCodeGenerator, scalaBinaryVersion, logger))
       case (PlayClient, Java) => Seq(toGenerator(PlayJavaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator, scalaBinaryVersion, logger))
-      case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator, scalaBinaryVersion, logger))
+      case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
+      case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
     }).flatten.distinct
 
     if (generators.nonEmpty) baseGenerators ++ generators

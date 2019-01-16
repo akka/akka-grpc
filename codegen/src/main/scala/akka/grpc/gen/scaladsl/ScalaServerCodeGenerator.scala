@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc.gen.scaladsl
@@ -24,7 +24,6 @@ object ScalaServerCodeGenerator {
     b.setContent(PowerApiTrait(service).body)
     b.setName(s"${service.packageDir}/${service.name}PowerApi.scala")
     logger.info(s"Generating Akka gRPC file ${b.getName}")
-    //    logger.info(s"Generating Akka gRPC extended service interface ${service.packageName}.${service.name}Extended")
     b.build
   }
 

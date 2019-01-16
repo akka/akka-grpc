@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
 //#full-server
@@ -32,10 +32,6 @@ class GreeterServer {
       Http.get(sys).bindAndHandleAsync(
           GreeterServiceHandlerFactory.create(impl, mat),
           ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
-          ServerSettings.create(sys),
-          // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
-          256,
-          sys.log(),
           mat)
       .thenAccept(binding -> {
         System.out.println("gRPC server bound to: " + binding.localAddress());

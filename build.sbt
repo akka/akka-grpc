@@ -7,7 +7,7 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
-  version := "0.4.1.livongo.playtest",
+  version := "0.4.2.livongo",
 
   scalacOptions ++= List(
     "-unchecked",
@@ -33,6 +33,7 @@ lazy val codegen = Project(
   .settings(Seq(
     buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
+    buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
     buildInfoPackage := "akka.grpc.gen",
     artifact in (Compile, assembly) := {
@@ -131,6 +132,11 @@ lazy val interopTests = Project(
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
+
+    // setting 'skip in publish' would be more elegant, but we need
+    // to be able to `publishLocal` to run the interop tests as an
+    // sbt scripted test
+    whitesourceIgnore := true,
   )
   // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
   // * google/protobuf/empty.proto
@@ -161,96 +167,6 @@ lazy val interopTests = Project(
       }.dependsOn(products in Compile).evaluated
     }
     )))
-
-lazy val playTestdata = Project(
-    id="akka-grpc-play-testdata",
-    base=file("play-testdata")
-  )
-  .settings(Dependencies.playTestdata)
-  .settings(commonSettings)
-  .settings(
-    crossScalaVersions := Seq(scala211, scala212),
-    ReflectiveCodeGen.generatedLanguages := Seq("Java", "Scala"),
-    ReflectiveCodeGen.extraGenerators := Seq(
-      "ScalaMarshallersCodeGenerator",
-      "akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator",
-      "akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator",
-      "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator",
-      "akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
-    ),
-  )
-  .enablePlugins(akka.grpc.NoPublish)
-  .pluginTestingSettings
-
-lazy val playTestkit = Project(
-    id="akka-grpc-play-testkit",
-    base = file("play-testkit")
-  )
-  .dependsOn(runtime)
-  .dependsOn(playTestdata % "test")
-  .settings(Dependencies.playTestkit)
-  .settings(commonSettings)
-  .settings(
-    crossScalaVersions := Seq(scala211, scala212),
-  )
-  .pluginTestingSettings
-
-val playSpecs2 = Project("akka-grpc-play-specs2", file("play-specs2"))
-  .dependsOn(playTestkit, playTestkit % "test->test")
-  .settings(
-    commonSettings,
-    crossScalaVersions := Seq(scala211, scala212),
-    Dependencies.playSpecs2,
-  )
-  .pluginTestingSettings
-
-val playScalaTest = Project("akka-grpc-play-scalatest", file("play-scalatest"))
-  .dependsOn(playTestkit, playTestkit % "test->test")
-  .settings(
-    commonSettings,
-    crossScalaVersions := Seq(scala211, scala212),
-    Dependencies.playScalaTest,
-    excludeFilter in (Compile, headerSources) := {
-      val orig = (excludeFilter in (Test, headerSources)).value
-      // The following files have a different license
-      orig || "NewGuiceOneServerPerTest.scala" || "NewServerProvider.scala" || "NewBaseOneServerPerTest.scala"
-    },
-  )
-  .pluginTestingSettings
-
-lazy val playInteropTestScala = Project(
-    id="akka-grpc-play-interop-test-scala",
-    base = file("play-interop-test-scala")
-  )
-  .dependsOn(playSpecs2 % Test, playScalaTest % Test)
-  .settings(Dependencies.playInteropTestScala)
-  .settings(commonSettings)
-  .settings(
-    ReflectiveCodeGen.extraGenerators := Seq(
-      "ScalaMarshallersCodeGenerator",
-      "akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator",
-      "akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator"
-    ),
-  )
-  .enablePlugins(akka.grpc.NoPublish)
-  .pluginTestingSettings
-
-lazy val playInteropTestJava = Project(
-    id="akka-grpc-play-interop-test-java",
-    base = file("play-interop-test-java")
-  )
-  .dependsOn(playSpecs2 % Test, playScalaTest % Test)
-  .settings(Dependencies.playInteropTestJava)
-  .settings(commonSettings)
-  .settings(
-    ReflectiveCodeGen.generatedLanguages := Seq("Java"),
-    ReflectiveCodeGen.extraGenerators := Seq(
-      "akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator",
-      "akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator",
-    ),
-  )
-  .enablePlugins(akka.grpc.NoPublish)
-  .pluginTestingSettings
 
 lazy val docs = Project(
     id = "akka-grpc-docs",
@@ -312,14 +228,8 @@ lazy val root = Project(
     sbtPlugin,
     scalapbProtocPlugin,
 //    interopTests,
-//    playInteropTestJava,
-//    playInteropTestScala,
-//    playTestkit,
-//    playSpecs2,
-//    playScalaTest,
-//    playTestdata,
     pluginTesterScala,
-    pluginTesterJava,
+//    pluginTesterJava,
 //    docs,
   )
   .enablePlugins(akka.grpc.NoPublish)

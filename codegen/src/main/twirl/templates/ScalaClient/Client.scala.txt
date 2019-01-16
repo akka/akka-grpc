@@ -1,5 +1,5 @@
 @*
- * Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  *@
 
 @(service: akka.grpc.gen.scaladsl.Service)
@@ -9,36 +9,31 @@ package @service.packageName
 
 import akka.NotUsed
 import akka.Done
-import akka.annotation.InternalApi
+import akka.grpc.GrpcClientSettings
 import akka.grpc.internal._
 import akka.grpc.scaladsl._
-import akka.grpc.GrpcClientSettings
-import akka.stream.{ Materializer, OverflowStrategy }
-import akka.stream.scaladsl.{ Flow, Sink, Source }
-import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 import io.grpc._
-import io.grpc.stub.{ ClientCalls, StreamObserver }
-import @{service.name}Client._
 
-final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name} with AkkaGrpcClient {
-  import @{service.name}Client._
+// Not sealed so users can extend to write their stubs
+trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
-  private val internalChannel: InternalChannel = NettyClientUtils.createChannel(settings)
-  private val channel: Future[ManagedChannel] = internalChannel.managedChannel
+object @{service.name}Client {
+  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+    new Default@{service.name}Client(settings)
+}
+
+final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name}Client {
+  import Default@{service.name}Client._
 
   private val options = NettyClientUtils.callOptions(settings)
-
-  mat match {
-    case m: ActorMaterializer =>
-      m.system.whenTerminated.foreach(_ => close())(ex)
-    case _ =>
-  }
+  private val clientState = new ClientState(settings)
 
   @for(method <- service.methods) {
-    private val @{method.name}RequestBuilder = {
+    private def @{method.name}RequestBuilder(channel:Future[ManagedChannel]) = {
       @if(method.methodType == akka.grpc.gen.Unary) {
         new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
       } else {
@@ -60,11 +55,11 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
      * prefer @{method.name}(@method.parameterType) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        @{method.name}RequestBuilder
+      override def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+        clientState.withChannel(@{method.name}RequestBuilder _)
     } else {
-      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        @{method.name}RequestBuilder
+      override def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+        clientState.withChannel(@{method.name}RequestBuilder _)
     }
 
     /**
@@ -74,19 +69,9 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
       @{method.name}().invoke(in)
   }
 
-  /**
-   * Initiates a shutdown in which preexisting and new calls are cancelled.
-   */
-  def close(): Future[Done] = {
-    ChannelUtils.close(internalChannel)
-  }
+  override def close(): Future[Done] = clientState.close()
+  override def closed(): Future[Done] = clientState.closed()
 
- /**
-  * Returns a Future that completes successfully when shutdown via close()
-  * or exceptionally if a connection can not be established or reestablished
-  * after maxConnectionAttempts.
-  */
-  def closed(): Future[Done] = internalChannel.done
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
@@ -96,10 +81,10 @@ final class @{service.name}Client(settings: GrpcClientSettings)(implicit mat: Ma
   @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
-object @{service.name}Client {
+private object Default@{service.name}Client {
 
   def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
-    new @{service.name}Client(settings)
+    new Default@{service.name}Client(settings)
 
   import @{service.name}.Serializers._
 
@@ -113,4 +98,19 @@ object @{service.name}Client {
         .setSampledToLocalTracing(true)
         .build()
   }
+}
+
+trait @{service.name}ClientPowerApi {
+  @for(method <- service.methods) {
+    /**
+     * Lower level "lifted" version of the method, giving access to request metadata etc.
+     * prefer @{method.name}(@method.parameterType) if possible.
+     */
+    @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
+      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+    } else {
+      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+    }
+  }
+
 }
