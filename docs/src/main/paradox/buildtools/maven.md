@@ -7,33 +7,33 @@ To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[
 The plugin can be configured to generate either Java or Scala classes, and then server and or client for the chosen language.
 By default both client and server in Java are generated.
 
-: Java
-```xml
-<plugin>
-    <groupId>com.lightbend.akka.grpc</groupId>
-    <artifactId>akka-grpc-maven-plugin</artifactId>
-    <version>${akka.grpc.version}</version>
-    <configuration>
-      <language>Java</language>
-      <generateClient>false</generateClient>
-      <generateServer>true</generateServer>
-    </configuration>
-</plugin>
-```
+Java
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <language>Java</language>
+          <generateClient>false</generateClient>
+          <generateServer>true</generateServer>
+        </configuration>
+    </plugin>
+    ```
 
-: Scala
-```xml
-<plugin>
-    <groupId>com.lightbend.akka.grpc</groupId>
-    <artifactId>akka-grpc-maven-plugin</artifactId>
-    <version>${akka.grpc.version}</version>
-    <configuration>
-      <language>Scala</language>
-      <generateClient>false</generateClient>
-      <generateServer>true</generateServer>
-    </configuration>
-</plugin>
-```
+Scala
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <language>Scala</language>
+          <generateClient>false</generateClient>
+          <generateServer>true</generateServer>
+        </configuration>
+    </plugin>
+    ```
 
 ## Proto source directory
 
