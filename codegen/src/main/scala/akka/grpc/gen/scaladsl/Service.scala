@@ -17,7 +17,7 @@ case class Service(packageName: String, name: String, grpcName: String, methods:
 
 object Service {
   def apply(generatorParams: GeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor): Service = {
-    implicit val ops = new DescriptorImplicits(generatorParams, List(fileDesc))
+    implicit val ops = new DescriptorImplicits(generatorParams, fileDesc.getDependencies.asScala :+ fileDesc)
     import ops._
 
     val serviceClassName = serviceDescriptor.getName
