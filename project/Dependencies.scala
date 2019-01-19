@@ -12,7 +12,7 @@ object Dependencies {
     val akka = "2.5.19"
     val akkaHttp = "10.1.5"
 
-    val play = "2.7.0-RC3"
+    val play = "2.7.0-RC9"
 
     val scalapb = "0.8.0"
     val grpc = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
