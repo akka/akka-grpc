@@ -69,7 +69,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       "Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
     val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]](
       "Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client, AkkaGrpc.PlayServer, AkkaGrpc.PlayClient)")
-//    val akkaGrpcGeneratorOptions = settingKey[Seq[AkkaGrpc.GeneratorOption]]("Generator options (AkkaGrpc.ServerPowerApis). Empty by default")
     val akkaGrpcExtraGenerators = settingKey[Seq[akka.grpc.gen.CodeGenerator]]("Extra generators to evaluate. Empty by default")
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]]("Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string. Akka gRPC settings: server_power_apis")
@@ -178,7 +177,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
       case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
     }).flatten.distinct
-
 
     if (generators.nonEmpty) baseGenerators ++ generators
     else generators

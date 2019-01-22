@@ -14,7 +14,6 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
 
   override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] =
     super.perServiceContent +
-      JavaCodeGenerator.generateServiceFile +
       generateInterface +
       generateRaw
 
