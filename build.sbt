@@ -34,6 +34,7 @@ lazy val codegen = Project(
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
     buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
+    buildInfoKeys += "grpcVersion" → Dependencies.Versions.grpc,
     buildInfoPackage := "akka.grpc.gen",
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
