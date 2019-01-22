@@ -7,7 +7,6 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
-
   scalacOptions ++= List(
     "-unchecked",
     "-deprecation",
@@ -223,13 +222,13 @@ lazy val root = Project(
   .aggregate(
     runtime,
     codegen,
-//    mavenPlugin,
+    mavenPlugin,
     sbtPlugin,
     scalapbProtocPlugin,
-//    interopTests,
+    interopTests,
     pluginTesterScala,
-//    pluginTesterJava,
-//    docs,
+    pluginTesterJava,
+    docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
