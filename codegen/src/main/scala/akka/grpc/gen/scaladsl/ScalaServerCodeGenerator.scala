@@ -9,28 +9,15 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt._
 
 case class ScalaServerCodeGenerator(powerApis: Boolean = false) extends ScalaCodeGenerator {
-  import ScalaServerCodeGenerator._
   override def name = "akka-grpc-scaladsl-server"
 
-  override def perServiceContent =
-    super.perServiceContent ++ {
-      if (powerApis) Set(generatePowerService) else Set.empty
-    } + generateHandler(powerApis)
-}
-
-object ScalaServerCodeGenerator {
-  val generatePowerService: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(PowerApiTrait(service).body)
-    b.setName(s"${service.packageDir}/${service.name}PowerApi.scala")
-    logger.info(s"Generating Akka gRPC file ${b.getName}")
-    b.build
-  }
+  override def perServiceContent = super.perServiceContent + generateHandler(powerApis)
 
   def generateHandler(powerApis: Boolean): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service, powerApis).body)
     b.setName(s"${service.packageDir}/${service.name}Handler.scala")
+    logger.info(s"Generating Akka gRPC service handler for ${service.packageName}.${service.name}")
     b.build
   }
 }

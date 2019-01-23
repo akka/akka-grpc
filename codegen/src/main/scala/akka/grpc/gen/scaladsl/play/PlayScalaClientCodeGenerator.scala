@@ -25,6 +25,7 @@ trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ClientProvider(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.scala")
+    logger.info(s"Generating Akka gRPC play client provider for ${service.packageName}.${service.name}")
     b.build
   }
 
@@ -58,7 +59,8 @@ trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
     val bPackages = b.split('.')
     @tailrec
     def countIdenticalPackage(pos: Int): Int = {
-      if (aPackages(pos) == bPackages(pos)) countIdenticalPackage(pos + 1)
+      if ((aPackages.length < pos + 1) || (bPackages.length < pos + 1)) pos
+      else if (aPackages(pos) == bPackages(pos)) countIdenticalPackage(pos + 1)
       else pos
     }
 

@@ -8,9 +8,9 @@ import java.io.{ ByteArrayOutputStream, File, PrintStream }
 
 import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
 import akka.grpc.gen.{ CodeGenerator, Logger }
-import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
+import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaPowerApiInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
-import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
+import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaPowerApiTraitCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.project.MavenProject
@@ -133,27 +133,21 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       val targets = language match {
         case Java ⇒
           val glueGenerators = Seq(
-            if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis))
-            else Seq.empty,
-            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis))
-            else Seq.empty,
-            if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
-            else Seq.empty,
-            if (generatePlayClient) Seq(JavaInterfaceCodeGenerator, PlayJavaClientCodeGenerator)
-            else Seq.empty
+            if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis), PlayJavaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) else Seq.empty,
+            if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
+            if (generatePlayClient) Seq(JavaInterfaceCodeGenerator, PlayJavaClientCodeGenerator) else Seq.empty
           ).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
             glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, akkaGrpcCodeGeneratorSettings))
         case Scala ⇒
           val glueGenerators = Seq(
-            if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis))
-            else Seq.empty,
-            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis))
-            else Seq.empty,
-            if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
-            else Seq.empty,
-            if (generatePlayClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
-            else Seq.empty
+            if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis), PlayScalaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) else Seq.empty,
+            if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
+            if (generatePlayClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator) else Seq.empty
           ).flatten.distinct
           Seq[Target](
             (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → generatedSourcesDir) ++
