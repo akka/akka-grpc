@@ -5,15 +5,16 @@
 package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
+
 import akka.grpc.GrpcServiceException
 import akka.http.javadsl.model.HttpResponse
 import io.grpc.Status
-import akka.japi.Function
+import akka.japi.{ Function => jFunction }
 
 import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
-  def defaultMapper: Function[Throwable, Status] = {
+  def defaultMapper: jFunction[Throwable, Status] = {
     case e: ExecutionException ⇒
       if (e.getCause == null) Status.INTERNAL
       else defaultMapper(e.getCause)
@@ -30,7 +31,7 @@ object GrpcExceptionHandler {
 
   def standard(t: Throwable): HttpResponse = standard(t, defaultMapper)
 
-  def standard(t: Throwable, mapper: Function[Throwable, Status]): HttpResponse = {
+  def standard(t: Throwable, mapper: jFunction[Throwable, Status]): HttpResponse = {
     println(s"Caught exception $t")
     GrpcMarshalling.status(mapper(t))
   }
