@@ -15,8 +15,8 @@ import com.typesafe.config.{ Config, ConfigValueFactory }
 import com.typesafe.sslconfig.akka.util.AkkaLoggerFactory
 import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import javax.net.ssl.SSLContext
-
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
 
@@ -164,7 +164,8 @@ final class GrpcClientSettings private (
   val sslContext: Option[SSLContext] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
-  val useTls: Boolean = true) {
+  val useTls: Boolean = true,
+  val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
@@ -212,6 +213,12 @@ final class GrpcClientSettings private (
   def withConnectionAttempts(value: Int): GrpcClientSettings =
     copy(connectionAttempts = Some(value))
 
+  /**
+    * To override any default channel configurations used by netty. Only for power users.
+    */
+  def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =
+    copy(channelBuilderOverrides = builderOverrides)
+
   private def copy(
     serviceName: String = serviceName,
     servicePortName: Option[String] = servicePortName,
@@ -224,7 +231,8 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-    connectionAttempts: Option[Int] = connectionAttempts
+    connectionAttempts: Option[Int] = connectionAttempts,
+    channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides
   ): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
@@ -238,7 +246,8 @@ final class GrpcClientSettings private (
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,
-    connectionAttempts = connectionAttempts
+    connectionAttempts = connectionAttempts,
+    channelBuilderOverrides = channelBuilderOverrides
   )
 
 }
