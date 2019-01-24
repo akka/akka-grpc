@@ -14,19 +14,21 @@ import akka.japi.{ Function => jFunction }
 import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
-  def defaultMapper: jFunction[Throwable, Status] = {
-    case e: ExecutionException ⇒
-      if (e.getCause == null) Status.INTERNAL
-      else defaultMapper(e.getCause)
-    case e: CompletionException ⇒
-      if (e.getCause == null) Status.INTERNAL
-      else defaultMapper(e.getCause)
-    case grpcException: GrpcServiceException ⇒ grpcException.status
-    case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
-    case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
-    case other ⇒
-      println(other)
-      Status.INTERNAL
+  def defaultMapper: jFunction[Throwable, Status] = new jFunction[Throwable, Status] {
+    override def apply(param: Throwable): Status = param match {
+      case e: ExecutionException ⇒
+        if (e.getCause == null) Status.INTERNAL
+        else defaultMapper(e.getCause)
+      case e: CompletionException ⇒
+        if (e.getCause == null) Status.INTERNAL
+        else defaultMapper(e.getCause)
+      case grpcException: GrpcServiceException ⇒ grpcException.status
+      case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
+      case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
+      case other ⇒
+        println(other)
+        Status.INTERNAL
+    }
   }
 
   def standard(t: Throwable): HttpResponse = standard(t, defaultMapper)
