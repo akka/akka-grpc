@@ -1,4 +1,4 @@
-package akka.grpc.akka.grpc.scaladsl
+package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
