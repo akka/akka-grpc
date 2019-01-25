@@ -6,28 +6,26 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
+import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
 import akka.http.javadsl.model.HttpResponse
 import io.grpc.Status
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
 
-  private val log = LoggerFactory.getLogger(getClass)
-
-  def standard(t: Throwable): HttpResponse = t match {
+  def standard(t: Throwable, system: ActorSystem): HttpResponse = t match {
     case e: ExecutionException ⇒
       if (e.getCause == null) GrpcMarshalling.status(Status.INTERNAL)
-      else handling(e.getCause)
+      else handling(e.getCause, system)
     case e: CompletionException ⇒
       if (e.getCause == null) GrpcMarshalling.status(Status.INTERNAL)
-      else handling(e.getCause)
+      else handling(e.getCause, system)
     case other ⇒
-      handling(other)
+      handling(other, system)
   }
-  private def handling(t: Throwable): HttpResponse = t match {
+  private def handling(t: Throwable, system: ActorSystem): HttpResponse = t match {
     case grpcException: GrpcServiceException ⇒
       GrpcMarshalling.status(grpcException.status)
     case _: NotImplementedError ⇒
@@ -35,7 +33,7 @@ object GrpcExceptionHandler {
     case _: UnsupportedOperationException ⇒
       GrpcMarshalling.status(Status.UNIMPLEMENTED)
     case other ⇒
-      log.error(other.getMessage, other)
+      system.log.error(other, other.getMessage)
       GrpcMarshalling.status(Status.INTERNAL)
   }
 }

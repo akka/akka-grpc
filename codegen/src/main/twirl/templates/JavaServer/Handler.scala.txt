@@ -13,6 +13,7 @@ import java.util.concurrent.CompletionStage;
 
 import akka.japi.Function;
 import akka.http.javadsl.model.*;
+import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 
 import akka.grpc.Codec;
@@ -36,8 +37,8 @@ public class @{service.name}HandlerFactory {
    * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
    * several services.
    */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat) {
-    return create(implementation, @{service.name}.name, mat);
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat, ActorSystem system) {
+    return create(implementation, @{service.name}.name, mat, system);
   }
 
   /**
@@ -49,8 +50,8 @@ public class @{service.name}HandlerFactory {
    *
    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
    */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, String prefix, Materializer mat) {
-    return partial(implementation, prefix, mat);
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, String prefix, Materializer mat, ActorSystem system) {
+    return partial(implementation, prefix, mat, system);
   }
 
   /**
@@ -59,13 +60,13 @@ public class @{service.name}HandlerFactory {
    *
    * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
    */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@service.name implementation, String prefix, Materializer mat) {
+  public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@service.name implementation, String prefix, Materializer mat, ActorSystem system) {
     return (req -> {
       Iterator<String> segments = req.getUri().pathSegments().iterator();
       if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
         String method = segments.next();
         if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-        else return handle(req, method, implementation, mat).exceptionally(e -> GrpcExceptionHandler.standard(e));
+        else return handle(req, method, implementation, mat, system).exceptionally(e -> GrpcExceptionHandler.standard(e, system));
       } else {
         return notFound;
       }
@@ -76,7 +77,7 @@ public class @{service.name}HandlerFactory {
     return @{service.name}.name;
   }
 
-  private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @{service.name} implementation, Materializer mat) {
+  private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @{service.name} implementation, Materializer mat, ActorSystem system) {
     Codec responseCodec = Codecs.negotiate(request);
     switch(method) {
       @for(method <- service.methods) {
