@@ -17,7 +17,7 @@ object ScalaPowerApiTraitCodeGenerator extends ScalaCodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(PowerApiTrait(service).body)
     b.setName(s"${service.packageDir}/${service.name}PowerApi.scala")
-    logger.info(s"Generating Akka gRPC service power interface for ${service.packageName}.${service.name}")
+    logger.info(s"Generating Akka gRPC service power API interface for ${service.packageName}.${service.name}")
     b.build
   }
 }

@@ -199,7 +199,7 @@ lazy val pluginTesterScala = Project(
   .settings(commonSettings)
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package")
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis")
   )
   .pluginTestingSettings
 

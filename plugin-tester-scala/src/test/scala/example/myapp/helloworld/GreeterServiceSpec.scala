@@ -41,11 +41,12 @@ class GreeterSpec
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  val client = {
-    implicit val mat = ActorMaterializer.create(clientSystem)
-    implicit val ec = clientSystem.dispatcher
+  implicit val mat = ActorMaterializer.create(clientSystem)
+  implicit val ec = clientSystem.dispatcher
+
+  val clients = Seq(8080, 8081).map { port =>
     GreeterServiceClient(
-      GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080)
+      GrpcClientSettings.connectToServiceAt("127.0.0.1", port)
         .withTls(false))
   }
 
@@ -56,8 +57,23 @@ class GreeterSpec
 
   "GreeterService" should {
     "reply to single request" in {
-      val reply = client.sayHello(HelloRequest("Alice"))
+      val reply = clients.head.sayHello(HelloRequest("Alice"))
       reply.futureValue should ===(HelloReply("Hello, Alice"))
     }
+  }
+
+  "GreeterServicePowerApi" should {
+    Seq(
+      ("Authorization", "Hello, Alice (authenticated)"),
+      ("WrongHeaderName", "Hello, Alice (not authenticated)")
+    ).zipWithIndex.foreach {
+        case ((mdName, expResp), ix) =>
+          s"use metadata in replying to single request ($ix)" in {
+            val reply = clients.last.sayHello()
+              .addHeader(mdName, "<some auth token>")
+              .invoke(HelloRequest("Alice"))
+            reply.futureValue should ===(HelloReply(expResp))
+          }
+      }
   }
 }
