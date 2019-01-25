@@ -39,7 +39,7 @@ object Main extends App {
 
   private val generatePlay: Boolean = reqLowerCase.contains("generate_play=true")
 
-  private val serverPowerApis: Boolean = reqLowerCase.contains("server_power_apis=false")
+  private val serverPowerApis: Boolean = reqLowerCase.contains("server_power_apis=true")
 
   val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
   private val logger = req.getParameter match {
