@@ -140,8 +140,8 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
         "custom_metadata",
       )
 
-    val server = new AkkaGrpcServerJava(mat ⇒ {
-      TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat)
+    val server = new AkkaGrpcServerJava((mat, sys) ⇒ {
+      TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)
     })
   }
 

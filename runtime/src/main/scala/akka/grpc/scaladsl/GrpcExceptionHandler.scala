@@ -10,7 +10,7 @@ import akka.grpc.internal.GrpcResponseHelpers
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
 
-import scala.concurrent.{ExecutionException, Future}
+import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
 
