@@ -212,6 +212,7 @@ lazy val pluginTesterJava = Project(
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
   )
   .pluginTestingSettings
 

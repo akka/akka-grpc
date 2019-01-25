@@ -18,21 +18,23 @@ import akka.stream.Materializer;
 
 import akka.grpc.internal.PlayRouter;
 
-/**
- * Abstract base class for implementing @{service.name} in Java and using as a play Router
- */
-public abstract class Abstract@{service.name}Router extends PlayRouter implements @{service.name}@{if(powerApis) { "PowerApi"} else { "" }} {
-
-  public Abstract@{service.name}Router(Materializer mat) {
-    super(mat, @{service.name}.name);
-  }
-
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   /**
-   * INTERNAL API
+   * Abstract base class for implementing @serviceName in Java and using as a play Router
    */
-  final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
-     return akka.grpc.internal.PlayRouterHelper.handlerFor(
-        @{service.name}@{if(powerApis) { "PowerApi"} else { "" }}HandlerFactory.create(this, prefix, mat)
-     );
+  public abstract class Abstract@{serviceName}Router extends PlayRouter implements @{serviceName} {
+
+    public Abstract@{serviceName}Router(Materializer mat) {
+      super(mat, @{service.name}.name);
+    }
+
+    /**
+     * INTERNAL API
+     */
+    final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
+       return akka.grpc.internal.PlayRouterHelper.handlerFor(
+          @{serviceName}HandlerFactory.create(this, prefix, mat)
+       );
+    }
   }
 }

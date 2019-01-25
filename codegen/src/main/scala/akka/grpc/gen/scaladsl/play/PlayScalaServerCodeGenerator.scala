@@ -12,13 +12,16 @@ import templates.PlayScala.txt._
 case class PlayScalaServerCodeGenerator(powerApis: Boolean = false) extends ScalaCodeGenerator {
   override def name: String = "akka-grpc-play-server-scala"
 
-  override def perServiceContent = super.perServiceContent + generateRouter
+  override def perServiceContent = super.perServiceContent + generateRouter() ++ (
+    if (powerApis) Set(generateRouter(powerApis))
+    else Set.empty
+  )
 
-  private val generateRouter: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  private def generateRouter(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Router(service, powerApis).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}Router.scala")
-    logger.info(s"Generating Akka gRPC service play router for ${service.packageName}.${service.name}")
+    b.setName(s"${service.packageDir}/Abstract${service.name}${if (powerApis) "PowerApi" else ""}Router.scala")
+    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} play router for ${service.packageName}.${service.name}")
     b.build
   }
 }

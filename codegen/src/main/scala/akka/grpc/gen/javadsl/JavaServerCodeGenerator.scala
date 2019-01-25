@@ -12,7 +12,10 @@ import templates.JavaServer.txt.Handler
 case class JavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
 
-  override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = super.perServiceContent + generateHandlerFactory(powerApis)
+  override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = super.perServiceContent + generateHandlerFactory() ++ (
+    if (powerApis) Set(generateHandlerFactory(powerApis))
+    else Set.empty
+  )
 
   override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
     Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version))
@@ -20,10 +23,9 @@ case class JavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeG
   def generateHandlerFactory(powerApis: Boolean = false): (Logger, Service) ⇒ CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Handler(service, powerApis).body)
-    val powerApiSuffix = if (powerApis) "PowerApi" else ""
-    val serverPath = s"${service.packageDir}/${service.name}${powerApiSuffix}HandlerFactory.java"
+    val serverPath = s"${service.packageDir}/${service.name}${if (powerApis) "PowerApi" else ""}HandlerFactory.java"
     b.setName(serverPath)
-    logger.info(s"Generating Akka gRPC service handler for ${service.packageName}.${service.name}")
+    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} handler for ${service.packageName}.${service.name}")
     b.build
   }
 }
