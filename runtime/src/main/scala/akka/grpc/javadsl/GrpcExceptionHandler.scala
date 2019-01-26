@@ -26,7 +26,6 @@ object GrpcExceptionHandler {
       case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
       case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
       case other ⇒
-        println(other)
         Status.INTERNAL
     }
   }
@@ -34,7 +33,6 @@ object GrpcExceptionHandler {
   def standard(t: Throwable): HttpResponse = standard(t, defaultMapper)
 
   def standard(t: Throwable, mapper: jFunction[Throwable, Status]): HttpResponse = {
-    println(s"Caught exception $t")
     GrpcMarshalling.status(mapper(t))
   }
 }
