@@ -120,7 +120,8 @@ object GrpcClientSettings {
     case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
-  private def staticServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
+  private def staticServiceDiscovery(host: String, port: Int) =
+    new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
 
   /**
    * INTERNAL API

@@ -9,7 +9,7 @@ object Dependencies {
     val scala211 = "2.11.12"
     val scala212 = "2.12.8"
 
-    val akka = "2.5.19"
+    val akka = "2.5.20"
     val akkaHttp = "10.1.5"
 
     val play = "2.7.0-RC3"
@@ -29,6 +29,7 @@ object Dependencies {
     val akkaHttpCore     = "com.typesafe.akka"            %% "akka-http-core"     % Versions.akkaHttp
     val akkaHttp2Support = "com.typesafe.akka"            %% "akka-http2-support" % Versions.akkaHttp
     val akkaDiscovery    = "com.typesafe.akka"            %% "akka-discovery"     % Versions.akka
+    val akkaSlf4j        = "com.typesafe.akka"            %% "akka-slf4j"         % Versions.akka
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin"  % scalapb.compiler.Version.scalapbVersion
     val scalapbRuntime        = "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion exclude("io.grpc", "grpc-netty")
@@ -96,6 +97,7 @@ object Dependencies {
     Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
     // these two are available when used through Play, which is also the only case when they are needed
+    Compile.akkaSlf4j % "provided",
     Compile.play % "provided",
     Compile.playAkkaHttpServer % "provided",
     Test.akkaDiscoveryConfig,
@@ -120,6 +122,7 @@ object Dependencies {
     Compile.grpcInteropTesting,
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
+    Compile.akkaSlf4j,
     Compile.play,
     Compile.playAkkaHttpServer,
   ) ++ testing.map(_.withConfigurations(Some("compile")))

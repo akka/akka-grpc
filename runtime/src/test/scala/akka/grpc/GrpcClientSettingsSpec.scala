@@ -119,7 +119,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
     "use static service discovery for connectToServiceAt" in {
       val settings = GrpcClientSettings.connectToServiceAt("host.com", 8080)
       val resolved = settings.serviceDiscovery.lookup("any", 1.second).futureValue
-      resolved.addresses should be(Seq(ResolvedTarget("host.com", Some(8080))))
+      resolved.addresses should be(Seq(ResolvedTarget("host.com", Some(8080), None)))
     }
 
     "uses host for static service discovery" in {
