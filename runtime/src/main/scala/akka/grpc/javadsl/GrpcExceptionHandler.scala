@@ -7,31 +7,32 @@ package akka.grpc.javadsl
 import java.util.concurrent.CompletionException
 
 import akka.grpc.GrpcServiceException
-
-import scala.concurrent.ExecutionException
 import akka.http.javadsl.model.HttpResponse
 import io.grpc.Status
+import akka.japi.{ Function => jFunction }
+
+import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
-  def standard(t: Throwable): HttpResponse = t match {
-    case e: ExecutionException ⇒
-      if (e.getCause == null) GrpcMarshalling.status(Status.INTERNAL)
-      else handling(e.getCause)
-    case e: CompletionException ⇒
-      if (e.getCause == null) GrpcMarshalling.status(Status.INTERNAL)
-      else handling(e.getCause)
-    case other ⇒
-      handling(other)
+  def defaultMapper: jFunction[Throwable, Status] = new jFunction[Throwable, Status] {
+    override def apply(param: Throwable): Status = param match {
+      case e: ExecutionException ⇒
+        if (e.getCause == null) Status.INTERNAL
+        else defaultMapper(e.getCause)
+      case e: CompletionException ⇒
+        if (e.getCause == null) Status.INTERNAL
+        else defaultMapper(e.getCause)
+      case grpcException: GrpcServiceException ⇒ grpcException.status
+      case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
+      case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
+      case other ⇒
+        Status.INTERNAL
+    }
   }
-  private def handling(t: Throwable): HttpResponse = t match {
-    case grpcException: GrpcServiceException ⇒
-      GrpcMarshalling.status(grpcException.status)
-    case _: NotImplementedError ⇒
-      GrpcMarshalling.status(Status.UNIMPLEMENTED)
-    case _: UnsupportedOperationException ⇒
-      GrpcMarshalling.status(Status.UNIMPLEMENTED)
-    case other ⇒
-      println(other)
-      GrpcMarshalling.status(Status.INTERNAL)
+
+  def standard(t: Throwable): HttpResponse = standard(t, defaultMapper)
+
+  def standard(t: Throwable, mapper: jFunction[Throwable, Status]): HttpResponse = {
+    GrpcMarshalling.status(mapper(t))
   }
 }
