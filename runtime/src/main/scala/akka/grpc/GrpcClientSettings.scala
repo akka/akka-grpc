@@ -5,7 +5,7 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.annotation.InternalApi
+import akka.annotation.{ ApiMayChange, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
@@ -214,8 +214,10 @@ final class GrpcClientSettings private (
     copy(connectionAttempts = Some(value))
 
   /**
-    * To override any default channel configurations used by netty. Only for power users.
-    */
+   * To override any default channel configurations used by netty. Only for power users.
+   * API may change when io.grpc:grpc-netty-shaded is replaced by io.grpc:grpc-core and Akka HTTP.
+   */
+  @ApiMayChange
   def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =
     copy(channelBuilderOverrides = builderOverrides)
 
