@@ -5,6 +5,7 @@
 package akka.grpc.internal
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ GrpcExceptionHandler, headers }
 import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
@@ -24,17 +25,17 @@ import scala.concurrent.Future
  */
 @InternalApi // consumed from generated classes so cannot be private
 object GrpcResponseHelpers {
-  def apply[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
+  def apply[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(trailer(Status.OK)))
 
-  def apply[T](e: Source[T, NotUsed], eHandler: PartialFunction[Throwable, Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
+  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(trailer(Status.OK)), eHandler)
 
-  def apply[T](e: Source[T, NotUsed], status: Future[Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
-    GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper)
+  def apply[T](e: Source[T, NotUsed], status: Future[Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse = {
+    GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper _)
   }
 
-  def apply[T](e: Source[T, NotUsed], status: Future[Status], eHandler: PartialFunction[Throwable, Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
+  def apply[T](e: Source[T, NotUsed], status: Future[Status], eHandler: ActorSystem => PartialFunction[Throwable, Status])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse = {
     implicit val ec = mat.executionContext
     GrpcResponseHelpers(
       e,
@@ -44,7 +45,7 @@ object GrpcResponseHelpers {
       eHandler)
   }
 
-  def apply[T](e: Source[T, NotUsed], trail: Source[HttpEntity.LastChunk, NotUsed], eHandler: PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse = {
+  def apply[T](e: Source[T, NotUsed], trail: Source[HttpEntity.LastChunk, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse = {
     val outChunks = e
       .map(m.serialize)
       .via(Grpc.grpcFramingEncoder(codec))
@@ -52,7 +53,7 @@ object GrpcResponseHelpers {
       .concat(trail)
       .recover {
         case t =>
-          val status = eHandler
+          val status = eHandler(system)
             .orElse[Throwable, Status] {
               case e: GrpcServiceException => e.status
               case e: Exception => Status.UNKNOWN.withCause(e).withDescription("Stream failed")

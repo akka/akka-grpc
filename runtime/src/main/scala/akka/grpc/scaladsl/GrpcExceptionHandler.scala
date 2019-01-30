@@ -4,28 +4,32 @@
 
 package akka.grpc.scaladsl
 
-import scala.concurrent.{ ExecutionException, Future }
-import io.grpc.Status
+import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.http.scaladsl.model.HttpResponse
+import io.grpc.Status
+
+import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
-  def default(mapper: PartialFunction[Throwable, Status]): PartialFunction[Throwable, Future[HttpResponse]] = {
+  def default(mapper: PartialFunction[Throwable, Status])(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
     mapper
-      .orElse(defaultMapper)
+      .orElse(defaultMapper(system))
       .andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
   }
 
-  val defaultMapper: PartialFunction[Throwable, Status] = {
+  def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Status] = {
     case e: ExecutionException ⇒
       if (e.getCause == null) Status.INTERNAL
-      else defaultMapper(e.getCause)
+      else defaultMapper(system)(e.getCause)
     case grpcException: GrpcServiceException ⇒ grpcException.status
     case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
     case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
-    case other ⇒ Status.INTERNAL
+    case other ⇒
+      system.log.error(other, other.getMessage)
+      Status.INTERNAL
   }
 
-  val default: PartialFunction[Throwable, Future[HttpResponse]] = default(defaultMapper)
+  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = default(defaultMapper(system))
 }

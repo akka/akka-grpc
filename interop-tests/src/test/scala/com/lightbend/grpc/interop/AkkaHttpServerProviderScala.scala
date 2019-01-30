@@ -5,6 +5,7 @@
 package com.lightbend.grpc.interop
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc.Identity
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcMarshalling
@@ -52,14 +53,14 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   })
 
   // Route to pass the 'status_code_and_message' test
-  def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer): Route = {
+  def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer, system: ActorSystem): Route = {
     implicit val ec = mat.executionContext
     implicit val codec = Identity
 
     // TODO provide these as easy-to-import implicits:
     implicit val simpleRequestUnmarshaller: FromRequestUnmarshaller[SimpleRequest] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshal(req)(TestService.Serializers.SimpleRequestSerializer, mat))
     implicit val streamingOutputCallRequestUnmarshaller: FromRequestUnmarshaller[Source[StreamingOutputCallRequest, NotUsed]] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshalStream(req)(TestService.Serializers.StreamingOutputCallRequestSerializer, mat))
-    implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response)(TestService.Serializers.SimpleResponseSerializer, mat, codec))
+    implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response)(TestService.Serializers.SimpleResponseSerializer, mat, codec, system))
     implicit val streamingOutputCallResponseSerializer = TestService.Serializers.StreamingOutputCallResponseSerializer
 
     pathPrefix("UnaryCall") {

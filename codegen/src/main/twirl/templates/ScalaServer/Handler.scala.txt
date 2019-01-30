@@ -16,7 +16,7 @@ import io.grpc.Status
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.Uri.Path.Segment
-
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 
 object @{service.name}Handler {
@@ -29,7 +29,7 @@ object @{service.name}Handler {
    * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
    * several services.
    */
-  def apply(implementation: @service.name)(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+  def apply(implementation: @service.name)(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
     partial(implementation).orElse { case _ => notFound }
 
   /**
@@ -39,7 +39,7 @@ object @{service.name}Handler {
    * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
    * several services.
    */
-  def apply(implementation: @service.name, eHandler: PartialFunction[Throwable, Status])(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+  def apply(implementation: @service.name, eHandler: ActorSystem => PartialFunction[Throwable, Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
     partial(implementation, @{service.name}.name, eHandler).orElse { case _ => notFound }
 
   /**
@@ -51,7 +51,7 @@ object @{service.name}Handler {
    *
    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
    */
-  def apply(implementation: @service.name, prefix: String)(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+  def apply(implementation: @service.name, prefix: String)(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
     partial(implementation, prefix).orElse { case _ => notFound }
 
   /**
@@ -63,7 +63,7 @@ object @{service.name}Handler {
    *
    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
    */
-  def apply(implementation: @service.name, prefix: String, eHandler: PartialFunction[Throwable, Status])(implicit mat: Materializer): HttpRequest => Future[HttpResponse] =
+  def apply(implementation: @service.name, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
     partial(implementation, prefix, eHandler).orElse { case _ => notFound }
 
   /**
@@ -75,7 +75,7 @@ object @{service.name}Handler {
    *
    * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
    */
-  def partial(implementation: @service.name, prefix: String = @{service.name}.name, eHandler: PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+  def partial(implementation: @service.name, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer, system: ActorSystem): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     implicit val ec: ExecutionContext = mat.executionContext
     import @{service.name}.Serializers._
 
@@ -85,14 +85,14 @@ object @{service.name}Handler {
         val responseCodec = Codecs.negotiate(request)
         @{method.unmarshal}(request)(@method.deserializer.name, mat)
           .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_))
-          .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, mat, responseCodec))
+          .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, mat, responseCodec, system))
       }
       case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
     }
 
     Function.unlift((req: HttpRequest) => req.uri.path match {
       case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) ⇒
-        Some(handle(req, method).recoverWith(GrpcExceptionHandler.default(eHandler)))
+        Some(handle(req, method).recoverWith(GrpcExceptionHandler.default(eHandler(system))))
       case _ =>
         None
     })

@@ -8,6 +8,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import io.grpc.Status
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
@@ -38,14 +39,14 @@ object GrpcMarshalling {
         .mapMaterializedValue(japiFunction(_ ⇒ NotUsed)))
   }
 
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    marshalStream(Source.single(e), m, mat, codec)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec, system)
 
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, eHandler: PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
-    marshalStream(Source.single(e), m, mat, codec, eHandler)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec, system, eHandler)
 
-  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec, eHandler: PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
-    GrpcResponseHelpers(e.asScala, eHandler)(m, mat, Identity)
+  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    GrpcResponseHelpers(e.asScala, eHandler)(m, mat, Identity, system)
 
   def status(status: Status): HttpResponse =
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))

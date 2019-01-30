@@ -29,12 +29,13 @@ import akka.stream.*;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration.TestService;
+import scala.Function2;
 import scala.Tuple2;
 
 public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBinding>> {
-  private final Function<Materializer, Function<HttpRequest, CompletionStage<HttpResponse>>> handlerFactory;
+  private final Function2<Materializer, ActorSystem, Function<HttpRequest, CompletionStage<HttpResponse>>> handlerFactory;
 
-  public AkkaGrpcServerJava(Function<Materializer, Function<HttpRequest, CompletionStage<HttpResponse>>> handlerFactory) {
+  public AkkaGrpcServerJava(Function2<Materializer, ActorSystem, Function<HttpRequest, CompletionStage<HttpResponse>>> handlerFactory) {
     this.handlerFactory = handlerFactory;
   }
 
@@ -44,7 +45,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
       ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on"));
     Materializer mat = ActorMaterializer.create(sys);
 
-    Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat);
+    Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat, sys);
 
     CompletionStage<ServerBinding> binding = Http.get(sys).bindAndHandleAsync(
       req -> {

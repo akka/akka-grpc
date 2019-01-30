@@ -30,7 +30,7 @@ class GreeterServer {
 
       // Bind implementation to localhost:8080
       Http.get(sys).bindAndHandleAsync(
-          GreeterServiceHandlerFactory.create(impl, mat),
+          GreeterServiceHandlerFactory.create(impl, mat, sys),
           ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
           mat)
       .thenAccept(binding -> {
