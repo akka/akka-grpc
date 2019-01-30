@@ -17,6 +17,7 @@ import akka.stream.javadsl.{ Sink, Source }
 import akka.stream.scaladsl.{ Source => SSource }
 import akka.grpc._
 import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler => sGrpcExceptionHandler }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 
 object GrpcMarshalling {
@@ -40,8 +41,11 @@ object GrpcMarshalling {
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
     marshalStream(Source.single(e), m, mat, codec)
 
-  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    GrpcResponseHelpers(e.asScala)(m, mat, Identity)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, eHandler: PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec, eHandler)
+
+  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec, eHandler: PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    GrpcResponseHelpers(e.asScala, eHandler)(m, mat, Identity)
 
   def status(status: Status): HttpResponse =
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))

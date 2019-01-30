@@ -13,24 +13,23 @@ import io.grpc.Status
 import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
-
-  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    case e: ExecutionException ⇒
-      if (e.getCause == null) Future.failed(e)
-      else handling(system)(e.getCause)
-    case other ⇒
-      handling(system)(other)
+  def default(mapper: PartialFunction[Throwable, Status])(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
+    mapper
+      .orElse(defaultMapper)
+      .andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
   }
-  private def handling(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    case grpcException: GrpcServiceException ⇒
-      Future.successful(GrpcResponseHelpers.status(grpcException.status))
-    case _: NotImplementedError ⇒
-      Future.successful(GrpcResponseHelpers.status(Status.UNIMPLEMENTED))
-    case _: UnsupportedOperationException ⇒
-      Future.successful(GrpcResponseHelpers.status(Status.UNIMPLEMENTED))
+
+  def defaultMapper(implicit system: ActorSystem): PartialFunction[Throwable, Status] = {
+    case e: ExecutionException ⇒
+      if (e.getCause == null) Status.INTERNAL
+      else defaultMapper(system)(e.getCause)
+    case grpcException: GrpcServiceException ⇒ grpcException.status
+    case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
+    case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
     case other ⇒
       system.log.error(other, other.getMessage)
-      Future.successful(GrpcResponseHelpers.status(Status.INTERNAL))
+      Status.INTERNAL
   }
-}
 
+  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = default(defaultMapper)
+}
