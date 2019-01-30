@@ -96,10 +96,12 @@ object Dependencies {
     Compile.akkaHttp,
     Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
-    // these two are available when used through Play, which is also the only case when they are needed
+
+    // these three are available when used through Play, which is also the only case when they are needed
     Compile.akkaSlf4j % "provided",
     Compile.play % "provided",
     Compile.playAkkaHttpServer % "provided",
+
     Test.akkaDiscoveryConfig,
     Test.akkaTestkit,
   ) ++ testing
