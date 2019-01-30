@@ -74,13 +74,16 @@ object GrpcClientSettings {
    */
   def fromConfig(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
     val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery.mechanism")
-    val serviceName = clientConfiguration.getString("service-discovery.service-name")
+    var serviceName = clientConfiguration.getString("service-discovery.service-name")
     val port = clientConfiguration.getInt("port")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val sd = serviceDiscoveryMechanism match {
       case "static" =>
         val host = clientConfiguration.getString("host")
         require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static")
+        // Required by the Discovery infrastructure, even when we use static discovery.
+        if (serviceName.isEmpty)
+          serviceName = "static"
         staticServiceDiscovery(host, port)
       case other =>
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
@@ -120,7 +123,8 @@ object GrpcClientSettings {
     case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
-  private def staticServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
+  private def staticServiceDiscovery(host: String, port: Int) =
+    new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
 
   /**
    * INTERNAL API
