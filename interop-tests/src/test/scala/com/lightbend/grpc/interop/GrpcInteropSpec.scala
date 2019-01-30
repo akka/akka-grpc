@@ -5,24 +5,25 @@
 package com.lightbend.grpc.interop
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc.scaladsl.GrpcMarshalling
 import akka.grpc.Identity
 import akka.grpc.internal.GrpcResponseHelpers
-import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
-import io.grpc.testing.integration.test.{ AkkaGrpcScalaClientTester, TestService, TestServiceHandler }
-import io.grpc.testing.integration.{ AkkaGrpcJavaClientTester, TestServiceHandlerFactory }
+import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
+import io.grpc.testing.integration.test.{AkkaGrpcScalaClientTester, TestService, TestServiceHandler}
+import io.grpc.testing.integration.{AkkaGrpcJavaClientTester, TestServiceHandlerFactory}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.unmarshalling.{ FromRequestUnmarshaller, Unmarshaller }
+import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, Unmarshaller}
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration.test.{ TestService, TestServiceMarshallers }
+import io.grpc.testing.integration.test.{TestService, TestServiceMarshallers}
 import org.scalatest._
 
 import scala.collection.immutable
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
 
@@ -71,7 +72,7 @@ class GrpcInteropSpec extends WordSpec with GrpcInteropTests with Directives {
     })
 
     // Route to pass the 'status_code_and_message' test
-    def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer): Route = {
+    def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer, system:ActorSystem): Route = {
       implicit val ec = mat.executionContext
       // TODO add a directive that gets the codec from the headers?
       // or a directive that wraps request and response and compresses in post-processing?

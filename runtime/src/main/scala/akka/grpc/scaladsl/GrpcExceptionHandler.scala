@@ -15,11 +15,11 @@ import scala.concurrent.{ ExecutionException, Future }
 object GrpcExceptionHandler {
   def default(mapper: PartialFunction[Throwable, Status])(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
     mapper
-      .orElse(defaultMapper)
+      .orElse(defaultMapper(system))
       .andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
   }
 
-  def defaultMapper(implicit system: ActorSystem): PartialFunction[Throwable, Status] = {
+  def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Status] = {
     case e: ExecutionException ⇒
       if (e.getCause == null) Status.INTERNAL
       else defaultMapper(system)(e.getCause)
@@ -31,5 +31,5 @@ object GrpcExceptionHandler {
       Status.INTERNAL
   }
 
-  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = default(defaultMapper)
+  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = default(defaultMapper(system))
 }

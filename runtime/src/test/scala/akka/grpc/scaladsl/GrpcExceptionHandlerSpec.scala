@@ -46,7 +46,7 @@ class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures 
     (otherTypes ++ executionExceptions).foreach { e =>
       val exp = expected(e)
       s"Map $e to $exp" in {
-        defaultMapper(e) shouldBe exp
+        defaultMapper(system)(e) shouldBe exp
       }
     }
   }
@@ -54,9 +54,9 @@ class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures 
   "default(defaultMapper)" should {
     (otherTypes ++ executionExceptions).foreach { e =>
       s"Correctly map $e" in {
-        val exp = GrpcResponseHelpers.status(defaultMapper(e))
+        val exp = GrpcResponseHelpers.status(defaultMapper(system)(e))
         val expChunks = getChunks(exp)
-        val act = default(defaultMapper)(e).futureValue
+        val act = default(defaultMapper(system))(system)(e).futureValue
         val actChunks = getChunks(act)
         // Following is because aren't equal
         act.status shouldBe exp.status
