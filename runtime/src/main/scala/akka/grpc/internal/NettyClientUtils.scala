@@ -52,6 +52,7 @@ object NettyClientUtils {
           }
 
           builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
+          builder = settings.channelBuilderOverrides(builder)
 
           val channel = builder.build()
           ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
