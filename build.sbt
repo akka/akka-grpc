@@ -138,16 +138,6 @@ lazy val interopTests = Project(
     // sbt scripted test
     whitesourceIgnore := true,
   )
-  // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
-  // * google/protobuf/empty.proto
-  // * io/grpc/testing/integration/empty.proto
-  // They have different "java_outer_classname" options, but scalapb does not look at it:
-  // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
-  // Therefore we exclude it here.
-  .settings(
-    excludeFilter in PB.generate := new SimpleFileFilter(
-      (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
-  )
   .settings(
     inConfig(Test)(Seq(
       mainClass in reStart := (mainClass in run in Test).value,
