@@ -256,3 +256,28 @@ Java
 :  @@snip [GreeterActor.java](/plugin-tester-java/src/main/java/example/myapp/statefulhelloworld/GreeterActor.java) { #actor }
 
 Now the actor mailbox is used to synchronize accesses to the mutable state.
+
+## Accessing request metadata
+
+By default the generated service interfaces don't provide access to the request metadata, only to the request
+body (via the rpc method input parameter). If your methods require access to the request metadata, you can tell
+akka-grpc to generate server "power APIs" that extend the base service interfaces to provide an additional
+request metadata parameter to each service method. See the detailed chapters on @ref[sbt](../buildtools/sbt.md), @ref[Gradle](../buildtools/gradle.md)
+and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
+generated client stubs.
+
+Here's what the generated server power APIs look like:
+
+Scala
+:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServicePowerApi.scala)
+
+Java
+:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServicePowerApi.java)
+
+Here's an example implementation of these server power APIs:
+
+Scala
+:  @@snip [GreeterServicePowerApiImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServicePowerApiImpl.scala) { #full-service-impl }
+
+Java
+:  @@snip [GreeterServicePowerApiImpl.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServicePowerApiImpl.java) { #full-service-impl }
