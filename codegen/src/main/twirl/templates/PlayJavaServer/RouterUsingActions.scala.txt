@@ -1,0 +1,80 @@
+@*
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.javadsl.Service, powerApis: Boolean)
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @service.packageName;
+
+import akka.actor.ActorSystem;
+import akka.grpc.GrpcServiceException;
+import akka.grpc.internal.PlayRouterHelper$;
+import akka.grpc.internal.PlayRouterUsingActions;
+import akka.grpc.javadsl.GrpcExceptionHandler;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.japi.Function;
+import akka.stream.Materializer;
+import play.api.mvc.EssentialAction;
+import play.api.mvc.RequestHeader;
+import play.api.mvc.PlayBodyParsers;
+import play.api.mvc.DefaultActionBuilder;
+
+import scala.Function1;
+import scala.NotImplementedError;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
+  /**
+   * Abstract base class for implementing @{serviceName} and using as a play Router
+   */
+  public abstract class Abstract@{serviceName}Router extends PlayRouterUsingActions implements @{serviceName} {
+    private final Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler;
+    private final ActorSystem system;
+    private final PlayBodyParsers parsers;
+    private final DefaultActionBuilder actionBuilder;
+    @{
+      val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = service.methods.partition(_.inputStreaming) match {
+        case (streaming, unary) => (streaming.map(_.grpcName), unary.map(_.grpcName))
+      }
+      s"""
+      private final List<String> streamingInputMethods = Arrays.asList(${streamingInputMethods.mkString("\"", "\", \"", "\"")});
+      private final List<String> unaryInputMethods = Arrays.asList(${unaryInputMethods.mkString("\"", "\", \"", "\"")});
+      """
+    }
+
+    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, DefaultActionBuilder actionBuilder) {
+      this(mat, system, parsers, actionBuilder, GrpcExceptionHandler.defaultMapper());
+    }
+
+    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, DefaultActionBuilder actionBuilder, Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler) {
+      super(mat, @{service.name}.name, parsers, actionBuilder);
+      this.eHandler = eHandler;
+      this.system = system;
+      this.parsers = parsers;
+      this.actionBuilder = actionBuilder;
+    }
+
+    @@Override
+    public Function1<RequestHeader, EssentialAction> createHandler(String serviceName, Materializer mat) {
+      return new Function1<RequestHeader, EssentialAction>() {
+        public EssentialAction apply(RequestHeader reqOuter) {
+          Function<HttpRequest, CompletionStage<HttpResponse>> handler = @{serviceName}HandlerFactory.create(Abstract@{serviceName}Router.this, serviceName, mat, eHandler, system);
+          String[] pathSegments = reqOuter.path().split("/");
+          if ((pathSegments.length == 3) && (pathSegments[1].equals(serviceName))) {
+            String method = pathSegments[2];
+            if (streamingInputMethods.contains(method)) return createStreamingAction(PlayRouterHelper$.MODULE$.handlerFor(handler), mat.executionContext());
+            else if (unaryInputMethods.contains(method)) return createUnaryAction(PlayRouterHelper$.MODULE$.handlerFor(handler), mat.executionContext());
+            else throw new NotImplementedError("Not implemented: " + method);
+          } else {
+            throw new GrpcServiceException(io.grpc.Status.INTERNAL.withDescription("Unexpected/handled path " + reqOuter.path()));
+          }
+        }
+      };
+    }
+  }
+}

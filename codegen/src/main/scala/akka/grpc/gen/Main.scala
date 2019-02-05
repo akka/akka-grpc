@@ -41,6 +41,8 @@ object Main extends App {
 
   private val serverPowerApis: Boolean = reqLowerCase.contains("server_power_apis=true")
 
+  private val usePlayActions: Boolean = reqLowerCase.contains("use_play_actions=true")
+
   val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
   private val logger = req.getParameter match {
     case LogFileRegex(path) => new FileLogger(path)
@@ -73,28 +75,25 @@ object Main extends App {
         if (languageScala) {
           // Scala
           val base =
-            if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis))
+            if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
             else if (generateClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
-            else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis))
+            else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
             else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
           if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) ++ base
           else base
         } else {
           // Java
           val base =
-            if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis))
+            if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
             else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
-            else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis))
+            else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
             else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
           if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) ++ base
           else base
         }
       }
 
-    //    throw new RuntimeException(s"just before executing code generators")
-
     codeGenerators.foreach { g =>
-      //      println("executing generator " + g.name)
       val gout = g.run(req, logger)
       System.out.write(gout.toByteArray)
       System.out.flush()

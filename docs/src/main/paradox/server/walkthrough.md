@@ -266,14 +266,6 @@ request metadata parameter to each service method. See the detailed chapters on 
 and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
 generated client stubs.
 
-Here's what the generated server power APIs look like:
-
-Scala
-:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServicePowerApi.scala)
-
-Java
-:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServicePowerApi.java)
-
 Here's an example implementation of these server power APIs:
 
 Scala

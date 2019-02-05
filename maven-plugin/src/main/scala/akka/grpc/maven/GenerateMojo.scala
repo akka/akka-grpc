@@ -97,6 +97,8 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   var generatePlayServer: Boolean = _
   @BeanProperty
   var serverPowerApis: Boolean = _
+  @BeanProperty
+  var usePlayActions: Boolean = _
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
@@ -134,7 +136,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
         case Java ⇒
           val glueGenerators = Seq(
             if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis)) else Seq.empty,
-            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis), PlayJavaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis), PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions)) else Seq.empty,
             if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) else Seq.empty,
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
             if (generatePlayClient) Seq(JavaInterfaceCodeGenerator, PlayJavaClientCodeGenerator) else Seq.empty
@@ -144,7 +146,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
         case Scala ⇒
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis)) else Seq.empty,
-            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis), PlayScalaServerCodeGenerator(serverPowerApis)) else Seq.empty,
+            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis), PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions)) else Seq.empty,
             if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
             if (generatePlayClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator) else Seq.empty

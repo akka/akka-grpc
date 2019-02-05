@@ -14,11 +14,11 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
   override def name: String = "akka-grpc-play-server-scala"
 
   override def perServiceContent = super.perServiceContent ++ ((powerApis, usePlayActions) match {
-      case (true, true) => Set(generateRouterUsingActions(), generateRouterUsingActions(true))
-      case (false, true) => Set(generateRouterUsingActions())
-      case (true, false) => Set(generateRouter(), generateRouter(true))
-      case (false, false) => Set(generateRouter())
-    })
+    case (true, true) => Set(generateRouterUsingActions(), generateRouterUsingActions(true))
+    case (false, true) => Set(generateRouterUsingActions())
+    case (true, false) => Set(generateRouter(), generateRouter(true))
+    case (false, false) => Set(generateRouter())
+  })
 
   private def generateRouter(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
@@ -31,8 +31,8 @@ case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActio
   private def generateRouterUsingActions(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(RouterUsingActions(service, powerApis).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}Router.scala")
-    logger.info(s"Generating Akka gRPC file ${b.getName}")
+    b.setName(s"${service.packageDir}/Abstract${service.name}${if (powerApis) "PowerApi" else ""}Router.scala")
+    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} play router for ${service.packageName}.${service.name}")
     b.build
   }
 }
