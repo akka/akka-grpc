@@ -14,6 +14,7 @@ import scala.concurrent.Future;
 
 import akka.http.scaladsl.model.HttpRequest;
 import akka.http.scaladsl.model.HttpResponse;
+import akka.grpc.javadsl.GrpcExceptionHandler;
 import akka.stream.Materializer;
 
 import akka.grpc.internal.PlayRouter;
@@ -23,8 +24,14 @@ import akka.grpc.internal.PlayRouter;
    * Abstract base class for implementing @serviceName in Java and using as a play Router
    */
   public abstract class Abstract@{serviceName}Router extends PlayRouter implements @{serviceName} {
+    private final Function<Throwable, Status> eHandler;
 
     public Abstract@{serviceName}Router(Materializer mat) {
+      this(mat, GrpcExceptionHandler.defaultMapper());
+    }
+
+    public Abstract@{serviceName}Router(Materializer mat, Function<Throwable, Status> eHandler) {
+      this.eHandler = eHandler;
       super(mat, @{service.name}.name);
     }
 
@@ -33,7 +40,7 @@ import akka.grpc.internal.PlayRouter;
      */
     final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
        return akka.grpc.internal.PlayRouterHelper.handlerFor(
-          @{serviceName}HandlerFactory.create(this, prefix, mat)
+          @{serviceName}HandlerFactory.create(this, prefix, mat, eHandler)
        );
     }
   }

@@ -22,4 +22,20 @@ package object javadsl {
     new java.util.function.Function[A, B]() {
       override def apply(a: A): B = f(a)
     }
+
+  /**
+   * Helper for creating Scala partial functions from  akka.japi.Function
+   * instances as Scala 2.11 does not know about SAMs.
+   */
+  def scalaPartialFunction[A, B](f: akka.japi.Function[A, B]): PartialFunction[A, B] = {
+    case a => f(a)
+  }
+
+  /**
+   * Helper for creating Scala anonymous partial functions from  akka.japi.Function
+   * instances as Scala 2.11 does not know about SAMs.
+   */
+  def scalaAnonymousPartialFunction[A, B, C](f: akka.japi.Function[A, akka.japi.Function[B, C]]): A => PartialFunction[B, C] =
+    a => scalaPartialFunction(f(a))
+
 }

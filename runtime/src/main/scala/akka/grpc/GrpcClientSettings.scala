@@ -5,7 +5,7 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.annotation.InternalApi
+import akka.annotation.{ ApiMayChange, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
@@ -15,8 +15,8 @@ import com.typesafe.config.{ Config, ConfigValueFactory }
 import com.typesafe.sslconfig.akka.util.AkkaLoggerFactory
 import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
 import io.grpc.CallCredentials
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import javax.net.ssl.SSLContext
-
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
 
@@ -74,13 +74,16 @@ object GrpcClientSettings {
    */
   def fromConfig(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
     val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery.mechanism")
-    val serviceName = clientConfiguration.getString("service-discovery.service-name")
+    var serviceName = clientConfiguration.getString("service-discovery.service-name")
     val port = clientConfiguration.getInt("port")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val sd = serviceDiscoveryMechanism match {
       case "static" =>
         val host = clientConfiguration.getString("host")
         require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static")
+        // Required by the Discovery infrastructure, even when we use static discovery.
+        if (serviceName.isEmpty)
+          serviceName = "static"
         staticServiceDiscovery(host, port)
       case other =>
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
@@ -120,7 +123,8 @@ object GrpcClientSettings {
     case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
-  private def staticServiceDiscovery(host: String, port: Int) = new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port)))))
+  private def staticServiceDiscovery(host: String, port: Int) =
+    new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
 
   /**
    * INTERNAL API
@@ -164,7 +168,8 @@ final class GrpcClientSettings private (
   val sslContext: Option[SSLContext] = None,
   val deadline: Duration = Duration.Undefined,
   val userAgent: Option[String] = None,
-  val useTls: Boolean = true) {
+  val useTls: Boolean = true,
+  val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
@@ -212,6 +217,14 @@ final class GrpcClientSettings private (
   def withConnectionAttempts(value: Int): GrpcClientSettings =
     copy(connectionAttempts = Some(value))
 
+  /**
+   * To override any default channel configurations used by netty. Only for power users.
+   * API may change when io.grpc:grpc-netty-shaded is replaced by io.grpc:grpc-core and Akka HTTP.
+   */
+  @ApiMayChange
+  def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =
+    copy(channelBuilderOverrides = builderOverrides)
+
   private def copy(
     serviceName: String = serviceName,
     servicePortName: Option[String] = servicePortName,
@@ -224,7 +237,9 @@ final class GrpcClientSettings private (
     userAgent: Option[String] = userAgent,
     useTls: Boolean = useTls,
     resolveTimeout: FiniteDuration = resolveTimeout,
-    connectionAttempts: Option[Int] = connectionAttempts): GrpcClientSettings = new GrpcClientSettings(
+    connectionAttempts: Option[Int] = connectionAttempts,
+    channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides
+  ): GrpcClientSettings = new GrpcClientSettings(
     callCredentials = callCredentials,
     serviceDiscovery = serviceDiscovery,
     servicePortName = servicePortName,
@@ -237,6 +252,8 @@ final class GrpcClientSettings private (
     userAgent = userAgent,
     useTls = useTls,
     resolveTimeout = resolveTimeout,
-    connectionAttempts = connectionAttempts)
+    connectionAttempts = connectionAttempts,
+    channelBuilderOverrides = channelBuilderOverrides
+  )
 
 }

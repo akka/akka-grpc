@@ -45,11 +45,11 @@ class GreeterServer {
       GreeterServicePowerApi impl2 = new GreeterServicePowerApiImpl(mat);
 
       CompletionStage<ServerBinding> binding1 = Http.get(sys).bindAndHandleAsync(
-              GreeterServiceHandlerFactory.create(impl, mat),
+              GreeterServiceHandlerFactory.create(impl, mat, sys),
               ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
               mat);
       CompletionStage<ServerBinding> binding2 = Http.get(sys).bindAndHandleAsync(
-              GreeterServicePowerApiHandlerFactory.create(impl2, mat),
+              GreeterServicePowerApiHandlerFactory.create(impl2, mat, sys),
               ConnectHttp.toHost("127.0.0.1", 8081, UseHttp2.always()),
               mat);
       return binding1.thenCombine(binding2, (b1, b2) -> Arrays.asList(b1, b2));

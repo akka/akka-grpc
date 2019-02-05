@@ -8,6 +8,7 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import io.grpc.Status
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity => SHttpEntity, HttpResponse => SHttpResponse }
 import akka.http.scaladsl.model.headers.RawHeader
@@ -17,6 +18,7 @@ import akka.stream.javadsl.{ Sink, Source }
 import akka.stream.scaladsl.{ Source => SSource }
 import akka.grpc._
 import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler => sGrpcExceptionHandler }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 
 object GrpcMarshalling {
@@ -37,11 +39,14 @@ object GrpcMarshalling {
         .mapMaterializedValue(japiFunction(_ ⇒ NotUsed)))
   }
 
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    marshalStream(Source.single(e), m, mat, codec)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec, system)
 
-  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    GrpcResponseHelpers(e.asScala)(m, mat, Identity)
+  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    marshalStream(Source.single(e), m, mat, codec, system, eHandler)
+
+  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+    GrpcResponseHelpers(e.asScala, eHandler)(m, mat, Identity, system)
 
   def status(status: Status): HttpResponse =
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))
