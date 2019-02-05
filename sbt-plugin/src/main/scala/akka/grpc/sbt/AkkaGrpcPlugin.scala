@@ -8,9 +8,9 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
-import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaPowerApiTraitCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator}
 import akka.grpc.gen.javadsl.play.{PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
-import akka.grpc.gen.javadsl.{JavaClientCodeGenerator, JavaServerCodeGenerator, JavaInterfaceCodeGenerator}
+import akka.grpc.gen.javadsl.{JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaPowerApiInterfaceCodeGenerator, JavaServerCodeGenerator}
 import akka.grpc.gen.{Logger => GenLogger}
 import protocbridge.Generator
 import sbt.Keys._
@@ -63,17 +63,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
       sealed trait Language
       case object Scala extends Language
       case object Java extends Language
-
     }
 
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]](
       "Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
     val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]](
       "Which of the sources to generate in addition to the gRPC protobuf messages (AkkaGrpc.Server, AkkaGrpc.Client, AkkaGrpc.PlayServer, AkkaGrpc.PlayClient)")
-//    val akkaGrpcGeneratorOptions = settingKey[Seq[AkkaGrpc.GeneratorOption]]("Generator options (AkkaGrpc.ServerPowerApis). Empty by default")
     val akkaGrpcExtraGenerators = settingKey[Seq[akka.grpc.gen.CodeGenerator]]("Extra generators to evaluate. Empty by default")
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]]("Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
-    val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string. Akka gRPC settings: server_power_apis")
+    val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]]("Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string. Akka gRPC settings: server_power_apis, use_play_actions")
   }
 
   object autoImport extends Keys
@@ -152,6 +150,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
   // creates a seq of generator and per generator settings
   def generatorsFor(stubs: Seq[AkkaGrpc.GeneratedSource], languages: Seq[AkkaGrpc.Language], options: Seq[String], scalaBinaryVersion: ScalaBinaryVersion, logger: GenLogger): Seq[protocbridge.Generator] = {
     import AkkaGrpc._
+    def toGen(codeGenerator: akka.grpc.gen.CodeGenerator) = toGenerator(codeGenerator, scalaBinaryVersion, logger)
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
@@ -159,8 +158,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
     lazy val serverPowerApis = options.contains(GeneratorOption.ServerPowerApis.setting)
     lazy val usePlayActions = options.contains(GeneratorOption.UsePlayActions.setting)
-    lazy val scalaBaseGenerators: Seq[Generator] = Seq(ScalaGenerator, toGenerator(ScalaTraitCodeGenerator, scalaBinaryVersion, logger))
-    lazy val javaBaseGenerators: Seq[Generator] = Seq(JavaGenerator, toGenerator(JavaInterfaceCodeGenerator, scalaBinaryVersion, logger))
+    lazy val scalaBaseGenerators: Seq[Generator] = Seq(ScalaGenerator, toGen(ScalaTraitCodeGenerator))
+    lazy val javaBaseGenerators: Seq[Generator] = Seq(JavaGenerator, toGen(JavaInterfaceCodeGenerator))
     lazy val baseGenerators: Seq[Generator] = languages match {
       case Seq(Scala) => scalaBaseGenerators
       case Seq(Java) => javaBaseGenerators
@@ -171,15 +170,19 @@ object AkkaGrpcPlugin extends AutoPlugin {
       stub <- stubs
       language <- languages
     } yield (stub, language) match {
-      case (Client, Scala) => Seq(toGenerator(ScalaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (PlayClient, Scala) => Seq(toGenerator(PlayScalaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (Server, Scala) => Seq(toGenerator(ScalaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
-      case (PlayServer, Scala) => Seq(toGenerator(PlayScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), scalaBinaryVersion, logger))
-      case (Client, Java) => Seq(toGenerator(JavaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (PlayClient, Java) => Seq(toGenerator(PlayJavaClientCodeGenerator, scalaBinaryVersion, logger))
-      case (Server, Java) => Seq(toGenerator(JavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
-      case (PlayServer, Java) => Seq(toGenerator(PlayJavaServerCodeGenerator(serverPowerApis), scalaBinaryVersion, logger))
-    }).flatten.distinct
+      case (Client, Scala) => Seq(ScalaClientCodeGenerator)
+      case (PlayClient, Scala) => Seq(ScalaClientCodeGenerator, PlayScalaClientCodeGenerator)
+      case (Server, Scala) => (if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) else Seq.empty) ++
+          Seq(ScalaServerCodeGenerator(serverPowerApis))
+      case (PlayServer, Scala) => (if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) else Seq.empty) ++
+        Seq(ScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), PlayScalaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions))
+      case (Client, Java) => Seq(JavaClientCodeGenerator)
+      case (PlayClient, Java) => Seq(JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
+      case (Server, Java) => (if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) else Seq.empty) ++
+        Seq(JavaServerCodeGenerator(serverPowerApis))
+      case (PlayServer, Java) => (if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) else Seq.empty) ++
+        Seq(JavaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions), PlayJavaServerCodeGenerator(powerApis = serverPowerApis, usePlayActions = usePlayActions))
+    }).flatten.distinct.map(toGen)
 
     if (generators.nonEmpty) baseGenerators ++ generators
     else generators

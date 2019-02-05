@@ -37,6 +37,12 @@
           <description>Whether to generate server code</description>
         </parameter>
         <parameter>
+          <name>serverPowerApis</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to generate server "power API" code</description>
+        </parameter>        <parameter>
           <name>protoPaths</name>
           <type>list</type>
           <required>false</required>
@@ -48,6 +54,7 @@
         <language implementation="enum" default-value="JAVA">${akka-grpc.language}</language>
         <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
+        <serverPowerApis implementation="boolean" default-value="false">${akka-grpc.server-power-apis}</serverPowerApis>
         <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
       </configuration>
     </mojo>

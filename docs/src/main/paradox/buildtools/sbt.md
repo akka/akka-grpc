@@ -12,7 +12,16 @@ What language to generate stubs for is also configurable:
 
 @@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
-## Passing parameters to the generator
+### Generating server "power APIs"
+
+To additionally generate server "power APIs" that have access to request metata, as described
+@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `server_power_apis` option:
+
+```
+akkaGrpcCodeGeneratorSettings += "server_power_apis"
+```
+
+## Passing parameters to the generators
 
 Passing generator parameters to the underlying ScalaPB generators can be done through `akkaGrpcCodeGeneratorSettings`
 setting, any specified options will be passed to all underlying generators that are enabled. By default this setting

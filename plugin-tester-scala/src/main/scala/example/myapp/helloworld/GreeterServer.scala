@@ -30,29 +30,45 @@ object GreeterServer {
 
 class GreeterServer(system: ActorSystem) {
 
-  def run(): Future[Http.ServerBinding] = {
+  def run(): Future[Seq[Http.ServerBinding]] = {
     // Akka boot up code
     implicit val sys: ActorSystem = system
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
-    // Create service handler
-    val service: HttpRequest => Future[HttpResponse] =
-      GreeterServiceHandler(new GreeterServiceImpl(mat))
+    // Create service handlers
+    //    val service: HttpRequest => Future[HttpResponse] =
+    //      GreeterServiceHandler(new GreeterServiceImpl(mat))
+    val services: Seq[HttpRequest => Future[HttpResponse]] = Seq(
+      GreeterServiceHandler(new GreeterServiceImpl(mat)),
+      GreeterServicePowerApiHandler(new GreeterServicePowerApiImpl(mat)))
 
-    // Bind service handler server to localhost:8080
-    val bound = Http().bindAndHandleAsync(
-      service,
-      interface = "127.0.0.1",
-      port = 8080,
-      connectionContext = HttpConnectionContext(http2 = Always))
-
-    // report successful binding
-    bound.foreach { binding =>
-      println(s"gRPC server bound to: ${binding.localAddress}")
+    // Bind service handler servers to localhost:8080/8081
+    val bindings = Future.sequence {
+      services
+        .zip(Seq(8080, 8081))
+        .map {
+          case (service, port) =>
+            Http().bindAndHandleAsync(
+              service,
+              interface = "127.0.0.1",
+              port = port,
+              connectionContext = HttpConnectionContext(http2 = Always))
+        }
     }
 
-    bound
+    // report successful binding
+    bindings.foreach { bs =>
+      bs.foreach { binding =>
+        println(s"gRPC server bound to: ${binding.localAddress}")
+      }
+    }
+
+    bindings.foreach(_.foreach { binding =>
+      println(s"gRPC server bound to: ${binding.localAddress}")
+    })
+
+    bindings
   }
 }
 

@@ -4,7 +4,7 @@
 
 @(packageName: String, services: Seq[akka.grpc.gen.javadsl.Service])
 @akka.grpc.gen.Constants.DoNotEditComment
-@{if (packageName.nonEmpty) s"package $packageName" else ""}
+@{if (packageName.nonEmpty) s"package $packageName;" else ""}
 
 import com.typesafe.config.Config;
 import play.Environment;

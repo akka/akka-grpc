@@ -5,12 +5,14 @@
 package akka.grpc.scaladsl
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc._
 import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
+import io.grpc.Status
 
 import scala.concurrent.Future
 
@@ -35,10 +37,10 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage))
   }
 
-  def marshal[T](e: T = Identity)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    marshalStream(Source.single(e))
+  def marshal[T](e: T = Identity, eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+    marshalStream(Source.single(e), eHandler)
 
-  def marshalStream[T](e: Source[T, NotUsed])(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec): HttpResponse =
-    GrpcResponseHelpers(e)
+  def marshalStream[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+    GrpcResponseHelpers(e, eHandler)
 
 }

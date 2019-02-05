@@ -7,8 +7,6 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
-  version := "0.4.2.livongo",
-
   scalacOptions ++= List(
     "-unchecked",
     "-deprecation",
@@ -35,6 +33,7 @@ lazy val codegen = Project(
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
     buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
+    buildInfoKeys += "grpcVersion" → Dependencies.Versions.grpc,
     buildInfoPackage := "akka.grpc.gen",
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
@@ -200,7 +199,7 @@ lazy val pluginTesterScala = Project(
   .settings(commonSettings)
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package")
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis")
   )
   .pluginTestingSettings
 
@@ -213,6 +212,7 @@ lazy val pluginTesterJava = Project(
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
   )
   .pluginTestingSettings
 
@@ -224,13 +224,13 @@ lazy val root = Project(
   .aggregate(
     runtime,
     codegen,
-//    mavenPlugin,
+    mavenPlugin,
     sbtPlugin,
     scalapbProtocPlugin,
-//    interopTests,
+    interopTests,
     pluginTesterScala,
-//    pluginTesterJava,
-//    docs,
+    pluginTesterJava,
+    docs,
   )
   .enablePlugins(akka.grpc.NoPublish)
   .settings(

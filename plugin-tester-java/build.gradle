@@ -26,6 +26,7 @@ akkaGrpc {
   language = "Java"
   generateClient = true
   generateServer = true
+  serverPowerApis = true // This isn't default
 }
 
 repositories {
