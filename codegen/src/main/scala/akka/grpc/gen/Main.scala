@@ -91,10 +91,7 @@ object Main extends App {
         }
       }
 
-    //    throw new RuntimeException(s"just before executing code generators")
-
     codeGenerators.foreach { g =>
-      //      println("executing generator " + g.name)
       val gout = g.run(req, logger)
       System.out.write(gout.toByteArray)
       System.out.flush()
