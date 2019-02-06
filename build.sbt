@@ -1,5 +1,5 @@
 import akka.grpc.Dependencies
-import akka.grpc.Dependencies.Versions.{ scala211, scala212 }
+import akka.grpc.Dependencies.Versions.scala212
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 
@@ -52,9 +52,6 @@ lazy val runtime = Project(
   )
   .settings(Dependencies.runtime)
   .settings(commonSettings)
-  .settings(
-    crossScalaVersions := Seq(scala211, scala212)
-  )
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 lazy val scalapbProtocPlugin = Project(
@@ -107,12 +104,6 @@ lazy val sbtPlugin = Project(
     scriptedDependencies := {
       val p1 = publishLocal.value
       val p2 = (publishLocal in codegen).value
-
-      // publish runtime for Scala 2.11 as well as some scripted tests use that 
-      val extracted = Project.extract(state.value)
-      val differentScalaVersion = extracted.appendWithSession(List(scalaVersion in runtime := scala211), state.value)
-      extracted.runTask(publishLocal in runtime, differentScalaVersion)
-
       val p3 = (publishLocal in runtime).value
       val p4 = (publishLocal in interopTests).value
     },
@@ -136,16 +127,6 @@ lazy val interopTests = Project(
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test
     whitesourceIgnore := true,
-  )
-  // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
-  // * google/protobuf/empty.proto
-  // * io/grpc/testing/integration/empty.proto
-  // They have different "java_outer_classname" options, but scalapb does not look at it:
-  // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
-  // Therefore we exclude it here.
-  .settings(
-    excludeFilter in PB.generate := new SimpleFileFilter(
-      (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
   )
   .settings(
     inConfig(Test)(Seq(
