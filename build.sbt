@@ -7,6 +7,7 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
+  version := "0.5.0.powerApis",
   scalacOptions ++= List(
     "-unchecked",
     "-deprecation",
