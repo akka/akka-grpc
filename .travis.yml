@@ -9,8 +9,7 @@ git:
 
 jobs:
   include:
-    - stage: tests
-      script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck
+    - script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck
     - script: sbt scripted
       env: SCRIPTED
     - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
@@ -23,9 +22,7 @@ jobs:
       env: GRADLE-SCALA
     - script: cd benchmark-java && sbt test:compile
       env: COMPILE-BENCHMARK
-    - stage: whitesource-master
-      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
-    - stage: whitesource-release
+    - stage: whitesource
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: publish
       script: sbt publish
@@ -34,12 +31,10 @@ jobs:
       script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
 
 stages:
-  - name: tests
+  - name: test
     if: NOT tag =~ ^v
-  - name: whitesource-master
-    if: repo = akka/akka-grpc AND branch = master AND type = push
-  - name: whitesource-release
-    if: repo = akka/akka-grpc AND tag =~ ^v
+  - name: whitesource
+    if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
   - name: publish
     if: repo = akka/akka-grpc AND tag =~ ^v
   - name: techhub-ping
