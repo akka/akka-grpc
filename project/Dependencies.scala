@@ -9,7 +9,7 @@ object Dependencies {
     val scala212 = "2.12.8"
 
     val akka = "2.5.20"
-    val akkaHttp = "10.1.5"
+    val akkaHttp = "10.1.7"
 
     val play = "2.7.0-RC3"
 
