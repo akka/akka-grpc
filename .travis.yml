@@ -9,37 +9,34 @@ git:
 
 jobs:
   include:
-    - stage: tests
-      script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck
+    - script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck
     - script: sbt scripted
-      env: SCRIPTED
+      name: Test scripted
     - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
-      env: MAVEN-JAVA
+      name: Test Maven Java
     - script: sbt publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate scala:compile
-      env: MAVEN-SCALA
+      name: Test Maven Scala
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
-      env: GRADLE-JAVA
+      name: Test Gradle Java
     - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
-      env: GRADLE-SCALA
+      name: Test Gradle Scala
     - script: cd benchmark-java && sbt test:compile
-      env: COMPILE-BENCHMARK
-    - stage: whitesource-master
-      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
-    - stage: whitesource-release
+      name: Compile benchmarks
+    - stage: whitesource
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt whitesourceCheckPolicies whitesourceUpdate
     - stage: publish
       script: sbt publish
+      name: sbt publish
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
+      name: gradle publish
     - stage: techhub-ping
       script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
 
 stages:
-  - name: tests
+  - name: test
     if: NOT tag =~ ^v
-  - name: whitesource-master
-    if: repo = akka/akka-grpc AND branch = master AND type = push
-  - name: whitesource-release
-    if: repo = akka/akka-grpc AND tag =~ ^v
+  - name: whitesource
+    if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
   - name: publish
     if: repo = akka/akka-grpc AND tag =~ ^v
   - name: techhub-ping
