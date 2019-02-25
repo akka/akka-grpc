@@ -72,6 +72,31 @@ Scala
     ```
     @@@
 
+### Generating server "power APIs"
+
+To additionally generate server "power APIs" that have access to request metata, as described
+@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `serverPowerApis` option:
+
+Java
+:   @@@vars
+    ```gradle
+    akkaGrpc {
+      ...
+      serverPowerApis = true
+    }
+    ```
+    @@@
+
+Scala
+:   @@@vars
+    ```gradle
+    akkaGrpc {
+      ...
+      serverPowerApis = true
+    }
+    ```
+    @@@
+
 ## Proto source directory
 
 By default the plugin looks for `.proto`-files under `src/main/protobuf`.

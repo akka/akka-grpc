@@ -64,12 +64,4 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     }
   }
 }
-object ScalaCodeGenerator {
-  val generateServiceFile: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(ApiTrait(service).body)
-    b.setName(s"${service.packageDir}/${service.name}.scala")
-    logger.info(s"Generating Akka gRPC service interface ${service.packageName}.${service.name}")
-    b.build
-  }
-}
+

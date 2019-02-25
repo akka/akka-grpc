@@ -49,6 +49,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <serverPowerApis>true</serverPowerApis>
+        </configuration>
       </plugin>
 
       <plugin>

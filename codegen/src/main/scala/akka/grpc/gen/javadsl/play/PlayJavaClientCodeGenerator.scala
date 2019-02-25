@@ -24,6 +24,7 @@ trait PlayJavaClientCodeGenerator extends JavaCodeGenerator {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ClientProvider(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.java")
+    logger.info(s"Generating Akka gRPC play client provider for ${service.packageName}.${service.name}")
     b.build
   }
 

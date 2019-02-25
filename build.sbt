@@ -7,7 +7,6 @@ scalaVersion := scala212
 
 val commonSettings = Seq(
   organization := "com.lightbend.akka.grpc",
-
   scalacOptions ++= List(
     "-unchecked",
     "-deprecation",
@@ -181,7 +180,7 @@ lazy val pluginTesterScala = Project(
   .settings(commonSettings)
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package")
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis")
   )
   .pluginTestingSettings
 
@@ -194,6 +193,7 @@ lazy val pluginTesterJava = Project(
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
   )
   .pluginTestingSettings
 

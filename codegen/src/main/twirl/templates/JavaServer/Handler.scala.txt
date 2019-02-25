@@ -2,7 +2,7 @@
  * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  *@
 
-@(service: akka.grpc.gen.javadsl.Service)
+@(service: akka.grpc.gen.javadsl.Service, powerApis: Boolean)
 
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
@@ -22,112 +22,116 @@ import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
+import akka.grpc.javadsl.Metadata;
+import akka.grpc.javadsl.MetadataImpl;
 import akka.grpc.javadsl.package$;
 
 import io.grpc.Status;
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
-public class @{service.name}HandlerFactory {
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
+  public class @{serviceName}HandlerFactory {
 
-  private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
-    HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+    private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
+      HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
-   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
-   * several services.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat, ActorSystem system) {
-    return create(implementation, @{service.name}.name, mat, system);
-  }
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, Materializer mat, ActorSystem system) {
+      return create(implementation, @{service.name}.name, mat, system);
+    }
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
-   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
-   * several services.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
-    return create(implementation, @{service.name}.name, mat, eHandler, system);
-  }
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
+      return create(implementation, @{service.name}.name, mat, eHandler, system);
+    }
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
-   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
-   * several services.
-   *
-   * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, String prefix, Materializer mat, ActorSystem system) {
-    return partial(implementation, prefix, mat, GrpcExceptionHandler.defaultMapper(), system);
-  }
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     *
+     * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, Materializer mat, ActorSystem system) {
+      return partial(implementation, prefix, mat, GrpcExceptionHandler.defaultMapper(), system);
+    }
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
-   * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
-   * several services.
-   *
-   * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@service.name implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
-    return partial(implementation, prefix, mat, eHandler, system);
-  }
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     *
+     * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
+      return partial(implementation, prefix, mat, eHandler, system);
+    }
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
-   * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@service.name implementation, String prefix, Materializer mat, ActorSystem system) {
-    return partial(implementation, prefix, mat, GrpcExceptionHandler.defaultMapper(), system);
-  }
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
+     * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, ActorSystem system) {
+      return partial(implementation, prefix, mat, GrpcExceptionHandler.defaultMapper(), system);
+    }
 
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
-   * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
-   *
-   * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
-   */
-  public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@service.name implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
-    return (req -> {
-      Iterator<String> segments = req.getUri().pathSegments().iterator();
-      if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
-        String method = segments.next();
-        if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-        else return handle(req, method, implementation, mat, eHandler, system).exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, system));
-      } else {
-        return notFound;
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
+     * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
+     */
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
+      return (req -> {
+        Iterator<String> segments = req.getUri().pathSegments().iterator();
+        if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
+          String method = segments.next();
+          if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
+          else return handle(req, method, implementation, mat, eHandler, system).exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, system));
+        } else {
+          return notFound;
+        }
+      });
+    }
+
+      public String getServiceName() {
+        return @{service.name}.name;
       }
-    });
-  }
 
-  public String getServiceName() {
-    return @{service.name}.name;
-  }
-
-  private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @{service.name} implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
-    Codec responseCodec = Codecs.negotiate(request);
-    switch(method) {
-      @for(method <- service.methods) {
-      case "@method.grpcName":
-        return @{method.unmarshal}(request, @method.deserializer.name, mat)
-          .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e))
-          .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, responseCodec, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
+    private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Status>> eHandler, ActorSystem system) {
+      Codec responseCodec = Codecs.negotiate(request);
+      @{if(powerApis) { "Metadata metadata = new MetadataImpl(request.getHeaders());" } else { "" }}
+      switch(method) {
+        @for(method <- service.methods) {
+        case "@method.grpcName":
+          return @{method.unmarshal}(request, @method.deserializer.name, mat)
+            .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
+            .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, responseCodec, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
+        }
+        default:
+          CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+          result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
+          return result;
       }
-      default:
-        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-        result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
-        return result;
     }
   }
-
 }

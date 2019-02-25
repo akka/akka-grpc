@@ -9,19 +9,19 @@ import akka.grpc.gen.javadsl.{ JavaCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayJavaServer.txt.Router
 
-object PlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator
-
-trait PlayJavaServerCodeGenerator extends JavaCodeGenerator {
+case class PlayJavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeGenerator {
   override def name: String = "akka-grpc-play-server-java"
 
-  override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] =
-    super.perServiceContent + generateRouter
+  override def perServiceContent = super.perServiceContent + generateRouter() ++ (
+    if (powerApis) Set(generateRouter(powerApis))
+    else Set.empty
+  )
 
-  private val generateRouter: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  private def generateRouter(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(Router(service).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}Router.java")
+    b.setContent(Router(service, powerApis).body)
+    b.setName(s"${service.packageDir}/Abstract${service.name}${if (powerApis) "PowerApi" else ""}Router.java")
+    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} play router for ${service.packageName}.${service.name}")
     b.build
   }
-
 }

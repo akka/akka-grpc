@@ -20,7 +20,7 @@ import org.scalatest.time.Span
 
 import example.myapp.helloworld.grpc._
 
-class GreeterSpec
+class JGreeterServiceSpec
   extends Matchers
   with WordSpecLike
   with BeforeAndAfterAll
@@ -33,9 +33,9 @@ class GreeterSpec
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     val sys = ActorSystem("GreeterServer", conf)
-    val bound = new GreeterServer(sys).run()
+    val bound = GreeterServer.run(sys)
     // make sure server is bound before using client
-    bound.futureValue
+    bound.toCompletableFuture.get
     sys
   }
 
@@ -45,9 +45,10 @@ class GreeterSpec
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>
-    GreeterServiceClient(
+    GreeterServiceClient.create(
       GrpcClientSettings.connectToServiceAt("127.0.0.1", port)
-        .withTls(false))
+        .withTls(false),
+      mat, ec)
   }
 
   override def afterAll: Unit = {
@@ -57,8 +58,8 @@ class GreeterSpec
 
   "GreeterService" should {
     "reply to single request" in {
-      val reply = clients.head.sayHello(HelloRequest("Alice"))
-      reply.futureValue should ===(HelloReply("Hello, Alice"))
+      val reply = clients.head.sayHello(HelloRequest.newBuilder.setName("Alice").build())
+      reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage("Hello, Alice").build())
     }
   }
 
@@ -71,9 +72,10 @@ class GreeterSpec
           s"use metadata in replying to single request ($ix)" in {
             val reply = clients.last.sayHello()
               .addHeader(mdName, "<some auth token>")
-              .invoke(HelloRequest("Alice"))
-            reply.futureValue should ===(HelloReply(expResp))
+              .invoke(HelloRequest.newBuilder.setName("Alice").build())
+            reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage(expResp).build())
           }
       }
   }
+
 }

@@ -62,13 +62,3 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
     Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version))
 }
-
-object JavaCodeGenerator {
-  val generateServiceFile: (Logger, Service) ⇒ CodeGeneratorResponse.File = (logger, service) ⇒ {
-    val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(ApiInterface(service).body)
-    b.setName(s"${service.packageDir}/${service.name}.java")
-    logger.info(s"Generating Akka gRPC service interface for [${service.packageName}.${service.name}]")
-    b.build
-  }
-}
