@@ -14,6 +14,11 @@ What language to generate stubs for is also configurable:
 
 ## Passing parameters to the generator
 
+The sbt plugin for Akka-gRPC uses ScalaPB and `sbt-protoc`. Is is possible to tune these libraries if the provided defaults
+don't suit your needs.
+
+### ScalaPB settings
+
 Passing generator parameters to the underlying ScalaPB generators can be done through `akkaGrpcCodeGeneratorSettings`
 setting, any specified options will be passed to all underlying generators that are enabled. By default this setting
 contains the `flat_package` parameter.
@@ -24,7 +29,20 @@ akkaGrpcCodeGeneratorSettings += "single_line_to_proto_string"
 
 Available parameters are listed in the [ScalaPB documentation](https://scalapb.github.io/sbt-settings.html).
 
-## Proto source directory
+### `sbt-protoc` settings
+
+To tune the [`sbt-protoc` additional options](https://github.com/thesamet/sbt-protoc#additional-options) such as the proto source directory
+you will need the following setting:
+
+
+```scala
+  .settings(
+    inConfig(Compile)(Seq(
+      excludeFilter in PB.generate := "descriptor.proto"
+    ))
+  )
+```
+The above, for example, removes `descriptor.proto` from the list of files to be processed.
 
 By default protobuf files are looked for in `src/main/protobuf` (and `src/main/proto`).
 You can configure where your .proto files are located like this:
