@@ -14,8 +14,6 @@ import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServ
 
 // This is the protoc plugin that the gradle plugin uses
 object Main extends App {
-  //  throw new RuntimeException(s"beginning of Main")
-
   val inBytes: Array[Byte] = {
     val baos = new ByteArrayOutputStream(math.max(64, System.in.available()))
     val buffer = new Array[Byte](32 * 1024)
