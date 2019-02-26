@@ -38,7 +38,7 @@ stages:
   - name: whitesource
     if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
   - name: publish
-    if: repo = akka/akka-grpc AND tag =~ ^v
+    if: repo = akka/akka-grpc AND  ((branch = master AND type != pull_request) OR tag =~ ^v)
   - name: techhub-ping
     if: repo = akka/akka-grpc AND tag =~ ^v
 
