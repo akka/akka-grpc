@@ -9,6 +9,8 @@ import akka.grpc.gen.javadsl.{ JavaCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayJavaServer.txt.Router
 
+object PlayJavaServerCodeGenerator extends PlayJavaServerCodeGenerator(powerApis = false)
+
 case class PlayJavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeGenerator {
   override def name: String = "akka-grpc-play-server-java"
 
