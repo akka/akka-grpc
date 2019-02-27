@@ -14,7 +14,7 @@ What language to generate stubs for is also configurable:
 
 ## Passing parameters to the generator
 
-The sbt plugin for Akka-gRPC uses ScalaPB and `sbt-protoc`. Is is possible to tune these libraries if the provided defaults
+The sbt plugin for Akka-gRPC uses ScalaPB and `sbt-protoc`. It is possible to tune these libraries if the provided defaults
 don't suit your needs.
 
 ### ScalaPB settings
