@@ -32,7 +32,7 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 ### `sbt-protoc` settings
 
 To tune the [`sbt-protoc` additional options](https://github.com/thesamet/sbt-protoc#additional-options) such as the proto source directory
-you will need the following setting:
+you can configure them like this:
 
 
 ```scala
