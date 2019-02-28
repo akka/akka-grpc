@@ -9,9 +9,7 @@ import org.scalatest.{Assertion, Succeeded, WordSpec}
 
 import scala.util.control.NonFatal
 
-
-trait GrpcInteropTests {
-  self: WordSpec =>
+class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcClientProvider) extends WordSpec {
 
   import org.scalatest.Matchers._
 
@@ -39,19 +37,16 @@ trait GrpcInteropTests {
     "unimplemented_service",
   )
 
-  def grpcTests(serverProvider: GrpcServerProvider, clientProvider: GrpcClientProvider) = {
+  val server = serverProvider.server
+  val client = clientProvider.client
 
-    val server = serverProvider.server
-    val client = clientProvider.client
-
-    serverProvider.label + " with " + clientProvider.label should {
-      testCases.foreach { testCaseName =>
-        s"pass the $testCaseName integration test" in {
-          val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
-          pendingTestCaseSupport(allPending(testCaseName)) {
-            withGrpcServer(server) { port =>
-              runGrpcClient(testCaseName, client, port)
-            }
+  serverProvider.label + " with " + clientProvider.label should {
+    testCases.foreach { testCaseName =>
+      s"pass the $testCaseName integration test" in {
+        val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
+        pendingTestCaseSupport(allPending(testCaseName)) {
+          withGrpcServer(server) { port =>
+            runGrpcClient(testCaseName, client, port)
           }
         }
       }
