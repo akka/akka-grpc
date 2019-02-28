@@ -63,6 +63,10 @@ object Dependencies {
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }
 
+  object Runtime {
+    val logback = "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime" // Eclipse 1.0
+  }
+
   object Plugins {
     val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.18"
   }
@@ -126,6 +130,7 @@ object Dependencies {
     Compile.akkaSlf4j,
     Compile.play,
     Compile.playAkkaHttpServer,
+    Runtime.logback,
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 
   val pluginTester = l++= Seq(
