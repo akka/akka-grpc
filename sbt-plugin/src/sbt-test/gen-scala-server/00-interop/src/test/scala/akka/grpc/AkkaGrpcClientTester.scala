@@ -259,7 +259,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
     val eventualResponse = client.unaryCall(req)
 
     Await.ready(eventualResponse, awaitTimeout)
-      .onComplete {
+      .value.get match {
         // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
@@ -272,7 +272,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
     val requests = Source.single(streamingRequest)
 
     Await.ready(client.fullDuplexCall(requests).runWith(Sink.head), awaitTimeout)
-      .onComplete {
+      .value.get match {
         // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNKNOWN.getCode, e.getStatus.getCode)
@@ -284,7 +284,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
 
   def unimplementedMethod(): Unit = {
     Await.ready(client.unimplementedCall(Empty()), awaitTimeout)
-      .onComplete {
+      .value.get match {
         // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
@@ -294,7 +294,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
 
   def unimplementedService(): Unit = {
     Await.ready(clientUnimplementedService.unimplementedCall(Empty()), awaitTimeout)
-      .onComplete {
+      .value.get match {
         // TODO: a client-side feature that relaunches StatusRuntimeException as GrpcServiceException (hide impl)
         case Failure(e: StatusRuntimeException) =>
           assertEquals(Status.UNIMPLEMENTED.getCode, e.getStatus.getCode)
