@@ -66,8 +66,11 @@ object GrpcResponseHelpers {
       entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
   }
 
-  def status(status: Status): HttpResponse =
-    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
+  def status(status: Status): HttpResponse = {
+    val resp = HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
+    println(resp)
+    resp
+  }
 
   def trailer(status: Status): LastChunk =
     LastChunk(trailer = statusHeaders(status))
