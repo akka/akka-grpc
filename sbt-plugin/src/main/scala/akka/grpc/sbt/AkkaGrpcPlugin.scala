@@ -43,6 +43,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     implicit def valueToGeneratorOptionVal(x: Value): Val = x.asInstanceOf[Val]
 
     val ServerPowerApis = Val("server_power_apis")
+    val UsePlayActions = Val("use_play_actions")
 
     val settings: Set[String] = values.map(_.setting)
   }
