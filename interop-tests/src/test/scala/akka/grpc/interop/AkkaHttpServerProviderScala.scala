@@ -17,7 +17,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 import io.grpc.testing.integration.messages.{ SimpleRequest, SimpleResponse, StreamingOutputCallRequest }
-import io.grpc.testing.integration.test.{ TestService, TestServiceHandler }
+import io.grpc.testing.integration.test.{ TestService, TestServiceHandler, TestServiceMarshallers }
 
 import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Promise }
@@ -57,11 +57,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
     implicit val ec = mat.executionContext
     implicit val codec = Identity
 
-    // TODO provide these as easy-to-import implicits:
-    implicit val simpleRequestUnmarshaller: FromRequestUnmarshaller[SimpleRequest] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshal(req)(TestService.Serializers.SimpleRequestSerializer, mat))
-    implicit val streamingOutputCallRequestUnmarshaller: FromRequestUnmarshaller[Source[StreamingOutputCallRequest, NotUsed]] = Unmarshaller((ec: ExecutionContext) ⇒ (req: HttpRequest) ⇒ GrpcMarshalling.unmarshalStream(req)(TestService.Serializers.StreamingOutputCallRequestSerializer, mat))
-    implicit val simpleResponseMarshaller: ToResponseMarshaller[SimpleResponse] = Marshaller.opaque((response: SimpleResponse) ⇒ GrpcMarshalling.marshal(response)(TestService.Serializers.SimpleResponseSerializer, mat, codec, system))
-    implicit val streamingOutputCallResponseSerializer = TestService.Serializers.StreamingOutputCallResponseSerializer
+    import TestServiceMarshallers._
 
     pathPrefix("UnaryCall") {
       entity(as[SimpleRequest]) { req ⇒
