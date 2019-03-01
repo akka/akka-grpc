@@ -7,6 +7,7 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
+import akka.annotation.InternalApi;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcServiceException;
 import akka.grpc.internal.PlayRouterHelper$;
@@ -19,7 +20,9 @@ import akka.stream.Materializer;
 import play.api.mvc.EssentialAction;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.PlayBodyParsers;
-import play.api.mvc.DefaultActionBuilder;
+import play.api.mvc.ActionBuilder;
+import play.api.mvc.Request;
+import play.api.mvc.AnyContent;
 
 import scala.Function1;
 import scala.NotImplementedError;
@@ -36,7 +39,7 @@ import java.util.concurrent.CompletionStage;
     private final Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler;
     private final ActorSystem system;
     private final PlayBodyParsers parsers;
-    private final DefaultActionBuilder actionBuilder;
+    private final ActionBuilder<Request, AnyContent> actionBuilder;
     @{
       val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = service.methods.partition(_.inputStreaming) match {
         case (streaming, unary) => (streaming.map(_.grpcName), unary.map(_.grpcName))
@@ -47,11 +50,11 @@ import java.util.concurrent.CompletionStage;
       """
     }
 
-    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, DefaultActionBuilder actionBuilder) {
+    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, ActionBuilder<Request, AnyContent> actionBuilder) {
       this(mat, system, parsers, actionBuilder, GrpcExceptionHandler.defaultMapper());
     }
 
-    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, DefaultActionBuilder actionBuilder, Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler) {
+    public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, PlayBodyParsers parsers, ActionBuilder<Request, AnyContent> actionBuilder, Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler) {
       super(mat, @{service.name}.name, parsers, actionBuilder);
       this.eHandler = eHandler;
       this.system = system;
@@ -59,11 +62,15 @@ import java.util.concurrent.CompletionStage;
       this.actionBuilder = actionBuilder;
     }
 
+    /**
+     * INTERNAL API
+     */
+    @@InternalApi
     @@Override
-    public Function1<RequestHeader, EssentialAction> createHandler(String serviceName, Materializer mat) {
+    final public Function1<RequestHeader, EssentialAction> createHandler(String serviceName, Materializer mat) {
       return new Function1<RequestHeader, EssentialAction>() {
+        Function<HttpRequest, CompletionStage<HttpResponse>> handler = @{serviceName}HandlerFactory.create(Abstract@{serviceName}Router.this, serviceName, mat, eHandler, system);
         public EssentialAction apply(RequestHeader reqOuter) {
-          Function<HttpRequest, CompletionStage<HttpResponse>> handler = @{serviceName}HandlerFactory.create(Abstract@{serviceName}Router.this, serviceName, mat, eHandler, system);
           String[] pathSegments = reqOuter.path().split("/");
           if ((pathSegments.length == 3) && (pathSegments[1].equals(serviceName))) {
             String method = pathSegments[2];

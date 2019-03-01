@@ -28,7 +28,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  *
  * INTERNAL API
  */
-@InternalApi abstract class PlayRouterUsingActions(mat: Materializer, serviceName: String, parsers: PlayBodyParsers, actionBuilder: DefaultActionBuilder)
+@InternalApi abstract class PlayRouterUsingActions(mat: Materializer, serviceName: String, parsers: PlayBodyParsers, actionBuilder: ActionBuilder[Request, AnyContent])
   extends play.api.routing.Router {
 
   private val prefix = s"/$serviceName"
