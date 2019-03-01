@@ -15,9 +15,10 @@ import akka.stream.scaladsl.Sink
 import io.grpc.{ Status, StatusException }
 import io.grpc.testing.integration.messages.{ PayloadType, SimpleRequest }
 import io.grpc.testing.integration.test.TestService
+import org.junit.Assert.assertEquals
 import org.scalatest.{ Matchers, WordSpec }
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.util.Failure
 
 class GrpcMarshallingSpec extends WordSpec with Matchers {
@@ -26,6 +27,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
     implicit val serializer = TestService.Serializers.SimpleRequestSerializer
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
+    val awaitTimeout = 10.seconds
     val zippedBytes = Grpc.encodeFrame(Grpc.compressed, Gzip.compress(serializer.serialize(message)))
 
     "correctly unmarshal a zipped object" in {
@@ -55,12 +57,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
         headers = immutable.Seq(`Message-Encoding`("identity")),
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
-      Await.ready(GrpcMarshalling.unmarshal(request), 10.seconds).value.get match {
-        case Failure(e: StatusException) ⇒
-          e.getStatus.getCode should be(Status.Code.INTERNAL)
-          e.getStatus.getDescription should include("encoding")
-        case _ ⇒ fail()
-      }
+      assertFailure(GrpcMarshalling.unmarshal(request), Status.Code.INTERNAL, "encoding")
     }
 
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
@@ -69,12 +66,13 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
       val request = HttpRequest(
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
-      Await.ready(GrpcMarshalling.unmarshal(request), 10.seconds).value.get match {
-        case Failure(e: StatusException) ⇒
-          e.getStatus.getCode should be(Status.Code.INTERNAL)
-          e.getStatus.getDescription should include("encoding")
-        case _ ⇒ fail()
-      }
+      assertFailure(GrpcMarshalling.unmarshal(request), Status.Code.INTERNAL, "encoding")
+    }
+
+    def assertFailure(failure: Future[_], expectedStatusCode: Status.Code, expectedMessageFragment: String): Unit = {
+      val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusException]
+      e.getStatus.getCode should be(expectedStatusCode)
+      e.getStatus.getDescription should include(expectedMessageFragment)
     }
   }
 
