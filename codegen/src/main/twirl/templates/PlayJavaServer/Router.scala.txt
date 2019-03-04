@@ -27,26 +27,21 @@ import io.grpc.Status;
    * Abstract base class for implementing @serviceName in Java and using as a play Router
    */
   public abstract class Abstract@{serviceName}Router extends PlayRouter implements @{serviceName} {
-    private final Function<ActorSystem, Function<Throwable, Status>> eHandler;
-    private final ActorSystem system;
+    public scala.Function1<HttpRequest, Future<HttpResponse>> respond;
 
     public Abstract@{serviceName}Router(Materializer mat, ActorSystem system) {
       this(mat, system, GrpcExceptionHandler.defaultMapper());
     }
 
     public Abstract@{serviceName}Router(Materializer mat, ActorSystem system, Function<ActorSystem, Function<Throwable, Status>> eHandler) {
-      super(mat, @{service.name}.name);
-      this.eHandler = eHandler;
-      this.system = system;
+      super(@{service.name}.name);
+      this.respond = akka.grpc.internal.PlayRouterHelper.handlerFor(
+        @{serviceName}HandlerFactory.create(this, serviceName(), mat, eHandler, system)
+      );
     }
 
-    /**
-     * INTERNAL API
-     */
-    final public scala.Function1<HttpRequest, Future<HttpResponse>> createHandler(String prefix, Materializer mat) {
-       return akka.grpc.internal.PlayRouterHelper.handlerFor(
-          @{serviceName}HandlerFactory.create(this, prefix, mat, eHandler, system)
-       );
+    public scala.Function1<HttpRequest, Future<HttpResponse>> respond() {
+      return respond;
     }
   }
 }

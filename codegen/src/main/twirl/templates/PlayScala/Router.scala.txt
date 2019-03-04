@@ -20,9 +20,10 @@ import io.grpc.Status
   /**
    * Abstract base class for implementing @serviceName and using as a play Router
    */
-  abstract class Abstract@{serviceName}Router(mat: Materializer, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = defaultMapper) extends PlayRouter(mat, @{service.name}.name) with @{serviceName} {
+  abstract class Abstract@{serviceName}Router(mat: Materializer, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = defaultMapper)
+    extends PlayRouter(@{service.name}.name)
+    with @{serviceName} {
 
-    final override def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse] =
-      @{serviceName}Handler(this, serviceName, eHandler)(mat, system)
+    override val respond = @{serviceName}Handler(this, @{service.name}.name, eHandler)(mat, system)
   }
 }
