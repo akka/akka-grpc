@@ -38,19 +38,19 @@ import scala.compat.java8.OptionConverters._
  *
  * INTERNAL API
  */
-@InternalApi abstract class PlayRouter(mat: Materializer, serviceName: String) extends play.api.routing.Router {
+@InternalApi abstract class PlayRouter(val serviceName: String) extends play.api.routing.Router {
 
   private val prefix = s"/$serviceName"
 
   /**
    * INTERNAL API
+   *
+   * To be provided by (generated) concrete routers, only called internally
    */
-  @InternalApi
-  protected def createHandler(serviceName: String, mat: Materializer): HttpRequest => Future[HttpResponse]
+  protected val respond: HttpRequest => Future[HttpResponse]
 
   private val handler = new AkkaHttpHandler {
-    val handler = createHandler(serviceName, mat)
-    override def apply(request: HttpRequest): Future[HttpResponse] = handler(request)
+    override def apply(request: HttpRequest): Future[HttpResponse] = respond(request)
   }
 
   // Scala API
