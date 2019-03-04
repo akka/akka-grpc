@@ -52,7 +52,7 @@ object CombinedServer {
     //#concatOrNotFound
     // explicit types not needed but included in example for clarity
     val greeterService: PartialFunction[HttpRequest, Future[HttpResponse]] =
-      example.myapp.helloworld.grpc.GreeterServiceHandler.partial(new GreeterServiceImpl(mat))
+      example.myapp.helloworld.grpc.GreeterServiceHandler.partial(new GreeterServiceImpl())
     val echoService: PartialFunction[HttpRequest, Future[HttpResponse]] =
       EchoServiceHandler.partial(new EchoServiceImpl)
     val serviceHandlers: HttpRequest => Future[HttpResponse] =

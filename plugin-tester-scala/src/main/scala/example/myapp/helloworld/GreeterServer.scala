@@ -40,7 +40,7 @@ class GreeterServer(system: ActorSystem) {
     //    val service: HttpRequest => Future[HttpResponse] =
     //      GreeterServiceHandler(new GreeterServiceImpl(mat))
     val services: Seq[HttpRequest => Future[HttpResponse]] = Seq(
-      GreeterServiceHandler(new GreeterServiceImpl(mat)),
+      GreeterServiceHandler(new GreeterServiceImpl()),
       GreeterServicePowerApiHandler(new GreeterServicePowerApiImpl(mat)))
 
     // Bind service handler servers to localhost:8080/8081

@@ -14,9 +14,8 @@ import akka.stream.scaladsl.Source
 
 import example.myapp.helloworld.grpc._
 
-class GreeterServiceImpl(materializer: Materializer) extends GreeterService {
-  import materializer.executionContext
-  private implicit val mat: Materializer = materializer
+class GreeterServiceImpl(implicit mat: Materializer) extends GreeterService {
+  import mat.executionContext
 
   override def sayHello(in: HelloRequest): Future[HelloReply] = {
     println(s"sayHello to ${in.name}")
