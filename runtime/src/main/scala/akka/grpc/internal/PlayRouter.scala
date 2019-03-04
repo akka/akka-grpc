@@ -45,9 +45,9 @@ import scala.compat.java8.OptionConverters._
   /**
    * INTERNAL API
    *
-   * To be provided by (generated) concrete routers
+   * To be provided by (generated) concrete routers, only called internally
    */
-  val respond: HttpRequest => Future[HttpResponse]
+  protected val respond: HttpRequest => Future[HttpResponse]
 
   private val handler = new AkkaHttpHandler {
     override def apply(request: HttpRequest): Future[HttpResponse] = respond(request)

@@ -27,7 +27,7 @@ import io.grpc.Status;
    * Abstract base class for implementing @serviceName in Java and using as a play Router
    */
   public abstract class Abstract@{serviceName}Router extends PlayRouter implements @{serviceName} {
-    public scala.Function1<HttpRequest, Future<HttpResponse>> respond;
+    private final scala.Function1<HttpRequest, Future<HttpResponse>> respond;
 
     public Abstract@{serviceName}Router(Materializer mat, ActorSystem system) {
       this(mat, system, GrpcExceptionHandler.defaultMapper());
@@ -40,6 +40,9 @@ import io.grpc.Status;
       );
     }
 
+    /**
+     * INTERNAL API
+     */
     public scala.Function1<HttpRequest, Future<HttpResponse>> respond() {
       return respond;
     }

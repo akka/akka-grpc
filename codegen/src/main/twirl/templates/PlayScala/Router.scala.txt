@@ -24,6 +24,6 @@ import io.grpc.Status
     extends PlayRouter(@{service.name}.name)
     with @{serviceName} {
 
-    override val respond = @{serviceName}Handler(this, @{service.name}.name, eHandler)(mat, system)
+    override protected val respond = @{serviceName}Handler(this, @{service.name}.name, eHandler)(mat, system)
   }
 }
