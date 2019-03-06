@@ -13,7 +13,7 @@ import example.myapp.helloworld.grpc._
 
 import scala.concurrent.Future
 
-class GreeterServicePowerApiImpl(materializer: Materializer) extends GreeterServicePowerApi {
+class PowerGreeterServiceImpl(materializer: Materializer) extends GreeterServicePowerApi {
   import materializer.executionContext
   private implicit val mat: Materializer = materializer
 
