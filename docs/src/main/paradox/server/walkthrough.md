@@ -269,7 +269,7 @@ generated client stubs.
 Here's an example implementation of these server power APIs:
 
 Scala
-:  @@snip [GreeterServicePowerApiImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServicePowerApiImpl.scala) { #full-service-impl }
+:  @@snip [GreeterServicePowerApiImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/PowerGreeterServiceImpl.scala) { #full-service-impl }
 
 Java
 :  @@snip [GreeterServicePowerApiImpl.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServicePowerApiImpl.java) { #full-service-impl }
