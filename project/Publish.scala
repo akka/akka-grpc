@@ -25,7 +25,7 @@ object Publish extends AutoPlugin {
     bintrayPackage := "akka-grpc",
     homepage := Some(url("https://developer.lightbend.com/docs/akka-grpc/current/")),
     scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
-    licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
     developers += Developer("contributors",
       "Contributors",
       "https://gitter.im/akka/dev",

@@ -8,7 +8,7 @@ toolkit.
 
 ## Documentation
 
-- [Akka gRPC reference](http://developer.lightbend.com/docs/akka-grpc/current/) documentation 
+- [Akka gRPC reference](https://developer.lightbend.com/docs/akka-grpc/current/) documentation 
 
 ## Project Status
 

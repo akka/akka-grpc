@@ -167,7 +167,7 @@ lazy val docs = Project(
     paradoxProperties ++= Map(
       "grpc.version" → Dependencies.Versions.grpc,
       "akka-http.version" → Dependencies.Versions.akkaHttp,
-      "extref.akka-http.base_url" -> s"http://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
+      "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
     ),
     resolvers += Resolver.jcenterRepo,
   )
