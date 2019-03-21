@@ -42,7 +42,15 @@
           <required>false</required>
           <editable>true</editable>
           <description>Whether to generate server "power API" code</description>
-        </parameter>        <parameter>
+        </parameter>
+        <parameter>
+          <name>usePlayActions</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Whether to generate Play router that uses Actions</description>
+        </parameter>
+        <parameter>
           <name>protoPaths</name>
           <type>list</type>
           <required>false</required>
@@ -55,6 +63,7 @@
         <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
         <serverPowerApis implementation="boolean" default-value="false">${akka-grpc.server-power-apis}</serverPowerApis>
+        <usePlayActions implementation="boolean" default-value="false">${akka-grpc.use-play-actions}</usePlayActions>
         <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
       </configuration>
     </mojo>

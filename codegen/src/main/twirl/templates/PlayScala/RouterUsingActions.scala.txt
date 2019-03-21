@@ -1,0 +1,53 @@
+@*
+ * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean)
+
+@akka.grpc.gen.Constants.DoNotEditComment
+package @service.packageName
+
+import akka.annotation.InternalApi
+import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
+import akka.grpc.internal.PlayRouterUsingActions
+import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.Path.Segment
+import akka.stream.Materializer
+import io.grpc.Status
+import play.api.mvc.{EssentialAction, RequestHeader, PlayBodyParsers, ActionBuilder, Request, AnyContent}
+
+import scala.concurrent.ExecutionContext
+
+@defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
+  /**
+   * Abstract base class for implementing @{serviceName} and using as a play Router
+   */
+  abstract class Abstract@{serviceName}Router(mat: Materializer, system: ActorSystem, parsers: PlayBodyParsers, actionBuilder: ActionBuilder[Request, AnyContent], eHandler: ActorSystem => PartialFunction[Throwable, Status] = defaultMapper) extends PlayRouterUsingActions(mat, @{service.name}.name, parsers, actionBuilder) with @{serviceName} {
+
+    @{
+      val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = service.methods.partition(_.inputStreaming) match {
+        case (streaming, unary) => (streaming.map(_.grpcName), unary.map(_.grpcName))
+      }
+      "val (streamingInputMethods: Seq[String], unaryInputMethods: Seq[String]) = (Seq(" + streamingInputMethods.mkString("\"", "\", \"", "\"") + "), Seq(" + unaryInputMethods.mkString("\"", "\", \"", "\"") + "))"
+    }
+
+    /**
+     * INTERNAL API
+     */
+    @@InternalApi
+    final override protected def createHandler(serviceName: String, mat: Materializer): RequestHeader => EssentialAction = {
+      val handler = @{serviceName}Handler(this, serviceName, eHandler)(mat, system)
+      reqOuter =>
+        implicit val ec: ExecutionContext = mat.executionContext
+        Path(reqOuter.path) match {
+          case Path.Slash(Segment(`serviceName`, Path.Slash(Segment(method, Path.Empty)))) =>
+            if (streamingInputMethods.contains(method)) createStreamingAction(handler)
+            else if (unaryInputMethods.contains(method)) createUnaryAction(handler)
+            else throw new NotImplementedError(s"Not implemented: $method")
+          case _ => throw new GrpcServiceException(io.grpc.Status.INTERNAL.withDescription(s"Unexpected/handled path ${reqOuter.path}"))
+        }
+    }
+  }
+}
