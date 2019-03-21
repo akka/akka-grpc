@@ -33,9 +33,9 @@ class GreeterSpec
     val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     val sys = ActorSystem("GreeterServer", conf)
-    val bound = new GreeterServer(sys).run()
-    // make sure server is bound before using client
-    bound.futureValue
+    // make sure servers are bound before using client
+    new GreeterServer(sys).run().futureValue
+    new PowerGreeterServer(sys).run().futureValue
     sys
   }
 
