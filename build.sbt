@@ -1,5 +1,5 @@
 import akka.grpc.Dependencies
-import akka.grpc.Dependencies.Versions.scala212
+import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 
@@ -16,7 +16,8 @@ val commonSettings = Seq(
   javacOptions ++= List(
     "-Xlint:unchecked",
     "-Xlint:deprecation"
-  )
+  ),
+  crossScalaVersions := Seq(scala212, scala213),
 ) ++ akka.grpc.Formatting.formatSettings
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
@@ -43,6 +44,7 @@ lazy val codegen = Project(
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
       prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
     ),
+    crossScalaVersions -= scala213,
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -70,6 +72,7 @@ lazy val scalapbProtocPlugin = Project(
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
       prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
     ),
+    crossScalaVersions -= scala213,
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -83,6 +86,7 @@ lazy val mavenPlugin = Project(
   .settings(Seq(
     publishMavenStyle := true,
     crossPaths := false,
+    crossScalaVersions := Seq(scala212),
   ))
   .dependsOn(codegen)
 
@@ -109,6 +113,7 @@ lazy val sbtPlugin = Project(
     },
     scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"),
+    crossScalaVersions := Seq(scala212),
   )
   .dependsOn(codegen)
 
@@ -170,6 +175,7 @@ lazy val docs = Project(
       "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
     ),
     resolvers += Resolver.jcenterRepo,
+    crossScalaVersions := List(scala212, scala213),
   )
 
 lazy val pluginTesterScala = Project(
@@ -215,5 +221,7 @@ lazy val root = Project(
   )
   .enablePlugins(akka.grpc.NoPublish)
   .settings(
-    unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
+    unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
+    // https://github.com/sbt/sbt/issues/3465
+    crossScalaVersions := List(),
   )
