@@ -16,7 +16,7 @@ object Dependencies {
     val config = "1.3.3"
     val sslConfig = "0.3.7"
 
-    val scalaTest = "3.0.6-SNAP6"
+    val scalaTest = "3.0.7"
 
     val maven = "3.5.4"
   }

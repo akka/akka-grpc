@@ -5,7 +5,7 @@
 package akka.grpc
 
 import org.scalatest.concurrent.Eventually
-import org.scalatestplus.junit.JUnitSuite
+import org.scalatest.junit.JUnitSuite
 import org.scalatest.time.{ Millis, Span }
 
 abstract class JUnitEventually extends JUnitSuite with Eventually {
