@@ -63,7 +63,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
           Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
       req
     }).mapConcat(
-      _.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
+      _.responseParameters.toList).via(parametersToResponseFlow)
 
   override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
@@ -77,7 +77,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
   }
 
   override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, NotUsed] =
-    Source(in.responseParameters.to[immutable.Seq]).via(parametersToResponseFlow)
+    Source(in.responseParameters.toList).via(parametersToResponseFlow)
 
   override def unimplementedCall(in: Empty): Future[Empty] = ???
 }
