@@ -1,6 +1,7 @@
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
+import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 
 object Common extends AutoPlugin {
 
@@ -33,6 +34,7 @@ object Common extends AutoPlugin {
     javacOptions ++= List(
       "-Xlint:unchecked",
       "-Xlint:deprecation"
-    )
+    ),
+    crossScalaVersions := Seq(scala212, scala213),
   ) ++ akka.grpc.Formatting.formatSettings
 }
