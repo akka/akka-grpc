@@ -7,6 +7,19 @@ scala:
 git:
   depth: false
 
+env:
+  matrix:
+    - TRAVIS_JDK=adopt@1.8.202-08
+    - TRAVIS_JDK=adopt@1.11.0-2
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TRAVIS_JDK=adopt@1.11.0-2 # not fully supported but allows problem discovery
+
+before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
+install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
+
 jobs:
   include:
     - script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck
@@ -49,7 +62,8 @@ before_cache:
 cache:
   directories:
     - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot
+    - $HOME/.jabba/jdk
+    - $HOME/.sbt
     - $HOME/.gradle
 
 env:
