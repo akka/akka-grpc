@@ -25,6 +25,8 @@ import scala.util.control.NoStackTrace
 
 /**
  * ClientTester implementation that uses the generated akka-grpc Scala client to exercise a server under test.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.AbstractInteropTest]] against our Java API's
  */
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
 
@@ -60,11 +62,12 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   def largeUnary(): Unit = {
     val request =
       SimpleRequest(
-        PayloadType.COMPRESSABLE,
         responseSize = 314159,
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
+        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
 
-    val expectedResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+    val expectedResponse =
+      SimpleResponse(
+        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
 
     val response = Await.result(client.unaryCall(request), awaitTimeout)
     assertEquals(expectedResponse, response)
@@ -105,7 +108,6 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
     val request =
       StreamingOutputCallRequest(
-        responseType = PayloadType.COMPRESSABLE,
         responseParameters = Seq(
           ResponseParameters(31415),
           ResponseParameters(9),
@@ -132,20 +134,19 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   def serverCompressedStreaming(): Unit = {
     val request =
       StreamingOutputCallRequest(
-        responseType = PayloadType.COMPRESSABLE,
         responseParameters = Seq(
-          ResponseParameters(size = 31415, compressed = Some(true)),
-          ResponseParameters(size = 92653, compressed = Some(true))))
+          ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
+          ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
 
-    val expected: Seq[StreamingOutputCallResponse] = Seq(
+    val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(
         Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
       StreamingOutputCallResponse(
         Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
 
     val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
-    assertEquals(expected.size, actual.size)
-    expected.zip(actual).foreach {
+    assertEquals(expectedResponses.size, actual.size)
+    expectedResponses.zip(actual).foreach {
       case (exp, act) => assertEquals(exp, act)
     }
   }

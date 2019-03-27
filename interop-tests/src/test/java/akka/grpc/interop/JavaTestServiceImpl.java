@@ -57,7 +57,6 @@ public class JavaTestServiceImpl implements TestService {
             return CompletableFuture.completedFuture(
                     SimpleResponse.newBuilder()
                             .setPayload(Payload.newBuilder()
-                                    .setType(in.getPayload().getType())
                                     .setBody(ByteString.copyFrom(new byte[in.getResponseSize()]))
                                     .build())
                             .build()

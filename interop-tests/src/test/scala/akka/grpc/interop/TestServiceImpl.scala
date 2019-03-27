@@ -28,7 +28,11 @@ object TestServiceImpl {
       }
 }
 
-// Implementation of the generated interface
+/**
+ * Implementation of the generated service.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.TestServiceImpl]] against our API's
+ */
 class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestService {
   import TestServiceImpl._
 
@@ -40,9 +44,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
   override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = {
     req.responseStatus match {
       case None =>
-        Future.successful(
-          SimpleResponse(
-            Some(Payload(req.responseType, ByteString.copyFrom(new Array[Byte](req.responseSize))))))
+        Future.successful(SimpleResponse(Some(Payload(ByteString.copyFrom(new Array[Byte](req.responseSize))))))
       case Some(requestStatus) =>
         val responseStatus = Status.fromCodeValue(requestStatus.code).withDescription(requestStatus.message)
         //  - Either one of the following works
