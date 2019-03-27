@@ -13,7 +13,7 @@ object Dependencies {
 
     val play = "2.7.0"
 
-    val grpc = "1.16.1" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.19.0" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
     val sslConfig = "0.3.6"
 
