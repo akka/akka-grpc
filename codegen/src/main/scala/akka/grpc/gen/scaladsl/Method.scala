@@ -29,15 +29,15 @@ case class Method(
     else "GrpcMarshalling.marshal"
 
   def parameterType =
-    if (inputStreaming) s"Source[${messageType(inputType)}, NotUsed]"
+    if (inputStreaming) s"akka.stream.scaladsl.Source[${messageType(inputType)}, akka.NotUsed]"
     else messageType(inputType)
 
   def inputTypeUnboxed = messageType(inputType)
   def outputTypeUnboxed = messageType(outputType)
 
   def returnType =
-    if (outputStreaming) s"Source[${messageType(outputType)}, NotUsed]"
-    else s"Future[${messageType(outputType)}]"
+    if (outputStreaming) s"akka.stream.scaladsl.Source[${messageType(outputType)}, akka.NotUsed]"
+    else s"scala.concurrent.Future[${messageType(outputType)}]"
 
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {

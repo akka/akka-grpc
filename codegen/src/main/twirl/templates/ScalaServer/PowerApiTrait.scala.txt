@@ -7,10 +7,6 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
-import scala.concurrent.Future
-
-import akka.NotUsed
-import akka.stream.scaladsl.Source
 import akka.grpc.scaladsl.Metadata
 import akka.grpc.GrpcServiceException
 

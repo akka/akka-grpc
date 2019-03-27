@@ -7,11 +7,6 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
-import java.util.concurrent.CompletionStage;
-
-import akka.NotUsed;
-import akka.stream.javadsl.Source;
-
 import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.Metadata;
