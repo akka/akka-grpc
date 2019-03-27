@@ -7,8 +7,6 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
-import akka.NotUsed;
-import akka.Done;
 import akka.annotation.*;
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
@@ -18,9 +16,6 @@ import akka.grpc.javadsl.StreamResponseRequestBuilder;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
-import akka.stream.javadsl.Flow;
-import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
 import akka.stream.Materializer;
 
 import io.grpc.*;
@@ -29,7 +24,6 @@ import io.grpc.stub.*;
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
 
-import java.util.concurrent.CompletionStage;
 import scala.concurrent.ExecutionContext;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
@@ -69,7 +63,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
     } else {
       @defining(service.grpcName + "." + method.grpcName){ fqName =>
         @if(method.methodType == akka.grpc.gen.ClientStreaming){
-          private final SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+          private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
             return new JavaClientStreamingRequestBuilder<>(
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
           }
@@ -79,7 +73,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           }
         } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-          private final StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+          private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
             return new JavaBidirectionalStreamingRequestBuilder<>(
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           }
@@ -104,11 +98,11 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         @if(method.methodType == akka.grpc.gen.Unary) {
           public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
         }else if(method.methodType == akka.grpc.gen.ClientStreaming){
-          public SingleResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+          public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
         }else if(method.methodType == akka.grpc.gen.ServerStreaming){
           public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
         }else if(method.methodType == akka.grpc.gen.BidiStreaming){
-          public StreamResponseRequestBuilder<Source<@method.inputTypeUnboxed, NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+          public StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
         }
         {
           return clientState.withChannel( this::@{method.name}RequestBuilder);
@@ -129,7 +123,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       /**
        * Initiates a shutdown in which preexisting and new calls are cancelled.
        */
-      public CompletionStage<Done> close() {
+      public java.util.concurrent.CompletionStage<akka.Done> close() {
         return clientState.closeCS() ;
       }
 
@@ -137,7 +131,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       * Returns a CompletionState that completes successfully when shutdown via close()
       * or exceptionally if a connection can not be established after maxConnectionAttempts.
       */
-      public CompletionStage<Done> closed() {
+      public java.util.concurrent.CompletionStage<akka.Done> closed() {
         return clientState.closedCS();
       }
   }

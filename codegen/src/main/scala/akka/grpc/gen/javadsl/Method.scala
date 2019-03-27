@@ -40,12 +40,12 @@ final case class Method(
   }
 
   def getParameterType =
-    if (inputStreaming) s"Source<${getMessageType(inputType)}, NotUsed>"
+    if (inputStreaming) s"akka.stream.javadsl.Source<${getMessageType(inputType)}, akka.NotUsed>"
     else getMessageType(inputType)
 
   def getReturnType =
-    if (outputStreaming) s"Source<${getMessageType(outputType)}, NotUsed>"
-    else s"CompletionStage<${getMessageType(outputType)}>"
+    if (outputStreaming) s"akka.stream.javadsl.Source<${getMessageType(outputType)}, akka.NotUsed>"
+    else s"java.util.concurrent.CompletionStage<${getMessageType(outputType)}>"
 }
 
 object Method {
