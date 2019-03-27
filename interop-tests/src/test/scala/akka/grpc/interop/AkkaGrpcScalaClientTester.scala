@@ -27,6 +27,9 @@ import scala.util.control.NoStackTrace
  * ClientTester implementation that uses the generated akka-grpc Scala client to exercise a server under test.
  *
  * Essentially porting the client code from [[io.grpc.testing.integration.AbstractInteropTest]] against our Java API's
+ *
+ * The same implementation is also be found as part of the 'scripted' tests at
+ * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
 
@@ -34,14 +37,14 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
 
-  private val awaitTimeout = 3.seconds
+  private val awaitTimeout = 15.seconds
 
   def setUp(): Unit = {
-
     val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
+
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
@@ -56,7 +59,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def cacheableUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException(s"Not implemented! cacheableUnary") with NoStackTrace
   }
 
   def largeUnary(): Unit = {
@@ -194,23 +197,23 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def computeEngineCreds(serviceAccount: String, oauthScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! computeEngineCreds") with NoStackTrace
   }
 
   def serviceAccountCreds(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! serviceAccountCreds") with NoStackTrace
   }
 
   def jwtTokenCreds(serviceAccountJson: InputStream): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! jwtTokenCreds") with NoStackTrace
   }
 
   def oauth2AuthToken(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! oath2AuthToken") with NoStackTrace
   }
 
   def perRpcCreds(jsonKey: String, credentialsStream: InputStream, oauthScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! perRpcCreds") with NoStackTrace
   }
 
   def customMetadata(): Unit = {
@@ -282,7 +285,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertFailure(clientUnimplementedService.unimplementedCall(Empty()), Status.UNIMPLEMENTED)
 
   def cancelAfterBegin(): Unit = {
-    throw new RuntimeException("Not implemented! cancelAfterBegin ") with NoStackTrace
+    throw new RuntimeException("Not implemented! cancelAfterBegin") with NoStackTrace
   }
 
   def cancelAfterFirstResponse(): Unit = {
@@ -290,7 +293,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def timeoutOnSleepingServer(): Unit = {
-    throw new RuntimeException("Not implemented! timeoutOnSleepingServer") with NoStackTrace
+    throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
   }
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {

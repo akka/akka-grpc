@@ -36,7 +36,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
-      marshalled.responseCompressed should be(BoolValue.of(true))
+      marshalled.responseCompressed should be(Some(BoolValue.of(true)))
     }
 
     "correctly unmarshal a zipped stream" in {
@@ -46,8 +46,8 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
 
       val stream = Await.result(GrpcMarshalling.unmarshalStream(request), 10.seconds)
       val items = Await.result(stream.runWith(Sink.seq), 10.seconds)
-      items(0).responseCompressed should be(BoolValue.of(true))
-      items(1).responseCompressed should be(BoolValue.of(true))
+      items(0).responseCompressed should be(Some(BoolValue.of(true)))
+      items(1).responseCompressed should be(Some(BoolValue.of(true)))
     }
 
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
