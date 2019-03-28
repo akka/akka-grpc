@@ -28,21 +28,24 @@ object TestServiceImpl {
       }
 }
 
-// Implementation of the generated interface
+/**
+ * Implementation of the generated service.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.TestServiceImpl]] against our API's
+ *
+ * The same implementation is also be found as part of the 'scripted' tests at
+ * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/main/scala/akka/grpc/TestServiceImpl.scala
+ */
 class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestService {
   import TestServiceImpl._
 
-  override def emptyCall(req: Empty) = {
-    println("foo")
+  override def emptyCall(req: Empty) =
     Future.successful(Empty())
-  }
 
   override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = {
     req.responseStatus match {
       case None =>
-        Future.successful(
-          SimpleResponse(
-            Some(Payload(req.responseType, ByteString.copyFrom(new Array[Byte](req.responseSize))))))
+        Future.successful(SimpleResponse(Some(Payload(ByteString.copyFrom(new Array[Byte](req.responseSize))))))
       case Some(requestStatus) =>
         val responseStatus = Status.fromCodeValue(requestStatus.code).withDescription(requestStatus.message)
         //  - Either one of the following works

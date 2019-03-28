@@ -25,6 +25,11 @@ import scala.util.control.NoStackTrace
 
 /**
  * ClientTester implementation that uses the generated akka-grpc Scala client to exercise a server under test.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.AbstractInteropTest]] against our Java API's
+ *
+ * The same implementation is also be found as part of the 'scripted' tests at
+ * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
 
@@ -32,14 +37,14 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
 
-  private val awaitTimeout = 3.seconds
+  private val awaitTimeout = 15.seconds
 
   def setUp(): Unit = {
-
     val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
+
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
   }
@@ -54,17 +59,18 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def cacheableUnary(): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException(s"Not implemented! cacheableUnary") with NoStackTrace
   }
 
   def largeUnary(): Unit = {
     val request =
       SimpleRequest(
-        PayloadType.COMPRESSABLE,
         responseSize = 314159,
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
+        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
 
-    val expectedResponse = SimpleResponse(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+    val expectedResponse =
+      SimpleResponse(
+        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
 
     val response = Await.result(client.unaryCall(request), awaitTimeout)
     assertEquals(expectedResponse, response)
@@ -105,7 +111,6 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
     val request =
       StreamingOutputCallRequest(
-        responseType = PayloadType.COMPRESSABLE,
         responseParameters = Seq(
           ResponseParameters(31415),
           ResponseParameters(9),
@@ -132,20 +137,19 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   def serverCompressedStreaming(): Unit = {
     val request =
       StreamingOutputCallRequest(
-        responseType = PayloadType.COMPRESSABLE,
         responseParameters = Seq(
-          ResponseParameters(size = 31415, compressed = Some(true)),
-          ResponseParameters(size = 92653, compressed = Some(true))))
+          ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
+          ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
 
-    val expected: Seq[StreamingOutputCallResponse] = Seq(
+    val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(
         Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
       StreamingOutputCallResponse(
         Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
 
     val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
-    assertEquals(expected.size, actual.size)
-    expected.zip(actual).foreach {
+    assertEquals(expectedResponses.size, actual.size)
+    expectedResponses.zip(actual).foreach {
       case (exp, act) => assertEquals(exp, act)
     }
   }
@@ -193,23 +197,23 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def computeEngineCreds(serviceAccount: String, oauthScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! computeEngineCreds") with NoStackTrace
   }
 
   def serviceAccountCreds(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! serviceAccountCreds") with NoStackTrace
   }
 
   def jwtTokenCreds(serviceAccountJson: InputStream): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! jwtTokenCreds") with NoStackTrace
   }
 
   def oauth2AuthToken(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! oath2AuthToken") with NoStackTrace
   }
 
   def perRpcCreds(jsonKey: String, credentialsStream: InputStream, oauthScope: String): Unit = {
-    throw new RuntimeException("Not implemented!")
+    throw new RuntimeException("Not implemented! perRpcCreds") with NoStackTrace
   }
 
   def customMetadata(): Unit = {
@@ -281,7 +285,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertFailure(clientUnimplementedService.unimplementedCall(Empty()), Status.UNIMPLEMENTED)
 
   def cancelAfterBegin(): Unit = {
-    throw new RuntimeException("Not implemented! cancelAfterBegin ") with NoStackTrace
+    throw new RuntimeException("Not implemented! cancelAfterBegin") with NoStackTrace
   }
 
   def cancelAfterFirstResponse(): Unit = {
@@ -289,7 +293,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def timeoutOnSleepingServer(): Unit = {
-    throw new RuntimeException("Not implemented! timeoutOnSleepingServer") with NoStackTrace
+    throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
   }
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {

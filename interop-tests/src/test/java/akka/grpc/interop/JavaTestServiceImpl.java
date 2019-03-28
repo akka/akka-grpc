@@ -20,7 +20,14 @@ import io.grpc.testing.integration.EmptyProtos;
 import io.grpc.testing.integration.Messages.*;
 import io.grpc.testing.integration.TestService;
 
-// Implementation of the generated interface
+/**
+ * Implementation of the generated service.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.TestServiceImpl]] against our API's
+ *
+ * The same implementation is also be found as part of the 'scripted' tests at
+ * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/main/java/akka/grpc/JavaTestServiceImpl.scala
+ */
 public class JavaTestServiceImpl implements TestService {
   private final Materializer mat;
 
@@ -57,7 +64,6 @@ public class JavaTestServiceImpl implements TestService {
             return CompletableFuture.completedFuture(
                     SimpleResponse.newBuilder()
                             .setPayload(Payload.newBuilder()
-                                    .setType(in.getPayload().getType())
                                     .setBody(ByteString.copyFrom(new byte[in.getResponseSize()]))
                                     .build())
                             .build()

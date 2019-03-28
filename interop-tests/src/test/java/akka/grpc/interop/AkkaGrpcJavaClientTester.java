@@ -15,7 +15,6 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -40,6 +39,8 @@ import static org.junit.Assert.fail;
 
 /**
  * ClientTester implementation that uses the generated akka-grpc Java client to exercise a server under test.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.AbstractInteropTest]] against our Scala API's
  */
 public class AkkaGrpcJavaClientTester implements ClientTester {
   private final Settings settings;
@@ -175,8 +176,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
   public void serverCompressedStreaming() throws Exception {
     final Messages.StreamingOutputCallRequest request =
       Messages.StreamingOutputCallRequest.newBuilder()
-        .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(31415).setCompressed(BoolValue.newBuilder().setValue(true)))
-        .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(92653).setCompressed(BoolValue.newBuilder().setValue(true)))
+        .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(31415).setCompressed(Messages.BoolValue.newBuilder().setValue(true)))
+        .addResponseParameters(Messages.ResponseParameters.newBuilder().setSize(92653).setCompressed(Messages.BoolValue.newBuilder().setValue(true)))
         .build();
 
     final List<Messages.StreamingOutputCallResponse> expectedResponse = new ArrayList<>();

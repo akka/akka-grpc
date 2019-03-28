@@ -13,7 +13,7 @@ import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import io.grpc.{ Status, StatusException }
-import io.grpc.testing.integration.messages.{ PayloadType, SimpleRequest }
+import io.grpc.testing.integration.messages.{ BoolValue, SimpleRequest }
 import io.grpc.testing.integration.test.TestService
 import org.junit.Assert.assertEquals
 import org.scalatest.{ Matchers, WordSpec }
@@ -23,7 +23,7 @@ import scala.util.Failure
 
 class GrpcMarshallingSpec extends WordSpec with Matchers {
   "The scaladsl GrpcMarshalling" should {
-    val message = SimpleRequest(responseType = PayloadType.RANDOM)
+    val message = SimpleRequest(responseCompressed = Some(BoolValue.of(true)))
     implicit val serializer = TestService.Serializers.SimpleRequestSerializer
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
@@ -36,7 +36,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
-      marshalled.responseType should be(PayloadType.RANDOM)
+      marshalled.responseCompressed should be(Some(BoolValue.of(true)))
     }
 
     "correctly unmarshal a zipped stream" in {
@@ -46,8 +46,8 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
 
       val stream = Await.result(GrpcMarshalling.unmarshalStream(request), 10.seconds)
       val items = Await.result(stream.runWith(Sink.seq), 10.seconds)
-      items(0).responseType should be(PayloadType.RANDOM)
-      items(1).responseType should be(PayloadType.RANDOM)
+      items(0).responseCompressed should be(Some(BoolValue.of(true)))
+      items(1).responseCompressed should be(Some(BoolValue.of(true)))
     }
 
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers

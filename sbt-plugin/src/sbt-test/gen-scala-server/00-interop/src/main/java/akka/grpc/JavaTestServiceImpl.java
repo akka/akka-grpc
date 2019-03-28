@@ -17,7 +17,14 @@ import io.grpc.testing.integration.Messages;
 import io.grpc.testing.integration.Messages.*;
 import io.grpc.testing.integration.TestService;
 
-// Implementation of the generated interface
+/**
+ * Implementation of the generated service.
+ *
+ * Essentially porting the client code from [[io.grpc.testing.integration.TestServiceImpl]] against our API's
+ *
+ * The same implementation is also be found as part of the 'non-scripted' tests at
+ * /interop-tests/src/test/java/akka/grpc/interop/JavaTestServiceImpl.scala
+ */
 public class JavaTestServiceImpl implements TestService {
   private final Materializer mat;
 
@@ -42,25 +49,24 @@ public class JavaTestServiceImpl implements TestService {
     return CompletableFuture.completedFuture(EmptyProtos.Empty.newBuilder().build());
   }
 
-  @Override
-  public CompletionStage<SimpleResponse> unaryCall(SimpleRequest in) {
-    if (in.hasResponseStatus()) {
-      EchoStatus requestStatus = in.getResponseStatus();
-      Status status = Status.fromCodeValue(requestStatus.getCode()).withDescription(requestStatus.getMessage());
-      CompletableFuture<SimpleResponse> cf = new CompletableFuture<>();
-      cf.completeExceptionally(new GrpcServiceException(status));
-      return cf;
-    } else {
-      return CompletableFuture.completedFuture(
-              SimpleResponse.newBuilder()
-                      .setPayload(Payload.newBuilder()
-                              .setType(in.getPayload().getType())
-                              .setBody(ByteString.copyFrom(new byte[in.getResponseSize()]))
-                              .build())
-                      .build()
-      );
+    @Override
+    public CompletionStage<SimpleResponse> unaryCall(SimpleRequest in) {
+        if (in.hasResponseStatus()) {
+            EchoStatus requestStatus = in.getResponseStatus();
+            Status status = Status.fromCodeValue(requestStatus.getCode()).withDescription(requestStatus.getMessage());
+            CompletableFuture<SimpleResponse> cf = new CompletableFuture<>();
+            cf.completeExceptionally(new GrpcServiceException(status));
+            return cf;
+        } else {
+            return CompletableFuture.completedFuture(
+                    SimpleResponse.newBuilder()
+                            .setPayload(Payload.newBuilder()
+                                    .setBody(ByteString.copyFrom(new byte[in.getResponseSize()]))
+                                    .build())
+                            .build()
+            );
+        }
     }
-  }
 
   @Override
   public CompletionStage<SimpleResponse> cacheableUnaryCall(SimpleRequest in) {
@@ -70,16 +76,16 @@ public class JavaTestServiceImpl implements TestService {
   @Override
   public Source<StreamingOutputCallResponse, NotUsed> streamingOutputCall(StreamingOutputCallRequest in) {
     return Source.from(in.getResponseParametersList())
-            .via(parametersToResponseFlow)
-            .mapMaterializedValue(x -> x);
+      .via(parametersToResponseFlow)
+      .mapMaterializedValue(x -> x);
   }
 
   @Override
   public CompletionStage<StreamingInputCallResponse> streamingInputCall(Source<StreamingInputCallRequest, NotUsed> in) {
     return in
-            .map(i -> i.getPayload().getBody().size())
-            .runFold(0, (Integer x, Integer y)->x+y, mat)
-            .thenApply(sum -> StreamingInputCallResponse.newBuilder().setAggregatedPayloadSize(sum).build());
+      .map(i -> i.getPayload().getBody().size())
+      .runFold(0, (Integer x, Integer y)->x+y, mat)
+      .thenApply(sum -> StreamingInputCallResponse.newBuilder().setAggregatedPayloadSize(sum).build());
   }
 
 
@@ -87,18 +93,18 @@ public class JavaTestServiceImpl implements TestService {
   public Source<StreamingOutputCallResponse, NotUsed> fullDuplexCall(Source<StreamingOutputCallRequest, NotUsed> in) {
     return in
             .map(req -> {
-              if(req.hasResponseStatus()) {
-                throw new GrpcServiceException(
-                        Status
-                                .fromCodeValue(req.getResponseStatus().getCode())
-                                .withDescription(req.getResponseStatus().getMessage())
-                );
-              }else {
-                return req;
-              }
+                if(req.hasResponseStatus()) {
+                    throw new GrpcServiceException(
+                            Status
+                                    .fromCodeValue(req.getResponseStatus().getCode())
+                                    .withDescription(req.getResponseStatus().getMessage())
+                    );
+                }else {
+                    return req;
+                }
             })
-            .mapConcat(r -> r.getResponseParametersList())
-            .via(parametersToResponseFlow);
+      .mapConcat(r -> r.getResponseParametersList())
+      .via(parametersToResponseFlow);
   }
 
 
@@ -109,7 +115,7 @@ public class JavaTestServiceImpl implements TestService {
 
   @Override
   public CompletionStage<EmptyProtos.Empty> unimplementedCall(EmptyProtos.Empty in) {
-    throw new UnsupportedOperationException();
+     throw new UnsupportedOperationException();
   }
 
 }
