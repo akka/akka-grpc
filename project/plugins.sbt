@@ -18,5 +18,5 @@ libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.8.4"
 
 // #java-agent-plugin
-addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4")
+addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.5")
 // #java-agent-plugin
