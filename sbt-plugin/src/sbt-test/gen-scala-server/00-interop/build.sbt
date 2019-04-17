@@ -3,7 +3,7 @@ organization := "com.lightbend.akka.grpc"
 // For the akka-http snapshot
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
-val grpcVersion = "1.19.0" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.20.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   // Excluding grpc-alts works around a complex resolution bug
