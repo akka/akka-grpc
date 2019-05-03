@@ -16,19 +16,14 @@ import akka.grpc.javadsl.StreamResponseRequestBuilder;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
-import akka.stream.Materializer;
 
-import io.grpc.*;
-import io.grpc.stub.*;
+import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
-
 import scala.concurrent.ExecutionContext;
 import scala.compat.java8.FutureConverters;
-import scala.concurrent.Future;
-import scala.concurrent.Promise;
-
 
 public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {
@@ -39,7 +34,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
 
       private final ClientState clientState;
       private final GrpcClientSettings settings;
-      private final CallOptions options;
+      private final io.grpc.CallOptions options;
       private final Materializer mat;
       private final ExecutionContext ec;
 
@@ -57,23 +52,23 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
 
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
-      private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+      private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
         return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
       }
     } else {
       @defining(service.grpcName + "." + method.grpcName){ fqName =>
         @if(method.methodType == akka.grpc.gen.ClientStreaming){
-          private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+          private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaClientStreamingRequestBuilder<>(
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
           }
         } else if(method.methodType == akka.grpc.gen.ServerStreaming){
-          private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+          private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaServerStreamingRequestBuilder<>(
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           }
         } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-          private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(Future<ManagedChannel> channel){
+          private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaBidirectionalStreamingRequestBuilder<>(
                                  @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
           }

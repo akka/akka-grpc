@@ -10,7 +10,6 @@ package @service.packageName;
 import java.util.concurrent.CompletionStage;
 
 import akka.japi.Function;
-import scala.concurrent.Future;
 
 import akka.http.scaladsl.model.HttpRequest;
 import akka.http.scaladsl.model.HttpResponse;
@@ -27,7 +26,7 @@ import io.grpc.Status;
    * Abstract base class for implementing @serviceName in Java and using as a play Router
    */
   public abstract class Abstract@{serviceName}Router extends PlayRouter implements @{serviceName} {
-    private final scala.Function1<HttpRequest, Future<HttpResponse>> respond;
+    private final scala.Function1<HttpRequest, scala.concurrent.Future<HttpResponse>> respond;
 
     public Abstract@{serviceName}Router(Materializer mat, ActorSystem system) {
       this(mat, system, GrpcExceptionHandler.defaultMapper());
@@ -43,7 +42,7 @@ import io.grpc.Status;
     /**
      * INTERNAL API
      */
-    public scala.Function1<HttpRequest, Future<HttpResponse>> respond() {
+    public scala.Function1<HttpRequest, scala.concurrent.Future<HttpResponse>> respond() {
       return respond;
     }
   }
