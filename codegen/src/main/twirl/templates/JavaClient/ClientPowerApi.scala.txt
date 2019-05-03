@@ -7,29 +7,12 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
-import akka.annotation.*;
-import akka.grpc.internal.*;
-import akka.grpc.GrpcClientSettings;
-import akka.grpc.javadsl.AkkaGrpcClient;
 import akka.grpc.javadsl.SingleResponseRequestBuilder;
 import akka.grpc.javadsl.StreamResponseRequestBuilder;
-import akka.stream.ActorMaterializer;
-import akka.stream.Materializer;
-import akka.stream.OverflowStrategy;
-import akka.stream.Materializer;
-
-import io.grpc.*;
-import io.grpc.stub.*;
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
-
-import scala.concurrent.ExecutionContext;
-import scala.compat.java8.FutureConverters;
-import scala.concurrent.Future;
-import scala.concurrent.Promise;
-
-public abstract class  @{service.name}ClientPowerApi {
+public abstract class @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.

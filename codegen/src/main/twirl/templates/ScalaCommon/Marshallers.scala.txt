@@ -34,6 +34,6 @@ object @{service.name}Marshallers {
   implicit def marshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): ToResponseMarshaller[T] =
     Marshaller.opaque((response: T) ⇒ GrpcMarshalling.marshal(response)(serializer, mat, codec, system))
 
-  implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): ToResponseMarshaller[akka.stream.scaladsl.Source[T, _root_.akka.NotUsed]] =
+  implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): ToResponseMarshaller[akka.stream.scaladsl.Source[T, akka.NotUsed]] =
     Marshaller.opaque((response: akka.stream.scaladsl.Source[T, akka.NotUsed]) ⇒ GrpcMarshalling.marshalStream(response)(serializer, mat, codec, system))
 }
