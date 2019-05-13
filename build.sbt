@@ -5,8 +5,12 @@ import akka.grpc.build.ReflectiveCodeGen
 
 scalaVersion := scala212
 
+ThisBuild / organization := "com.lightbend.akka.grpc"
+ThisBuild / organizationName := "Lightbend Inc."
+ThisBuild / organizationHomepage := Some(url("https://www.lightbend.com/"))
+ThisBuild / description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."
+
 val commonSettings = Seq(
-  organization := "com.lightbend.akka.grpc",
   scalacOptions ++= List(
     "-unchecked",
     "-deprecation",
@@ -160,12 +164,14 @@ lazy val docs = Project(
   .settings(
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := ((Compile / paradox) dependsOn (Compile / compile)).value,
-    paradoxGroups := Map(
-      "Language" -> Seq("Scala", "Java"),
+    Compile / paradoxGroups := Map(
+      "Language" -> Seq("Java", "Scala"),
       "Buildtool" -> Seq("sbt", "Gradle", "Maven"),
     ),
-    paradoxProperties ++= Map(
+    Compile / paradoxProperties ++= Map(
       "grpc.version" → Dependencies.Versions.grpc,
+      "project.url" -> "https://developer.lightbend.com/docs/akka-grpc/current/",
+      "canonical.base_url" -> "https://developer.lightbend.com/docs/akka-grpc/current/",
       "akka-http.version" → Dependencies.Versions.akkaHttp,
       "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
     ),
