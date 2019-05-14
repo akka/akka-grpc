@@ -5,24 +5,6 @@ import akka.grpc.build.ReflectiveCodeGen
 
 scalaVersion := scala212
 
-ThisBuild / organization := "com.lightbend.akka.grpc"
-ThisBuild / organizationName := "Lightbend Inc."
-ThisBuild / organizationHomepage := Some(url("https://www.lightbend.com/"))
-ThisBuild / description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."
-
-val commonSettings = Seq(
-  scalacOptions ++= List(
-    "-unchecked",
-    "-deprecation",
-    "-language:_",
-    "-encoding", "UTF-8"
-  ),
-  javacOptions ++= List(
-    "-Xlint:unchecked",
-    "-Xlint:deprecation"
-  )
-) ++ akka.grpc.Formatting.formatSettings
-
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
 lazy val codegen = Project(
@@ -31,7 +13,6 @@ lazy val codegen = Project(
   )
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .settings(Dependencies.codegen)
-  .settings(commonSettings)
   .settings(Seq(
     buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
@@ -55,7 +36,6 @@ lazy val runtime = Project(
     base = file("runtime")
   )
   .settings(Dependencies.runtime)
-  .settings(commonSettings)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 lazy val scalapbProtocPlugin = Project(
@@ -64,7 +44,6 @@ lazy val scalapbProtocPlugin = Project(
   )
   /** TODO we only really need to depend on scalapb */
   .dependsOn(codegen)
-  .settings(commonSettings)
   .settings(Seq(
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
@@ -81,7 +60,6 @@ lazy val mavenPlugin = Project(
     id = "akka-grpc-maven-plugin",
     base = file("maven-plugin")
   )
-  .settings(commonSettings)
   .settings(Dependencies.mavenPlugin)
   .enablePlugins(akka.grpc.SbtMavenPlugin)
   .settings(Seq(
@@ -94,7 +72,6 @@ lazy val sbtPlugin = Project(
     id = "sbt-akka-grpc",
     base = file("sbt-plugin")
   )
-  .settings(commonSettings)
   .settings(Dependencies.sbtPlugin)
   .enablePlugins(SbtPlugin)
   .settings(
@@ -121,7 +98,6 @@ lazy val interopTests = Project(
     base = file("interop-tests")
   )
   .settings(Dependencies.interopTests)
-  .settings(commonSettings)
   .pluginTestingSettings
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
@@ -160,8 +136,8 @@ lazy val docs = Project(
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
   .enablePlugins(AkkaParadoxPlugin)
-  .enablePlugins(akka.grpc.NoPublish)
   .settings(
+    skip in publish := true,
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := ((Compile / paradox) dependsOn (Compile / compile)).value,
     Compile / paradoxGroups := Map(
@@ -183,9 +159,8 @@ lazy val pluginTesterScala = Project(
   base = file("plugin-tester-scala")
 )
   .settings(Dependencies.pluginTester)
-  .settings(commonSettings)
-  .enablePlugins(akka.grpc.NoPublish)
   .settings(
+    skip in publish := true,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis")
   )
   .pluginTestingSettings
@@ -195,9 +170,8 @@ lazy val pluginTesterJava = Project(
   base = file("plugin-tester-java")
 )
   .settings(Dependencies.pluginTester)
-  .settings(commonSettings)
-  .enablePlugins(akka.grpc.NoPublish)
   .settings(
+    skip in publish := true,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
   )
@@ -219,7 +193,7 @@ lazy val root = Project(
     pluginTesterJava,
     docs,
   )
-  .enablePlugins(akka.grpc.NoPublish)
   .settings(
+    skip in publish := true,
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
   )
