@@ -47,10 +47,9 @@ object NettyClientUtils {
             builder = settings.sslContext
               .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
               .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
-
-            builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
           }
 
+          builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
           builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
           builder = settings.channelBuilderOverrides(builder)
 
