@@ -24,7 +24,6 @@ object Common extends AutoPlugin {
   )
 
   override lazy val projectSettings = Seq(
-    crossVersion := CrossVersion.binary,
     scalacOptions ++= List(
       "-unchecked",
       "-deprecation",
