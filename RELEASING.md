@@ -15,8 +15,8 @@ It is possible to release a revised documentation to the already existing releas
 1. Create a new branch from a release tag. If a revised documentation is for the `v0.3` release, then the name of the new branch should be `docs/v0.3`.
 1. Add and commit `version.sbt` file that pins the version to the one, that is being revised. Also set `isSnapshot` to `false` for the stable documentation links. For example:
     ```scala
-    version in ThisBuild := "0.6.1"
-    isSnapshot in ThisBuild := false
+    ThisBuild / version := "0.6.1"
+    ThisBuild / isSnapshot := false
     ```
 1. Make all of the required changes to the documentation.
 1. Build documentation locally with `CI` settings:

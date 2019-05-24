@@ -47,7 +47,9 @@ Variables to be expanded in this template:
          ```
     - [ ] check changes and commit the new version to the local git repository
          ```
-         git commit -a www/docs/akka-grpc/current www/docs/akka-grpc/$AKKA_GRPC_VERSION$ -m "Akka gRPC $AKKA_GRPC_VERSION$"
+         cd ~/www
+         git add docs/akka-grpc/current docs/akka-grpc/$AKKA_GRPC_VERSION$
+         git commit -m "Akka gRPC $AKKA_GRPC_VERSION$"
          ```
 
 ### Announcements
