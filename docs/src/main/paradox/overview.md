@@ -25,7 +25,7 @@ It features:
 
 * Akka gRPC $project.version$ ([Github](https://github.com/akka/akka-grpc))
 * Scala $scala.binary.version$
-* Akka Http $akka-http.version$ (@extref[Docs](akka-http:index.html), [Github](https://github.com/akka/akka-http))
+* Akka Http $akka-http.version$ (@extref[Docs](akka-http-docs:index.html), [Github](https://github.com/akka/akka-http))
 
 Release notes are found at [Github releases](https://github.com/akka/akka-grpc/releases).
 
