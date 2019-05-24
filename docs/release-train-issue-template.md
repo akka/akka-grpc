@@ -60,6 +60,6 @@ Variables to be expanded in this template:
 
 ### Afterwards
 
-- [ ] Update version for [Lightbend Supported Modules](https://developer.lightbend.com/docs/reactive-platform/2.0/supported-modules/#other-akka-modules) in [private project](https://github.com/lightbend/reactive-platform-docs/blob/master/build.sbt#L77)
-- [ ] Close the [$AKKA_GRPC_VERSION$ milestone](https://github.com/akka/alpakka/milestones?direction=asc&sort=due_date)
+- [ ] Update version for [Lightbend Supported Modules](https://developer.lightbend.com/docs/reactive-platform/2.0/supported-modules/#other-akka-modules) in [private project](https://github.com/lightbend/reactive-platform-docs/blob/master/build.sbt)
+- [ ] Close the [$AKKA_GRPC_VERSION$ milestone](https://github.com/akka/akka-grpc/milestones?direction=asc&sort=due_date)
 - Close this issue
