@@ -1,21 +1,30 @@
 # Releasing
 
-1. Update the version number in the `akka-grpc-xx-stable` project name in the [whitesource web UI](https://saas.whitesourcesoftware.com)
-    - For example you'd call the project `akka-grpc-0.2-stable`
-1. Create a [new release](https://github.com/akka/akka-grpc/releases/new) with the next tag version (e.g. `v0.2`), title and release description including notable changes mentioning external contributors.
-1. Travis CI will start a [CI build](https://travis-ci.org/akka/akka-grpc/builds) for the new tag and publish:
-  - SBT Plugin is published to [Bintray](https://bintray.com/akka/sbt-plugin-releases) that is linked the SBT plugins repo (no further steps required) 
-  - Gradle plugin directly to the Gradle plugin portal (no further steps required)
-  - Library jars to [Bintray](https://bintray.com/akka/maven) that needs to be synced with Maven Central
-1. [Sync](https://bintray.com/akka/maven/akka-grpc/_latestVersion#central) from Bintray to Maven Central
-
-Due to https://github.com/akka/akka-grpc/issues/365, when the tag is created
-before that commit has been been successfully built for the 'master' branch,
-the maven tests for the build of the 'master' branch will fail for that
-commit. The release build and the next commit on 'master' should be fine.
+Create a new issue from the [Release Train Issue Template](docs/release-train-issue-template.md) and follow the steps.
 
 ## Gradle plugin release details
 
 The Gradle plugin goes directly to the Gradle Plugin Portal. An encrypted `gradle.properties` that includes a
 publishing key and password is checked in under `gradle.properties.enc` and is decrypted by a private key known
 only to [travis](https://docs.travis-ci.com/user/encrypting-files/).
+
+### Releasing only updated docs
+
+It is possible to release a revised documentation to the already existing release.
+
+1. Create a new branch from a release tag. If a revised documentation is for the `v0.3` release, then the name of the new branch should be `docs/v0.3`.
+1. Add and commit `version.sbt` file that pins the version to the one, that is being revised. Also set `isSnapshot` to `false` for the stable documentation links. For example:
+    ```scala
+    version in ThisBuild := "0.6.1"
+    isSnapshot in ThisBuild := false
+    ```
+1. Make all of the required changes to the documentation.
+1. Build documentation locally with `CI` settings:
+    ```sh
+    env CI=true sbt docs/previewSite
+    ```
+1. If the generated documentation looks good, send it to Gustav:
+    ```sh
+    env CI=true sbt docs/publishRsync
+    ```
+1. Do not forget to push the new branch back to GitHub.
