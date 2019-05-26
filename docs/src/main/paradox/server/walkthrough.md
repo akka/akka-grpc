@@ -222,7 +222,7 @@ methods to create partial functions that are combined by `concatOrNotFound`.]
 ## Running the server
 
 To run the server with HTTP/2 enabled correctly, you will likely have to configure the Jetty ALPN
-agent as described @extref[in the Akka HTTP documentation](akka-http-docs:server-side/http2.html#application-layer-protocol-negotiation-alpn-):
+agent as described @extref[in the Akka HTTP documentation](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-):
 
 See the detailed chapters on @ref[sbt](../buildtools/sbt.md#starting-your-akka-grpc-server-from-sbt), @ref[Gradle](../buildtools/gradle.md#starting-your-akka-grpc-server-from-gradle)
 and @ref[Maven](../buildtools/maven.md#starting-your-akka-grpc-server-from-maven) for details on adding the agent.

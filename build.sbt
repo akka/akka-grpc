@@ -138,7 +138,7 @@ lazy val docs = Project(
   .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PublishRsyncPlugin)
   .settings(
     name := "Akka gRPC",
-    skip in publish := true,
+    publish / skip := true,
     whitesourceIgnore := true,
     previewPath := (Paradox / siteSubdirName).value,
     Paradox / siteSubdirName := s"docs/akka-grpc/${if (isSnapshot.value) "snapshot" else version.value}",
@@ -151,13 +151,13 @@ lazy val docs = Project(
     Compile / paradoxProperties ++= Map(
       "akka.version" -> Dependencies.Versions.akka,
       "akka-http.version" -> Dependencies.Versions.akkaHttp,
-      "grpc.version" → Dependencies.Versions.grpc,
+      "grpc.version" -> Dependencies.Versions.grpc,
       "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
       "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
       "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
-      "extref.akka-docs.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akka}/%s",
+      "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akka}/%s",
       "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akka}",
-      "extref.akka-http-docs.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
+      "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
       "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttp}/",
     ),
     resolvers += Resolver.jcenterRepo,
