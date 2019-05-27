@@ -135,23 +135,34 @@ lazy val docs = Project(
   // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
-  .enablePlugins(AkkaParadoxPlugin)
+  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PublishRsyncPlugin)
   .settings(
-    skip in publish := true,
+    name := "Akka gRPC",
+    publish / skip := true,
+    whitesourceIgnore := true,
+    previewPath := (Paradox / siteSubdirName).value,
+    Paradox / siteSubdirName := s"docs/akka-grpc/${if (isSnapshot.value) "snapshot" else version.value}",
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := ((Compile / paradox) dependsOn (Compile / compile)).value,
-    Compile / paradoxGroups := Map(
+    paradoxGroups := Map(
       "Language" -> Seq("Java", "Scala"),
       "Buildtool" -> Seq("sbt", "Gradle", "Maven"),
     ),
     Compile / paradoxProperties ++= Map(
-      "grpc.version" → Dependencies.Versions.grpc,
-      "project.url" -> "https://developer.lightbend.com/docs/akka-grpc/current/",
-      "canonical.base_url" -> "https://developer.lightbend.com/docs/akka-grpc/current/",
-      "akka-http.version" → Dependencies.Versions.akkaHttp,
+      "akka.version" -> Dependencies.Versions.akka,
+      "akka-http.version" -> Dependencies.Versions.akkaHttp,
+      "grpc.version" -> Dependencies.Versions.grpc,
+      "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
+      "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
+      "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
+      "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akka}/%s",
+      "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akka}",
       "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
+      "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttp}/",
     ),
     resolvers += Resolver.jcenterRepo,
+    publishRsyncArtifact := makeSite.value -> "www/",
+    publishRsyncHost := "akkarepo@gustav.akka.io"
   )
 
 lazy val pluginTesterScala = Project(
