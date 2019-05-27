@@ -7,16 +7,16 @@ object Dependencies {
 
   object Versions {
     val scala212 = "2.12.8"
-    val scala213 = "2.13.0-M5"
+    val scala213 = "2.13.0-RC2"
 
-    val akka = "2.5.20"
+    val akka = "2.5.23"
     val akkaHttp = "10.1.8"
 
     val grpc = "1.20.0" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
-    val sslConfig = "0.3.7"
+    val sslConfig = "0.4.0"
 
-    val scalaTest = "3.0.7"
+    val scalaTest = "3.0.8-RC4"
 
     val maven = "3.5.4"
   }
