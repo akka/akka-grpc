@@ -136,11 +136,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
           resources := managedResources.value ++ unmanagedResources.value)))
 
   def targetsFor(targetPath: File, settings: Seq[String], generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] = {
-    val baseSettings = settings.filterNot(GeneratorOption.settings.contains)
     generators.map { generator =>
       protocbridge.Target(generator, targetPath, generator match {
-        case PB.gens.java => baseSettings.filterNot(_ == "flat_package")
-        case _ => baseSettings
+        case PB.gens.java => settings.filterNot(_ == "flat_package").filterNot(GeneratorOption.settings.contains)
+        case protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator) => settings.filterNot(GeneratorOption.settings.contains)
+        case _ => settings
       })
     }
   }
@@ -154,7 +154,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
-    lazy val serverPowerApis = options.contains(GeneratorOption.ServerPowerApis.setting)
     lazy val scalaBaseGenerators: Seq[Generator] = Seq(ScalaGenerator, toGen(ScalaTraitCodeGenerator))
     lazy val javaBaseGenerators: Seq[Generator] = Seq(JavaGenerator, toGen(JavaInterfaceCodeGenerator))
     lazy val baseGenerators: Seq[Generator] = languages match {
@@ -168,9 +167,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
       language <- languages
     } yield (stub, language) match {
       case (Client, Scala) => ScalaClientCodeGenerator
-      case (Server, Scala) => ScalaServerCodeGenerator(serverPowerApis)
+      case (Server, Scala) => ScalaServerCodeGenerator
       case (Client, Java) => JavaClientCodeGenerator
-      case (Server, Java) => JavaServerCodeGenerator(serverPowerApis)
+      case (Server, Java) => JavaServerCodeGenerator
     }).distinct.map(toGen)
 
     if (generators.nonEmpty) baseGenerators ++ generators

@@ -4,35 +4,54 @@
 
 package akka.grpc.gen.scaladsl.play
 
+import scala.collection.immutable
 import akka.grpc.gen.Logger
 import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, ScalaServerCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayScala.txt._
 
-case class PlayScalaServerCodeGenerator(powerApis: Boolean = false, usePlayActions: Boolean = false) extends ScalaCodeGenerator {
+case class PlayScalaServerCodeGenerator(usePlayActions: Boolean = false) extends ScalaCodeGenerator {
 
   override def name: String = "akka-grpc-play-server-scala"
 
-  override def perServiceContent = super.perServiceContent ++ ((powerApis, usePlayActions) match {
-    case (true, true) => Set(generateRouterUsingActions(), generateRouterUsingActions(true))
-    case (false, true) => Set(generateRouterUsingActions())
-    case (true, false) => Set(generateRouter(), generateRouter(true))
-    case (false, false) => Set(generateRouter())
-  })
+  override def perServiceContent = super.perServiceContent ++ (
+    if (usePlayActions) Set(generatePlainRouterUsingActions, generatePowerRouterUsingActions)
+    else Set(generatePlainRouter, generatePowerRouter)
+  )
 
-  private def generateRouter(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  private val generatePlainRouter: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(Router(service, powerApis).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}${if (powerApis) "PowerApi" else ""}Router.scala")
-    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} play router for ${service.packageName}.${service.name}")
-    b.build
+    b.setContent(Router(service, powerApis = false).body)
+    b.setName(s"${service.packageDir}/AbstractRouter.scala")
+    logger.info(s"Generating Akka gRPC service play router for ${service.packageName}.${service.name}")
+    immutable.Seq(b.build)
   }
 
-  private def generateRouterUsingActions(powerApis: Boolean = false): (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  private val generatePowerRouter: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
+    if (service.serverPowerApi) {
+      val b = CodeGeneratorResponse.File.newBuilder()
+      b.setContent(Router(service, powerApis = true).body)
+      b.setName(s"${service.packageDir}/Abstract${service.name}PowerApiRouter.scala")
+      logger.info(s"Generating Akka gRPC service power API play router for ${service.packageName}.${service.name}")
+      immutable.Seq(b.build)
+    } else immutable.Seq.empty
+  }
+
+  private val generatePlainRouterUsingActions: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
-    b.setContent(RouterUsingActions(service, powerApis).body)
-    b.setName(s"${service.packageDir}/Abstract${service.name}${if (powerApis) "PowerApi" else ""}Router.scala")
-    logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} play router for ${service.packageName}.${service.name}")
-    b.build
+    b.setContent(RouterUsingActions(service, powerApis = false).body)
+    b.setName(s"${service.packageDir}/AbstractRouter.scala")
+    logger.info(s"Generating Akka gRPC service play router for ${service.packageName}.${service.name}")
+    immutable.Seq(b.build)
+  }
+
+  private val generatePowerRouterUsingActions: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
+    if (service.serverPowerApi) {
+      val b = CodeGeneratorResponse.File.newBuilder()
+      b.setContent(RouterUsingActions(service, powerApis = true).body)
+      b.setName(s"${service.packageDir}/Abstract${service.name}PowerApiRouter.scala")
+      logger.info(s"Generating Akka gRPC service power API play router for ${service.packageName}.${service.name}")
+      immutable.Seq(b.build)
+    } else immutable.Seq.empty
   }
 }

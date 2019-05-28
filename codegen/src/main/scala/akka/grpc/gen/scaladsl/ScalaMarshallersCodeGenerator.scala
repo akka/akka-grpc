@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.scaladsl
 
+import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
@@ -21,11 +22,11 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
   override def suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
     Artifact("com.typesafe.akka", s"akka-http_${scalaBinaryVersion.prefix}", BuildInfo.akkaHttpVersion) +: super.suggestedDependencies(scalaBinaryVersion)
 
-  def generateMarshalling(logger: Logger, service: Service): CodeGeneratorResponse.File = {
+  def generateMarshalling(logger: Logger, service: Service): immutable.Seq[CodeGeneratorResponse.File] = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Marshallers(service).body)
     b.setName(s"${service.packageDir}/${service.name}Marshallers.scala")
-    b.build
+    immutable.Seq(b.build)
   }
 }
 

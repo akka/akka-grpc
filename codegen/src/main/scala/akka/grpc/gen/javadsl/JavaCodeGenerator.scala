@@ -11,11 +11,12 @@ import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable
 
 abstract class JavaCodeGenerator extends CodeGenerator {
 
   /** Override this to add generated files per service */
-  def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = Set.empty
+  def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   /** Override these to add service-independent generated files */
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
@@ -33,17 +34,23 @@ abstract class JavaCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
+    // Currently a per-invocation option, intended to become a per-service option eventually
+    // https://github.com/akka/akka-grpc/issues/451
+    val params = request.getParameter.toLowerCase
+    val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
+
     val services = (for {
       file ← request.getFileToGenerateList.asScala
       fileDesc = fileDescByName(file)
       serviceDesc ← fileDesc.getServices.asScala
-    } yield Service(fileDesc, serviceDesc)).toVector
+    } yield Service(fileDesc, serviceDesc, serverPowerApi)).toVector
 
     for {
       service <- services
-      generator ← perServiceContent
+      generator <- perServiceContent
+      generated <- generator(logger, service)
     } {
-      b.addFile(generator(logger, service))
+      b.addFile(generated)
     }
 
     staticContent(logger).map(b.addFile)

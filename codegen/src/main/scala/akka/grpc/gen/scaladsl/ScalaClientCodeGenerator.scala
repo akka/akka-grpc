@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.scaladsl
 
+import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import scalapb.compiler.GeneratorParams
@@ -15,12 +16,12 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   override def perServiceContent = super.perServiceContent + generateStub
 
-  def generateStub(logger: Logger, service: Service): CodeGeneratorResponse.File = {
+  def generateStub(logger: Logger, service: Service): immutable.Seq[CodeGeneratorResponse.File] = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Client(service).body)
     b.setName(s"${service.packageDir}/${service.name}Client.scala")
     logger.info(s"Generating Akka gRPC client for ${service.packageName}.${service.name}")
-    b.build
+    immutable.Seq(b.build)
   }
 
   override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
