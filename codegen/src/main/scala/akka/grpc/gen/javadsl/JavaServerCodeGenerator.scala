@@ -7,13 +7,13 @@ package akka.grpc.gen.javadsl
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
-import templates.JavaServer.txt.Handler
+import templates.JavaServer.txt.{ Handler, PowerApiInterface }
 
 case class JavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
 
   override def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = super.perServiceContent + generateHandlerFactory() ++ (
-    if (powerApis) Set(generateHandlerFactory(powerApis))
+    if (powerApis) Set(generateHandlerFactory(powerApis), generatePowerService)
     else Set.empty
   )
 
@@ -26,6 +26,14 @@ case class JavaServerCodeGenerator(powerApis: Boolean = false) extends JavaCodeG
     val serverPath = s"${service.packageDir}/${service.name}${if (powerApis) "PowerApi" else ""}HandlerFactory.java"
     b.setName(serverPath)
     logger.info(s"Generating Akka gRPC service${if (powerApis) " power API" else ""} handler for ${service.packageName}.${service.name}")
+    b.build
+  }
+
+  val generatePowerService: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+    val b = CodeGeneratorResponse.File.newBuilder()
+    b.setContent(PowerApiInterface(service).body)
+    b.setName(s"${service.packageDir}/${service.name}PowerApi.java")
+    logger.info(s"Generating Akka gRPC service power interface for [${service.packageName}.${service.name}]")
     b.build
   }
 }

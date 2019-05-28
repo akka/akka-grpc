@@ -7,9 +7,9 @@ package akka.grpc.gen
 import java.io.ByteArrayOutputStream
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
-import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaPowerApiInterfaceCodeGenerator, JavaServerCodeGenerator }
+import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
-import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaPowerApiTraitCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
+import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
 
 // This is the protoc plugin that the gradle plugin uses
@@ -52,42 +52,30 @@ object Main extends App {
       if (!generatePlay) {
         if (languageScala) {
           // Scala
-          val base =
-            if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator(serverPowerApis))
-            else if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
-            else if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis))
-            else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-          if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) ++ base
-          else base
+          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator(serverPowerApis))
+          else if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
+          else if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator(serverPowerApis))
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         } else {
           // Java
-          val base =
-            if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator(serverPowerApis))
-            else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
-            else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis))
-            else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-          if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) ++ base
-          else base
+          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator(serverPowerApis))
+          else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
+          else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator(serverPowerApis))
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         }
       } else {
         if (languageScala) {
           // Scala
-          val base =
-            if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
-            else if (generateClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
-            else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
-            else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-          if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) ++ base
-          else base
+          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
+          else if (generateClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
+          else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(serverPowerApis, usePlayActions))
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         } else {
           // Java
-          val base =
-            if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
-            else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
-            else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
-            else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-          if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) ++ base
-          else base
+          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
+          else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
+          else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(serverPowerApis, usePlayActions))
+          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         }
       }
 
