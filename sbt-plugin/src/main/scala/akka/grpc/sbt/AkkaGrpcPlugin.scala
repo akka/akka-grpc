@@ -8,9 +8,9 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
-import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaPowerApiTraitCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator}
+import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator}
 import akka.grpc.gen.javadsl.play.{PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
-import akka.grpc.gen.javadsl.{JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaPowerApiInterfaceCodeGenerator, JavaServerCodeGenerator}
+import akka.grpc.gen.javadsl.{JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator}
 import akka.grpc.gen.{Logger => GenLogger}
 import protocbridge.Generator
 import sbt.Keys._
@@ -167,13 +167,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
       stub <- stubs
       language <- languages
     } yield (stub, language) match {
-      case (Client, Scala) => Seq(ScalaClientCodeGenerator)
-      case (Server, Scala) => (if (serverPowerApis) Seq(ScalaPowerApiTraitCodeGenerator) else Seq.empty) ++
-          Seq(ScalaServerCodeGenerator(serverPowerApis))
-      case (Client, Java) => Seq(JavaClientCodeGenerator)
-      case (Server, Java) => (if (serverPowerApis) Seq(JavaPowerApiInterfaceCodeGenerator) else Seq.empty) ++
-        Seq(JavaServerCodeGenerator(serverPowerApis))
-    }).flatten.distinct.map(toGen)
+      case (Client, Scala) => ScalaClientCodeGenerator
+      case (Server, Scala) => ScalaServerCodeGenerator(serverPowerApis)
+      case (Client, Java) => JavaClientCodeGenerator
+      case (Server, Java) => JavaServerCodeGenerator(serverPowerApis)
+    }).distinct.map(toGen)
 
     if (generators.nonEmpty) baseGenerators ++ generators
     else generators
