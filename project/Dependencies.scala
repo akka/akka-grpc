@@ -68,7 +68,7 @@ object Dependencies {
   }
 
   object Plugins {
-    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.19"
+    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.21"
   }
 
   private val l = libraryDependencies
