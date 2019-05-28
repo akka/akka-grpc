@@ -37,18 +37,18 @@
           <description>Whether to generate server code</description>
         </parameter>
         <parameter>
-          <name>serverPowerApis</name>
-          <type>boolean</type>
+          <name>generatorSettings</name>
+          <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>Whether to generate server "power API" code</description>
+          <description>extra settings to pass to the generators</description>
         </parameter>
         <parameter>
-          <name>usePlayActions</name>
-          <type>boolean</type>
+          <name>extraGenerators</name>
+          <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>Whether to generate Play router that uses Actions</description>
+          <description>extra generators to load</description>
         </parameter>
         <parameter>
           <name>protoPaths</name>
@@ -62,8 +62,8 @@
         <language implementation="enum" default-value="JAVA">${akka-grpc.language}</language>
         <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
-        <serverPowerApis implementation="boolean" default-value="false">${akka-grpc.server-power-apis}</serverPowerApis>
-        <usePlayActions implementation="boolean" default-value="false">${akka-grpc.use-play-actions}</usePlayActions>
+        <generatorSettings implementation="java.util.List" default-value=""/>
+        <extraGenerators implementation="java.util.List" default-value=""/>
         <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
       </configuration>
     </mojo>
