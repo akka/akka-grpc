@@ -34,17 +34,18 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
-    // Currently a per-invocation option, intended to become a per-service option eventually
+    // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
     val params = request.getParameter.toLowerCase
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
+    val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
     val services =
       (for {
         file ← request.getFileToGenerateList.asScala
         fileDesc = fileDescByName(file)
         serviceDesc ← fileDesc.getServices.asScala
-      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc, serverPowerApi)).toSeq
+      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toSeq
 
     for {
       service <- services

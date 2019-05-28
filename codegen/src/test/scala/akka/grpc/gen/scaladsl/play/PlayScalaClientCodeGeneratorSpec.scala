@@ -13,21 +13,21 @@ class PlayScalaClientCodeGeneratorSpec extends WordSpec with Matchers {
 
     "choose the single package name" in {
       PlayScalaClientCodeGenerator
-        .packageForSharedModuleFile(Seq(Service("a.b", "MyService", "???", Nil, false))) should ===("a.b")
+        .packageForSharedModuleFile(Seq(Service("a.b", "MyService", "???", Nil, false, false))) should ===("a.b")
     }
 
     "choose the longest common package name" in {
       PlayScalaClientCodeGenerator
         .packageForSharedModuleFile(Seq(
-          Service("a.b.c", "MyService", "???", Nil, false),
-          Service("a.b.e", "OtherService", "???", Nil, false))) should ===("a.b")
+          Service("a.b.c", "MyService", "???", Nil, false, false),
+          Service("a.b.e", "OtherService", "???", Nil, false, false))) should ===("a.b")
     }
 
     "choose the root package if no common packages" in {
       PlayScalaClientCodeGenerator
         .packageForSharedModuleFile(Seq(
-          Service("a.b.c", "MyService", "???", Nil, false),
-          Service("c.d.e", "OtherService", "???", Nil, false))) should ===("")
+          Service("a.b.c", "MyService", "???", Nil, false, false),
+          Service("c.d.e", "OtherService", "???", Nil, false, false))) should ===("")
     }
   }
 

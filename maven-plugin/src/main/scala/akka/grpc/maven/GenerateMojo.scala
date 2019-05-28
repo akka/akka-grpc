@@ -131,12 +131,12 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      val settings = akkaGrpcCodeGeneratorSettings :+ s"server_power_apis=$serverPowerApis"
+      val settings = akkaGrpcCodeGeneratorSettings :+ s"server_power_apis=$serverPowerApis" :+ s"use_play_actions=$usePlayActions"
       val targets = language match {
         case Java ⇒
           val glueGenerators = Seq(
             if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
-            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator, PlayJavaServerCodeGenerator(usePlayActions)) else Seq.empty,
+            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator, PlayJavaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
             if (generatePlayClient) Seq(JavaInterfaceCodeGenerator, PlayJavaClientCodeGenerator) else Seq.empty
           ).flatten.distinct
@@ -145,7 +145,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
         case Scala ⇒
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
-            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator, PlayScalaServerCodeGenerator(usePlayActions)) else Seq.empty,
+            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator, PlayScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
             if (generatePlayClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator) else Seq.empty
           ).flatten.distinct

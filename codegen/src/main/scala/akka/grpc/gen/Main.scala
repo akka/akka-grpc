@@ -37,8 +37,6 @@ object Main extends App {
 
   private val generatePlay: Boolean = reqLowerCase.contains("generate_play=true")
 
-  private val usePlayActions: Boolean = reqLowerCase.contains("use_play_actions=true")
-
   val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
   private val logger = req.getParameter match {
     case LogFileRegex(path) => new FileLogger(path)
@@ -64,15 +62,15 @@ object Main extends App {
       } else {
         if (languageScala) {
           // Scala
-          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator(usePlayActions))
+          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator)
           else if (generateClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
-          else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator(usePlayActions))
+          else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator)
           else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         } else {
           // Java
-          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator(usePlayActions))
+          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator)
           else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
-          else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator(usePlayActions))
+          else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator)
           else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
         }
       }
