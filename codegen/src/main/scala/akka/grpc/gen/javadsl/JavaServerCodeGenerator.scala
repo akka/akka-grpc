@@ -10,7 +10,7 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.JavaServer.txt.{ Handler, PowerApiInterface }
 
-abstract class JavaServerCodeGenerator extends JavaCodeGenerator {
+class JavaServerCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
 
   override def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] = super.perServiceContent + generatePlainHandlerFactory +

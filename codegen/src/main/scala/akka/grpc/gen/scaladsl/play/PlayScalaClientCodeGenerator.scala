@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 
 object PlayScalaClientCodeGenerator extends PlayScalaClientCodeGenerator
 
-trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
+class PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   val ClientModuleName = "AkkaGrpcClientModule"
 

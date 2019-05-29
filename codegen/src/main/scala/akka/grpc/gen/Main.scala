@@ -35,7 +35,16 @@ object Main extends App {
 
   private val generateServer: Boolean = !reqLowerCase.contains("generate_server=false")
 
-  private val generatePlay: Boolean = reqLowerCase.contains("generate_play=true")
+  /**
+   * For example `akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator`
+   */
+  val ExtraGeneratorsRegex = """(?:.*,)extra_generators=([^,]+)(?:,.*)?""".r
+  private val extraGenerators: List[String] = req.getParameter match {
+    case ExtraGeneratorsRegex(generators) =>
+      generators.split(";").toList
+    case _ =>
+      List.empty
+  }
 
   val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
   private val logger = req.getParameter match {
@@ -45,37 +54,22 @@ object Main extends App {
 
   val out = {
     val codeGenerators =
-      if (!generatePlay) {
-        if (languageScala) {
-          // Scala
-          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator)
-          else if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
-          else if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator)
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        } else {
-          // Java
-          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator)
-          else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
-          else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator)
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        }
+      if (languageScala) {
+        // Scala
+        if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator)
+        else if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
+        else if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator)
+        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       } else {
-        if (languageScala) {
-          // Scala
-          if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator)
-          else if (generateClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator)
-          else if (generateServer) Seq(ScalaTraitCodeGenerator, PlayScalaServerCodeGenerator)
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        } else {
-          // Java
-          if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator)
-          else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, PlayJavaClientCodeGenerator)
-          else if (generateServer) Seq(JavaInterfaceCodeGenerator, PlayJavaServerCodeGenerator)
-          else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
-        }
+        // Java
+        if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator)
+        else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
+        else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator)
+        else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       }
+    val loadedExtraGenerators = extraGenerators.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
 
-    codeGenerators.foreach { g =>
+    (codeGenerators ++ loadedExtraGenerators).foreach { g =>
       val gout = g.run(req, logger)
       System.out.write(gout.toByteArray)
       System.out.flush()

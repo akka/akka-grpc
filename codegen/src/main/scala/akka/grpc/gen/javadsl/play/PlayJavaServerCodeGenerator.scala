@@ -11,7 +11,7 @@ import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayJavaServer.txt.Router
 import templates.PlayJavaServer.txt.RouterUsingActions
 
-abstract class PlayJavaServerCodeGenerator extends JavaCodeGenerator {
+class PlayJavaServerCodeGenerator extends JavaCodeGenerator {
   override def name: String = "akka-grpc-play-server-java"
 
   override def perServiceContent = super.perServiceContent + generatePlainRouter + generatePowerRouter
