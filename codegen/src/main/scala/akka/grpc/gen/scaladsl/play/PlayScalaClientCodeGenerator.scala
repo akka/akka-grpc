@@ -4,6 +4,7 @@
 
 package akka.grpc.gen.scaladsl.play
 
+import scala.collection.immutable
 import akka.grpc.gen.Logger
 import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, Service }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
@@ -21,12 +22,12 @@ trait PlayScalaClientCodeGenerator extends ScalaCodeGenerator {
 
   override def perServiceContent = super.perServiceContent + generateClientProvider
 
-  private val generateClientProvider: (Logger, Service) => CodeGeneratorResponse.File = (logger, service) => {
+  private val generateClientProvider: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(ClientProvider(service).body)
     b.setName(s"${service.packageName.replace('.', '/')}/${service.name}ClientProvider.scala")
     logger.info(s"Generating Akka gRPC play client provider for ${service.packageName}.${service.name}")
-    b.build
+    immutable.Seq(b.build)
   }
 
   override def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = {

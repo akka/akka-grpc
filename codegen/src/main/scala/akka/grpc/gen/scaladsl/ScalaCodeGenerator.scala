@@ -15,7 +15,7 @@ import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
-  def perServiceContent: Set[(Logger, Service) ⇒ CodeGeneratorResponse.File] = Set.empty
+  def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   // Override these to add service-independent generated files
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
@@ -34,18 +34,25 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
           acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
       }
 
+    // Currently per-invocation options, intended to become per-service options eventually
+    // https://github.com/akka/akka-grpc/issues/451
+    val params = request.getParameter.toLowerCase
+    val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
+    val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
+
     val services =
       (for {
         file ← request.getFileToGenerateList.asScala
         fileDesc = fileDescByName(file)
         serviceDesc ← fileDesc.getServices.asScala
-      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc)).toSeq
+      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toSeq
 
     for {
       service <- services
-      generator ← perServiceContent
+      generator <- perServiceContent
+      generated <- generator(logger, service)
     } {
-      b.addFile(generator(logger, service))
+      b.addFile(generated)
     }
 
     staticContent(logger).map(b.addFile)
