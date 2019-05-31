@@ -17,6 +17,8 @@ env:
     - secure: "akusg/u0bTODgL3hyJ8iCEjbPQ7pFuLubUZ8k0yZl34IxHqu4OX3uT42zd+OG/ZFwFhNY+90GKDwe51FyTugk16KNZGzkXnDbIKtjn/x5KbCgMPCHojC4/Mbjjp7OAla/8uphYz00nsgZq8IaB2/7aYIWb24juOmtRqyrRxlrW2Pqx5rbh7QU9v3aFNT0lIW8ro6rWVEd0eiltXxUxH+ZmNpXMco/6DXiQfIuWDSU2D8xKzri+FG1fsh8L+LqpkW1zulBBQj1p1Fg/LpQ40pUcjWNNxDLnLEbUZoRdvyv0iz2QqwJCxyzSs3xbAkBPslrFD11eWtgu1MrqeID7h+WJUL68rozdk1NsBj4E3vdD2rbTxJiRmhUEVhrdSpJKhNo9cuUlpMF3eWZEh/JTTDPskW3dHExx/hIoK2YNCYoUZu6gDc24rzeCB6k966DITFyTga4rm8Xmm+E0KkfOnv5FjDEii9RXAb9HxauYRebLr1XBdcRGj0TTZNZfAXxgMIrusi+Awqj4019WY5Gy+o3AXoVQWr35hW0eRe3pDKQ4zCE0BS/SwZPq9YL/MZApVa4jXXb/pRLnF2MRt8Tg9JE7j0t/k38VAX1DZBQyFQFbYwcEwlfvx2a/IdYZ6mEmWcKTWBVpj5tT7FPWCFeT5+nFMgEASTbjEOlnweCnDz1fk="
     # encrypt with: travis encrypt TECH_HUB_TOKEN=...
     - secure: "sFbpTppagGo56idzNXn3qOYwtRb8q/+Zjcen7KV3uNno3U1asfKVNoEj6UMxwCnmPn8BnrRtq2aVHIjDmItDwMHEPQ51Wm+0hxAw15o9yh15/MIoc+yu+VfOSXAYb9pEcMVbIyYzyR/qi2vsBTIJuloUDK/KPmmrUldx1hgFd567WmwHiXwiu/4BePWqsXGiCEjq5nQuO5XS+4uFDdpXlfX6wcQsU6o2ztD60wNAQwdDL751d8TNZNajWi5R9fD7xWV2wsewhGhl5E43o/HiY+Z/h1Kt/f3UGbhj7vZNTHAd901ZEG9QacFxQXaQWYOutlrO+eDBgRKd+27PLNpTLymF1Ht47xcERjpH0lgps02pDoSoFGzRYoHNQYAjA2BXK3GZHcLYmnPCB+5pbw1D4lsX8xQ8y5yO29gE4uCTx7P15bVt7/KbgUTdWfLtOQGyOd/jS9RTplHNAG2fBW2pa5nS4KNmON1UO3vNcsWv/zEHv48ASSLxpC3NxWkwS+zOkt0uORyXlxi0teOajWA7dmalC+9VpKf5kuAZvKM0xYxN5Yqt+6UELtTQnle3fTLnKcE584+eo/RdCgvGD6N0RJHN/UKl7sP7hvTF7w/SbcAaI/jv31N+oVV79UyMLqm1U8HRGg2HLMSHiRbYFSOYmsQ5/sYWn7RsJIroDKpFd+I="
+    # encrypt with: travis encrypt DEPLOY_PASSPHRASE=...
+    - secure: "M1i4uXUvhglxP5CX4gH8OggEHrdjWhbDq2TceW80nXS+BPEiUzqLKUqbRPacm4Sujmc7E3SphJnI26V/Qb+tBNzUI/zagvV/hep8TDCIg9YXhW2kGPcSjI7U1ZqQB6KRKp32R3aEolYGlNgnxRuMDvHFb3tgc/RfdXMo3+LWAvclFgAMMaSRD5fjENv73vl9V1Nitg8ZQX1i7cJQRrlH95ZuihqstK+8XJOI3w0difsZg5qOF7HV7v0mdU4XTUN1CdSZVb7Cvo2kdn/mN3x5eHIe58nWPHW5iJpuxd34f0IsK27zzDwNoyVrkQL5Vlhmp6e+GLHtJVGilbnWSTkVSY+bC0quHOP7D5lSELKpBLzxq6dJV/ijMFfQUeYVs+RK0HN2BwlYGscbZL/D5x8mQzkZLWtCRqPy21BGEvEpf9JBR1GivZmMvBih+hknKAFhW6ihBM5ryFifkC1/RFNjAY3loq5hushbDucCdr8vHAJetWLYJWT2vmctE7Os5sC5UFcvFDJurXNXoFBrK+VJu80PDip6WYjbQwzqaNk1F5SNva/i/ynNHUV1uNvdNRJbVV7EWVluVM5cQqaZXm7pHzXE74AhRrfm337v2PlUV7CdnXaYauMxhUMw7+MmWbSHh0jWoyLTGtEUfBfsVkSjpyTSKpsuN6wDsl4g6dk1zeQ="
   matrix:
     - TRAVIS_JDK=adopt@1.8.202-08
     - TRAVIS_JDK=adopt@1.11.0-2
@@ -46,8 +48,8 @@ jobs:
       name: sbt publish
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
       name: gradle publish
-    - stage: techhub-ping
-      script: curl -I https://ci.lightbend.com/job/techhub-publisher/build?token=$TECH_HUB_TOKEN
+    - script: eval "$(ssh-agent -s)" && cp .travis/id_rsa /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-keygen -p -P "$DEPLOY_PASSPHRASE" -N "" -f /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt akka-grpc-docs/publishRsync
+      name: Publish documentation
 
 stages:
   - name: test
@@ -56,8 +58,6 @@ stages:
     if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
   - name: publish
     if: repo = akka/akka-grpc AND  ((branch = master AND type != pull_request) OR tag =~ ^v)
-  - name: techhub-ping
-    if: repo = akka/akka-grpc AND tag =~ ^v
 
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
