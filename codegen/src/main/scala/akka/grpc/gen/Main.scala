@@ -27,30 +27,21 @@ object Main extends App {
   }
 
   val req = CodeGeneratorRequest.parseFrom(inBytes)
-  private val reqLowerCase = req.getParameter.toLowerCase
+  val KeyValueRegex = """([^=]+)=(.*)""".r
+  val parameters = req.getParameter.split(",").flatMap {
+    case KeyValueRegex(key, value) => Some((key.toLowerCase, value))
+    case _ => None
+  }.toMap
 
-  private val languageScala: Boolean = reqLowerCase.contains("language=scala")
+  private val languageScala: Boolean = parameters.get("language").map(_.equalsIgnoreCase("true")).getOrElse(false)
 
-  private val generateClient: Boolean = !reqLowerCase.contains("generate_client=false")
+  private val generateClient: Boolean = parameters.get("generate_client").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
-  private val generateServer: Boolean = !reqLowerCase.contains("generate_server=false")
+  private val generateServer: Boolean = parameters.get("generate_server").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
-  /**
-   * For example `akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator`
-   */
-  val ExtraGeneratorsRegex = """(?:.*,)extra_generators=([^,]+)(?:,.*)?""".r
-  private val extraGenerators: List[String] = req.getParameter match {
-    case ExtraGeneratorsRegex(generators) =>
-      generators.split(";").toList
-    case _ =>
-      List.empty
-  }
+  private val extraGenerators: List[String] = parameters.getOrElse("extra_generators", "").split(";").toList
 
-  val LogFileRegex = """(?:.*,)logfile=([^,]+)(?:,.*)?""".r
-  private val logger = req.getParameter match {
-    case LogFileRegex(path) => new FileLogger(path)
-    case _ => SilencedLogger
-  }
+  private val logger = parameters.get("logfile").map(new FileLogger(_)).getOrElse(SilencedLogger)
 
   val out = {
     val codeGenerators =
