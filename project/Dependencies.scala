@@ -68,6 +68,7 @@ object Dependencies {
   }
 
   object Plugins {
+    // This should follow the version of sbt-protoc ScalaPB is depending on
     val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.19"
   }
 
