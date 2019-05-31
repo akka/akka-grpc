@@ -16,7 +16,7 @@ import akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator
 
 object PlayJavaClientCodeGenerator extends PlayJavaClientCodeGenerator
 
-trait PlayJavaClientCodeGenerator extends JavaCodeGenerator {
+class PlayJavaClientCodeGenerator extends JavaCodeGenerator {
   override def name: String = "akka-grpc-play-client-java"
 
   override def perServiceContent = super.perServiceContent + generateClientProvider

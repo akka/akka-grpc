@@ -27,6 +27,7 @@ akkaGrpc {
   generateClient = true
   generateServer = true
   serverPowerApis = true // This isn't default
+  extraGenerators = [ 'akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator', 'akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator' ]
 }
 
 repositories {

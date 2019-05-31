@@ -10,7 +10,7 @@ import akka.grpc.gen.scaladsl.{ ScalaCodeGenerator, ScalaServerCodeGenerator, Se
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.PlayScala.txt._
 
-abstract class PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
+class PlayScalaServerCodeGenerator extends ScalaCodeGenerator {
 
   override def name: String = "akka-grpc-play-server-scala"
 
