@@ -39,7 +39,7 @@ object Main extends App {
 
   private val generateServer: Boolean = parameters.get("generate_server").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
-  private val extraGenerators: List[String] = parameters.getOrElse("extra_generators", "").split(";").toList.filter(!_.isBlank)
+  private val extraGenerators: List[String] = parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
 
   private val logger = parameters.get("logfile").map(new FileLogger(_)).getOrElse(SilencedLogger)
 
