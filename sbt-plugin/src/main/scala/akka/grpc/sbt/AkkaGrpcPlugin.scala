@@ -7,9 +7,7 @@ package akka.grpc.sbt
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
-import akka.grpc.gen.scaladsl.play.{PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator}
 import akka.grpc.gen.scaladsl.{ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator}
-import akka.grpc.gen.javadsl.play.{PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator}
 import akka.grpc.gen.javadsl.{JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator}
 import akka.grpc.gen.{Logger => GenLogger}
 import protocbridge.Generator
