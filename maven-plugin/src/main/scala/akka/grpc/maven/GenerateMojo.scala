@@ -74,9 +74,6 @@ object GenerateMojo {
         throw new IllegalArgumentException("[$unknown] is not a supported language, supported are java or scala")
     }
   }
-
-  val akkaGrpcCodeGeneratorSettings = Seq("flat_package")
-
 }
 
 class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
@@ -91,14 +88,25 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
   var generateClient: Boolean = _
   @BeanProperty
   var generateServer: Boolean = _
+
+  // Add the 'akka.grpc.gen.javadsl.play.PlayJavaClientCodeGenerator' or 'akka.grpc.gen.scaladsl.play.PlayScalaClientCodeGenerator' extra generator instead
+  @Deprecated
   @BeanProperty
   var generatePlayClient: Boolean = _
+  // Add the 'akka.grpc.gen.javadsl.play.PlayJavaServerCodeGenerator' or 'akka.grpc.gen.scaladsl.play.PlayScalaServerCodeGenerator' extra generator instead
+  @Deprecated
   @BeanProperty
   var generatePlayServer: Boolean = _
+
+  import scala.collection.JavaConverters._
   @BeanProperty
-  var serverPowerApis: Boolean = _
+  var generatorSettings: java.util.ArrayList[String] = {
+    val init = new java.util.ArrayList[String]()
+    init.add("flat_package")
+    init
+  }
   @BeanProperty
-  var usePlayActions: Boolean = _
+  var extraGenerators: java.util.ArrayList[String] = new java.util.ArrayList
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
@@ -131,27 +139,24 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      val settings = akkaGrpcCodeGeneratorSettings :+ s"server_power_apis=$serverPowerApis" :+ s"use_play_actions=$usePlayActions"
+      var loadedExtraGenerators = extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
       val targets = language match {
         case Java ⇒
-          val glueGenerators = Seq(
+          val glueGenerators = loadedExtraGenerators ++ Seq(
             if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
-            if (generatePlayServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator, PlayJavaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
-            if (generatePlayClient) Seq(JavaInterfaceCodeGenerator, PlayJavaClientCodeGenerator) else Seq.empty
           ).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
-            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
         case Scala ⇒
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
-            if (generatePlayServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator, PlayScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
-            if (generatePlayClient) Seq(ScalaTraitCodeGenerator, PlayScalaClientCodeGenerator) else Seq.empty
           ).flatten.distinct
+          // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target](
-            (JvmGenerator("scala", ScalaPbCodeGenerator), akkaGrpcCodeGeneratorSettings) → generatedSourcesDir) ++
-            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+            (JvmGenerator("scala", ScalaPbCodeGenerator), generatorSettings.asScala.filterNot(_ == "server_power_apis").filterNot(_ == "use_play_actions")) → generatedSourcesDir) ++
+            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
       }
 
       val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)

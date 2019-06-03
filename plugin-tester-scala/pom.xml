@@ -76,7 +76,10 @@
         <version>${akka.grpc.project.version}</version>
         <configuration>
           <language>Scala</language>
-          <serverPowerApis>true</serverPowerApis>
+          <generatorSettings>
+            <generatorSetting>flat_package</generatorSetting>
+            <generatorSetting>server_power_apis</generatorSetting>
+          </generatorSettings>
         </configuration>
         <executions>
           <execution>

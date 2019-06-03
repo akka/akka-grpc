@@ -9,7 +9,7 @@ import akka.grpc.gen.Logger
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt.{ Handler, PowerApiTrait }
 
-abstract class ScalaServerCodeGenerator extends ScalaCodeGenerator {
+class ScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-server"
 
   override def perServiceContent = super.perServiceContent + generatePlainHandler + generatePowerHandler + generatePowerApiTrait
