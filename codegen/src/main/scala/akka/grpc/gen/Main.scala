@@ -33,7 +33,7 @@ object Main extends App {
     case _ => None
   }.toMap
 
-  private val languageScala: Boolean = parameters.get("language").map(_.equalsIgnoreCase("true")).getOrElse(false)
+  private val languageScala: Boolean = parameters.get("language").map(_.equalsIgnoreCase("scala")).getOrElse(false)
 
   private val generateClient: Boolean = parameters.get("generate_client").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
