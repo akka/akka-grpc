@@ -11,8 +11,6 @@ object Dependencies {
     val akka = "2.5.20"
     val akkaHttp = "10.1.8"
 
-    val play = "2.7.0"
-
     val grpc = "1.20.0" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
     val sslConfig = "0.3.6"
@@ -50,9 +48,6 @@ object Dependencies {
     val protocJar = "com.github.os72" % "protoc-jar" % "3.5.1"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional"// Apache v2
-
-    val play = "com.typesafe.play" %% "play" % Versions.play exclude("javax.activation", "javax.activation-api")  // Apache V2 (exclusion is "either GPL or CDDL")
-    val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % Versions.play // Apache V2
   }
 
   object Test {
@@ -101,11 +96,6 @@ object Dependencies {
     Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
 
-    // these three are available when used through Play, which is also the only case when they are needed
-    Compile.akkaSlf4j % "provided",
-    Compile.play % "provided",
-    Compile.playAkkaHttpServer % "provided",
-
     Test.akkaDiscoveryConfig,
     Test.akkaTestkit,
   ) ++ testing
@@ -129,8 +119,6 @@ object Dependencies {
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
     Compile.akkaSlf4j,
-    Compile.play,
-    Compile.playAkkaHttpServer,
     Runtime.logback,
   ) ++ testing.map(_.withConfigurations(Some("compile")))
 
