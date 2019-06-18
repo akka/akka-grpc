@@ -1,7 +1,7 @@
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.2.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.19")
-addSbtPlugin("com.dwijnand" % "sbt-dynver" % "3.3.0")
+addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.0.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.4.2")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.9")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.9.0")
