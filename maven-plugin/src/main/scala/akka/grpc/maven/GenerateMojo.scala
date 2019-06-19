@@ -6,10 +6,8 @@ package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
 
-import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
 import akka.grpc.gen.{ CodeGenerator, Logger }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo

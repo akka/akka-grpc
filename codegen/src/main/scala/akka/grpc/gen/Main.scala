@@ -8,9 +8,7 @@ import java.io.ByteArrayOutputStream
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.javadsl.play.{ PlayJavaClientCodeGenerator, PlayJavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
-import akka.grpc.gen.scaladsl.play.{ PlayScalaClientCodeGenerator, PlayScalaServerCodeGenerator }
 
 // This is the protoc plugin that the gradle plugin uses
 object Main extends App {
