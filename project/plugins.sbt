@@ -10,7 +10,7 @@ addSbtPlugin("com.lightbend.akka" % "sbt-paradox-akka" % "0.18")
 addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.4.0")
 addSbtPlugin("com.lightbend.sbt" % "sbt-publish-rsync" % "0.1")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
-addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.15")
+addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.16")
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.5")
 
