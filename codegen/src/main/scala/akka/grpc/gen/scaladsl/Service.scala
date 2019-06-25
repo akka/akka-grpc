@@ -10,7 +10,15 @@ import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
-case class Service(packageName: String, name: String, grpcName: String, methods: immutable.Seq[Method], serverPowerApi: Boolean, usePlayActions: Boolean) {
+case class Service(
+  packageName: String,
+  name: String,
+  grpcName: String,
+  methods: immutable.Seq[Method],
+  serverPowerApi: Boolean,
+  usePlayActions: Boolean,
+  comment: Option[String] = None) {
+
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
   def packageDir = packageName.replace('.', '/')
 }
@@ -28,6 +36,7 @@ object Service {
       fileDesc.getPackage + "." + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)).to[immutable.Seq],
       serverPowerApi,
-      usePlayActions)
+      usePlayActions,
+      serviceDescriptor.comment)
   }
 }

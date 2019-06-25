@@ -10,8 +10,14 @@ package @service.packageName;
 import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 
+@for(comment <- service.comment) {/**
+ *@{comment.replaceAll("\n", "\n *")}
+ */}
 public interface @{service.name} {
   @for(method <- service.methods) {
+  @for(comment <- method.comment) {/**
+   *@{comment.replaceAll("\n", "\n   *")}
+   */}
   @{method.getReturnType} @{method.name}(@{method.getParameterType} in);
   }
 

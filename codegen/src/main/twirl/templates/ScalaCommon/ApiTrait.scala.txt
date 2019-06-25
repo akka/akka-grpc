@@ -7,8 +7,14 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
+@for(comment <- service.comment) {/**
+ *@{comment.replaceAll("\n", "\n *")}
+ */}
 trait @{service.name} {
   @for(method <- service.methods) {
+  @for(comment <- method.comment) {/**
+   *@{comment.replaceAll("\n", "\n   *")}
+   */}
   def @{method.name}(in: @method.parameterType): @method.returnType
   }
 }

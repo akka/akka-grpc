@@ -14,10 +14,18 @@ service GreeterService {
     // Sends a greeting
     rpc SayHello (HelloRequest) returns (HelloReply) {}
 
+    // Comment spanning
+    // on several lines
     rpc ItKeepsTalking (stream HelloRequest) returns (HelloReply) {}
 
+    /*
+     * C style comments
+     */
     rpc ItKeepsReplying (HelloRequest) returns (stream HelloReply) {}
 
+    /* C style comments
+     * on several lines
+     * with non-empty heading/trailing line */
     rpc StreamHellos (stream HelloRequest) returns (stream HelloReply) {}
 }
 //#services

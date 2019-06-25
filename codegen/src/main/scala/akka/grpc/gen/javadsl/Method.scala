@@ -6,6 +6,9 @@ package akka.grpc.gen.javadsl
 
 import akka.grpc.gen._
 import com.google.protobuf.Descriptors.{ Descriptor, MethodDescriptor }
+import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
+
+import scala.collection.JavaConverters._
 
 final case class Method(
   name: String,
@@ -13,7 +16,8 @@ final case class Method(
   inputType: Descriptor,
   inputStreaming: Boolean,
   outputType: Descriptor,
-  outputStreaming: Boolean) {
+  outputStreaming: Boolean,
+  comment: Option[String] = None) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -50,13 +54,23 @@ final case class Method(
 
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
+
+    val comment = {
+      // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
+      // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
+      implicit val ops = new DescriptorImplicits(GeneratorParams(), descriptor.getFile.getDependencies.asScala :+ descriptor.getFile)
+      import ops._
+      descriptor.comment
+    }
+
     Method(
       name = methodName(descriptor.getName),
       grpcName = descriptor.getName,
       descriptor.getInputType,
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
-      descriptor.toProto.getServerStreaming)
+      descriptor.toProto.getServerStreaming,
+      comment)
   }
 
   private def methodName(name: String) =

@@ -14,7 +14,8 @@ case class Method(
   inputType: Descriptor,
   inputStreaming: Boolean,
   outputType: Descriptor,
-  outputStreaming: Boolean)(implicit ops: DescriptorImplicits) {
+  outputStreaming: Boolean,
+  comment: Option[String] = None)(implicit ops: DescriptorImplicits) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -51,13 +52,15 @@ case class Method(
 
 object Method {
   def apply(descriptor: MethodDescriptor)(implicit ops: DescriptorImplicits): Method = {
+    import ops._
     Method(
       name = methodName(descriptor.getName),
       grpcName = descriptor.getName,
       descriptor.getInputType,
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
-      descriptor.toProto.getServerStreaming)
+      descriptor.toProto.getServerStreaming,
+      descriptor.comment)
   }
 
   private def methodName(name: String) =
