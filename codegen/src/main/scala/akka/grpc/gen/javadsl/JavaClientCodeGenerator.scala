@@ -13,7 +13,7 @@ import templates.JavaClient.txt.{ Client, ClientPowerApi }
 trait JavaClientCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-client"
 
-  override def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] =
+  override def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] =
     super.perServiceContent +
       generateInterface +
       generateRaw

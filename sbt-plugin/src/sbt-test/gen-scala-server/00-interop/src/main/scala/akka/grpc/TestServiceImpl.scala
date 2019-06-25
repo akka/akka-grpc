@@ -73,7 +73,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
     in
       .map(_.payload.map(_.body.size).getOrElse(0))
       .runFold(0)(_ + _)
-      .map { sum ⇒
+      .map { sum =>
         StreamingInputCallResponse(sum)
       }
   }

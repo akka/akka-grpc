@@ -31,31 +31,31 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
 
     val requestHandler = TestServiceHandler(new TestServiceImpl())
 
-    val route: Route = (pathPrefix(TestService.name) & echoHeaders) { ctx ⇒
+    val route: Route = (pathPrefix(TestService.name) & echoHeaders) { ctx =>
       requestHandler(ctx.request).map(Complete)
     }
 
     Route.asyncHandler(Route.seal(route))
   })
 
-  val echoHeaders: Directive0 = extractRequest.flatMap(request ⇒ {
+  val echoHeaders: Directive0 = extractRequest.flatMap(request => {
     val initialHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-initial")
     val trailingHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-trailing-bin")
 
-    mapResponseHeaders(h ⇒ h ++ initialHeaderToEcho) & mapTrailingResponseHeaders(h ⇒ h ++ trailingHeaderToEcho)
+    mapResponseHeaders(h => h ++ initialHeaderToEcho) & mapTrailingResponseHeaders(h => h ++ trailingHeaderToEcho)
   })
 
   // TODO to be moved to the runtime lib (or even akka-http itself?)
-  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] ⇒ immutable.Seq[HttpHeader]) =
-    mapResponse(response ⇒
+  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] => immutable.Seq[HttpHeader]) =
+    mapResponse(response =>
       response.withEntity(response.entity match {
-        case HttpEntity.Chunked(contentType, data) ⇒ {
+        case HttpEntity.Chunked(contentType, data) => {
           HttpEntity.Chunked(contentType, data.map {
-            case chunk: HttpEntity.Chunk ⇒ chunk
-            case last: HttpEntity.LastChunk ⇒ HttpEntity.LastChunk(last.extension, f(last.trailer))
+            case chunk: HttpEntity.Chunk => chunk
+            case last: HttpEntity.LastChunk => HttpEntity.LastChunk(last.extension, f(last.trailer))
           })
         }
-        case _ ⇒
+        case _ =>
           throw new IllegalArgumentException("Trailing response headers are only supported on Chunked responses")
       }))
 }
@@ -68,7 +68,7 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
       "custom_metadata"
     )
 
-  val server = new AkkaGrpcServerJava((mat, sys) ⇒ {
+  val server = new AkkaGrpcServerJava((mat, sys) => {
     TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)
   })
 }

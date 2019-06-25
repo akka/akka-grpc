@@ -36,7 +36,7 @@ object GrpcMarshalling {
         // In gRPC we signal failure by returning an error code, so we
         // don't want the cancellation bubbled out
         .via(new CancellationBarrierGraphStage)
-        .mapMaterializedValue(japiFunction(_ ⇒ NotUsed)))
+        .mapMaterializedValue(japiFunction(_ => NotUsed)))
   }
 
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =

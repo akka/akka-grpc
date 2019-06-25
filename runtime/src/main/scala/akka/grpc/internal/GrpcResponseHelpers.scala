@@ -40,8 +40,8 @@ object GrpcResponseHelpers {
     GrpcResponseHelpers(
       e,
       Source
-        .lazilyAsync(() ⇒ status.map(trailer(_)))
-        .mapMaterializedValue(_ ⇒ NotUsed),
+        .lazilyAsync(() => status.map(trailer(_)))
+        .mapMaterializedValue(_ => NotUsed),
       eHandler)
   }
 
@@ -49,7 +49,7 @@ object GrpcResponseHelpers {
     val outChunks = e
       .map(m.serialize)
       .via(Grpc.grpcFramingEncoder(codec))
-      .map(bytes ⇒ HttpEntity.Chunk(bytes))
+      .map(bytes => HttpEntity.Chunk(bytes))
       .concat(trail)
       .recover {
         case t =>
@@ -73,6 +73,6 @@ object GrpcResponseHelpers {
     LastChunk(trailer = statusHeaders(status))
 
   def statusHeaders(status: Status): List[HttpHeader] =
-    List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d ⇒ headers.`Status-Message`(d))
+    List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d => headers.`Status-Message`(d))
 
 }

@@ -34,7 +34,7 @@ object Service {
       fileDesc.scalaPackageName,
       serviceClassName,
       fileDesc.getPackage + "." + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.map(method ⇒ Method(method)).to[immutable.Seq],
+      serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],
       serverPowerApi,
       usePlayActions,
       serviceDescriptor.comment)

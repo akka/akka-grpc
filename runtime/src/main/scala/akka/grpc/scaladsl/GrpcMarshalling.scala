@@ -29,7 +29,7 @@ object GrpcMarshalling {
     val messageEncoding = `Message-Encoding`.findIn(req.headers)
     Future.successful(
       req.entity.dataBytes
-        .mapMaterializedValue(_ ⇒ NotUsed)
+        .mapMaterializedValue(_ => NotUsed)
         .via(Grpc.grpcFramingDecoder(messageEncoding))
         .map(u.deserialize)
         // In gRPC we signal failure by returning an error code, so we

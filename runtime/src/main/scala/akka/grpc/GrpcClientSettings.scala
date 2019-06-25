@@ -119,8 +119,8 @@ object GrpcClientSettings {
   }
 
   private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = Helpers.toRootLowerCase(underlying.getString(path)) match {
-    case "infinite" ⇒ Duration.Inf
-    case _ ⇒ Duration.fromNanos(underlying.getDuration(path).toNanos)
+    case "infinite" => Duration.Inf
+    case _ => Duration.fromNanos(underlying.getDuration(path).toNanos)
   }
 
   private def staticServiceDiscovery(host: String, port: Int) =

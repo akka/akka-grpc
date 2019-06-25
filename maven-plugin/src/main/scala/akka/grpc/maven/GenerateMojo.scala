@@ -139,25 +139,25 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     } else {
       var loadedExtraGenerators = extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
       val targets = language match {
-        case Java ⇒
+        case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
             if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
           ).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
             glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
-        case Scala ⇒
+        case Scala =>
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
           ).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target](
-            (JvmGenerator("scala", ScalaPbCodeGenerator), generatorSettings.asScala.filterNot(_ == "server_power_apis").filterNot(_ == "use_play_actions")) → generatedSourcesDir) ++
+            (JvmGenerator("scala", ScalaPbCodeGenerator), generatorSettings.asScala.filterNot(_ == "server_power_apis").filterNot(_ == "use_play_actions")) -> generatedSourcesDir) ++
             glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
       }
 
-      val runProtoc: Seq[String] ⇒ Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      val runProtoc: Seq[String] => Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
       val protocOptions = Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)

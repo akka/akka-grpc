@@ -41,7 +41,7 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
       "custom_metadata",
     )
 
-  val server = new AkkaGrpcServerJava((mat, sys) ⇒ {
+  val server = new AkkaGrpcServerJava((mat, sys) => {
     TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)
   })
 }

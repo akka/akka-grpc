@@ -22,13 +22,13 @@ class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures 
   implicit val materializer = ActorMaterializer()
 
   val expected: Function[Throwable, Status] = {
-    case e: ExecutionException ⇒
+    case e: ExecutionException =>
       if (e.getCause == null) Status.INTERNAL
       else expected(e.getCause)
-    case grpcException: GrpcServiceException ⇒ grpcException.status
-    case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
-    case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
-    case other ⇒ Status.INTERNAL
+    case grpcException: GrpcServiceException => grpcException.status
+    case _: NotImplementedError => Status.UNIMPLEMENTED
+    case _: UnsupportedOperationException => Status.UNIMPLEMENTED
+    case other => Status.INTERNAL
   }
 
   val otherTypes: Seq[Throwable] = Seq(
