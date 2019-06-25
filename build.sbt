@@ -1,5 +1,5 @@
 import akka.grpc.Dependencies
-import akka.grpc.Dependencies.Versions.scala212
+import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 
@@ -28,6 +28,7 @@ lazy val codegen = Project(
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
       prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
     ),
+    crossScalaVersions -= scala213,
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -53,6 +54,7 @@ lazy val scalapbProtocPlugin = Project(
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
       prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
     ),
+    crossScalaVersions := Seq(scala212),
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -65,6 +67,7 @@ lazy val mavenPlugin = Project(
   .settings(Seq(
     publishMavenStyle := true,
     crossPaths := false,
+    crossScalaVersions := Seq(scala212),
   ))
   .dependsOn(codegen)
 
@@ -90,6 +93,7 @@ lazy val sbtPlugin = Project(
     },
     scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"),
+    crossScalaVersions := Seq(scala212),
   )
   .dependsOn(codegen)
 
@@ -162,7 +166,8 @@ lazy val docs = Project(
     ),
     resolvers += Resolver.jcenterRepo,
     publishRsyncArtifact := makeSite.value -> "www/",
-    publishRsyncHost := "akkarepo@gustav.akka.io"
+    publishRsyncHost := "akkarepo@gustav.akka.io",
+    crossScalaVersions := List(scala212, scala213),
   )
 
 lazy val pluginTesterScala = Project(
@@ -206,5 +211,7 @@ lazy val root = Project(
   )
   .settings(
     skip in publish := true,
-    unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get
+    unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
+    // https://github.com/sbt/sbt/issues/3465
+    crossScalaVersions := List(),
   )
