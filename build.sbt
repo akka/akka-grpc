@@ -54,7 +54,7 @@ lazy val scalapbProtocPlugin = Project(
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
       prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)
     ),
-    crossScalaVersions -= scala213,
+    crossScalaVersions := Seq(scala212),
   ))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
