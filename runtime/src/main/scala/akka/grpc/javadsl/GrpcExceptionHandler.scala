@@ -24,16 +24,16 @@ object GrpcExceptionHandler {
 
   def default(system: ActorSystem): jFunction[Throwable, Status] = new jFunction[Throwable, Status] {
     override def apply(param: Throwable): Status = param match {
-      case e: ExecutionException ⇒
+      case e: ExecutionException =>
         if (e.getCause == null) Status.INTERNAL
         else default(system)(e.getCause)
-      case e: CompletionException ⇒
+      case e: CompletionException =>
         if (e.getCause == null) Status.INTERNAL
         else default(system)(e.getCause)
-      case grpcException: GrpcServiceException ⇒ grpcException.status
-      case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
-      case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
-      case other ⇒
+      case grpcException: GrpcServiceException => grpcException.status
+      case _: NotImplementedError => Status.UNIMPLEMENTED
+      case _: UnsupportedOperationException => Status.UNIMPLEMENTED
+      case other =>
         system.log.error(other, other.getMessage)
         Status.INTERNAL
     }

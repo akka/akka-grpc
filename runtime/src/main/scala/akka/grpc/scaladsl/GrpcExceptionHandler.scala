@@ -20,13 +20,13 @@ object GrpcExceptionHandler {
   }
 
   def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Status] = {
-    case e: ExecutionException ⇒
+    case e: ExecutionException =>
       if (e.getCause == null) Status.INTERNAL
       else defaultMapper(system)(e.getCause)
-    case grpcException: GrpcServiceException ⇒ grpcException.status
-    case _: NotImplementedError ⇒ Status.UNIMPLEMENTED
-    case _: UnsupportedOperationException ⇒ Status.UNIMPLEMENTED
-    case other ⇒
+    case grpcException: GrpcServiceException => grpcException.status
+    case _: NotImplementedError => Status.UNIMPLEMENTED
+    case _: UnsupportedOperationException => Status.UNIMPLEMENTED
+    case other =>
       system.log.error(other, other.getMessage)
       Status.INTERNAL
   }

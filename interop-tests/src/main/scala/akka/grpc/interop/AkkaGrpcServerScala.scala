@@ -26,7 +26,7 @@ import scala.concurrent.{ Await, Future }
 /**
  * Glue code to start a gRPC server based on the akka-grpc Scala API to test against
  */
-case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest ⇒ Future[HttpResponse]) extends GrpcServer[(ActorSystem, ServerBinding)] {
+case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest => Future[HttpResponse]) extends GrpcServer[(ActorSystem, ServerBinding)] {
 
   override def start() = {
     implicit val sys = ActorSystem()
@@ -48,7 +48,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
   }
 
   override def stop(binding: (ActorSystem, ServerBinding)) = binding match {
-    case (sys, binding) ⇒
+    case (sys, binding) =>
       sys.log.info("Exception thrown, unbinding")
       Await.result(binding.unbind(), 10.seconds)
       Await.result(sys.terminate(), 10.seconds)

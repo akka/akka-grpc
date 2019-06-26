@@ -16,7 +16,7 @@ import scala.collection.immutable
 abstract class JavaCodeGenerator extends CodeGenerator {
 
   /** Override this to add generated files per service */
-  def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
+  def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   /** Override these to add service-independent generated files */
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
@@ -41,9 +41,9 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
     val services = (for {
-      file ← request.getFileToGenerateList.asScala
+      file <- request.getFileToGenerateList.asScala
       fileDesc = fileDescByName(file)
-      serviceDesc ← fileDesc.getServices.asScala
+      serviceDesc <- fileDesc.getServices.asScala
     } yield Service(fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toVector
 
     for {

@@ -15,7 +15,7 @@ import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
-  def perServiceContent: Set[(Logger, Service) ⇒ immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
+  def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   // Override these to add service-independent generated files
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
@@ -42,9 +42,9 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
 
     val services =
       (for {
-        file ← request.getFileToGenerateList.asScala
+        file <- request.getFileToGenerateList.asScala
         fileDesc = fileDescByName(file)
-        serviceDesc ← fileDesc.getServices.asScala
+        serviceDesc <- fileDesc.getServices.asScala
       } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toSeq
 
     for {

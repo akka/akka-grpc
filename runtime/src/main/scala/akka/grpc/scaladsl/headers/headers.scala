@@ -6,7 +6,7 @@ package akka.grpc.scaladsl.headers
 
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
-import akka.http.javadsl.{ model ⇒ jm }
+import akka.http.javadsl.{ model => jm }
 
 import scala.collection.immutable
 import scala.util.Try
@@ -64,7 +64,7 @@ object `Status` extends ModeledCustomHeaderCompanion[`Status`] {
   override def parse(value: String) = Try(new `Status`(Integer.parseInt(value)))
 
   def findIn(headers: immutable.Seq[HttpHeader]): Option[Int] =
-    headers.find(_.is(name)).map(h ⇒ Integer.parseInt(h.value()))
+    headers.find(_.is(name)).map(h => Integer.parseInt(h.value()))
 }
 
 // TODO percent-encoding of message?

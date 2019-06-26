@@ -45,11 +45,11 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   })
 
   // Directive to implement the 'custom_metadata' test
-  val echoHeaders: Directive0 = extractRequest.flatMap(request ⇒ {
+  val echoHeaders: Directive0 = extractRequest.flatMap(request => {
     val initialHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-initial")
     val trailingHeaderToEcho = request.headers.find(_.name() == "x-grpc-test-echo-trailing-bin")
 
-    mapResponseHeaders(h ⇒ h ++ initialHeaderToEcho) & mapTrailingResponseHeaders(h ⇒ h ++ trailingHeaderToEcho)
+    mapResponseHeaders(h => h ++ initialHeaderToEcho) & mapTrailingResponseHeaders(h => h ++ trailingHeaderToEcho)
   })
 
   // Route to pass the 'status_code_and_message' test
@@ -60,34 +60,34 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
     import TestServiceMarshallers._
 
     pathPrefix("UnaryCall") {
-      entity(as[SimpleRequest]) { req ⇒
+      entity(as[SimpleRequest]) { req =>
         val simpleResponse = testServiceImpl.unaryCall(req)
 
         req.responseStatus match {
-          case None ⇒
+          case None =>
             complete(simpleResponse)
-          case Some(responseStatus) ⇒
-            mapTrailingResponseHeaders(_ ⇒ GrpcResponseHelpers.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+          case Some(responseStatus) =>
+            mapTrailingResponseHeaders(_ => GrpcResponseHelpers.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
         }
 
       }
     } ~ pathPrefix("FullDuplexCall") {
-      entity(as[Source[StreamingOutputCallRequest, NotUsed]]) { source ⇒
+      entity(as[Source[StreamingOutputCallRequest, NotUsed]]) { source =>
 
         val status = Promise[Status]
 
-        val effectingSource = source.map { requestElement ⇒
+        val effectingSource = source.map { requestElement =>
           requestElement.responseStatus match {
-            case None ⇒
+            case None =>
               status.trySuccess(Status.OK)
-            case Some(responseStatus) ⇒
+            case Some(responseStatus) =>
               status.trySuccess(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))
           }
           requestElement
-        }.watchTermination()((NotUsed, f) ⇒ {
-          f.foreach(_ ⇒ status.trySuccess(Status.OK))
+        }.watchTermination()((NotUsed, f) => {
+          f.foreach(_ => status.trySuccess(Status.OK))
           NotUsed
         })
 
@@ -97,17 +97,17 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   }
 
   // TODO move to runtime library or even akka-http
-  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] ⇒ immutable.Seq[HttpHeader]): Directive0 =
-    mapResponse(response ⇒
+  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] => immutable.Seq[HttpHeader]): Directive0 =
+    mapResponse(response =>
       response.withEntity(response.entity match {
-        case HttpEntity.Chunked(contentType, data) ⇒ {
+        case HttpEntity.Chunked(contentType, data) => {
           HttpEntity.Chunked(contentType, data.map {
-            case chunk: HttpEntity.Chunk ⇒ chunk
-            case last: HttpEntity.LastChunk ⇒
+            case chunk: HttpEntity.Chunk => chunk
+            case last: HttpEntity.LastChunk =>
               HttpEntity.LastChunk(last.extension, f(last.trailer))
           })
         }
-        case _ ⇒
+        case _ =>
           throw new IllegalArgumentException("Trailing response headers are only supported on Chunked responses")
       }))
 }
