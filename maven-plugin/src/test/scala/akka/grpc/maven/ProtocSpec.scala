@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -11,7 +11,9 @@ class ProtocSpec extends WordSpec with Matchers {
   "The protoc error messages" must {
     "be parsed into details" in {
       GenerateMojo.parseError("notifications.proto:12:1: Expected top-level statement (e.g. \"message\").") should
-        ===(Left(GenerateMojo.ProtocError("notifications.proto", 12, 1, "Expected top-level statement (e.g. \"message\").")))
+      ===(
+        Left(
+          GenerateMojo.ProtocError("notifications.proto", 12, 1, "Expected top-level statement (e.g. \"message\").")))
 
     }
     "be kept if not parseable" in {

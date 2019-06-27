@@ -25,7 +25,9 @@ import scala.compat.java8.FutureConverters._
  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
  */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(implicit mat: Materializer, ex: ExecutionContext) {
+final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(
+    implicit mat: Materializer,
+    ex: ExecutionContext) {
 
   def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
     this(settings, s => NettyClientUtils.createChannel(s))
@@ -44,16 +46,13 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
 
   def withChannel[A](f: Future[ManagedChannel] => A): A =
     f {
-      internalChannelRef
-        .get()
-        .getOrElse(throw new ClientClosedException)
-        .managedChannel
+      internalChannelRef.get().getOrElse(throw new ClientClosedException).managedChannel
     }
 
   def closedCS(): CompletionStage[Done] = closed().toJava
   def closeCS(): CompletionStage[Done] = close().toJava
 
-  def closed(): Future[Done] = {
+  def closed(): Future[Done] =
     // while there's no request to close this RestartingClient, it will continue to restart.
     // Once there's demand, the `closeDemand` future will redeem flatMapping with the `closing`
     // future which is a reference to promise of the internalChannel close status.
@@ -61,7 +60,6 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
       // `closeDemand` guards the read access to `closing`
       closing.get().get
     }
-  }
 
   @tailrec
   def close(): Future[Done] = {

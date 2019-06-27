@@ -26,7 +26,8 @@ import scala.concurrent.{ Await, Future }
 /**
  * Glue code to start a gRPC server based on the akka-grpc Scala API to test against
  */
-case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest => Future[HttpResponse]) extends GrpcServer[(ActorSystem, ServerBinding)] {
+case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest => Future[HttpResponse])
+    extends GrpcServer[(ActorSystem, ServerBinding)] {
 
   override def start() = {
     implicit val sys = ActorSystem()
@@ -40,8 +41,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
       interface = "127.0.0.1",
       port = 0,
       parallelism = 256, // TODO remove once https://github.com/akka/akka-http/pull/2146 is merged
-      connectionContext = serverHttpContext()
-    )
+      connectionContext = serverHttpContext())
 
     val binding = Await.result(bindingFuture, 10.seconds)
     (sys, binding)
@@ -56,10 +56,11 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
   }
 
   private def serverHttpContext() = {
-    val keyEncoded = new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath)), "UTF-8")
-      .replace("-----BEGIN PRIVATE KEY-----\n", "")
-      .replace("-----END PRIVATE KEY-----\n", "")
-      .replace("\n", "")
+    val keyEncoded =
+      new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath)), "UTF-8")
+        .replace("-----BEGIN PRIVATE KEY-----\n", "")
+        .replace("-----END PRIVATE KEY-----\n", "")
+        .replace("\n", "")
 
     val decodedKey = Base64.getDecoder.decode(keyEncoded)
 

@@ -11,13 +11,13 @@ import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 import scala.collection.JavaConverters._
 
 final case class Method(
-  name: String,
-  grpcName: String,
-  inputType: Descriptor,
-  inputStreaming: Boolean,
-  outputType: Descriptor,
-  outputStreaming: Boolean,
-  comment: Option[String] = None) {
+    name: String,
+    grpcName: String,
+    inputType: Descriptor,
+    inputStreaming: Boolean,
+    outputType: Descriptor,
+    outputStreaming: Boolean,
+    comment: Option[String] = None) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -37,9 +37,9 @@ final case class Method(
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {
       case (false, false) => Unary
-      case (true, false) => ClientStreaming
-      case (false, true) => ServerStreaming
-      case (true, true) => BidiStreaming
+      case (true, false)  => ClientStreaming
+      case (false, true)  => ServerStreaming
+      case (true, true)   => BidiStreaming
     }
   }
 
@@ -58,7 +58,8 @@ object Method {
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
-      implicit val ops = new DescriptorImplicits(GeneratorParams(), descriptor.getFile.getDependencies.asScala :+ descriptor.getFile)
+      implicit val ops =
+        new DescriptorImplicits(GeneratorParams(), descriptor.getFile.getDependencies.asScala :+ descriptor.getFile)
       import ops._
       descriptor.comment
     }
@@ -80,11 +81,10 @@ object Method {
     "_root_." + t.getFile.getOptions.getJavaPackage + "." + protoName(t) + "." + t.getName
 
   /** Java API */
-  def getMessageType(t: Descriptor) = {
+  def getMessageType(t: Descriptor) =
     t.getFile.getOptions.getJavaPackage + "." + outerClass(t) + t.getName
-  }
 
-  private def outerClass(t: Descriptor) = {
+  private def outerClass(t: Descriptor) =
     if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""
     else {
       val outerClassName = t.getFile.toProto.getOptions.getJavaOuterClassname
@@ -94,7 +94,6 @@ object Method {
         outerClassName + "."
       }
     }
-  }
 
   private def protoName(t: Descriptor) =
     t.getFile.getName.replaceAll("\\.proto", "").split("/").last

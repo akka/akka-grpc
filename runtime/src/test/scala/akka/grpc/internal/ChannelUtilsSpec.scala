@@ -29,7 +29,9 @@ object ChannelUtilsSpec {
     override def isTerminated: Boolean = ???
     override def shutdownNow(): ManagedChannel = ???
     override def awaitTermination(timeout: Long, unit: TimeUnit): Boolean = ???
-    override def newCall[RequestT, ResponseT](methodDescriptor: MethodDescriptor[RequestT, ResponseT], callOptions: CallOptions): ClientCall[RequestT, ResponseT] = ???
+    override def newCall[RequestT, ResponseT](
+        methodDescriptor: MethodDescriptor[RequestT, ResponseT],
+        callOptions: CallOptions): ClientCall[RequestT, ResponseT] = ???
     override def authority(): String = ???
 
     override def getState(requestConnection: Boolean): ConnectivityState = {
@@ -38,9 +40,8 @@ object ChannelUtilsSpec {
       next
     }
 
-    override def notifyWhenStateChanged(source: ConnectivityState, callback: Runnable): Unit = {
+    override def notifyWhenStateChanged(source: ConnectivityState, callback: Runnable): Unit =
       currentCallBack = callback
-    }
 
     def runCallBack(): Unit = {
       val callb = currentCallBack
@@ -56,7 +57,8 @@ class ChannelUtilsSpec extends WordSpec with Matchers with ScalaFutures {
   "Channel monitor" should {
     "should fail if enter into failure configured number of times" in {
       val promise = Promise[Done]
-      val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
+      val fakeChannel = new FakeChannel(
+        Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
 
       ChannelUtils.monitorChannel(promise, fakeChannel, Some(2))
       // IDLE => CONNECTING
@@ -77,7 +79,17 @@ class ChannelUtilsSpec extends WordSpec with Matchers with ScalaFutures {
 
     "should reset counter if enters into ready" in {
       val promise = Promise[Done]
-      val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, READY, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
+      val fakeChannel =
+        new FakeChannel(
+          Stream(
+            IDLE,
+            CONNECTING,
+            TRANSIENT_FAILURE,
+            CONNECTING,
+            READY,
+            TRANSIENT_FAILURE,
+            CONNECTING,
+            TRANSIENT_FAILURE))
       ChannelUtils.monitorChannel(promise, fakeChannel, Some(2))
       // IDLE => CONNECTING
       fakeChannel.runCallBack()

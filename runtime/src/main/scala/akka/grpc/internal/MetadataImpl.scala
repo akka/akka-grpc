@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -44,13 +44,13 @@ import scala.compat.java8.OptionConverters._
     new akka.grpc.scaladsl.Metadata {
       def getText(key: String): Option[String] = metadata.get(key) match {
         case Some(StringEntry(text) :: Nil) => Some(text)
-        case Some(multiple) => multiple.reverseIterator.collectFirst { case StringEntry(text) => text }
-        case _ => None
+        case Some(multiple)                 => multiple.reverseIterator.collectFirst { case StringEntry(text) => text }
+        case _                              => None
       }
       def getBinary(key: String): Option[ByteString] = metadata.get(key) match {
         case Some(BytesEntry(bytes) :: Nil) => Some(bytes)
-        case Some(multiple) => multiple.reverseIterator.collectFirst { case BytesEntry(bytes) => bytes }
-        case _ => None
+        case Some(multiple)                 => multiple.reverseIterator.collectFirst { case BytesEntry(bytes) => bytes }
+        case _                              => None
       }
 
       def asMap: Map[String, List[MetadataEntry]] = metadata
@@ -63,13 +63,13 @@ import scala.compat.java8.OptionConverters._
     new javadsl.Metadata {
       def getText(key: String): Optional[String] = metadata.get(key) match {
         case Some(StringEntry(text) :: Nil) => Optional.of(text)
-        case Some(multiple) => multiple.reverseIterator.collectFirst { case StringEntry(text) => text }.asJava
-        case _ => Optional.empty()
+        case Some(multiple)                 => multiple.reverseIterator.collectFirst { case StringEntry(text) => text }.asJava
+        case _                              => Optional.empty()
       }
       def getBinary(key: String): Optional[ByteString] = metadata.get(key) match {
         case Some(BytesEntry(bytes) :: Nil) => Optional.of(bytes)
-        case Some(multiple) => multiple.reverseIterator.collectFirst { case BytesEntry(bytes) => bytes }.asJava
-        case _ => Optional.empty()
+        case Some(multiple)                 => multiple.reverseIterator.collectFirst { case BytesEntry(bytes) => bytes }.asJava
+        case _                              => Optional.empty()
       }
       override def toString: String = s"Metadata(${niceStringRep(metadata)})"
     }

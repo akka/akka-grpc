@@ -13,7 +13,8 @@ import akka.grpc.ProtobufSerializer
  * INTERNAL API
  */
 @InternalApi
-class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T])
+    extends io.grpc.MethodDescriptor.Marshaller[T] {
 
   override def parse(stream: InputStream): T = {
     val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
@@ -29,7 +30,6 @@ class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]
     u.deserialize(akka.util.ByteString(baos.toByteArray))
   }
 
-  override def stream(value: T): InputStream = {
+  override def stream(value: T): InputStream =
     new ByteArrayInputStream(value.toByteArray) with KnownLength
-  }
 }

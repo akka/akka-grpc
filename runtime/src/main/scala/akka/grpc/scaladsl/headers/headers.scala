@@ -11,13 +11,15 @@ import akka.http.javadsl.{ model => jm }
 import scala.collection.immutable
 import scala.util.Try
 
-final class `Message-Accept-Encoding`(override val value: String) extends ModeledCustomHeader[`Message-Accept-Encoding`] {
+final class `Message-Accept-Encoding`(override val value: String)
+    extends ModeledCustomHeader[`Message-Accept-Encoding`] {
   override def renderInRequests = true
   override def renderInResponses = true
   override val companion = `Message-Accept-Encoding`
 
   lazy val values: Array[String] = value.split(",")
 }
+
 object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-Accept-Encoding`] {
   override val name = "grpc-accept-encoding"
   override def parse(value: String) = Try(new `Message-Accept-Encoding`(value))
@@ -39,6 +41,7 @@ final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Me
   override val companion = `Message-Encoding`
   override def value: String = encoding
 }
+
 object `Message-Encoding` extends ModeledCustomHeaderCompanion[`Message-Encoding`] {
   override val name = "grpc-encoding"
   override def parse(encoding: String) = Try(new `Message-Encoding`(encoding))
@@ -59,6 +62,7 @@ final class `Status`(code: Int) extends ModeledCustomHeader[`Status`] {
   override val companion = `Status`
   override def value() = code.toString
 }
+
 object `Status` extends ModeledCustomHeaderCompanion[`Status`] {
   override val name = "grpc-status"
   override def parse(value: String) = Try(new `Status`(Integer.parseInt(value)))
@@ -73,6 +77,7 @@ final class `Status-Message`(override val value: String) extends ModeledCustomHe
   override def renderInResponses = true
   override val companion = `Status-Message`
 }
+
 object `Status-Message` extends ModeledCustomHeaderCompanion[`Status-Message`] {
   override val name = "grpc-message"
   override def parse(value: String) = Try(new `Status-Message`(value))

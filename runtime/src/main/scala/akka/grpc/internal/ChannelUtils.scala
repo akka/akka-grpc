@@ -36,21 +36,24 @@ object ChannelUtils {
     internalChannel.managedChannel.foreach(_.shutdown())
     internalChannel.done
   }
+
   /**
    * INTERNAL API
    */
   @InternalApi
-  def closeCS(internalChannel: InternalChannel)(implicit ec: ExecutionContext): CompletionStage[Done] = {
+  def closeCS(internalChannel: InternalChannel)(implicit ec: ExecutionContext): CompletionStage[Done] =
     close(internalChannel).toJava
-  }
 
   /**
    * INTERNAL API
    */
   @InternalApi
-  private[akka] def monitorChannel(done: Promise[Done], channel: ManagedChannel, maxConnectionAttempts: Option[Int]): Unit = {
+  private[akka] def monitorChannel(
+      done: Promise[Done],
+      channel: ManagedChannel,
+      maxConnectionAttempts: Option[Int]): Unit = {
 
-    def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit = {
+    def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit =
       if (maxConnectionAttempts.contains(connectionAttempts)) {
         // shutdown is idempotent in ManagedChannelImpl
         channel.shutdown()
@@ -60,21 +63,21 @@ object ChannelUtils {
         if (currentState == ConnectivityState.SHUTDOWN) {
           done.trySuccess(Done)
         } else {
-          channel.notifyWhenStateChanged(currentState, new Runnable {
-            def run() = {
-              if (currentState == ConnectivityState.TRANSIENT_FAILURE) {
-                monitor(currentState, connectionAttempts + 1)
-              } else if (currentState == ConnectivityState.READY) {
-                monitor(currentState, 0)
-              } else {
-                // IDLE / CONNECTING / SHUTDOWN
-                monitor(currentState, connectionAttempts)
-              }
-            }
-          })
+          channel.notifyWhenStateChanged(
+            currentState,
+            new Runnable {
+              def run() =
+                if (currentState == ConnectivityState.TRANSIENT_FAILURE) {
+                  monitor(currentState, connectionAttempts + 1)
+                } else if (currentState == ConnectivityState.READY) {
+                  monitor(currentState, 0)
+                } else {
+                  // IDLE / CONNECTING / SHUTDOWN
+                  monitor(currentState, connectionAttempts)
+                }
+            })
         }
       }
-    }
 
     monitor(channel.getState(false), 0)
 

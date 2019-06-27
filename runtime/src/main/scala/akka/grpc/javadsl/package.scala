@@ -5,6 +5,7 @@
 package akka.grpc
 
 package object javadsl {
+
   /**
    * Helper for creating akka.japi.function.Function instances from Scala
    * functions as Scala 2.11 does not know about SAMs.
@@ -35,7 +36,8 @@ package object javadsl {
    * Helper for creating Scala anonymous partial functions from  akka.japi.Function
    * instances as Scala 2.11 does not know about SAMs.
    */
-  def scalaAnonymousPartialFunction[A, B, C](f: akka.japi.Function[A, akka.japi.Function[B, C]]): A => PartialFunction[B, C] =
+  def scalaAnonymousPartialFunction[A, B, C](
+      f: akka.japi.Function[A, akka.japi.Function[B, C]]): A => PartialFunction[B, C] =
     a => scalaPartialFunction(f(a))
 
 }

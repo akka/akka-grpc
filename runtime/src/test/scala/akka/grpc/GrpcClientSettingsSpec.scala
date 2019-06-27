@@ -18,8 +18,7 @@ import scala.concurrent.Future
 
 class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
   "The gRPC client settings spec" should {
-    val clientWithServiceDiscovery = ConfigFactory.parseString(
-      """
+    val clientWithServiceDiscovery = ConfigFactory.parseString("""
         //#config-service-discovery
         akka.grpc.client {
           "project.WithConfigServiceDiscovery" {
@@ -54,8 +53,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
          }
         """)
 
-    val clientWithNoServiceName = ConfigFactory.parseString(
-      """
+    val clientWithNoServiceName = ConfigFactory.parseString("""
         akka.grpc.client {
           "project.WithNoServiceName" {
             service-discovery {
@@ -66,8 +64,10 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         }
         """)
 
-    implicit val sys = ActorSystem("test", ConfigFactory.parseString(
-      """
+    implicit val sys = ActorSystem(
+      "test",
+      ConfigFactory
+        .parseString("""
         //#client-config
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
@@ -83,13 +83,12 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         }
         //#client-config
       """)
-      .withFallback(clientWithServiceDiscovery)
-      .withFallback(clientWithNoServiceName)
-      .withFallback(ConfigFactory.load()))
+        .withFallback(clientWithServiceDiscovery)
+        .withFallback(clientWithNoServiceName)
+        .withFallback(ConfigFactory.load()))
 
     def sysWithCert(certFileName: String) = {
-      val clientConfig = ConfigFactory.parseString(
-        s"""
+      val clientConfig = ConfigFactory.parseString(s"""
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
             service-discovery {
@@ -138,8 +137,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
     "load a user defined service discovery mechanism" in {
       //#sd-settings
       // sys is an ActorSystem which is required for service discovery
-      val settings = GrpcClientSettings.fromConfig(
-        clientName = "project.WithConfigServiceDiscovery")
+      val settings = GrpcClientSettings.fromConfig(clientName = "project.WithConfigServiceDiscovery")
       //#sd-settings
 
       settings.serviceDiscovery shouldBe a[ConfigServiceDiscovery]
@@ -164,7 +162,8 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
     "provide a useful error message if configuration missing" in {
       intercept[IllegalArgumentException] {
         GrpcClientSettings.fromConfig("project.MissingConfiguration")
-      }.getMessage should be("requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
+      }.getMessage should be(
+        "requirement failed: Config path `akka.grpc.client.project.MissingConfiguration` does not exist")
     }
 
     "fail fast if no service name" in {

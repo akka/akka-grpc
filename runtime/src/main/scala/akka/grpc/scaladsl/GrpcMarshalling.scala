@@ -19,13 +19,11 @@ import scala.concurrent.Future
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     val messageEncoding = `Message-Encoding`.findIn(req.headers)
-    req.entity.dataBytes
-      .via(Grpc.grpcFramingDecoder(messageEncoding))
-      .map(u.deserialize)
-      .runWith(Sink.head)(mat)
+    req.entity.dataBytes.via(Grpc.grpcFramingDecoder(messageEncoding)).map(u.deserialize).runWith(Sink.head)(mat)
   }
 
-  def unmarshalStream[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
+  def unmarshalStream[T](
+      req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
     val messageEncoding = `Message-Encoding`.findIn(req.headers)
     Future.successful(
       req.entity.dataBytes
@@ -37,10 +35,22 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage))
   }
 
-  def marshal[T](e: T = Identity, eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+  def marshal[T](
+      e: T = Identity,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      codec: Codec,
+      system: ActorSystem): HttpResponse =
     marshalStream(Source.single(e), eHandler)
 
-  def marshalStream[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(implicit m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
+  def marshalStream[T](
+      e: Source[T, NotUsed],
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      codec: Codec,
+      system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, eHandler)
 
 }

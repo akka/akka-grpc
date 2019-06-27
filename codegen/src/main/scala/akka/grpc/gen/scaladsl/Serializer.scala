@@ -10,7 +10,8 @@ import scalapb.compiler.DescriptorImplicits
 case class Serializer(name: String, init: String)
 
 object Serializer {
-  def apply(messageType: Descriptor)(implicit ops: DescriptorImplicits): Serializer = Serializer(
-    messageType.getName + "Serializer",
-    s"new ScalapbProtobufSerializer(${Method.messageType(messageType)}.messageCompanion)")
+  def apply(messageType: Descriptor)(implicit ops: DescriptorImplicits): Serializer =
+    Serializer(
+      messageType.getName + "Serializer",
+      s"new ScalapbProtobufSerializer(${Method.messageType(messageType)}.messageCompanion)")
 }

@@ -18,9 +18,7 @@ object GrpcClientSettingsCompileOnly {
   //#simple
 
   //#simple-programmatic
-  GrpcClientSettings.connectToServiceAt("localhost", 443)
-    .withDeadline(1.second)
-    .withTls(false)
+  GrpcClientSettings.connectToServiceAt("localhost", 443).withDeadline(1.second).withTls(false)
   //#simple-programmatic
 
   val serviceDiscovery: ServiceDiscovery = Discovery.get(actorSystem).discovery

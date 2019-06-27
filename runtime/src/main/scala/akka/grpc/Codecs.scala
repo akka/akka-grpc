@@ -17,7 +17,8 @@ object Codecs {
   private val byName = supportedCodecs.map(c => c.name -> c).toMap
 
   def negotiate(request: jm.HttpRequest): Codec =
-    `Message-Accept-Encoding`.findIn(request.getHeaders)
+    `Message-Accept-Encoding`
+      .findIn(request.getHeaders)
       .intersect(supported)
       .headOption
       .map(byName(_))

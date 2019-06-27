@@ -63,8 +63,7 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
     // test case 6
     "fail with INTERNAL when the compressed bit is on but the encoding is missing" in {
-      val request = HttpRequest(
-        entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
+      val request = HttpRequest(entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       assertFailure(GrpcMarshalling.unmarshal(request), Status.Code.INTERNAL, "encoding")
     }

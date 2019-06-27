@@ -15,7 +15,7 @@ import akka.stream.scaladsl.Source
 import io.grpc.Status
 import io.grpc.testing.integration.TestServiceHandlerFactory
 import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration.test.{TestService, TestServiceHandler, TestServiceMarshallers}
+import io.grpc.testing.integration.test.{ TestService, TestServiceHandler, TestServiceMarshallers }
 import org.scalatest._
 
 import scala.collection.immutable
@@ -26,20 +26,22 @@ class GrpcInteropIoWithAkkaScalaSpec extends GrpcInteropTests(IoGrpcJavaServerPr
 class GrpcInteropIoWithAkkaJavaSpec extends GrpcInteropTests(IoGrpcJavaServerProvider, AkkaHttpClientProviderJava)
 
 class GrpcInteropAkkaScalaWithIoSpec extends GrpcInteropTests(AkkaHttpServerProviderScala, IoGrpcJavaClientProvider)
-class GrpcInteropAkkaScalaWithAkkaScalaSpec extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderScala)
-class GrpcInteropAkkaScalaWithAkkaJavaSpec extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderJava)
+class GrpcInteropAkkaScalaWithAkkaScalaSpec
+    extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderScala)
+class GrpcInteropAkkaScalaWithAkkaJavaSpec
+    extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderJava)
 
 class GrpcInteropAkkaJavaWithIoSpec extends GrpcInteropTests(AkkaHttpServerProviderJava, IoGrpcJavaClientProvider)
-class GrpcInteropAkkaJavaWithAkkaScalaSpec extends GrpcInteropTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderScala)
-class GrpcInteropAkkaJavaWithAkkaJavaSpec extends GrpcInteropTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderJava)
+class GrpcInteropAkkaJavaWithAkkaScalaSpec
+    extends GrpcInteropTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderScala)
+class GrpcInteropAkkaJavaWithAkkaJavaSpec
+    extends GrpcInteropTests(AkkaHttpServerProviderJava, AkkaHttpClientProviderJava)
 
 object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
   val label: String = "akka-grpc java server"
 
   val pendingCases =
-    Set(
-      "custom_metadata",
-    )
+    Set("custom_metadata")
 
   val server = new AkkaGrpcServerJava((mat, sys) => {
     TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -25,9 +25,13 @@ object ServiceHandler {
    * `Http.get(system).bindAndHandleAsync` for the generated handlers and ends with `StatusCodes.NotFound`
    * if the request is not matching.
    */
-  @varargs def concatOrNotFound(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
+  @varargs def concatOrNotFound(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
+      : JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
 
-    def cont(req: HttpRequest, response: CompletionStage[HttpResponse], remainingHandlers: List[JFunction[HttpRequest, CompletionStage[HttpResponse]]]): CompletionStage[HttpResponse] = {
+    def cont(
+        req: HttpRequest,
+        response: CompletionStage[HttpResponse],
+        remainingHandlers: List[JFunction[HttpRequest, CompletionStage[HttpResponse]]]): CompletionStage[HttpResponse] =
       remainingHandlers match {
         case Nil => response
         case head :: tail =>
@@ -39,7 +43,6 @@ object ServiceHandler {
               response
           })
       }
-    }
 
     new JFunction[HttpRequest, CompletionStage[HttpResponse]] {
       override def apply(req: HttpRequest): CompletionStage[HttpResponse] =

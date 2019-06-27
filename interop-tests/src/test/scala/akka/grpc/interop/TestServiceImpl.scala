@@ -21,11 +21,9 @@ import io.grpc.testing.integration.test.TestService
 
 object TestServiceImpl {
   val parametersToResponseFlow: Flow[ResponseParameters, StreamingOutputCallResponse, NotUsed] =
-    Flow[ResponseParameters]
-      .map { parameters =>
-        StreamingOutputCallResponse(
-          Some(Payload(body = ByteString.copyFrom(new Array[Byte](parameters.size)))))
-      }
+    Flow[ResponseParameters].map { parameters =>
+      StreamingOutputCallResponse(Some(Payload(body = ByteString.copyFrom(new Array[Byte](parameters.size)))))
+    }
 }
 
 /**
@@ -42,7 +40,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
   override def emptyCall(req: Empty) =
     Future.successful(Empty())
 
-  override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = {
+  override def unaryCall(req: SimpleRequest): Future[SimpleResponse] =
     req.responseStatus match {
       case None =>
         Future.successful(SimpleResponse(Some(Payload(ByteString.copyFrom(new Array[Byte](req.responseSize))))))
@@ -52,29 +50,26 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
         // Future.failed(new GrpcServiceException(responseStatus))
         throw new GrpcServiceException(responseStatus)
     }
-  }
 
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
 
-  override def fullDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
+  override def fullDuplexCall(
+      in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
     in.map(req => {
-      req.responseStatus.foreach(reqStatus =>
-        throw new GrpcServiceException(
-          Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
-      req
-    }).mapConcat(
-      _.responseParameters.toList).via(parametersToResponseFlow)
+        req.responseStatus.foreach(reqStatus =>
+          throw new GrpcServiceException(Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
+        req
+      })
+      .mapConcat(_.responseParameters.toList)
+      .via(parametersToResponseFlow)
 
-  override def halfDuplexCall(in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
+  override def halfDuplexCall(
+      in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
-  override def streamingInputCall(in: Source[StreamingInputCallRequest, NotUsed]): Future[StreamingInputCallResponse] = {
-    in
-      .map(_.payload.map(_.body.size).getOrElse(0))
-      .runFold(0)(_ + _)
-      .map { sum =>
-        StreamingInputCallResponse(sum)
-      }
-  }
+  override def streamingInputCall(in: Source[StreamingInputCallRequest, NotUsed]): Future[StreamingInputCallResponse] =
+    in.map(_.payload.map(_.body.size).getOrElse(0)).runFold(0)(_ + _).map { sum =>
+      StreamingInputCallResponse(sum)
+    }
 
   override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, NotUsed] =
     Source(in.responseParameters.toList).via(parametersToResponseFlow)

@@ -11,25 +11,30 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 final case class Service(
-  packageName: String,
-  name: String,
-  grpcName: String,
-  methods: immutable.Seq[Method],
-  serverPowerApi: Boolean,
-  usePlayActions: Boolean,
-  comment: Option[String] = None) {
+    packageName: String,
+    name: String,
+    grpcName: String,
+    methods: immutable.Seq[Method],
+    serverPowerApi: Boolean,
+    usePlayActions: Boolean,
+    comment: Option[String] = None) {
 
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
   def packageDir = packageName.replace('.', '/')
 }
 
 object Service {
-  def apply(fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor, serverPowerApi: Boolean, usePlayActions: Boolean): Service = {
+  def apply(
+      fileDesc: FileDescriptor,
+      serviceDescriptor: ServiceDescriptor,
+      serverPowerApi: Boolean,
+      usePlayActions: Boolean): Service = {
 
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
-      implicit val ops = new DescriptorImplicits(GeneratorParams(), fileDesc.getDependencies.asScala :+ fileDesc.getFile)
+      implicit val ops =
+        new DescriptorImplicits(GeneratorParams(), fileDesc.getDependencies.asScala :+ fileDesc.getFile)
       import ops._
       serviceDescriptor.comment
     }

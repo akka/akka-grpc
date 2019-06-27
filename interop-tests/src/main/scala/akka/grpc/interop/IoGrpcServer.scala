@@ -17,7 +17,8 @@ object IoGrpcServer extends GrpcServer[TestServiceServer] {
     val server = new TestServiceServer
     if (server.useTls && !didAlreadyWarn) {
       didAlreadyWarn = true
-      println("\nUsing fake CA for TLS certificate. Test clients should expect host\n" +
+      println(
+        "\nUsing fake CA for TLS certificate. Test clients should expect host\n" +
         "*.test.google.fr and our test CA. For the Java test client binary, use:\n" +
         "--server_host_override=foo.test.google.fr --use_test_ca=true\n")
     }

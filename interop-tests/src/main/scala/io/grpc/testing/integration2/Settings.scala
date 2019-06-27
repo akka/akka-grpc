@@ -7,16 +7,16 @@ package io.grpc.testing.integration2
 import io.grpc.testing.integration.TestCases
 
 final case class Settings(
-  serverHost: String,
-  serverHostOverride: String,
-  serverPort: Int,
-  testCase: String,
-  useTls: Boolean,
-  useTestCa: Boolean,
-  useAkkaHttp: Boolean,
-  defaultServiceAccount: String,
-  serviceAccountKeyFile: String,
-  oauthScope: String) {
+    serverHost: String,
+    serverHostOverride: String,
+    serverPort: Int,
+    testCase: String,
+    useTls: Boolean,
+    useTestCa: Boolean,
+    useAkkaHttp: Boolean,
+    defaultServiceAccount: String,
+    serviceAccountKeyFile: String,
+    oauthScope: String) {
 
   // some getters for access from java
   def getTestCase = testCase
@@ -52,8 +52,7 @@ object Settings {
         builder.toString
       }
 
-      println(
-        s"""
+      println(s"""
              | Usage: [ARGS...]
              |   --server_host=HOST          Server to connect to. Default ${defaultSettings.serverHost}
              |   --server_host_override=HOST Claimed identification expected of server.
@@ -93,20 +92,19 @@ object Settings {
     }
 
     args.foldLeft(defaultSettings) { (settings, arg) =>
-
       val (key, value) = extractKeyValue(arg)
 
       key match {
-        case "server_host" => settings.copy(serverHost = value)
-        case "server_host_override" => settings.copy(serverHostOverride = value)
-        case "server_port" => settings.copy(serverPort = value.toInt)
-        case "test_case" => settings.copy(testCase = value)
-        case "use_tls" => settings.copy(useTls = value.toBoolean)
-        case "use_test_ca" => settings.copy(useTestCa = value.toBoolean)
-        case "use_akkaHttp" => settings.copy(useAkkaHttp = value.toBoolean)
-        case "default_service_account" => settings.copy(defaultServiceAccount = value)
+        case "server_host"              => settings.copy(serverHost = value)
+        case "server_host_override"     => settings.copy(serverHostOverride = value)
+        case "server_port"              => settings.copy(serverPort = value.toInt)
+        case "test_case"                => settings.copy(testCase = value)
+        case "use_tls"                  => settings.copy(useTls = value.toBoolean)
+        case "use_test_ca"              => settings.copy(useTestCa = value.toBoolean)
+        case "use_akkaHttp"             => settings.copy(useAkkaHttp = value.toBoolean)
+        case "default_service_account"  => settings.copy(defaultServiceAccount = value)
         case "service_account_key_file" => settings.copy(serviceAccountKeyFile = value)
-        case "oauth_scope" => settings.copy(oauthScope = value)
+        case "oauth_scope"              => settings.copy(oauthScope = value)
         case _ =>
           System.err.println("Unknown argument: " + key)
           showUsageAndExit()

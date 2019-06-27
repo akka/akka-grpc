@@ -16,8 +16,7 @@ object IoGrpcClient extends GrpcClient {
     val client = new TestServiceClient(new GrpcJavaClientTester(settings))
     client.setUp()
 
-    try
-      client.run(settings)
+    try client.run(settings)
     finally {
       client.tearDown()
     }

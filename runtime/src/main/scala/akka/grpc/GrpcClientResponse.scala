@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -17,10 +17,12 @@ import scala.concurrent.Future
  */
 @DoNotInherit
 trait GrpcResponseMetadata {
+
   /**
    * Scala API: The response metadata, the metadata is only for reading and must not be mutated.
    */
   def headers: akka.grpc.scaladsl.Metadata
+
   /**
    * Java API: The response metadata, the metadata is only for reading and must not be mutated.
    */
@@ -30,6 +32,7 @@ trait GrpcResponseMetadata {
    * Scala API: Trailers from the server, is completed after the response stream completes
    */
   def trailers: Future[akka.grpc.scaladsl.Metadata]
+
   /**
    * Java API: Trailers from the server, is completed after the response stream completes
    */
@@ -43,10 +46,12 @@ trait GrpcResponseMetadata {
  */
 @DoNotInherit
 trait GrpcSingleResponse[T] extends GrpcResponseMetadata {
+
   /**
    * Scala API: The response body
    */
   def value: T
+
   /**
    * Java API: The response body
    */
