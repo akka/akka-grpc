@@ -9,13 +9,13 @@ import akka.grpc.gen._
 import scalapb.compiler.DescriptorImplicits
 
 case class Method(
-  name: String,
-  grpcName: String,
-  inputType: Descriptor,
-  inputStreaming: Boolean,
-  outputType: Descriptor,
-  outputStreaming: Boolean,
-  comment: Option[String] = None)(implicit ops: DescriptorImplicits) {
+    name: String,
+    grpcName: String,
+    inputType: Descriptor,
+    inputStreaming: Boolean,
+    outputType: Descriptor,
+    outputStreaming: Boolean,
+    comment: Option[String] = None)(implicit ops: DescriptorImplicits) {
   import Method._
 
   def deserializer = Serializer(inputType)
@@ -43,9 +43,9 @@ case class Method(
   val methodType: MethodType = {
     (inputStreaming, outputStreaming) match {
       case (false, false) => Unary
-      case (true, false) => ClientStreaming
-      case (false, true) => ServerStreaming
-      case (true, true) => BidiStreaming
+      case (true, false)  => ClientStreaming
+      case (false, true)  => ServerStreaming
+      case (true, true)   => BidiStreaming
     }
   }
 }
@@ -71,7 +71,7 @@ object Method {
     messageType.scalaTypeName
   }
 
-  private def outerClass(t: Descriptor) = {
+  private def outerClass(t: Descriptor) =
     if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""
     else {
       val outerClassName = t.getFile.toProto.getOptions.getJavaOuterClassname
@@ -81,7 +81,6 @@ object Method {
         outerClassName + "."
       }
     }
-  }
 
   private def protoName(t: Descriptor) =
     t.getFile.getName.replaceAll("\\.proto", "").split("/").last

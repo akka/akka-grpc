@@ -26,18 +26,24 @@ object Main extends App {
 
   val req = CodeGeneratorRequest.parseFrom(inBytes)
   val KeyValueRegex = """([^=]+)=(.*)""".r
-  val parameters = req.getParameter.split(",").flatMap {
-    case KeyValueRegex(key, value) => Some((key.toLowerCase, value))
-    case _ => None
-  }.toMap
+  val parameters = req.getParameter
+    .split(",")
+    .flatMap {
+      case KeyValueRegex(key, value) => Some((key.toLowerCase, value))
+      case _                         => None
+    }
+    .toMap
 
   private val languageScala: Boolean = parameters.get("language").map(_.equalsIgnoreCase("scala")).getOrElse(false)
 
-  private val generateClient: Boolean = parameters.get("generate_client").map(!_.equalsIgnoreCase("false")).getOrElse(true)
+  private val generateClient: Boolean =
+    parameters.get("generate_client").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
-  private val generateServer: Boolean = parameters.get("generate_server").map(!_.equalsIgnoreCase("false")).getOrElse(true)
+  private val generateServer: Boolean =
+    parameters.get("generate_server").map(!_.equalsIgnoreCase("false")).getOrElse(true)
 
-  private val extraGenerators: List[String] = parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
+  private val extraGenerators: List[String] =
+    parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
 
   private val logger = parameters.get("logfile").map(new FileLogger(_)).getOrElse(SilencedLogger)
 
@@ -45,13 +51,15 @@ object Main extends App {
     val codeGenerators =
       if (languageScala) {
         // Scala
-        if (generateClient && generateServer) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator)
+        if (generateClient && generateServer)
+          Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator, ScalaServerCodeGenerator)
         else if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator)
         else if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator)
         else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       } else {
         // Java
-        if (generateClient && generateServer) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator)
+        if (generateClient && generateServer)
+          Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator, JavaServerCodeGenerator)
         else if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
         else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator)
         else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")

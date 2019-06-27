@@ -12,6 +12,7 @@ import akka.annotation.DoNotInherit
 /** Common trait of all generated Akka gRPC clients. Not for user extension. */
 @DoNotInherit
 trait AkkaGrpcClient {
+
   /**
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    */

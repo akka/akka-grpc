@@ -27,19 +27,14 @@ object Grpc {
     Flow[ByteString].map(frame => encodeFrame(notCompressed, frame))
   }
 
-  def grpcFramingEncoder(codec: Codec): Flow[ByteString, ByteString, NotUsed] = {
+  def grpcFramingEncoder(codec: Codec): Flow[ByteString, ByteString, NotUsed] =
     if (codec == Identity) Flow[ByteString].map(frame => encodeFrame(notCompressed, frame))
     else Flow[ByteString].map(frame => encodeFrame(compressed, codec.compress(frame)))
-  }
 
   @inline
   def encodeFrame(compressedFlag: ByteString, frame: ByteString): ByteString = {
     val length = frame.size
-    compressedFlag ++ ByteString(
-      (length >> 24).toByte,
-      (length >> 16).toByte,
-      (length >> 8).toByte,
-      length.toByte) ++ frame
+    compressedFlag ++ ByteString((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte) ++ frame
   }
 
   def grpcFramingDecoder(encoding: Option[String]): Flow[ByteString, ByteString, NotUsed] =
@@ -48,13 +43,14 @@ object Grpc {
   val grpcFramingDecoder: Flow[ByteString, ByteString, NotUsed] = grpcFramingDecoder(encoding = None)
 
   private def uncompressor(encoding: Option[String]): Option[ByteString => ByteString] = encoding match {
-    case None => None
+    case None             => None
     case Some("identity") => None
-    case Some("gzip") => Some(Gzip.uncompress)
-    case Some(enc) => throw new IllegalArgumentException(s"Unknown encoding $enc")
+    case Some("gzip")     => Some(Gzip.uncompress)
+    case Some(enc)        => throw new IllegalArgumentException(s"Unknown encoding $enc")
   }
 
-  private class GrpcFramingDecoderStage(uncompressor: Option[ByteString => ByteString]) extends ByteStringParser[ByteString] {
+  private class GrpcFramingDecoderStage(uncompressor: Option[ByteString => ByteString])
+      extends ByteStringParser[ByteString] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new ParsingLogic {
       startWith(ReadFrameHeader)
 
@@ -72,16 +68,16 @@ object Grpc {
       }
 
       sealed case class ReadFrame(compression: Boolean, length: Int) extends Step {
-        override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] = {
+        override def parse(reader: ByteStringParser.ByteReader): ParseResult[ByteString] =
           if (compression) uncompressor match {
             case None =>
-              failStage(new StatusException(Status.INTERNAL.withDescription("Compressed-Flag bit is set, but encoding unknown")))
+              failStage(
+                new StatusException(
+                  Status.INTERNAL.withDescription("Compressed-Flag bit is set, but encoding unknown")))
               ParseResult(None, Failed)
             case Some(uncompress) =>
               ParseResult(Some(uncompress(reader.take(length))), ReadFrameHeader)
-          }
-          else ParseResult(Some(reader.take(length)), ReadFrameHeader)
-        }
+          } else ParseResult(Some(reader.take(length)), ReadFrameHeader)
       }
 
       final case object Failed extends Step {

@@ -5,7 +5,7 @@
 package akka.grpc.interop
 
 import io.grpc.StatusRuntimeException
-import org.scalatest.{Assertion, Succeeded, WordSpec}
+import org.scalatest.{ Assertion, Succeeded, WordSpec }
 
 import scala.util.control.NonFatal
 
@@ -34,8 +34,7 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
     // "client_compressed_streaming",
     "server_compressed_unary",
     "server_compressed_streaming",
-    "unimplemented_service",
-  )
+    "unimplemented_service")
 
   val server = serverProvider.server
   val client = clientProvider.client
@@ -53,15 +52,15 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
     }
   }
 
-  private def withGrpcServer[T](server: GrpcServer[T])(block: Int => Unit): Assertion = {
+  private def withGrpcServer[T](server: GrpcServer[T])(block: Int => Unit): Assertion =
     try {
       val binding = server.start()
       try {
         block(server.getPort(binding))
       } catch {
-        case ex: AssertionError => throw ex // expected to see these
+        case ex: AssertionError                => throw ex // expected to see these
         case ex: UnsupportedOperationException => throw ex // these as well
-        case ex: Throwable =>
+        case ex: Throwable                     =>
           // give us some hints what is wrong with everything else
           println("Exception: " + ex.getClass.getName + ": " + ex.getMessage)
           throw ex
@@ -78,7 +77,6 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
         else fail(e.getMessage, e.getCause)
       case NonFatal(t) => fail(t)
     }
-  }
 
   private def runGrpcClient(testCaseName: String, client: GrpcClient, port: Int): Unit = {
     val args: Array[String] = Array(
@@ -89,21 +87,20 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
     client.run(args)
   }
 
-
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
     val result = try {
       block
       Succeeded
     } catch {
       case NonFatal(_) if expectedToFail => pending
-      case NonFatal(e)  =>
+      case NonFatal(e) =>
         e.printStackTrace()
         throw e
     }
 
     result match {
       case Succeeded if expectedToFail => fail("Succeeded against expectations")
-      case res => res
+      case res                         => res
     }
   }
 }
@@ -126,8 +123,7 @@ object IoGrpcJavaServerProvider extends GrpcServerProvider {
   val label: String = "grpc-java server"
 
   val pendingCases =
-    Set(
-    )
+    Set()
 
   val server = IoGrpcServer
 }
@@ -136,8 +132,7 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
   val label: String = "grpc-java client tester"
 
   val pendingCases =
-    Set(
-    )
+    Set()
 
   val client = IoGrpcClient
 }
@@ -153,6 +148,5 @@ trait AkkaHttpClientProvider extends GrpcClientProvider {
       "custom_metadata",
       "client_compressed_unary",
       "client_compressed_streaming",
-      "server_compressed_unary",
-    )
+      "server_compressed_unary")
 }

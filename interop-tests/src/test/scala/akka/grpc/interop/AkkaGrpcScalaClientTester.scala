@@ -31,7 +31,8 @@ import scala.util.control.NoStackTrace
  * The same implementation is also be found as part of the 'scripted' tests at
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem)
+    extends ClientTester {
 
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
@@ -40,7 +41,8 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   private val awaitTimeout = 15.seconds
 
   def setUp(): Unit = {
-    val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
+    val grpcSettings = GrpcClientSettings
+      .connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
       .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
@@ -54,47 +56,36 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     if (clientUnimplementedService != null) Await.ready(clientUnimplementedService.close(), awaitTimeout)
   }
 
-  def emptyUnary(): Unit = {
+  def emptyUnary(): Unit =
     assertEquals(Empty(), Await.result(client.emptyCall(Empty()), awaitTimeout))
-  }
 
-  def cacheableUnary(): Unit = {
+  def cacheableUnary(): Unit =
     throw new RuntimeException(s"Not implemented! cacheableUnary") with NoStackTrace
-  }
 
   def largeUnary(): Unit = {
     val request =
-      SimpleRequest(
-        responseSize = 314159,
-        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
+      SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))
 
     val expectedResponse =
-      SimpleResponse(
-        payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
+      SimpleResponse(payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](314159)))))
 
     val response = Await.result(client.unaryCall(request), awaitTimeout)
     assertEquals(expectedResponse, response)
   }
 
-  def clientCompressedUnary(probe: Boolean): Unit = {
+  def clientCompressedUnary(probe: Boolean): Unit =
     throw new RuntimeException("Not implemented: clientCompressedUnary") with NoStackTrace
-  }
 
-  def serverCompressedUnary(): Unit = {
+  def serverCompressedUnary(): Unit =
     throw new RuntimeException("Not implemented: serverCompressedUnary") with NoStackTrace
-  }
 
   def clientStreaming(): Unit = {
 
     val requests = Seq(
-      StreamingInputCallRequest(
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](27182))))),
-      StreamingInputCallRequest(
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](8))))),
-      StreamingInputCallRequest(
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](1828))))),
-      StreamingInputCallRequest(
-        payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](45904))))))
+      StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](27182))))),
+      StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](8))))),
+      StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](1828))))),
+      StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](45904))))))
 
     val expected = StreamingInputCallResponse(aggregatedPayloadSize = 74922)
 
@@ -103,29 +94,21 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertEquals(expected, actual)
   }
 
-  def clientCompressedStreaming(probe: Boolean): Unit = {
+  def clientCompressedStreaming(probe: Boolean): Unit =
     throw new RuntimeException("Not implemented!")
-  }
 
   def serverStreaming(): Unit = {
 
     val request =
       StreamingOutputCallRequest(
-        responseParameters = Seq(
-          ResponseParameters(31415),
-          ResponseParameters(9),
-          ResponseParameters(2653),
-          ResponseParameters(58979)))
+        responseParameters =
+          Seq(ResponseParameters(31415), ResponseParameters(9), ResponseParameters(2653), ResponseParameters(58979)))
 
     val expected: Seq[StreamingOutputCallResponse] = Seq(
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
 
     val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
     assertEquals(expected.size, actual.size)
@@ -142,10 +125,8 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
           ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
 
     val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](92653))))))
 
     val actual = Await.result(client.streamingOutputCall(request).runWith(Sink.seq), awaitTimeout)
     assertEquals(expectedResponses.size, actual.size)
@@ -171,14 +152,10 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
         payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](45904))))))
 
     val expectedResponses = Seq(
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
-      StreamingOutputCallResponse(
-        Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](9))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
+      StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
 
     val requestSrc = Source.fromIterator(() => requests.toIterator)
     val actual = Await.result(client.fullDuplexCall(requestSrc).runWith(Sink.seq), awaitTimeout)
@@ -196,62 +173,58 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertEquals(actual.size, 0)
   }
 
-  def computeEngineCreds(serviceAccount: String, oauthScope: String): Unit = {
+  def computeEngineCreds(serviceAccount: String, oauthScope: String): Unit =
     throw new RuntimeException("Not implemented! computeEngineCreds") with NoStackTrace
-  }
 
-  def serviceAccountCreds(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
+  def serviceAccountCreds(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit =
     throw new RuntimeException("Not implemented! serviceAccountCreds") with NoStackTrace
-  }
 
-  def jwtTokenCreds(serviceAccountJson: InputStream): Unit = {
+  def jwtTokenCreds(serviceAccountJson: InputStream): Unit =
     throw new RuntimeException("Not implemented! jwtTokenCreds") with NoStackTrace
-  }
 
-  def oauth2AuthToken(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit = {
+  def oauth2AuthToken(jsonKey: String, credentialsStream: InputStream, authScope: String): Unit =
     throw new RuntimeException("Not implemented! oath2AuthToken") with NoStackTrace
-  }
 
-  def perRpcCreds(jsonKey: String, credentialsStream: InputStream, oauthScope: String): Unit = {
+  def perRpcCreds(jsonKey: String, credentialsStream: InputStream, oauthScope: String): Unit =
     throw new RuntimeException("Not implemented! perRpcCreds") with NoStackTrace
-  }
 
   def customMetadata(): Unit = {
     // unary call
     val binaryHeaderValue = akka.util.ByteString.fromInts(0xababab)
-    val unaryResponseFuture = client.unaryCall()
+    val unaryResponseFuture = client
+      .unaryCall()
       .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
       // this one is returned as trailer
       .addHeader("x-grpc-test-echo-trailing-bin", binaryHeaderValue)
-      .invokeWithMetadata(SimpleRequest(responseSize = 314159, payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
+      .invokeWithMetadata(
+        SimpleRequest(
+          responseSize = 314159,
+          payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828))))))
 
     val unaryResponse = Await.result(unaryResponseFuture, awaitTimeout)
-    assertEquals(
-      unaryResponse.headers.getText("x-grpc-test-echo-initial").get,
-      "test_initial_metadata_value")
+    assertEquals(unaryResponse.headers.getText("x-grpc-test-echo-initial").get, "test_initial_metadata_value")
     val unaryTrailer = Await.result(unaryResponse.trailers, awaitTimeout)
-    assertEquals(
-      binaryHeaderValue,
-      unaryTrailer.getBinary("x-grpc-test-echo-trailing-bin").get)
+    assertEquals(binaryHeaderValue, unaryTrailer.getBinary("x-grpc-test-echo-trailing-bin").get)
 
     // full duplex
     val fullDuplexResponseWithMetadata: Source[StreamingOutputCallResponse, Future[GrpcResponseMetadata]] =
-      client.fullDuplexCall()
+      client
+        .fullDuplexCall()
         .addHeader("x-grpc-test-echo-initial", "test_initial_metadata_value")
         // this one is returned as trailer
         .addHeader("x-grpc-test-echo-trailing-bin", akka.util.ByteString.fromInts(0xababab))
-        .invokeWithMetadata(Source.single(
-          StreamingOutputCallRequest(
-            responseParameters = Seq(ResponseParameters(size = 314159)),
-            payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
+        .invokeWithMetadata(
+          Source.single(
+            StreamingOutputCallRequest(
+              responseParameters = Seq(ResponseParameters(size = 314159)),
+              payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
 
     val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.head)(Keep.both).run()
 
     Await.result(futureResponse, awaitTimeout) // just to see call was successful and fail early if not
     val fullDuplexMetadata = Await.result(futureMetadata, awaitTimeout)
 
-    assertEquals(
-      "test_initial_metadata_value", fullDuplexMetadata.headers.getText("x-grpc-test-echo-initial").get)
+    assertEquals("test_initial_metadata_value", fullDuplexMetadata.headers.getText("x-grpc-test-echo-initial").get)
 
     val trailers = Await.result(fullDuplexMetadata.trailers, awaitTimeout)
     assertEquals(
@@ -266,8 +239,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     // Assert unary
     val errorMessage = "test status message"
     val echoStatus = EchoStatus(Status.UNKNOWN.getCode.value(), errorMessage)
-    val req: SimpleRequest = SimpleRequest(
-      responseStatus = Some(echoStatus))
+    val req: SimpleRequest = SimpleRequest(responseStatus = Some(echoStatus))
 
     assertFailure(client.unaryCall(req), Status.UNKNOWN, errorMessage)
 
@@ -284,17 +256,14 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   def unimplementedService(): Unit =
     assertFailure(clientUnimplementedService.unimplementedCall(Empty()), Status.UNIMPLEMENTED)
 
-  def cancelAfterBegin(): Unit = {
+  def cancelAfterBegin(): Unit =
     throw new RuntimeException("Not implemented! cancelAfterBegin") with NoStackTrace
-  }
 
-  def cancelAfterFirstResponse(): Unit = {
+  def cancelAfterFirstResponse(): Unit =
     throw new RuntimeException("Not implemented! cancelAfterFirstResponse") with NoStackTrace
-  }
 
-  def timeoutOnSleepingServer(): Unit = {
+  def timeoutOnSleepingServer(): Unit =
     throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
-  }
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {
     val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]

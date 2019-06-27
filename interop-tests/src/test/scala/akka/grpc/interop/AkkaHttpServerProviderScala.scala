@@ -27,22 +27,23 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   val pendingCases =
     Set()
 
-  val server = AkkaGrpcServerScala(implicit mat => implicit sys => {
-    implicit val ec = mat.executionContext
+  val server = AkkaGrpcServerScala(implicit mat =>
+    implicit sys => {
+      implicit val ec = mat.executionContext
 
-    val testServiceImpl = new TestServiceImpl()
-    val testServiceHandler = TestServiceHandler(testServiceImpl)
+      val testServiceImpl = new TestServiceImpl()
+      val testServiceHandler = TestServiceHandler(testServiceImpl)
 
-    val route: Route = (pathPrefix(TestService.name) & echoHeaders) {
-      handleWith(testServiceHandler)
-      //  The "status_code_and_message" test can be solved either using the 'customStatusRoute' here or
-      //  throwing an exception on the service code  and handling it on the appropriate GrpcMarshalling
-      //  handler as demoed in 'TestServiceImpl'.
-      //  customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
-    }
+      val route: Route = (pathPrefix(TestService.name) & echoHeaders) {
+        handleWith(testServiceHandler)
+        //  The "status_code_and_message" test can be solved either using the 'customStatusRoute' here or
+        //  throwing an exception on the service code  and handling it on the appropriate GrpcMarshalling
+        //  handler as demoed in 'TestServiceImpl'.
+        //  customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
+      }
 
-    Route.asyncHandler(Route.seal(route))
-  })
+      Route.asyncHandler(Route.seal(route))
+    })
 
   // Directive to implement the 'custom_metadata' test
   val echoHeaders: Directive0 = extractRequest.flatMap(request => {
@@ -67,7 +68,10 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           case None =>
             complete(simpleResponse)
           case Some(responseStatus) =>
-            mapTrailingResponseHeaders(_ => GrpcResponseHelpers.statusHeaders(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+            mapTrailingResponseHeaders(
+              _ =>
+                GrpcResponseHelpers.statusHeaders(
+                  Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
         }
@@ -75,21 +79,22 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
       }
     } ~ pathPrefix("FullDuplexCall") {
       entity(as[Source[StreamingOutputCallRequest, NotUsed]]) { source =>
-
         val status = Promise[Status]
 
-        val effectingSource = source.map { requestElement =>
-          requestElement.responseStatus match {
-            case None =>
-              status.trySuccess(Status.OK)
-            case Some(responseStatus) =>
-              status.trySuccess(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))
+        val effectingSource = source
+          .map { requestElement =>
+            requestElement.responseStatus match {
+              case None =>
+                status.trySuccess(Status.OK)
+              case Some(responseStatus) =>
+                status.trySuccess(Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))
+            }
+            requestElement
           }
-          requestElement
-        }.watchTermination()((NotUsed, f) => {
-          f.foreach(_ => status.trySuccess(Status.OK))
-          NotUsed
-        })
+          .watchTermination()((NotUsed, f) => {
+            f.foreach(_ => status.trySuccess(Status.OK))
+            NotUsed
+          })
 
         complete(GrpcResponseHelpers(testServiceImpl.fullDuplexCall(effectingSource), status.future))
       }

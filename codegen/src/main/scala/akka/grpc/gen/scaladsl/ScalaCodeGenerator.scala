@@ -21,8 +21,13 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
   def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
-  override def suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version))
+  override def suggestedDependencies =
+    (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
+      Seq(
+        Artifact(
+          BuildInfo.organization,
+          BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix,
+          BuildInfo.version))
 
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
@@ -61,14 +66,12 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     b.build()
   }
 
-  private def parseParameters(params: String): GeneratorParams = {
+  private def parseParameters(params: String): GeneratorParams =
     params.split(",").map(_.trim).filter(_.nonEmpty).foldLeft[GeneratorParams](GeneratorParams()) {
-      case (p, "java_conversions") => p.copy(javaConversions = true)
-      case (p, "flat_package") => p.copy(flatPackage = true)
-      case (p, "grpc") => p.copy(grpc = true)
+      case (p, "java_conversions")      => p.copy(javaConversions = true)
+      case (p, "flat_package")          => p.copy(flatPackage = true)
+      case (p, "grpc")                  => p.copy(grpc = true)
       case (p, "single_line_to_string") => p.copy(singleLineToProtoString = true)
-      case (x, _) => x
+      case (x, _)                       => x
     }
-  }
 }
-

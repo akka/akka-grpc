@@ -28,7 +28,8 @@ object AuthenticatedGreeterClient {
     val failureWhenUnauthenticated = Await.result(client.sayHello(HelloRequest("Alice")).failed, 10.seconds)
     sys.log.warning(s"Call without authentication fails: $failureWhenUnauthenticated")
 
-    val replyWhenAuthenticated = Await.result(client.sayHello().addHeader("Token", "XYZ").invoke(HelloRequest("Alice")), 10.seconds)
+    val replyWhenAuthenticated =
+      Await.result(client.sayHello().addHeader("Token", "XYZ").invoke(HelloRequest("Alice")), 10.seconds)
     sys.log.warning(s"Call with authentication succeeds: $replyWhenAuthenticated")
   }
 

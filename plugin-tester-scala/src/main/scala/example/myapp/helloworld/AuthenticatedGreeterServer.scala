@@ -22,7 +22,8 @@ object AuthenticatedGreeterServer {
   def main(args: Array[String]): Unit = {
     // Important: enable HTTP/2 in ActorSystem's config
     // We do it here programmatically, but you can also set it in the application.conf
-    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+    val conf = ConfigFactory
+      .parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     val system = ActorSystem("HelloWorld", conf)
     new AuthenticatedGreeterServer(system).run()
@@ -43,8 +44,8 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       GreeterServiceHandler(new GreeterServiceImpl())
 
     // As a Route
-    val handlerRoute: Route = {
-      ctx => handler(ctx.request).map(RouteResult.Complete)
+    val handlerRoute: Route = { ctx =>
+      handler(ctx.request).map(RouteResult.Complete)
     }
 
     // A Route to authenticate with
@@ -61,12 +62,9 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
         else reject
       }
 
-    val route = concat(
-      authenticationRoute,
-      authorizationDirective {
-        handlerRoute
-      }
-    )
+    val route = concat(authenticationRoute, authorizationDirective {
+      handlerRoute
+    })
 
     // Bind service handler servers to localhost:8082
     val binding = Http2().bindAndHandleAsync(

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2018-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -13,7 +13,13 @@ import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import com.typesafe.sslconfig.akka.util.AkkaLoggerFactory
-import com.typesafe.sslconfig.ssl.{ ConfigSSLContextBuilder, DefaultKeyManagerFactoryWrapper, DefaultTrustManagerFactoryWrapper, SSLConfigFactory, SSLConfigSettings }
+import com.typesafe.sslconfig.ssl.{
+  ConfigSSLContextBuilder,
+  DefaultKeyManagerFactoryWrapper,
+  DefaultTrustManagerFactoryWrapper,
+  SSLConfigFactory,
+  SSLConfigSettings
+}
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import javax.net.ssl.SSLContext
@@ -28,7 +34,9 @@ object GrpcClientSettings {
    */
   def connectToServiceAt(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
     // default is static
-    val defaultServiceConfig = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+    val defaultServiceConfig = actorSystem.settings.config
+      .getConfig("akka.grpc.client")
+      .getConfig("\"*\"")
       .withValue("host", ConfigValueFactory.fromAnyRef(host))
       .withValue("port", ConfigValueFactory.fromAnyRef(port))
     GrpcClientSettings.fromConfig(defaultServiceConfig)
@@ -46,7 +54,9 @@ object GrpcClientSettings {
     val clientConfig = {
       // Use config named "*" by default
       val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
-      require(akkaGrpcClientConfig.hasPath('"' + clientName + '"'), s"Config path `akka.grpc.client.$clientName` does not exist")
+      require(
+        akkaGrpcClientConfig.hasPath('"' + clientName + '"'),
+        s"Config path `akka.grpc.client.$clientName` does not exist")
       akkaGrpcClientConfig.getConfig('"' + clientName + '"').withFallback(defaultServiceConfig)
     }
 
@@ -96,7 +106,8 @@ object GrpcClientSettings {
   /**
    * Given a base GrpcClientSettings, it generates a new instance with all values provided in config.
    */
-  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config)(
+      implicit actorSystem: ActorSystem): GrpcClientSettings =
     initialSettings.copy(
       servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
       serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
@@ -106,22 +117,22 @@ object GrpcClientSettings {
       sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
       connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
       useTls = clientConfiguration.getBoolean("use-tls"))
-  }
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
-    case "" => None
+    case ""    => None
     case other => Some(other)
   }
 
   private def getOptionalInt(config: Config, path: String): Option[Int] = config.getInt(path) match {
-    case -1 => None // retry forever
+    case -1    => None // retry forever
     case other => Some(other)
   }
 
-  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration = Helpers.toRootLowerCase(underlying.getString(path)) match {
-    case "infinite" => Duration.Inf
-    case _ => Duration.fromNanos(underlying.getDuration(path).toNanos)
-  }
+  private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration =
+    Helpers.toRootLowerCase(underlying.getString(path)) match {
+      case "infinite" => Duration.Inf
+      case _          => Duration.fromNanos(underlying.getDuration(path).toNanos)
+    }
 
   private def staticServiceDiscovery(host: String, port: Int) =
     new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
@@ -146,30 +157,30 @@ object GrpcClientSettings {
    * INTERNAL API
    */
   @InternalApi
-  private def getOptionalSSLContext(config: Config, path: String)(implicit actorSystem: ActorSystem): Option[SSLContext] = {
+  private def getOptionalSSLContext(config: Config, path: String)(
+      implicit actorSystem: ActorSystem): Option[SSLContext] =
     if (config.hasPath(path))
       Some(getSSLContext(config.getConfig(path)))
     else
       None
-  }
 
 }
 
 final class GrpcClientSettings private (
-  val serviceName: String,
-  val serviceDiscovery: ServiceDiscovery,
-  val defaultPort: Int,
-  val resolveTimeout: FiniteDuration,
-  val servicePortName: Option[String] = None,
-  val serviceProtocol: Option[String] = None,
-  val connectionAttempts: Option[Int] = None,
-  val callCredentials: Option[CallCredentials] = None,
-  val overrideAuthority: Option[String] = None,
-  val sslContext: Option[SSLContext] = None,
-  val deadline: Duration = Duration.Undefined,
-  val userAgent: Option[String] = None,
-  val useTls: Boolean = true,
-  val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
+    val serviceName: String,
+    val serviceDiscovery: ServiceDiscovery,
+    val defaultPort: Int,
+    val resolveTimeout: FiniteDuration,
+    val servicePortName: Option[String] = None,
+    val serviceProtocol: Option[String] = None,
+    val connectionAttempts: Option[Int] = None,
+    val callCredentials: Option[CallCredentials] = None,
+    val overrideAuthority: Option[String] = None,
+    val sslContext: Option[SSLContext] = None,
+    val deadline: Duration = Duration.Undefined,
+    val userAgent: Option[String] = None,
+    val useTls: Boolean = true,
+    val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
@@ -187,14 +198,17 @@ final class GrpcClientSettings private (
    */
   def withServicePortName(servicePortName: String): GrpcClientSettings = copy(servicePortName = Some(servicePortName))
   def withServiceProtocol(serviceProtocol: String): GrpcClientSettings = copy(serviceProtocol = Some(serviceProtocol))
+
   /**
    * Each call will have this deadline.
    */
   def withDeadline(value: Duration): GrpcClientSettings = copy(deadline = value)
+
   /**
    * Each call will have this deadline.
    */
   def withDeadline(value: java.time.Duration): GrpcClientSettings = copy(deadline = Duration.fromNanos(value.toNanos))
+
   /**
    * Provides a custom `User-Agent` for the application.
    *
@@ -226,34 +240,34 @@ final class GrpcClientSettings private (
     copy(channelBuilderOverrides = builderOverrides)
 
   private def copy(
-    serviceName: String = serviceName,
-    servicePortName: Option[String] = servicePortName,
-    serviceProtocol: Option[String] = serviceProtocol,
-    defaultPort: Int = defaultPort,
-    callCredentials: Option[CallCredentials] = callCredentials,
-    overrideAuthority: Option[String] = overrideAuthority,
-    sslContext: Option[SSLContext] = sslContext,
-    deadline: Duration = deadline,
-    userAgent: Option[String] = userAgent,
-    useTls: Boolean = useTls,
-    resolveTimeout: FiniteDuration = resolveTimeout,
-    connectionAttempts: Option[Int] = connectionAttempts,
-    channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides
-  ): GrpcClientSettings = new GrpcClientSettings(
-    callCredentials = callCredentials,
-    serviceDiscovery = serviceDiscovery,
-    servicePortName = servicePortName,
-    serviceProtocol = serviceProtocol,
-    deadline = deadline,
-    serviceName = serviceName,
-    overrideAuthority = overrideAuthority,
-    defaultPort = defaultPort,
-    sslContext = sslContext,
-    userAgent = userAgent,
-    useTls = useTls,
-    resolveTimeout = resolveTimeout,
-    connectionAttempts = connectionAttempts,
-    channelBuilderOverrides = channelBuilderOverrides
-  )
+      serviceName: String = serviceName,
+      servicePortName: Option[String] = servicePortName,
+      serviceProtocol: Option[String] = serviceProtocol,
+      defaultPort: Int = defaultPort,
+      callCredentials: Option[CallCredentials] = callCredentials,
+      overrideAuthority: Option[String] = overrideAuthority,
+      sslContext: Option[SSLContext] = sslContext,
+      deadline: Duration = deadline,
+      userAgent: Option[String] = userAgent,
+      useTls: Boolean = useTls,
+      resolveTimeout: FiniteDuration = resolveTimeout,
+      connectionAttempts: Option[Int] = connectionAttempts,
+      channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
+      : GrpcClientSettings =
+    new GrpcClientSettings(
+      callCredentials = callCredentials,
+      serviceDiscovery = serviceDiscovery,
+      servicePortName = servicePortName,
+      serviceProtocol = serviceProtocol,
+      deadline = deadline,
+      serviceName = serviceName,
+      overrideAuthority = overrideAuthority,
+      defaultPort = defaultPort,
+      sslContext = sslContext,
+      userAgent = userAgent,
+      useTls = useTls,
+      resolveTimeout = resolveTimeout,
+      connectionAttempts = connectionAttempts,
+      channelBuilderOverrides = channelBuilderOverrides)
 
 }

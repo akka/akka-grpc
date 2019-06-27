@@ -17,9 +17,8 @@ object GrpcVersionSyncCheckPlugin extends AutoPlugin {
   }
   import autoImport._
 
-  override def globalSettings = {
+  override def globalSettings =
     grpcVersionSyncCheck := grpcVersionSyncCheckImpl.value
-  }
 
   val GrpcVersionRegex = raw"""[Gg][Rr][Pp][Cc].?[Vv]ersion.{1,9}(\d+\.\d+\.\d+)""".r.unanchored
 
@@ -28,36 +27,37 @@ object GrpcVersionSyncCheckPlugin extends AutoPlugin {
     val expectedVersion = Dependencies.Versions.grpc
     log.info(s"Running gRPC version sync check, expecting version $expectedVersion")
 
-    def grpcVersions(paths: Iterator[Path]): Iterator[(Path, String)] = {
+    def grpcVersions(paths: Iterator[Path]): Iterator[(Path, String)] =
       for {
         path <- paths
         lines = Files.lines(path).iterator.asScala
         GrpcVersionRegex(version) <- lines
       } yield path -> version
-    }
 
     log.info("Sanity checking regex extraction against known files")
     val knownFiles = Seq(
       Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPlugin.groovy"),
       Paths.get("plugin-tester-java/pom.xml"),
-      Paths.get("plugin-tester-scala/pom.xml"),
-    )
+      Paths.get("plugin-tester-scala/pom.xml"))
     val mismatchVersions = grpcVersions(knownFiles.iterator).filter(_._2 != expectedVersion).toVector
     if (mismatchVersions.isEmpty) {
       log.info("Sanity check passed")
     } else {
-      mismatchVersions foreach { case (path, version) =>
-        log.error(s"Found sanity check gRPC version mismatch: $path -> $version")
+      mismatchVersions.foreach {
+        case (path, version) =>
+          log.error(s"Found sanity check gRPC version mismatch: $path -> $version")
       }
       fail("Sanity check failed")
     }
 
     val buildBase = (baseDirectory in ThisBuild).value
     val process = Process("git ls-tree -z --full-tree -r --name-only HEAD", buildBase)
-    val paths = (process !! log).trim.split('\u0000').iterator
-        .map(path => Paths.get(path))
-        .filterNot(path => RawText.isBinary(Files.newInputStream(path)))
-        .filterNot(path => path.toString.endsWith(".enc")) // encrypted blob
+    val paths = (process !! log).trim
+      .split('\u0000')
+      .iterator
+      .map(path => Paths.get(path))
+      .filterNot(path => RawText.isBinary(Files.newInputStream(path)))
+      .filterNot(path => path.toString.endsWith(".enc")) // encrypted blob
 
     var mismatch = false
 

@@ -12,7 +12,8 @@ import templates.ScalaServer.txt.{ Handler, PowerApiTrait }
 class ScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-server"
 
-  override def perServiceContent = super.perServiceContent + generatePlainHandler + generatePowerHandler + generatePowerApiTrait
+  override def perServiceContent =
+    super.perServiceContent + generatePlainHandler + generatePowerHandler + generatePowerApiTrait
 
   val generatePlainHandler: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     val b = CodeGeneratorResponse.File.newBuilder()

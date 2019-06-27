@@ -11,20 +11,25 @@ import com.google.protobuf.Descriptors._
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 case class Service(
-  packageName: String,
-  name: String,
-  grpcName: String,
-  methods: immutable.Seq[Method],
-  serverPowerApi: Boolean,
-  usePlayActions: Boolean,
-  comment: Option[String] = None) {
+    packageName: String,
+    name: String,
+    grpcName: String,
+    methods: immutable.Seq[Method],
+    serverPowerApi: Boolean,
+    usePlayActions: Boolean,
+    comment: Option[String] = None) {
 
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
   def packageDir = packageName.replace('.', '/')
 }
 
 object Service {
-  def apply(generatorParams: GeneratorParams, fileDesc: FileDescriptor, serviceDescriptor: ServiceDescriptor, serverPowerApi: Boolean, usePlayActions: Boolean): Service = {
+  def apply(
+      generatorParams: GeneratorParams,
+      fileDesc: FileDescriptor,
+      serviceDescriptor: ServiceDescriptor,
+      serverPowerApi: Boolean,
+      usePlayActions: Boolean): Service = {
     implicit val ops = new DescriptorImplicits(generatorParams, fileDesc.getDependencies.asScala :+ fileDesc)
     import ops._
 

@@ -5,7 +5,7 @@
 package example.myapp.statefulhelloworld
 
 import example.myapp.statefulhelloworld.grpc.GreeterService
-import example.myapp.statefulhelloworld.grpc.{ HelloRequest, HelloReply, ChangeRequest, ChangeResponse }
+import example.myapp.statefulhelloworld.grpc.{ ChangeRequest, ChangeResponse, HelloReply, HelloRequest }
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.pattern.ask
@@ -24,7 +24,8 @@ class GreeterServiceImpl(system: ActorSystem) extends GreeterService {
     implicit val timeout: Timeout = 3.seconds
     import system.dispatcher
 
-    (greeterActor ? GreeterActor.GetGreeting).mapTo[GreeterActor.Greeting]
+    (greeterActor ? GreeterActor.GetGreeting)
+      .mapTo[GreeterActor.Greeting]
       .map(message => HelloReply(s"${message.greeting}, ${in.name}"))
   }
 

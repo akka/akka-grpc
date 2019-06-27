@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -31,9 +31,9 @@ object NettyClientUtils {
   @InternalApi
   def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): InternalChannel = {
     val promise = Promise[Done]()
-    val mc: Future[ManagedChannel] = settings.serviceDiscovery.lookup(
-      Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol),
-      settings.resolveTimeout).flatMap { targets =>
+    val mc: Future[ManagedChannel] = settings.serviceDiscovery
+      .lookup(Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol), settings.resolveTimeout)
+      .flatMap { targets =>
         if (targets.addresses.nonEmpty) {
           val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
           var builder =
@@ -76,9 +76,8 @@ object NettyClientUtils {
     // object's internal SSLContext. It's not pretty, but it gets something working for now.
 
     // Create a Netty JdkSslContext object with all the correct ciphers, protocol settings, etc initialized.
-    val nettySslContext: JdkSslContext = GrpcSslContexts
-      .configure(GrpcSslContexts.forClient, SslProvider.JDK)
-      .build.asInstanceOf[JdkSslContext]
+    val nettySslContext: JdkSslContext =
+      GrpcSslContexts.configure(GrpcSslContexts.forClient, SslProvider.JDK).build.asInstanceOf[JdkSslContext]
 
     // Patch the SSLContext value inside the JdkSslContext object
     val nettySslContextField: Field = classOf[JdkSslContext].getDeclaredField("sslContext")
@@ -87,20 +86,22 @@ object NettyClientUtils {
 
     nettySslContext
   }
-  /**
-   * INTERNAL API
-   */
-  @InternalApi def callOptions(settings: GrpcClientSettings): CallOptions = {
-    settings.callCredentials.map(CallOptions.DEFAULT.withCallCredentials).getOrElse(CallOptions.DEFAULT)
-  }
 
   /**
    * INTERNAL API
    */
-  @InternalApi private[akka] def callOptionsWithDeadline(defaultOptions: CallOptions, settings: GrpcClientSettings): CallOptions =
+  @InternalApi def callOptions(settings: GrpcClientSettings): CallOptions =
+    settings.callCredentials.map(CallOptions.DEFAULT.withCallCredentials).getOrElse(CallOptions.DEFAULT)
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi private[akka] def callOptionsWithDeadline(
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings): CallOptions =
     settings.deadline match {
       case d: FiniteDuration => defaultOptions.withDeadlineAfter(d.toMillis, TimeUnit.MILLISECONDS)
-      case _ => defaultOptions
+      case _                 => defaultOptions
     }
 
 }

@@ -27,15 +27,15 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
 
   private def clientState(channelCompletion: Promise[Done] = Promise[Done]()) = {
     val channelFactory: GrpcClientSettings => InternalChannel = { _ =>
-      val channel: Future[ManagedChannel] = Future.successful(new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)))
+      val channel: Future[ManagedChannel] =
+        Future.successful(new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)))
       new InternalChannel(channel, channelCompletion)
     }
     new ClientState(mockSettings, channelFactory)
   }
 
-  def userCodeToLiftChannel: Future[ManagedChannel] => ManagedChannel = {
-    eventualChannel =>
-      Await.result(eventualChannel, 5.seconds)
+  def userCodeToLiftChannel: Future[ManagedChannel] => ManagedChannel = { eventualChannel =>
+    Await.result(eventualChannel, 5.seconds)
   }
 
   "Client State" should {
@@ -43,26 +43,26 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       // given a state
       val state = clientState()
       // it provides a channel when needed
-      val channel = state withChannel userCodeToLiftChannel
+      val channel = state.withChannel(userCodeToLiftChannel)
       channel should not be null
     }
     "reuse a valid channel" in {
       // given a state
       val state = clientState()
       // it provides a channel when needed
-      val c1 = state withChannel userCodeToLiftChannel
-      val c2 = state withChannel userCodeToLiftChannel
+      val c1 = state.withChannel(userCodeToLiftChannel)
+      val c2 = state.withChannel(userCodeToLiftChannel)
       c1 should be(c2)
     }
     "fail to provide a channel when the client state has been closed" in {
       // given a state
       val state = clientState()
       // it provides a channel when needed
-      val channel = state withChannel userCodeToLiftChannel
+      val channel = state.withChannel(userCodeToLiftChannel)
       channel should not be null
       state.close()
       assertThrows[ClientClosedException] {
-        state withChannel userCodeToLiftChannel
+        state.withChannel(userCodeToLiftChannel)
       }
     }
     "successfully provide a channel after a failure" in {
@@ -70,13 +70,13 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       val channelCompletion = Promise[Done]()
       val state = clientState(channelCompletion)
       // it provides a channel when needed
-      val c1 = state withChannel userCodeToLiftChannel
+      val c1 = state.withChannel(userCodeToLiftChannel)
       // and, if the channel is failed
       channelCompletion.tryFailure(new ClientConnectionException(s"Unable to establish connection"))
 
       eventually {
         // eventually the state produces a new channel
-        val channel = state withChannel userCodeToLiftChannel
+        val channel = state.withChannel(userCodeToLiftChannel)
         channel should not be null
         channel should not be c1
       }

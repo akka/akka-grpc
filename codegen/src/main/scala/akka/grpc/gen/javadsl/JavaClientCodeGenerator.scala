@@ -15,8 +15,8 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
 
   override def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] =
     super.perServiceContent +
-      generateInterface +
-      generateRaw
+    generateInterface +
+    generateRaw
 
   def generateInterface(logger: Logger, service: Service): immutable.Seq[CodeGeneratorResponse.File] = {
     val b = CodeGeneratorResponse.File.newBuilder()
@@ -36,10 +36,14 @@ trait JavaClientCodeGenerator extends JavaCodeGenerator {
     immutable.Seq(b.build)
   }
 
-  override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) => Seq(
-    Artifact(BuildInfo.organization, BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix, BuildInfo.version),
-    // TODO: remove grpc-stub dependency once we have a akka-http based client #193
-    Artifact("io.grpc", "grpc-stub", BuildInfo.grpcVersion))
+  override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
+    Seq(
+      Artifact(
+        BuildInfo.organization,
+        BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix,
+        BuildInfo.version),
+      // TODO: remove grpc-stub dependency once we have a akka-http based client #193
+      Artifact("io.grpc", "grpc-stub", BuildInfo.grpcVersion))
 }
 
 object JavaClientCodeGenerator extends JavaClientCodeGenerator

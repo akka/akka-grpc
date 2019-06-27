@@ -28,18 +28,20 @@ class ErrorReportingSpec extends WordSpec with Matchers with ScalaFutures with B
   "A gRPC server" should {
     implicit val mat = ActorMaterializer()
 
-    val binding = Http().bindAndHandleAsync(
-      GreeterServiceHandler(new GreeterServiceImpl()),
-      interface = "127.0.0.1",
-      port = 0,
-      // We test responding to invalid requests with HTTP/1.1 since
-      // we don't have a raw HTTP/2 client available to construct invalid
-      // HTTP/2 requests.
-      connectionContext = HttpConnectionContext(UseHttp2.Never)
-    ).futureValue
+    val binding = Http()
+      .bindAndHandleAsync(
+        GreeterServiceHandler(new GreeterServiceImpl()),
+        interface = "127.0.0.1",
+        port = 0,
+        // We test responding to invalid requests with HTTP/1.1 since
+        // we don't have a raw HTTP/2 client available to construct invalid
+        // HTTP/2 requests.
+        connectionContext = HttpConnectionContext(UseHttp2.Never))
+      .futureValue
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {
-      val request = HttpRequest(uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
+      val request =
+        HttpRequest(uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
@@ -47,7 +49,9 @@ class ErrorReportingSpec extends WordSpec with Matchers with ScalaFutures with B
     }
 
     "respond with an 'internal' gRPC error status when calling an method without a request body" in {
-      val request = HttpRequest(method = HttpMethods.POST, uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/SayHello")
+      val request = HttpRequest(
+        method = HttpMethods.POST,
+        uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/SayHello")
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
@@ -59,7 +63,7 @@ class ErrorReportingSpec extends WordSpec with Matchers with ScalaFutures with B
         case Chunked(_, chunks) =>
           chunks.runWith(Sink.last).futureValue match {
             case LastChunk(_, trailingHeaders) => response.headers ++ trailingHeaders
-            case _ => response.headers
+            case _                             => response.headers
           }
         case _ =>
           response.headers
@@ -67,7 +71,6 @@ class ErrorReportingSpec extends WordSpec with Matchers with ScalaFutures with B
 
   }
 
-  override def afterAll: Unit = {
+  override def afterAll: Unit =
     Await.result(sys.terminate(), 5.seconds)
-  }
 }

@@ -24,10 +24,16 @@ import akka.grpc.scaladsl.headers.`Message-Encoding`
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] = {
     val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
-    (req.entity.getDataBytes via Grpc.grpcFramingDecoder(messageEncoding)).map(japiFunction(u.deserialize)).runWith(Sink.head[T], mat)
+    req.entity.getDataBytes
+      .via(Grpc.grpcFramingDecoder(messageEncoding))
+      .map(japiFunction(u.deserialize))
+      .runWith(Sink.head[T], mat)
   }
 
-  def unmarshalStream[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
+  def unmarshalStream[T](
+      req: HttpRequest,
+      u: ProtobufSerializer[T],
+      mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
     val messageEncoding = `Message-Encoding`.findIn(req.getHeaders)
     CompletableFuture.completedFuture(
       req.entity.getDataBytes
@@ -42,16 +48,30 @@ object GrpcMarshalling {
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
     marshalStream(Source.single(e), m, mat, codec, system)
 
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+  def marshal[T](
+      e: T,
+      m: ProtobufSerializer[T],
+      mat: Materializer,
+      codec: Codec,
+      system: ActorSystem,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
     marshalStream(Source.single(e), m, mat, codec, system, eHandler)
 
-  def marshalStream[T](e: Source[T, NotUsed], m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem, eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+  def marshalStream[T](
+      e: Source[T, NotUsed],
+      m: ProtobufSerializer[T],
+      mat: Materializer,
+      codec: Codec,
+      system: ActorSystem,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
     GrpcResponseHelpers(e.asScala, eHandler)(m, mat, Identity, system)
 
   def status(status: Status): HttpResponse =
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))
 
   private def trailer(status: Status): LastChunk =
-    LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription).map(RawHeader("grpc-message", _)))
+    LastChunk(
+      trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription)
+          .map(RawHeader("grpc-message", _)))
 
 }

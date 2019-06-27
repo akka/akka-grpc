@@ -32,8 +32,7 @@ class PowerGreeterServiceImpl(materializer: Materializer) extends GreeterService
   override def itKeepsReplying(in: HelloRequest, metadata: Metadata): Source[HelloReply, NotUsed] = {
     val greetee = authTaggedName(in, metadata)
     println(s"sayHello to $greetee with stream of chars...")
-    Source(s"Hello, $greetee".toList)
-      .map(character => HelloReply(character.toString))
+    Source(s"Hello, $greetee".toList).map(character => HelloReply(character.toString))
   }
 
   override def streamHellos(in: Source[HelloRequest, NotUsed], metadata: Metadata): Source[HelloReply, NotUsed] = {
@@ -42,9 +41,8 @@ class PowerGreeterServiceImpl(materializer: Materializer) extends GreeterService
   }
 
   // Bare-bones just for GRPC metadata demonstration purposes
-  private def isAuthenticated(metadata: Metadata): Boolean = {
+  private def isAuthenticated(metadata: Metadata): Boolean =
     metadata.getText("authorization").nonEmpty
-  }
 
   private def authTaggedName(in: HelloRequest, metadata: Metadata): String = {
     val authenticated = isAuthenticated(metadata)

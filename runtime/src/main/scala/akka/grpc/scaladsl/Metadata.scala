@@ -37,8 +37,7 @@ import scala.collection.immutable
   def asMap: Map[String, List[MetadataEntry]]
 }
 
-class MetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empty)
-  extends Metadata {
+class MetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empty) extends Metadata {
   lazy private val map: Map[String, List[MetadataEntry]] = {
     // REVIEWER NOTE: modeled after akka.grpc.internal.MetadataImpl.metadataMapFromGoogleGrpcMetadata
     var entries = Map.empty[String, List[MetadataEntry]]

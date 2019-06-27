@@ -20,17 +20,14 @@ import org.scalatest.time.Span
 
 import example.myapp.helloworld.grpc._
 
-class GreeterSpec
-  extends Matchers
-  with WordSpecLike
-  with BeforeAndAfterAll
-  with ScalaFutures {
+class GreeterSpec extends Matchers with WordSpecLike with BeforeAndAfterAll with ScalaFutures {
 
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   implicit val serverSystem: ActorSystem = {
     // important to enable HTTP/2 in server ActorSystem's config
-    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+    val conf = ConfigFactory
+      .parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     val sys = ActorSystem("GreeterServer", conf)
     // make sure servers are bound before using client
@@ -45,9 +42,7 @@ class GreeterSpec
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>
-    GreeterServiceClient(
-      GrpcClientSettings.connectToServiceAt("127.0.0.1", port)
-        .withTls(false))
+    GreeterServiceClient(GrpcClientSettings.connectToServiceAt("127.0.0.1", port).withTls(false))
   }
 
   override def afterAll: Unit = {
@@ -63,15 +58,11 @@ class GreeterSpec
   }
 
   "GreeterServicePowerApi" should {
-    Seq(
-      ("Authorization", "Hello, Alice (authenticated)"),
-      ("WrongHeaderName", "Hello, Alice (not authenticated)")
-    ).zipWithIndex.foreach {
+    Seq(("Authorization", "Hello, Alice (authenticated)"), ("WrongHeaderName", "Hello, Alice (not authenticated)")).zipWithIndex
+      .foreach {
         case ((mdName, expResp), ix) =>
           s"use metadata in replying to single request ($ix)" in {
-            val reply = clients.last.sayHello()
-              .addHeader(mdName, "<some auth token>")
-              .invoke(HelloRequest("Alice"))
+            val reply = clients.last.sayHello().addHeader(mdName, "<some auth token>").invoke(HelloRequest("Alice"))
             reply.futureValue should ===(HelloReply(expResp))
           }
       }

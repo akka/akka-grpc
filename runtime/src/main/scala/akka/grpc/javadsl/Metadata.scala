@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com>
  */
 
@@ -35,22 +35,20 @@ import scala.collection.JavaConverters._
 class MetadataImpl(jHeaders: jIterable[HttpHeader]) extends Metadata {
   private val headers = jHeaders.asScala
 
-  override def getText(key: String): Optional[String] = {
+  override def getText(key: String): Optional[String] =
     headers.collectFirst {
       case header if header.name == key => header.value
     } match {
       case Some(v) => Optional.of(v)
-      case None => Optional.empty[String]
+      case None    => Optional.empty[String]
     }
-  }
 
-  override def getBinary(key: String): Optional[ByteString] = {
+  override def getBinary(key: String): Optional[ByteString] =
     headers.collectFirst {
       case header if header.name == key =>
         ByteString(Base64.getDecoder.decode(header.value))
     } match {
       case Some(v) => Optional.of(v)
-      case None => Optional.empty[ByteString]
+      case None    => Optional.empty[ByteString]
     }
-  }
 }

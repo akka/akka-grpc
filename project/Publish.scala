@@ -9,9 +9,5 @@ object Publish extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = BintrayPlugin
 
-  override def projectSettings = Seq(
-    bintrayOrganization := Some("akka"),
-    bintrayPackage := "akka-grpc",
-  )
+  override def projectSettings = Seq(bintrayOrganization := Some("akka"), bintrayPackage := "akka-grpc")
 }
-

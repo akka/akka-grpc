@@ -16,11 +16,11 @@ import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
 
-  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Status]] = new jFunction[ActorSystem, jFunction[Throwable, Status]] {
-    override def apply(system: ActorSystem): jFunction[Throwable, Status] = {
-      default(system)
+  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Status]] =
+    new jFunction[ActorSystem, jFunction[Throwable, Status]] {
+      override def apply(system: ActorSystem): jFunction[Throwable, Status] =
+        default(system)
     }
-  }
 
   def default(system: ActorSystem): jFunction[Throwable, Status] = new jFunction[Throwable, Status] {
     override def apply(param: Throwable): Status = param match {
@@ -31,8 +31,8 @@ object GrpcExceptionHandler {
         if (e.getCause == null) Status.INTERNAL
         else default(system)(e.getCause)
       case grpcException: GrpcServiceException => grpcException.status
-      case _: NotImplementedError => Status.UNIMPLEMENTED
-      case _: UnsupportedOperationException => Status.UNIMPLEMENTED
+      case _: NotImplementedError              => Status.UNIMPLEMENTED
+      case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
       case other =>
         system.log.error(other, other.getMessage)
         Status.INTERNAL
@@ -41,7 +41,9 @@ object GrpcExceptionHandler {
 
   def standard(t: Throwable, system: ActorSystem): HttpResponse = standard(t, defaultMapper, system)
 
-  def standard(t: Throwable, mapper: jFunction[ActorSystem, jFunction[Throwable, Status]], system: ActorSystem): HttpResponse = {
+  def standard(
+      t: Throwable,
+      mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],
+      system: ActorSystem): HttpResponse =
     GrpcMarshalling.status(mapper(system)(t))
-  }
 }

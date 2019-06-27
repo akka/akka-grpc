@@ -26,14 +26,13 @@ object GenerateMojo {
   private val ProtocErrorRegex = """(\w+\.\w+):(\d+):(\d+):\s(.*)""".r
 
   /** @return a left(parsed error) or a right(original error string) if it cannot be parsed */
-  def parseError(errorLine: String): Either[ProtocError, String] = {
+  def parseError(errorLine: String): Either[ProtocError, String] =
     errorLine match {
       case ProtocErrorRegex(file, line, pos, message) =>
         Left(ProtocError(file, line.toInt, pos.toInt, message))
       case unknown =>
         Right(unknown)
     }
-  }
 
   private def captureStdOutAnderr[T](block: => T): (String, String, T) = {
     val errBao = new ByteArrayOutputStream()
@@ -64,17 +63,16 @@ object GenerateMojo {
     val targetDirSuffix = "java"
   }
 
-  def parseLanguage(text: String): Language = {
+  def parseLanguage(text: String): Language =
     text.toLowerCase match {
       case "scala" => Scala
-      case "java" => Java
+      case "java"  => Java
       case unknown =>
         throw new IllegalArgumentException("[$unknown] is not a supported language, supported are java or scala")
     }
-  }
 }
 
-class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
+class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
 
   import GenerateMojo._
 
@@ -129,45 +127,54 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
-    val schemas = scanner.getIncludedFiles.map(file => new File(protoDir, file))
-      .filter(buildContext.hasDelta)
-      .toSet
+    val schemas = scanner.getIncludedFiles.map(file => new File(protoDir, file)).filter(buildContext.hasDelta).toSet
 
     // only build if there are changes to the proto files
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      var loadedExtraGenerators = extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
+      var loadedExtraGenerators =
+        extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
       val targets = language match {
         case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
-            if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
-            if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty,
-          ).flatten.distinct
+              if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
+              if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
-            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
         case Scala =>
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
-            if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty,
-          ).flatten.distinct
+            if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target](
-            (JvmGenerator("scala", ScalaPbCodeGenerator), generatorSettings.asScala.filterNot(_ == "server_power_apis").filterNot(_ == "use_play_actions")) -> generatedSourcesDir) ++
-            glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
+            (
+              JvmGenerator("scala", ScalaPbCodeGenerator),
+              generatorSettings.asScala
+                .filterNot(_ == "server_power_apis")
+                .filterNot(_ == "use_play_actions")) -> generatedSourcesDir) ++
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
       }
 
-      val runProtoc: Seq[String] => Int = args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      val runProtoc: Seq[String] => Int = args =>
+        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
       val protocOptions = Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
   }
 
-  private[this] def executeProtoc(protocCommand: Seq[String] => Int, schemas: Set[File], protoDir: File, protocOptions: Seq[String], targets: Seq[Target]): Int =
+  private[this] def executeProtoc(
+      protocCommand: Seq[String] => Int,
+      schemas: Set[File],
+      protoDir: File,
+      protocOptions: Seq[String],
+      targets: Seq[Target]): Int =
     try {
       val incPath = "-I" + protoDir.getCanonicalPath
-      protocbridge.ProtocBridge.run(protocCommand, targets,
+      protocbridge.ProtocBridge.run(
+        protocCommand,
+        targets,
         Seq(incPath) ++ protocOptions ++ schemas.map(_.getCanonicalPath),
         pluginFrontend = protocbridge.frontend.PluginFrontend.newInstance)
     } catch {
@@ -175,7 +182,12 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
         throw new RuntimeException("error occurred while compiling protobuf files: %s".format(e.getMessage), e)
     }
 
-  private[this] def compile(protocCommand: Seq[String] => Int, schemas: Set[File], protoDir: File, protocOptions: Seq[String], targets: Seq[Target]): Unit = {
+  private[this] def compile(
+      protocCommand: Seq[String] => Int,
+      schemas: Set[File],
+      protoDir: File,
+      protocOptions: Seq[String],
+      targets: Seq[Target]): Unit = {
     // Sort by the length of path names to ensure that we have parent directories before sub directories
     val generatedTargetDirs = targets.map(_.outputPath).sortBy(_.getAbsolutePath.length)
     generatedTargetDirs.foreach(_.mkdirs())
@@ -194,7 +206,13 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
       if (exitCode != 0) {
         err.split("\n\r").map(_.trim).map(parseError).foreach {
           case Left(ProtocError(file, line, pos, message)) =>
-            buildContext.addMessage(new File(protoDir, file), line, pos, message, BuildContext.SEVERITY_ERROR, new RuntimeException("protoc compilation failed") with NoStackTrace)
+            buildContext.addMessage(
+              new File(protoDir, file),
+              line,
+              pos,
+              message,
+              BuildContext.SEVERITY_ERROR,
+              new RuntimeException("protoc compilation failed") with NoStackTrace)
           case Right(otherError) =>
             sys.error(s"protoc exit code $exitCode: $otherError")
         }

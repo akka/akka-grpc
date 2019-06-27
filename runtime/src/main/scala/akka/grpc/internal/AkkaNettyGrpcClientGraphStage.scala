@@ -42,19 +42,21 @@ private object AkkaNettyGrpcClientGraphStage {
  */
 @InternalApi
 private final class AkkaNettyGrpcClientGraphStage[I, O](
-  descriptor: MethodDescriptor[I, O],
-  fqMethodName: String,
-  channel: Channel,
-  options: CallOptions,
-  streamingResponse: Boolean,
-  headers: MetadataImpl) extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
+    descriptor: MethodDescriptor[I, O],
+    fqMethodName: String,
+    channel: Channel,
+    options: CallOptions,
+    streamingResponse: Boolean,
+    headers: MetadataImpl)
+    extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
 
   val in = Inlet[I](fqMethodName + ".in")
   val out = Outlet[O](fqMethodName + ".out")
 
   override val shape: FlowShape[I, O] = FlowShape.of(in, out)
 
-  def createLogicAndMaterializedValue(inheritedAttributes: stream.Attributes): (GraphStageLogic, Future[GrpcResponseMetadata]) = {
+  def createLogicAndMaterializedValue(
+      inheritedAttributes: stream.Attributes): (GraphStageLogic, Future[GrpcResponseMetadata]) = {
     import AkkaNettyGrpcClientGraphStage._
     val matVal = Promise[GrpcResponseMetadata]()
     val trailerPromise = Promise[Metadata]()
@@ -70,7 +72,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
       val callback = getAsyncCallback[Any] {
         case msg: ControlMessage =>
           msg match {
-            case ReadyForSending => if (!isClosed(in) && !hasBeenPulled(in)) tryPull(in)
+            case ReadyForSending         => if (!isClosed(in) && !hasBeenPulled(in)) tryPull(in)
             case Closed(status, trailer) => onCallClosed(status, trailer)
           }
         case element: O @unchecked =>
@@ -86,25 +88,25 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
       var call: ClientCall[I, O] = null
 
       val listener = new ClientCall.Listener[O] {
-        override def onReady(): Unit = {
+        override def onReady(): Unit =
           callback.invoke(ReadyForSending)
-        }
-        override def onHeaders(responseHeaders: Metadata): Unit = {
+        override def onHeaders(responseHeaders: Metadata): Unit =
           matVal.success(new GrpcResponseMetadata {
             private lazy val sMetadata = MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(responseHeaders)
             private lazy val jMetadata = MetadataImpl.javaMetadataFromGoogleGrpcMetadata(responseHeaders)
             def headers = sMetadata
             def getHeaders() = jMetadata
 
-            private lazy val sTrailers = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
-            private lazy val jTrailers = trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext).toJava
+            private lazy val sTrailers = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(
+              ExecutionContexts.sameThreadExecutionContext)
+            private lazy val jTrailers = trailerPromise.future
+              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
+              .toJava
             def trailers = sTrailers
             def getTrailers = jTrailers
           })
-        }
-        override def onMessage(message: O): Unit = {
+        override def onMessage(message: O): Unit =
           callback.invoke(message)
-        }
         override def onClose(status: Status, trailers: Metadata): Unit = {
           trailerPromise.success(trailers)
           callback.invoke(Closed(status, trailers))
@@ -148,19 +150,17 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         failStage(ex)
       }
 
-      override def onPull(): Unit = {
+      override def onPull(): Unit =
         if (requested == 0) {
           call.request(1)
           requested += 1
         }
-      }
-      override def onDownstreamFinish(): Unit = {
+      override def onDownstreamFinish(): Unit =
         if (isClosed(out)) {
           call.cancel("Downstream cancelled", null)
           call = null
           completeStage()
         }
-      }
 
       def onCallClosed(status: Status, trailers: Metadata): Unit = {
         if (status.isOk()) {
