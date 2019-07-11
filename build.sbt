@@ -23,7 +23,7 @@ lazy val codegen = Project(id = "akka-grpc-codegen", base = file("codegen"))
     },
     mainClass in assembly := Some("akka.grpc.gen.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)),
+        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions -= scala213))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
@@ -40,7 +40,7 @@ lazy val scalapbProtocPlugin = Project(id = "akka-grpc-scalapb-protoc-plugin", b
     },
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultShellScript)),
+        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Seq(scala212)))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
 
