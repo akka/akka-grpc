@@ -1,11 +1,17 @@
 package akka.grpc.gradle
 
+import org.apache.commons.lang.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
-import java.io.File
+
 import java.nio.file.Files
+import java.nio.file.StandardOpenOption
+import java.nio.file.attribute.PosixFilePermission
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
@@ -16,12 +22,62 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     Project project
 
+    private void mkBatLauncherScript(File jarFile) {
+        String script = "@echo off\n" +
+                "java -jar \"%~dp0" + jarFile.getName() + "\" %*\n" +
+                "exit /B %errorlevel%\n"
+        mkLauncherScript(jarFile, "bat", script, false)
+    }
+
+    private void mkLauncherScript(File jarFile, String extension, String contents, boolean posix) {
+        File shFile = new File(jarFile.getParentFile(), replaceFileExtension(jarFile.getName(), extension))
+        Files.writeString(shFile.toPath(), contents, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+
+        if (posix) {
+            Set<PosixFilePermission> perms = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_WRITE)
+            Files.setPosixFilePermissions(shFile.toPath(), perms)
+        }
+    }
+
+    private String replaceFileExtension(String filename, String newExtension) {
+        int ind = filename.lastIndexOf('.')
+        if (ind < 0) return filename + "." + newExtension
+        else return filename.substring(0, ind + 1) + newExtension
+    }
+
+    private String renderLogPath(File logFile) {
+        String candidate = logFile.toPath().toAbsolutePath().toRealPath().toString()
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            return candidate
+        } else {
+            Pattern ptnWinPath = Pattern.compile("(?i)^[a-z]:(\\\\.+)")
+            Matcher matcher = ptnWinPath.matcher(candidate)
+            if (matcher.matches()) {
+                return matcher.group(1).replace("\\", "/")
+            } else {
+                return candidate.replace("\\", "/")
+            }
+        }
+    }
+
     @Override
     void apply(Project project) {
         this.project = project
         project.gradle.addListener(this)
 
         def extension = project.extensions.create('akkaGrpc', AkkaGrpcPluginExtension, project)
+        String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
+
+        Configuration assembliesConfig = project.getConfigurations().create("codegen-assemblies");
+        assembliesConfig.setTransitive(false)
+        project.getDependencies().add(assembliesConfig.getName(), "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:assembly")
+        project.getDependencies().add(assembliesConfig.getName(), "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:assembly")
+
+        if (SystemUtils.IS_OS_WINDOWS) {
+            for (File assembly : assembliesConfig.getFiles()) {
+                mkBatLauncherScript(assembly)
+            }
+        }
 
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
@@ -38,11 +94,11 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
                 plugins {
                     akkaGrpc {
-                        artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:assembly@jar"
+                        artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:assembly@${assemblySuffix}"
                     }
                     if (isScala) {
                         scalapb {
-                            artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:assembly@jar"
+                            artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:assembly@${assemblySuffix}"
                         }
                     }
                 }
@@ -85,7 +141,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "server_power_apis=${extension.serverPowerApis}"
                                 option "use_play_actions=${extension.usePlayActions}"
                                 option "extra_generators=${extension.extraGenerators.join(';')}"
-                                option "logfile=${logFile.getAbsolutePath()}"
+                                option "logfile=${renderLogPath(logFile)}"
                                 if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
@@ -149,6 +205,5 @@ class AkkaGrpcPluginExtension {
             language = "Scala"
         else
             language = "Java"
-
     }
 }
