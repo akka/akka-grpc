@@ -81,6 +81,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
+            boolean isJava = "${extension.language}".toLowerCase() == "java"
             File logFile = File.createTempFile("akka-grpc-gradle", ".log")
             logFile.deleteOnExit()
 
@@ -114,12 +115,18 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                     }
                 }
 
-                if (isScala) {
-                    sourceSets {
-                        main {
+                sourceSets {
+                    main {
+                        if (isScala) {
                             scala {
                                 srcDir 'build/generated/source/proto/main/akkaGrpc'
                                 srcDir 'build/generated/source/proto/main/scalapb'
+                            }
+                        }
+                        if (isJava) {
+                            java {
+                                srcDir 'build/generated/source/proto/main/akkaGrpc'
+                                srcDir 'build/generated/source/proto/main/java'
                             }
                         }
                     }
