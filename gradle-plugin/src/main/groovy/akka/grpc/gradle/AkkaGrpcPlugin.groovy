@@ -31,7 +31,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     private void mkLauncherScript(File jarFile, String extension, String contents, boolean posix) {
         File shFile = new File(jarFile.getParentFile(), replaceFileExtension(jarFile.getName(), extension))
-        Files.writeString(shFile.toPath(), contents, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+        Files.write(shFile.toPath(), contents.split('\n') as Iterable, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
         if (posix) {
             Set<PosixFilePermission> perms = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_WRITE)
