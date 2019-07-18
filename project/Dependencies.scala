@@ -14,7 +14,7 @@ object Dependencies {
 
     val grpc = "1.20.0" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.3"
-    val sslConfig = "0.3.8"
+    val sslConfig = "0.4.0"
 
     val scalaTest = "3.0.8"
 
