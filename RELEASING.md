@@ -1,6 +1,10 @@
 # Releasing
 
-Create a new issue from the [Release Train Issue Template](docs/release-train-issue-template.md) and follow the steps.
+Create a new issue from the [Release Train Issue Template](docs/release-train-issue-template.md):
+
+```
+$ sh ./scripts/create-release-issue.sh 0.x.y
+```
 
 ## Gradle plugin release details
 
