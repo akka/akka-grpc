@@ -7,13 +7,26 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
-import akka.grpc.GrpcClientSettings
-import akka.grpc.internal._
-import akka.grpc.scaladsl._
-import akka.stream.Materializer
 import scala.concurrent.{ ExecutionContext, Promise }
 
-import io.grpc._
+import io.grpc.ManagedChannel
+import io.grpc.MethodDescriptor
+
+import akka.grpc.GrpcClientSettings
+
+import akka.grpc.scaladsl.AkkaGrpcClient
+import akka.grpc.scaladsl.SingleResponseRequestBuilder
+import akka.grpc.scaladsl.StreamResponseRequestBuilder
+
+import akka.grpc.internal.ScalaUnaryRequestBuilder
+import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder
+import akka.grpc.internal.ScalaClientStreamingRequestBuilder
+import akka.grpc.internal.ScalaServerStreamingRequestBuilder
+import akka.grpc.internal.Marshaller
+import akka.grpc.internal.NettyClientUtils
+import akka.grpc.internal.ClientState
+
+import akka.stream.Materializer
 
 // Not sealed so users can extend to write their stubs
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
