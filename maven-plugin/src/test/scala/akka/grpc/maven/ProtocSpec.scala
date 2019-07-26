@@ -21,4 +21,18 @@ class ProtocSpec extends WordSpec with Matchers {
     }
   }
 
+  import scala.collection.JavaConverters._
+
+  "Parsing generator settings" should {
+    "filter out the false values" in {
+      val settings = Map("1" -> "true", "2" -> "false", "3" -> "False", "4" -> "")
+      GenerateMojo.parseGeneratorSettings(settings.asJava) shouldBe Seq("1", "4")
+    }
+
+    "convert camelCase into snake_case of keys" in {
+      val settings = Map("flatPackage" -> "true", "serverPowerApis" -> "true")
+      GenerateMojo.parseGeneratorSettings(settings.asJava) shouldBe Seq("flat_package", "server_power_apis")
+    }
+  }
+
 }

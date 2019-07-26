@@ -51,7 +51,7 @@
         </executions>
         <configuration>
           <generatorSettings>
-            <generatorSetting>server_power_apis</generatorSetting>
+            <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
         </configuration>
       </plugin>
