@@ -77,7 +77,6 @@
         <configuration>
           <language>Scala</language>
           <generatorSettings>
-            <generatorSetting>flat_package</generatorSetting>
             <generatorSetting>server_power_apis</generatorSetting>
           </generatorSettings>
         </configuration>

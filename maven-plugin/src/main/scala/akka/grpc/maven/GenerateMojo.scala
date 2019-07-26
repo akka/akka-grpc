@@ -96,13 +96,10 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
 
   import scala.collection.JavaConverters._
   @BeanProperty
-  var generatorSettings: java.util.ArrayList[String] = {
-    val init = new java.util.ArrayList[String]()
-    init.add("flat_package")
-    init
-  }
+  var generatorSettings: java.util.ArrayList[String] = _
+
   @BeanProperty
-  var extraGenerators: java.util.ArrayList[String] = new java.util.ArrayList
+  var extraGenerators: java.util.ArrayList[String] = _
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
@@ -133,16 +130,20 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      var loadedExtraGenerators =
+      val loadedExtraGenerators =
         extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
       val targets = language match {
         case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
-              if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
-              if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty).flatten.distinct
+            if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
+            if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
         case Scala =>
+          // Initialize generatorSettings after bean is injected via Mojo setup.
+          // Add flat_package option as default.
+          generatorSettings.add("flat_package")
+
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
