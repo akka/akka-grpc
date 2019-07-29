@@ -8,8 +8,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 
 import java.nio.file.Files
-import java.nio.file.StandardOpenOption
-import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -21,29 +19,6 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
     final String grpcVersion = "1.22.1" // checked synced by GrpcVersionSyncCheckPlugin
 
     Project project
-
-    private void mkBatLauncherScript(File jarFile) {
-        String script = "@echo off\n" +
-                "java -jar \"%~dp0" + jarFile.getName() + "\" %*\n" +
-                "exit /B %errorlevel%\n"
-        mkLauncherScript(jarFile, "bat", script, false)
-    }
-
-    private void mkLauncherScript(File jarFile, String extension, String contents, boolean posix) {
-        File shFile = new File(jarFile.getParentFile(), replaceFileExtension(jarFile.getName(), extension))
-        Files.write(shFile.toPath(), contents.split('\n') as Iterable, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
-
-        if (posix) {
-            Set<PosixFilePermission> perms = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_WRITE)
-            Files.setPosixFilePermissions(shFile.toPath(), perms)
-        }
-    }
-
-    private String replaceFileExtension(String filename, String newExtension) {
-        int ind = filename.lastIndexOf('.')
-        if (ind < 0) return filename + "." + newExtension
-        else return filename.substring(0, ind + 1) + newExtension
-    }
 
     private String renderLogPath(File logFile) {
         String candidate = logFile.toPath().toAbsolutePath().toRealPath().toString()
@@ -67,17 +42,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
         def extension = project.extensions.create('akkaGrpc', AkkaGrpcPluginExtension, project)
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
-
-        Configuration assembliesConfig = project.getConfigurations().create("codegen-assemblies");
-        assembliesConfig.setTransitive(false)
-        project.getDependencies().add(assembliesConfig.getName(), "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:assembly")
-        project.getDependencies().add(assembliesConfig.getName(), "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:assembly")
-
-        if (SystemUtils.IS_OS_WINDOWS) {
-            for (File assembly : assembliesConfig.getFiles()) {
-                mkBatLauncherScript(assembly)
-            }
-        }
+        String assemblyClassifier = SystemUtils.IS_OS_WINDOWS ? "bat" : "assembly"
 
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
@@ -95,11 +60,11 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
                 plugins {
                     akkaGrpc {
-                        artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:assembly@${assemblySuffix}"
+                        artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
                     }
                     if (isScala) {
                         scalapb {
-                            artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:assembly@${assemblySuffix}"
+                            artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
                         }
                     }
                 }
