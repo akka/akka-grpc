@@ -6,7 +6,6 @@ package example.myapp.statefulhelloworld
 
 import example.myapp.statefulhelloworld.grpc.GreeterService
 import example.myapp.statefulhelloworld.grpc.{ ChangeRequest, ChangeResponse, HelloReply, HelloRequest }
-import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout

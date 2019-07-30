@@ -12,7 +12,6 @@ import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.grpc.SSLContextUtils
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures

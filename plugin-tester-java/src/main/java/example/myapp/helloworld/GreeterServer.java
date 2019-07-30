@@ -40,7 +40,7 @@ class GreeterServer {
 
     return Http.get(sys).bindAndHandleAsync(
       GreeterServiceHandlerFactory.create(impl, mat, sys),
-      ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
+      ConnectHttp.toHost("127.0.0.1", 8080),
       mat);
   }
 }
