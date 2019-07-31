@@ -70,6 +70,19 @@ object GenerateMojo {
       case unknown =>
         throw new IllegalArgumentException("[$unknown] is not a supported language, supported are java or scala")
     }
+
+  /**
+   * Turns generatorSettings into sequence of strings, including to:
+   * 1. Filter keys if the values are not false.
+   * 2. Make camelCase into snake_case
+   * e.g. { "flatPackage": "true", "serverPowerApis": "false" } -> ["flat_package"]
+   */
+  def parseGeneratorSettings(generatorSettings: java.util.Map[String, String]): Seq[String] = {
+    import scala.collection.JavaConverters._
+    generatorSettings.asScala.filter(_._2.toLowerCase() != "false").keys.toSeq.map { params =>
+      "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
+    }
+  }
 }
 
 class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
@@ -96,13 +109,10 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
 
   import scala.collection.JavaConverters._
   @BeanProperty
-  var generatorSettings: java.util.ArrayList[String] = {
-    val init = new java.util.ArrayList[String]()
-    init.add("flat_package")
-    init
-  }
+  var generatorSettings: java.util.Map[String, String] = _
+
   @BeanProperty
-  var extraGenerators: java.util.ArrayList[String] = new java.util.ArrayList
+  var extraGenerators: java.util.ArrayList[String] = _
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
@@ -133,16 +143,23 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
     if (schemas.isEmpty) {
       getLog.info("No changed or new .proto-files found in [%s], skipping code generation".format(generatedSourcesDir))
     } else {
-      var loadedExtraGenerators =
-        extraGenerators.asScala.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
+      val loadedExtraGenerators =
+        extraGenerators.asScala.map(cls =>
+          Class.forName(cls).getDeclaredConstructor().newInstance().asInstanceOf[CodeGenerator])
       val targets = language match {
         case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
               if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
               if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty).flatten.distinct
           Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, parseGeneratorSettings(generatorSettings)))
         case Scala =>
+          // Add flatPackage option as default if it's not absent.
+          generatorSettings.putIfAbsent("flatPackage", "true")
+
+          val scalaGeneratorSettings = parseGeneratorSettings(generatorSettings)
+          println(scalaGeneratorSettings)
+
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
@@ -150,10 +167,10 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
           Seq[Target](
             (
               JvmGenerator("scala", ScalaPbCodeGenerator),
-              generatorSettings.asScala
+              scalaGeneratorSettings
                 .filterNot(_ == "server_power_apis")
                 .filterNot(_ == "use_play_actions")) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, generatorSettings.asScala))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, scalaGeneratorSettings))
       }
 
       val runProtoc: Seq[String] => Int = args =>
