@@ -9,14 +9,16 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling, ScalapbProtobufSerializer, Metadata, MetadataImpl }
-import akka.grpc.{ Codecs, GrpcServiceException }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling }
+import akka.grpc.Codecs
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+
+@{if (powerApis) "import akka.grpc.scaladsl.MetadataImpl" else ""}
 
 @defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   object @{serviceName}Handler {

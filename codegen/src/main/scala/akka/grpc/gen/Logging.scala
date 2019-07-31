@@ -4,9 +4,7 @@
 
 package akka.grpc.gen
 
-import java.io.{ FileWriter, PrintWriter }
-import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Path }
+import java.io.PrintWriter
 
 // specific to gen so that the build tools can implement their own
 trait Logger {

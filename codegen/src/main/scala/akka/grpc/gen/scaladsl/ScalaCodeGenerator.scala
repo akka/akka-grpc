@@ -11,7 +11,6 @@ import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
-import templates.ScalaCommon.txt._
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service

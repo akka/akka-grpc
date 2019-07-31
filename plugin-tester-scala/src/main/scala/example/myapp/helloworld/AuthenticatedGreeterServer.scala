@@ -6,7 +6,6 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.UseHttp2.Always
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.server.{ Directive0, Route, RouteResult }
 import akka.http.scaladsl.server.Directives._
@@ -71,7 +70,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       Route.asyncHandler(route),
       interface = "127.0.0.1",
       port = 8082,
-      connectionContext = HttpConnectionContext(http2 = Always))
+      connectionContext = HttpConnectionContext())
 
     // report successful binding
     binding.foreach { binding =>

@@ -6,7 +6,6 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.UseHttp2.Always
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http, HttpConnectionContext }
 import akka.stream.{ ActorMaterializer, Materializer }
@@ -46,7 +45,7 @@ class GreeterServer(system: ActorSystem) {
       service,
       interface = "127.0.0.1",
       port = 8080,
-      connectionContext = HttpConnectionContext(http2 = Always))
+      connectionContext = HttpConnectionContext())
 
     // report successful binding
     binding.foreach { binding =>

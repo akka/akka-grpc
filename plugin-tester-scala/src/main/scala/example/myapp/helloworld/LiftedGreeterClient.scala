@@ -4,8 +4,6 @@
 
 package example.myapp.helloworld
 
-import java.util.concurrent.TimeUnit
-
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
