@@ -38,7 +38,7 @@ Scala
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metata, as described
-@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `server_power_apis` option:
+@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `serverPowerApis` tag as true:
 
 Java
 :   ```xml
@@ -47,7 +47,7 @@ Java
         <configuration>
           ...
           <generatorSettings>
-            <generatorSetting>server_power_apis</generatorSetting>
+            <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
         </configuration>
     </plugin>
@@ -61,8 +61,7 @@ Scala
           ...
           <language>Scala</language>
           <generatorSettings>
-            <generatorSetting>flat_package</generatorSetting>
-            <generatorSetting>server_power_apis</generatorSetting>
+            <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
         </configuration>
     </plugin>
