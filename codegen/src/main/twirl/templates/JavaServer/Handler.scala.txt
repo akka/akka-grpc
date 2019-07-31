@@ -18,13 +18,11 @@ import akka.stream.Materializer;
 
 import akka.grpc.Codec;
 import akka.grpc.Codecs;
-import akka.grpc.ProtobufSerializer;
-import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
-import akka.grpc.javadsl.Metadata;
-import akka.grpc.javadsl.MetadataImpl;
 import akka.grpc.javadsl.package$;
+
+@{if (powerApis) "import akka.grpc.javadsl.Metadata;\nimport akka.grpc.javadsl.MetadataImpl;" else ""}
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
 

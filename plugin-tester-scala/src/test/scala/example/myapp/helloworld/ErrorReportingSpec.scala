@@ -5,7 +5,6 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.UseHttp2.Always
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model._

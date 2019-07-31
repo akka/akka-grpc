@@ -6,28 +6,11 @@ package example.myapp;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.*;
-import akka.http.scaladsl.settings.ServerSettings;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
 import java.util.concurrent.CompletionStage;
 
 //#import
@@ -61,7 +44,7 @@ class CombinedServer {
 
       Http.get(sys).bindAndHandleAsync(
           serviceHandlers,
-          ConnectHttp.toHost("127.0.0.1", 8080, UseHttp2.always()),
+          ConnectHttp.toHost("127.0.0.1", 8080),
           mat)
       //#concatOrNotFound
       .thenAccept(binding -> {

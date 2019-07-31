@@ -7,7 +7,7 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
-import scala.concurrent.{ ExecutionContext, Promise }
+import scala.concurrent.ExecutionContext
 
 import io.grpc.ManagedChannel
 import io.grpc.MethodDescriptor
@@ -15,18 +15,28 @@ import io.grpc.MethodDescriptor
 import akka.grpc.GrpcClientSettings
 
 import akka.grpc.scaladsl.AkkaGrpcClient
-import akka.grpc.scaladsl.SingleResponseRequestBuilder
-import akka.grpc.scaladsl.StreamResponseRequestBuilder
 
-import akka.grpc.internal.ScalaUnaryRequestBuilder
-import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder
-import akka.grpc.internal.ScalaClientStreamingRequestBuilder
-import akka.grpc.internal.ScalaServerStreamingRequestBuilder
 import akka.grpc.internal.Marshaller
 import akka.grpc.internal.NettyClientUtils
 import akka.grpc.internal.ClientState
 
 import akka.stream.Materializer
+
+@{
+  def withSingleResponse(stmt: String) = Set("import akka.grpc.scaladsl.SingleResponseRequestBuilder", stmt)
+  def withStreamResponse(stmt: String) = Set("import akka.grpc.scaladsl.StreamResponseRequestBuilder", stmt)
+  service.methods.toSet.flatMap { method: akka.grpc.gen.scaladsl.Method =>
+
+    val statements = method.methodType match {
+      case akka.grpc.gen.Unary => withSingleResponse("import akka.grpc.internal.ScalaUnaryRequestBuilder")
+      case akka.grpc.gen.ClientStreaming =>  withSingleResponse("import akka.grpc.internal.ScalaClientStreamingRequestBuilder")
+      case akka.grpc.gen.ServerStreaming => withStreamResponse("import akka.grpc.internal.ScalaServerStreamingRequestBuilder")
+      case akka.grpc.gen.BidiStreaming => withStreamResponse("import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder")
+    }
+
+    statements
+  }.mkString("\n")
+}
 
 // Not sealed so users can extend to write their stubs
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient

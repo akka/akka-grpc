@@ -7,15 +7,11 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
-import akka.annotation.*;
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.AkkaGrpcClient;
-import akka.grpc.javadsl.SingleResponseRequestBuilder;
-import akka.grpc.javadsl.StreamResponseRequestBuilder;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
-import akka.stream.OverflowStrategy;
 
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
@@ -23,7 +19,8 @@ import io.grpc.MethodDescriptor;
 import static @{service.packageName}.@{service.name}.Serializers.*;
 
 import scala.concurrent.ExecutionContext;
-import scala.compat.java8.FutureConverters;
+
+@GenMethodImports(service)
 
 public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, Materializer mat, ExecutionContext ec) {

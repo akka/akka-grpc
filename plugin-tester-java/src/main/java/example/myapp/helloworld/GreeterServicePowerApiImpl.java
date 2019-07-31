@@ -10,7 +10,6 @@ import akka.grpc.javadsl.Metadata;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-import example.myapp.helloworld.grpc.GreeterService;
 import example.myapp.helloworld.grpc.GreeterServicePowerApi;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;

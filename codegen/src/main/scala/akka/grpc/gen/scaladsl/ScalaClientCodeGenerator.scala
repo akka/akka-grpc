@@ -7,7 +7,6 @@ package akka.grpc.gen.scaladsl
 import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
-import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
 import templates.ScalaClient.txt._
 
