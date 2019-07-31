@@ -1,0 +1,16 @@
+@*
+ * Copyright (C) 2019 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@(service: akka.grpc.gen.javadsl.Service)
+
+@{
+  val singleResponse = "import akka.grpc.javadsl.SingleResponseRequestBuilder;"
+  val streamResponse = "import akka.grpc.javadsl.StreamResponseRequestBuilder;"
+  service.methods.map(_.methodType).map {
+      case akka.grpc.gen.Unary => singleResponse
+      case akka.grpc.gen.ClientStreaming => singleResponse
+      case akka.grpc.gen.ServerStreaming => streamResponse
+      case akka.grpc.gen.BidiStreaming => streamResponse
+  }.toSet.mkString("\n")
+}

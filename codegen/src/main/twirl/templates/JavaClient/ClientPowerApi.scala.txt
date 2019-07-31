@@ -7,10 +7,7 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
-import akka.grpc.javadsl.SingleResponseRequestBuilder;
-import akka.grpc.javadsl.StreamResponseRequestBuilder;
-
-import static @{service.packageName}.@{service.name}.Serializers.*;
+@GenMethodImports(service)
 
 public abstract class @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
@@ -20,11 +17,11 @@ public abstract class @{service.name}ClientPowerApi {
      */
     @if(method.methodType == akka.grpc.gen.Unary) {
       public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.ClientStreaming){
+    } else if(method.methodType == akka.grpc.gen.ClientStreaming){
       public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.ServerStreaming){
+    } else if(method.methodType == akka.grpc.gen.ServerStreaming){
       public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
-    }else if(method.methodType == akka.grpc.gen.BidiStreaming){
+    } else if(method.methodType == akka.grpc.gen.BidiStreaming){
       public StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
     }
     {
