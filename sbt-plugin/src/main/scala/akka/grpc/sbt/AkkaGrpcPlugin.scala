@@ -70,7 +70,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]](
       "Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]](
-      "Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string. Akka gRPC settings: server_power_apis")
+      "Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string, no_lenses, retain_source_code_info. Akka gRPC settings: server_power_apis, use_play_actions.")
   }
 
   object autoImport extends Keys
