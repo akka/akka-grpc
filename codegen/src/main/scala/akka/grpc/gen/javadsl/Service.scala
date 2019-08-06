@@ -42,7 +42,7 @@ object Service {
     Service(
       fileDesc.getOptions.getJavaPackage,
       serviceDescriptor.getName,
-      fileDesc.getPackage + "." + serviceDescriptor.getName,
+      (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],
       serverPowerApi,
       usePlayActions,
