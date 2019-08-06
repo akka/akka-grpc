@@ -6,9 +6,13 @@ option java_outer_classname = "HelloWorldProto";
 
 package helloworld;
 
-// The greeting service definition.
+////////////////////////////////////// The greeting service definition.
 service GreeterService {
-    // Sends a greeting
+    //////////////////////
+    // Sends a greeting //
+    ////////*****/////////
+    //      HELLO       //
+    ////////*****/////////
     rpc SayHello (HelloRequest) returns (HelloReply) {}
 
     // Comment spanning
