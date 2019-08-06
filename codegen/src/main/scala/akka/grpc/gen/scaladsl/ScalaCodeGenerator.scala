@@ -41,6 +41,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
     val params = request.getParameter.toLowerCase
+    // flags listed in akkaGrpcCodeGeneratorSettings's description
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
@@ -65,12 +66,16 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     b.build()
   }
 
+  // flags listed in akkaGrpcCodeGeneratorSettings's description
   private def parseParameters(params: String): GeneratorParams =
     params.split(",").map(_.trim).filter(_.nonEmpty).foldLeft[GeneratorParams](GeneratorParams()) {
-      case (p, "java_conversions")      => p.copy(javaConversions = true)
-      case (p, "flat_package")          => p.copy(flatPackage = true)
-      case (p, "grpc")                  => p.copy(grpc = true)
-      case (p, "single_line_to_string") => p.copy(singleLineToProtoString = true)
-      case (x, _)                       => x
+      case (p, "java_conversions")            => p.copy(javaConversions = true)
+      case (p, "flat_package")                => p.copy(flatPackage = true)
+      case (p, "single_line_to_string")       => p.copy(singleLineToProtoString = true) // for backward-compatibility
+      case (p, "single_line_to_proto_string") => p.copy(singleLineToProtoString = true)
+      case (p, "ascii_format_to_string")      => p.copy(asciiFormatToString = true)
+      case (p, "no_lenses")                   => p.copy(lenses = false)
+      case (p, "retain_source_code_info")     => p.copy(retainSourceCodeInfo = true)
+      case (x, _)                             => x
     }
 }
