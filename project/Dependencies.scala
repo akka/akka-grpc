@@ -14,6 +14,8 @@ object Dependencies {
 
     val grpc = "1.22.1" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.4"
+    // We should follow Akka in whether to update to 0.4.0
+    // https://github.com/akka/akka/issues/27142#issuecomment-503146305
     val sslConfig = "0.3.8"
 
     val scalaTest = "3.0.8"
