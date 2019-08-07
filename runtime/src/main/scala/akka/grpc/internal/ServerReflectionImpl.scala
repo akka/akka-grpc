@@ -46,13 +46,12 @@ class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor]
 }
 object ServerReflectionImpl {
   import scala.collection.JavaConverters._
-  import com.google.api.annotations.AnnotationsProto
 
   def apply(fileDescriptors: Seq[FileDescriptor], services: List[String]): ServerReflectionImpl =
     new ServerReflectionImpl((AdditionalDescriptors ++ fileDescriptors).map(fd => fd.getName -> fd).toMap, services)
 
   val AdditionalDescriptors =
-    List(AnnotationsProto.javaDescriptor, ReflectionProto.javaDescriptor).flatMap(flattenDependencies).distinct
+    flattenDependencies(ReflectionProto.javaDescriptor).distinct
 
   private def flattenDependencies(descriptor: FileDescriptor): List[FileDescriptor] = {
     descriptor :: descriptor.getDependencies.asScala.toList.flatMap(flattenDependencies)
