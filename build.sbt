@@ -43,8 +43,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     // introduce the tooling
     mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
-    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator")
-  )
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
