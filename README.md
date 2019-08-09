@@ -8,7 +8,7 @@ toolkit.
 
 ## Documentation
 
-- [Akka gRPC reference](https://developer.lightbend.com/docs/akka-grpc/current/) documentation 
+- [Akka gRPC reference](https://doc.akka.io/docs/akka-grpc/current/) documentation 
 
 ## Project Status
 
@@ -57,4 +57,4 @@ This project does not yet have to obey the rule of staying binary compatible bet
 
 Akka gRPC is currently *[Incubating][]*. The Lightbend subscription does not yet cover support for this project.
 
-[Incubating]: https://developer.lightbend.com/docs/reactive-platform/2.0/support-terminology/index.html#incubating
+[Incubating]: https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-help/support-terminology.html#incubating
