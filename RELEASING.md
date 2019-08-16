@@ -23,12 +23,13 @@ It is possible to release a revised documentation to the already existing releas
     ThisBuild / isSnapshot := false
     ```
 1. Make all of the required changes to the documentation.
-1. Build documentation locally with `CI` settings:
+1. Build documentation locally with:
     ```sh
-    env CI=true sbt akka-grpc-docs/previewSite
+    sbt akka-grpc-docs/previewSite
     ```
 1. If the generated documentation looks good, send it to Gustav:
     ```sh
-    env CI=true sbt akka-grpc-docs/publishRsync
+    rm -r docs/target/site
+    sbt akka-grpc-docs/publishRsync
     ```
 1. Do not forget to push the new branch back to GitHub.
