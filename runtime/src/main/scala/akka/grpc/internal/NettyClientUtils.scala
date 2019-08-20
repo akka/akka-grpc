@@ -65,8 +65,9 @@ object NettyClientUtils {
           ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
           Future.successful(channel)
         } else {
-          promise.tryFailure(new NoTargetException("No targets returned for name: " + settings.serviceName))
-          Future.failed(new IllegalStateException("No targets returned for name: " + settings.serviceName))
+          val failure = new NoTargetException("No targets returned for name: " + settings.serviceName)
+          promise.tryFailure(failure)
+          Future.failed(failure)
         }
       }
     new InternalChannel(mc, promise)
