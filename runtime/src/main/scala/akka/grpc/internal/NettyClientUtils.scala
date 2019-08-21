@@ -20,6 +20,14 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
+ * Used to indicate that the service discovery returned no target.
+ *
+ * Can be caught to re-try lookup if it is likely that
+ * your service discovery mechanism will resolve to different instances.
+ */
+final class NoTargetException(msg: String) extends RuntimeException(msg)
+
+/**
  * INTERNAL API
  */
 @InternalApi
@@ -57,7 +65,9 @@ object NettyClientUtils {
           ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
           Future.successful(channel)
         } else {
-          Future.failed(new IllegalStateException("No targets returned for name: " + settings.serviceName))
+          val failure = new NoTargetException("No targets returned for name: " + settings.serviceName)
+          promise.tryFailure(failure)
+          Future.failed(failure)
         }
       }
     new InternalChannel(mc, promise)
