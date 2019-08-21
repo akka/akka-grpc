@@ -98,7 +98,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
   private def create(): InternalChannel = {
     val internalChannel: InternalChannel = channelFactory(settings)
     internalChannel.done.onComplete {
-      case Failure(_: ClientConnectionException) =>
+      case Failure(_: ClientConnectionException | _: NoTargetException) =>
         val old = internalChannelRef.get()
         if (old.isDefined) {
           val newInternalChannel = create()
