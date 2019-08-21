@@ -25,7 +25,7 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
  * Can be caught to re-try lookup if it is likely that
  * your service discovery mechanism will resolve to different instances.
  */
-class NoTargetException(msg: String) extends RuntimeException(msg)
+final class NoTargetException(msg: String) extends RuntimeException(msg)
 
 /**
  * INTERNAL API
