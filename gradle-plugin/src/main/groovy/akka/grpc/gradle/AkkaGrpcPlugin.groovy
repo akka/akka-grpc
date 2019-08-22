@@ -3,7 +3,6 @@ package akka.grpc.gradle
 import org.apache.commons.lang.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 
@@ -20,21 +19,6 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     Project project
 
-    private String renderLogPath(File logFile) {
-        String candidate = logFile.toPath().toAbsolutePath().toRealPath().toString()
-        if (!SystemUtils.IS_OS_WINDOWS) {
-            return candidate
-        } else {
-            Pattern ptnWinPath = Pattern.compile("(?i)^[a-z]:(\\\\.+)")
-            Matcher matcher = ptnWinPath.matcher(candidate)
-            if (matcher.matches()) {
-                return matcher.group(1).replace("\\", "/")
-            } else {
-                return candidate.replace("\\", "/")
-            }
-        }
-    }
-
     @Override
     void apply(Project project) {
         this.project = project
@@ -47,8 +31,6 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
             boolean isJava = "${extension.language}".toLowerCase() == "java"
-            File logFile = File.createTempFile("akka-grpc-gradle", ".log")
-            logFile.deleteOnExit()
 
             apply plugin: 'com.google.protobuf'
             protobuf {
@@ -113,7 +95,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "server_power_apis=${extension.serverPowerApis}"
                                 option "use_play_actions=${extension.usePlayActions}"
                                 option "extra_generators=${extension.extraGenerators.join(';')}"
-                                option "logfile=${renderLogPath(logFile)}"
+                                option "logfile=build/akka-grpc-gradle-plugin.log"
                                 if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
