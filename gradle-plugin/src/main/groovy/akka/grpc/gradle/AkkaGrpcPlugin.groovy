@@ -7,8 +7,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 
 import java.nio.file.Files
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import java.nio.file.Path
 
 class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
@@ -27,6 +26,8 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
         def extension = project.extensions.create('akkaGrpc', AkkaGrpcPluginExtension, project)
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
         String assemblyClassifier = SystemUtils.IS_OS_WINDOWS ? "bat" : "assembly"
+
+        Path logFile = project.buildDir.toPath().resolve("akka-grpc-gradle-plugin.log")
 
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
@@ -95,7 +96,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "server_power_apis=${extension.serverPowerApis}"
                                 option "use_play_actions=${extension.usePlayActions}"
                                 option "extra_generators=${extension.extraGenerators.join(';')}"
-                                option "logfile=build/akka-grpc-gradle-plugin.log"
+                                option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
                                 if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
@@ -116,7 +117,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
             println project.getTasks()
             project.task("printProtocLogs") {
                 doLast {
-                    Files.lines(logFile.toPath()).forEach { line ->
+                    Files.lines(logFile).forEach { line ->
                         if (line.startsWith("[info]")) logger.info(line.substring(7))
                         else if (line.startsWith("[debug]")) logger.debug(line.substring(7))
                         else if (line.startsWith("[warn]")) logger.warn(line.substring(6))
