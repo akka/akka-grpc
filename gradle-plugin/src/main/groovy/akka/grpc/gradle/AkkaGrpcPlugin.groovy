@@ -3,13 +3,11 @@ package akka.grpc.gradle
 import org.apache.commons.lang.SystemUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.ResolvableDependencies
 
 import java.nio.file.Files
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import java.nio.file.Path
 
 class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
@@ -20,21 +18,6 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     Project project
 
-    private String renderLogPath(File logFile) {
-        String candidate = logFile.toPath().toAbsolutePath().toRealPath().toString()
-        if (!SystemUtils.IS_OS_WINDOWS) {
-            return candidate
-        } else {
-            Pattern ptnWinPath = Pattern.compile("(?i)^[a-z]:(\\\\.+)")
-            Matcher matcher = ptnWinPath.matcher(candidate)
-            if (matcher.matches()) {
-                return matcher.group(1).replace("\\", "/")
-            } else {
-                return candidate.replace("\\", "/")
-            }
-        }
-    }
-
     @Override
     void apply(Project project) {
         this.project = project
@@ -44,11 +27,11 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
         String assemblyClassifier = SystemUtils.IS_OS_WINDOWS ? "bat" : "assembly"
 
+        Path logFile = project.buildDir.toPath().resolve("akka-grpc-gradle-plugin.log")
+
         project.configure(project) {
             boolean isScala = "${extension.language}".toLowerCase() == "scala"
             boolean isJava = "${extension.language}".toLowerCase() == "java"
-            File logFile = File.createTempFile("akka-grpc-gradle", ".log")
-            logFile.deleteOnExit()
 
             apply plugin: 'com.google.protobuf'
             protobuf {
@@ -113,7 +96,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "server_power_apis=${extension.serverPowerApis}"
                                 option "use_play_actions=${extension.usePlayActions}"
                                 option "extra_generators=${extension.extraGenerators.join(';')}"
-                                option "logfile=${renderLogPath(logFile)}"
+                                option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
                                 if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
@@ -134,7 +117,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
             println project.getTasks()
             project.task("printProtocLogs") {
                 doLast {
-                    Files.lines(logFile.toPath()).forEach { line ->
+                    Files.lines(logFile).forEach { line ->
                         if (line.startsWith("[info]")) logger.info(line.substring(7))
                         else if (line.startsWith("[debug]")) logger.debug(line.substring(7))
                         else if (line.startsWith("[warn]")) logger.warn(line.substring(6))
