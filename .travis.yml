@@ -21,8 +21,8 @@ env:
     # encrypt with: travis encrypt DEPLOY_PASSPHRASE=...
     - secure: "M1i4uXUvhglxP5CX4gH8OggEHrdjWhbDq2TceW80nXS+BPEiUzqLKUqbRPacm4Sujmc7E3SphJnI26V/Qb+tBNzUI/zagvV/hep8TDCIg9YXhW2kGPcSjI7U1ZqQB6KRKp32R3aEolYGlNgnxRuMDvHFb3tgc/RfdXMo3+LWAvclFgAMMaSRD5fjENv73vl9V1Nitg8ZQX1i7cJQRrlH95ZuihqstK+8XJOI3w0difsZg5qOF7HV7v0mdU4XTUN1CdSZVb7Cvo2kdn/mN3x5eHIe58nWPHW5iJpuxd34f0IsK27zzDwNoyVrkQL5Vlhmp6e+GLHtJVGilbnWSTkVSY+bC0quHOP7D5lSELKpBLzxq6dJV/ijMFfQUeYVs+RK0HN2BwlYGscbZL/D5x8mQzkZLWtCRqPy21BGEvEpf9JBR1GivZmMvBih+hknKAFhW6ihBM5ryFifkC1/RFNjAY3loq5hushbDucCdr8vHAJetWLYJWT2vmctE7Os5sC5UFcvFDJurXNXoFBrK+VJu80PDip6WYjbQwzqaNk1F5SNva/i/ynNHUV1uNvdNRJbVV7EWVluVM5cQqaZXm7pHzXE74AhRrfm337v2PlUV7CdnXaYauMxhUMw7+MmWbSHh0jWoyLTGtEUfBfsVkSjpyTSKpsuN6wDsl4g6dk1zeQ="
   matrix:
-    - TRAVIS_JDK=adopt@1.8.202-08
-    - TRAVIS_JDK=adopt@1.11.0-2
+    - TRAVIS_JDK=adopt@1.8.0-222
+    - TRAVIS_JDK=adopt@1.11.0-4
 
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
 install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
