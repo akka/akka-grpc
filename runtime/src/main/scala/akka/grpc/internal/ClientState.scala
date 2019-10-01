@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.Done
 import akka.annotation.InternalApi
 import akka.grpc.GrpcClientSettings
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.Materializer
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
@@ -38,11 +38,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
   private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
 
-  mat match {
-    case m: ActorMaterializer =>
-      m.system.whenTerminated.foreach(_ => close())(ex)
-    case _ =>
-  }
+  mat.system.whenTerminated.foreach(_ => close())(ex)
 
   def withChannel[A](f: Future[ManagedChannel] => A): A =
     f {

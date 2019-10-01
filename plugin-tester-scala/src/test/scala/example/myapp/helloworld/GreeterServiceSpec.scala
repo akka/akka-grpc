@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.Span
@@ -36,7 +36,7 @@ class GreeterSpec extends Matchers with WordSpecLike with BeforeAndAfterAll with
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  implicit val mat = ActorMaterializer.create(clientSystem)
+  implicit val mat = Materializer.matFromSystem(clientSystem)
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>

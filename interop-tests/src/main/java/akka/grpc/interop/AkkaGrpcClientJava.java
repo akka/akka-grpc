@@ -5,7 +5,7 @@
 package akka.grpc.interop;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.Materializer;
 import akka.grpc.interop.GrpcClient;
 import io.grpc.internal.testing.TestUtils;
@@ -31,7 +31,7 @@ public class AkkaGrpcClientJava extends GrpcClient {
     final Settings settings = Settings.parseArgs(args);
 
     final ActorSystem sys = ActorSystem.create("AkkaGrpcClientJava");
-    final Materializer mat = ActorMaterializer.create(sys);
+    final Materializer mat = Materializer.matFromSystem(sys);
 
     final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, mat, sys));
     client.setUp();

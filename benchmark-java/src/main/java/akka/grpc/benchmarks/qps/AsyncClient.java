@@ -27,7 +27,7 @@ import akka.grpc.benchmarks.proto.BenchmarkServiceClient;
 import akka.grpc.benchmarks.proto.Messages.Payload;
 import akka.grpc.benchmarks.proto.Messages.SimpleRequest;
 import akka.grpc.benchmarks.proto.Messages.SimpleResponse;
-import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Sink;
@@ -62,7 +62,7 @@ public class AsyncClient {
     this.config = config;
 
     this.system = ActorSystem.create("AsyncClient");
-    this.mat = ActorMaterializer.create(system);
+    this.mat = Materializer.matFromSystem(system);
   }
 
   /**

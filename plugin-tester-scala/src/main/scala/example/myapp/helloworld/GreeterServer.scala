@@ -8,7 +8,7 @@ package example.myapp.helloworld
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http, HttpConnectionContext }
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
 
@@ -33,7 +33,7 @@ class GreeterServer(system: ActorSystem) {
   def run(): Future[Http.ServerBinding] = {
     // Akka boot up code
     implicit val sys: ActorSystem = system
-    implicit val mat: Materializer = ActorMaterializer()
+    implicit val mat: Materializer = Materializer.matFromSystem(sys)
     implicit val ec: ExecutionContext = sys.dispatcher
 
     // Create service handlers

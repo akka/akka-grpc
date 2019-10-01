@@ -17,7 +17,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.Materializer
 import io.grpc.internal.testing.TestUtils
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
@@ -31,7 +31,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
 
   override def start() = {
     implicit val sys = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat = Materializer.matFromSystem(sys)
     implicit val ec = sys.dispatcher
 
     val testService = serverHandlerFactory(mat)(sys)

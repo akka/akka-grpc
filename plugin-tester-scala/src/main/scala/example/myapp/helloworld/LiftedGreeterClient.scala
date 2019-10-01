@@ -13,7 +13,7 @@ import akka.Done
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 
 import example.myapp.helloworld.grpc._
@@ -23,7 +23,7 @@ object LiftedGreeterClient {
   def main(args: Array[String]): Unit = {
 
     implicit val sys = ActorSystem("HelloWorldClient")
-    implicit val mat = ActorMaterializer()
+    implicit val mat = Materializer.matFromSystem(sys)
     implicit val ec = sys.dispatcher
 
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
@@ -34,7 +34,7 @@ object LiftedGreeterClient {
     streamingReply()
     streamingRequestReply()
 
-    sys.scheduler.schedule(1.second, 1.second) {
+    sys.scheduler.scheduleWithFixedDelay(1.second, 1.second) { () =>
       Try(singleRequestReply())
     }
 

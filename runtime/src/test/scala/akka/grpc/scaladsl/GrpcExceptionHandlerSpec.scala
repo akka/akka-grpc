@@ -10,7 +10,7 @@ import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
 import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import io.grpc.Status
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ Matchers, WordSpec }
@@ -19,7 +19,7 @@ import scala.concurrent.{ ExecutionException, Future }
 
 class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures {
   implicit val system = ActorSystem("Test")
-  implicit val materializer = ActorMaterializer()
+  implicit val materializer = Materializer.matFromSystem(system)
 
   val expected: Function[Throwable, Status] = {
     case e: ExecutionException =>

@@ -17,7 +17,7 @@ import io.grpc.StatusRuntimeException;
 import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
 import akka.grpc.GrpcClientSettings;
@@ -31,7 +31,7 @@ class GreeterClient {
     int serverPort = 8080;
 
     ActorSystem system = ActorSystem.create("HelloWorldClient");
-    Materializer materializer = ActorMaterializer.create(system);
+    Materializer materializer = Materializer.matFromSystem(system);
 
     GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
     GreeterServiceClient client = null;

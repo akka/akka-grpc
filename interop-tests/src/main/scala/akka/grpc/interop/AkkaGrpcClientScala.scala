@@ -6,7 +6,7 @@ package akka.grpc.interop
 
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.Materializer
 import io.grpc.internal.testing.TestUtils
 import io.grpc.testing.integration2.{ ClientTester, Settings, TestServiceClient }
 
@@ -21,7 +21,7 @@ final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializ
     val settings = Settings.parseArgs(args)
 
     implicit val sys = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat = Materializer.matFromSystem(sys)
 
     val client = new TestServiceClient(clientTesterFactory(settings)(mat)(sys))
     client.setUp()

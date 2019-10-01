@@ -7,7 +7,7 @@ package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.*;
-import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -33,7 +33,7 @@ class GreeterServer {
   }
 
   public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
-    Materializer mat = ActorMaterializer.create(sys);
+    Materializer mat = Materializer.matFromSystem(sys);
 
     // Instantiate implementation
     GreeterService impl = new GreeterServiceImpl(mat);

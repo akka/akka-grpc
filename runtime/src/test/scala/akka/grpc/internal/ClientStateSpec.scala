@@ -7,7 +7,7 @@ package akka.grpc.internal
 import akka.Done
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import io.grpc.ConnectivityState._
 import io.grpc.ManagedChannel
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
@@ -19,7 +19,7 @@ import scala.concurrent.{ Await, Future, Promise }
 class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
 
   implicit val sys = ActorSystem()
-  implicit val mat = ActorMaterializer()
+  implicit val mat = Materializer.matFromSystem(sys)
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 5.seconds, interval = 150.milliseconds)
 

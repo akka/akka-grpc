@@ -8,7 +8,7 @@ package example.myapp.helloworld
 import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
 
@@ -21,7 +21,7 @@ object GreeterClient {
   def main(args: Array[String]): Unit = {
     // Boot akka
     implicit val sys = ActorSystem("HelloWorldClient")
-    implicit val mat = ActorMaterializer()
+    implicit val mat = Materializer.matFromSystem(sys)
     implicit val ec = sys.dispatcher
 
     // Take details how to connect to the service from the config.
@@ -35,7 +35,7 @@ object GreeterClient {
     runStreamingReplyExample()
     runStreamingRequestReplyExample()
 
-    sys.scheduler.schedule(1.second, 1.second) {
+    sys.scheduler.scheduleWithFixedDelay(1.second, 1.second) { () =>
       runSingleRequestReplyExample()
     }
 

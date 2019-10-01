@@ -10,7 +10,6 @@ package @service.packageName;
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.AkkaGrpcClient;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 
 import io.grpc.ManagedChannel;
@@ -42,9 +41,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         this.clientState = new ClientState(settings, mat, ec);
         this.options = NettyClientUtils.callOptions(settings);
 
-        if (mat instanceof ActorMaterializer) {
-          ((ActorMaterializer) mat).system().getWhenTerminated().whenComplete((v, e) -> close());
-        }
+        mat.system().getWhenTerminated().whenComplete((v, e) -> close());
       }
 
   @for(method <- service.methods) {

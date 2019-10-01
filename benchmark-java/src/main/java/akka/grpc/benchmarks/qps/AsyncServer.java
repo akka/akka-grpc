@@ -27,7 +27,7 @@ import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.UseHttp2;
-import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
 import akka.stream.SharedKillSwitch;
@@ -74,7 +74,7 @@ public class AsyncServer {
 
     system = ActorSystem.create("AsyncServer", conf);
 
-    Materializer mat = ActorMaterializer.create(system);
+    Materializer mat = Materializer.matFromSystem(system);
 
     benchmarkService = new BenchmarkServiceImpl(mat);
 

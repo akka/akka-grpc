@@ -6,7 +6,7 @@ package example.myapp.helloworld
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import example.myapp.helloworld.grpc._
 
 import scala.concurrent.Await
@@ -17,7 +17,7 @@ object AuthenticatedGreeterClient {
   def main(args: Array[String]): Unit = {
     // Boot akka
     implicit val sys = ActorSystem("HelloWorldClient")
-    implicit val mat = ActorMaterializer()
+    implicit val mat = Materializer.matFromSystem(sys)
     implicit val ec = sys.dispatcher
 
     // Take details how to connect to the service from the config.

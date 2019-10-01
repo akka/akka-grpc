@@ -46,7 +46,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
     ActorSystem sys = ActorSystem.create(
       "akka-grpc-server-java",
       ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on"));
-    Materializer mat = ActorMaterializer.create(sys);
+    Materializer mat = Materializer.matFromSystem(sys);
 
     Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat, sys);
 
