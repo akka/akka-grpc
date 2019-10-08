@@ -111,7 +111,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         },
         // configure the proto gen automatically by adding our codegen:
         // FIXME: actually specifying separate Compile and Test target stub and languages does not work #194
-        PB.targets :=
+        PB.targets ++=
           targetsFor(sourceManaged.value, akkaGrpcCodeGeneratorSettings.value, akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto",
         // include proto files extracted from the dependencies with "protobuf" configuration by default
