@@ -100,6 +100,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(
+      sbtprotoc.ProtocPlugin.protobufConfigSettings ++
       Seq(
         unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
         watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,

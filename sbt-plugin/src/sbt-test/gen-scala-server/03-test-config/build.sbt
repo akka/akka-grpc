@@ -1,2 +1,1 @@
 enablePlugins(AkkaGrpcPlugin)
-inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings)

@@ -12,6 +12,17 @@ What language to generate stubs for is also configurable:
 
 @@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
+### Configurations
+
+By default, the plugin will run generators against proto sources in the `Compile` directories, as well as the `Test` ones if
+there are some.
+
+If you have other configurations with proto sources (for example `IntegrationTest`), you can enable the plugin on them:
+
+```
+.settings(AkkaGrpcPlugin.configSettings(IntegrationTest))
+```
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metata, as described
