@@ -1,1 +1,15 @@
 > test:compile
+
+# the Scala server was generated in Compile
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServiceHandler.scala
+
+# only the Scala client was generated in Test
+-$ exists target/scala-2.12/src_managed/test/example/myapp/helloworld/grpc/GreeterServiceHandler.scala
+$ exists target/scala-2.12/src_managed/test/example/myapp/helloworld/grpc/GreeterServiceClient.scala
+
+> it:protocGenerate
+
+# only the Java server was generated in IntegrationTest
+-$ exists target/scala-2.12/src_managed/it/example/myapp/helloworld/grpc/GreeterServiceHandler.scala
+-$ exists target/scala-2.12/src_managed/it/example/myapp/helloworld/grpc/GreeterServiceClient.scala
+$ exists target/scala-2.12/src_managed/it/example/myapp/helloworld/grpc/GreeterServiceHandlerFactory.java

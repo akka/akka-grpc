@@ -17,6 +17,9 @@ What language to generate stubs for is also configurable:
 By default, the plugin will run generators against proto sources in the `Compile` directories, as well as the `Test` ones if
 there are some.
 
+The settings documented above can have different values for each configuration, allowing you for example to generate in `Test`
+(and in `Test` only) client stubs for a service defined in `Compile`.
+
 If you have other configurations with proto sources (for example `IntegrationTest`), you can enable the plugin on them:
 
 ```

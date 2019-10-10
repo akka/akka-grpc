@@ -114,10 +114,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
             toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
         },
         // configure the proto gen automatically by adding our codegen:
-        // FIXME: actually specifying separate Compile and Test target stub and languages does not work #194
         PB.targets ++=
           targetsFor(sourceManaged.value, akkaGrpcCodeGeneratorSettings.value, akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto",
+        // include proto files from parent configurations to be able to run extra generators or generators with different settings
+        PB.protoSources ++= PB.protoSources.all(ancestorConfigsFilter(config)).value.flatten,
         // include proto files extracted from the dependencies with "protobuf" configuration by default
         PB.protoSources += PB.externalIncludePath.value) ++
 
@@ -235,5 +236,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
     }
 
     (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
+  }
+
+  private def ancestorConfigsFilter(config: Configuration) = {
+    def ancestors(confs: Vector[Configuration]): Vector[Configuration] =
+      confs ++ confs.flatMap(conf => ancestors(conf.extendsConfigs))
+
+    ScopeFilter(configurations = inConfigurations(ancestors(config.extendsConfigs): _*))
   }
 }
