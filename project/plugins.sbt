@@ -17,7 +17,7 @@ addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.5")
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.9.1"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.9.4"
 
 // #java-agent-plugin
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.5")
