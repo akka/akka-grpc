@@ -15,9 +15,10 @@ import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, Ne
 import io.grpc.netty.shaded.io.netty.handler.ssl._
 import io.grpc.{ CallOptions, ManagedChannel }
 import javax.net.ssl.SSLContext
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
+
+import io.grpc.internal.DnsNameResolverProvider
 
 /**
  * Used to indicate that the service discovery returned no target.
@@ -45,8 +46,11 @@ object NettyClientUtils {
         if (targets.addresses.nonEmpty) {
           val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
           var builder =
-            NettyChannelBuilder
-              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
+            NettyChannelBuilder //shaded netty!
+              .forTarget(settings.serviceName + ":8091") //lol
+              //              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
+              .nameResolverFactory(new DnsNameResolverProvider())
+              .defaultLoadBalancingPolicy("round_robin")
               .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
           if (!settings.useTls)
@@ -70,6 +74,9 @@ object NettyClientUtils {
           Future.failed(failure)
         }
       }
+    //TODO: managed channel should be aware of sub channels to do LB
+    //TODO: do like here?
+    //https://github.com/saturnism/grpc-by-example-java/blob/master/kubernetes-lb-example/echo-client-lb-dns/src/main/java/com/example/grpc/client/ClientSideLoadBalancedEchoClient.java
     new InternalChannel(mc, promise)
   }
 
