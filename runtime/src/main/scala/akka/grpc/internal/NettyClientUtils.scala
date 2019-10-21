@@ -46,11 +46,8 @@ object NettyClientUtils {
         if (targets.addresses.nonEmpty) {
           val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
           var builder =
-            NettyChannelBuilder //shaded netty!
-              .forTarget(settings.serviceName + ":8091") //lol
-              //              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
-              .nameResolverFactory(new DnsNameResolverProvider())
-              .defaultLoadBalancingPolicy("round_robin")
+            NettyChannelBuilder
+              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
               .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
 
           if (!settings.useTls)
@@ -61,6 +58,10 @@ object NettyClientUtils {
               .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
           }
 
+          builder = settings.grpcLoadBalancingType
+            .map(builder.defaultLoadBalancingPolicy(_))
+            .map(_ => builder.nameResolverFactory(new DnsNameResolverProvider()))
+            .getOrElse(builder)
           builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
           builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
           builder = settings.channelBuilderOverrides(builder)
@@ -74,9 +75,6 @@ object NettyClientUtils {
           Future.failed(failure)
         }
       }
-    //TODO: managed channel should be aware of sub channels to do LB
-    //TODO: do like here?
-    //https://github.com/saturnism/grpc-by-example-java/blob/master/kubernetes-lb-example/echo-client-lb-dns/src/main/java/com/example/grpc/client/ClientSideLoadBalancedEchoClient.java
     new InternalChannel(mc, promise)
   }
 
