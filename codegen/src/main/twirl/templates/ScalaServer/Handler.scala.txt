@@ -94,7 +94,7 @@ import akka.stream.Materializer
       }
 
       Function.unlift((req: HttpRequest) => req.uri.path match {
-        case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) ⇒
+        case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) =>
           Some(handle(req, method).recoverWith(GrpcExceptionHandler.default(eHandler(system))))
         case _ =>
           None
