@@ -156,7 +156,7 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
           val settings = parseGeneratorSettings(generatorSettings)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
-          Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, settings)) ++
+          Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
         case Scala =>
           // Add flatPackage option as default if it's not set.
