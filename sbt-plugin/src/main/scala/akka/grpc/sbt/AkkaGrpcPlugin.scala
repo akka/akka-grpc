@@ -9,7 +9,7 @@ import java.io.{ ByteArrayOutputStream, PrintStream }
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.{ Logger => GenLogger }
+import akka.grpc.gen.{ Logger => GenLogger, ProtocSettings }
 import protocbridge.Generator
 import sbt.Keys._
 import sbt.{ GlobFilter, _ }
@@ -70,7 +70,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
     val akkaGrpcGenerators = settingKey[Seq[protocbridge.Generator]](
       "Generators to evaluate. Populated based on akkaGrpcGeneratedLanguages, akkaGrpcGeneratedSources and akkaGrpcExtraGenerators, but can be extended if needed")
     val akkaGrpcCodeGeneratorSettings = settingKey[Seq[String]](
-      "Boolean settings to pass to the code generators, empty (all false) by default. ScalaPB settings: java_conversions, flat_package, single_line_to_proto_string, ascii_format_to_string, no_lenses, retain_source_code_info. Akka gRPC settings: server_power_apis, use_play_actions.")
+      "Boolean settings to pass to the code generators, empty (all false) by default.\n" +
+      "ScalaPB settings: " + ProtocSettings.scalapb.mkString(", ") + "\n" +
+      "Java settings: " + ProtocSettings.protocJava.mkString(", ") + "\n" +
+      "Akka gRPC settings: " + GeneratorOption.settings.mkString(", "))
   }
 
   object autoImport extends Keys
@@ -139,12 +142,17 @@ object AkkaGrpcPlugin extends AutoPlugin {
       settings: Seq[String],
       generators: Seq[protocbridge.Generator]): Seq[protocbridge.Target] =
     generators.map { generator =>
-      protocbridge.Target(generator, targetPath, generator match {
-        case PB.gens.java => settings.filterNot(_ == "flat_package").filterNot(GeneratorOption.settings.contains)
-        case protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator) =>
-          settings.filterNot(GeneratorOption.settings.contains)
-        case _ => settings
-      })
+      protocbridge.Target(
+        generator,
+        targetPath,
+        generator match {
+          case PB.gens.java =>
+            settings.filter(ProtocSettings.protocJava.contains)
+          case protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator) =>
+            settings.filter(ProtocSettings.scalapb.contains)
+          case _ =>
+            settings
+        })
     }
 
   // creates a seq of generator and per generator settings
