@@ -6,7 +6,7 @@ package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
 
-import akka.grpc.gen.{ CodeGenerator, Logger }
+import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import javax.inject.Inject
@@ -146,31 +146,33 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
       val loadedExtraGenerators =
         extraGenerators.asScala.map(cls =>
           Class.forName(cls).getDeclaredConstructor().newInstance().asInstanceOf[CodeGenerator])
+
       val targets = language match {
         case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
               if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
               if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator) else Seq.empty).flatten.distinct
-          Seq[Target](protocbridge.gens.java -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, parseGeneratorSettings(generatorSettings)))
-        case Scala =>
-          // Add flatPackage option as default if it's not absent.
-          generatorSettings.putIfAbsent("flatPackage", "true")
 
-          val scalaGeneratorSettings = parseGeneratorSettings(generatorSettings)
-          println(scalaGeneratorSettings)
+          val settings = parseGeneratorSettings(generatorSettings)
+          val javaSettings = settings.intersect(ProtocSettings.protocJava)
+
+          Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, settings)) ++
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+        case Scala =>
+          // Add flatPackage option as default if it's not set.
+          val settings =
+            if (generatorSettings.containsKey("flatPackage"))
+              parseGeneratorSettings(generatorSettings)
+            else
+              parseGeneratorSettings(generatorSettings) :+ "flat_package"
+          val scalapbSettings = settings.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
-          Seq[Target](
-            (
-              JvmGenerator("scala", ScalaPbCodeGenerator),
-              scalaGeneratorSettings
-                .filterNot(_ == "server_power_apis")
-                .filterNot(_ == "use_play_actions")) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, scalaGeneratorSettings))
+          Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), scalapbSettings) -> generatedSourcesDir) ++
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
       }
 
       val runProtoc: Seq[String] => Int = args =>
