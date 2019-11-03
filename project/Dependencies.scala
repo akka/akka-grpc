@@ -46,7 +46,7 @@ object Dependencies {
     val config = "com.typesafe" % "config" % Versions.config
     val sslConfigCore = "com.typesafe" %% "ssl-config-core" % Versions.sslConfig
 
-    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.28"
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.29"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
     val protocJar = "com.github.os72" % "protoc-jar" % "3.8.0"
