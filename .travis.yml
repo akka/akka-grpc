@@ -1,8 +1,8 @@
 language: scala
 
 scala:
-  - 2.12.8
-  - 2.13.0
+  - 2.12.10
+  - 2.13.1
 
 # make sure to fetch enough commits, so that git describe still works
 git:
