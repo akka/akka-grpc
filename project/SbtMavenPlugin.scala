@@ -76,7 +76,6 @@ object SbtMavenPlugin extends AutoPlugin {
       dependencies: Seq[ModuleID],
       crossVersion: ModuleID => ModuleID,
       log: Logger) = {
-
     // Add project meta data
     val withProjectInfo = Seq(
       "name" -> moduleInfo.nameFormal,

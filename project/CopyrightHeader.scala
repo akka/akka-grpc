@@ -33,7 +33,6 @@ object CopyrightHeader extends AutoPlugin {
     s"Copyright (C) $year Lightbend Inc. <https://www.lightbend.com>"
 
   private def lightbendCommentCreator(commentCreator: CommentCreator) = new CommentCreator() {
-
     def updateLightbendHeader(header: String): String = header match {
       case CopyrightHeaderPattern(years, null, _) =>
         if (years != CurrentYear)
