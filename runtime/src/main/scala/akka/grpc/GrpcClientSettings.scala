@@ -88,16 +88,9 @@ object GrpcClientSettings {
     val port = clientConfiguration.getInt("port")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val sd = serviceDiscoveryMechanism match {
-      case "static" =>
+      case "static" | "grpc-dns" =>
         val host = clientConfiguration.getString("host")
-        require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static")
-        // Required by the Discovery infrastructure, even when we use static discovery.
-        if (serviceName.isEmpty)
-          serviceName = "static"
-        staticServiceDiscovery(host, port)
-      case "grpc-dns" =>
-        val host = clientConfiguration.getString("host")
-        require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to grpc-dns")
+        require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static or grpc-dns")
         // Required by the Discovery infrastructure, even when we use static discovery.
         if (serviceName.isEmpty)
           serviceName = "static"

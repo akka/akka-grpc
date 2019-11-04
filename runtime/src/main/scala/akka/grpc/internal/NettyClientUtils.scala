@@ -60,7 +60,7 @@ object NettyClientUtils {
 
           builder = settings.grpcLoadBalancingType
             .map(builder.defaultLoadBalancingPolicy(_))
-            .map(_ => builder.nameResolverFactory(new DnsNameResolverProvider()))
+            .map(_.nameResolverFactory(new DnsNameResolverProvider()))
             .getOrElse(builder)
           builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
           builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
