@@ -15,7 +15,6 @@ import example.myapp.helloworld.grpc._
 import scala.concurrent.{ ExecutionContext, Future }
 
 object GreeterServer {
-
   def main(args: Array[String]): Unit = {
     // Important: enable HTTP/2 in ActorSystem's config
     // We do it here programmatically, but you can also set it in the application.conf
@@ -29,7 +28,6 @@ object GreeterServer {
 }
 
 class GreeterServer(system: ActorSystem) {
-
   def run(): Future[Http.ServerBinding] = {
     // Akka boot up code
     implicit val sys: ActorSystem = system

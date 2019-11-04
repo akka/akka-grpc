@@ -10,7 +10,6 @@ import org.scalatest.{ Assertion, Succeeded, WordSpec }
 import scala.util.control.NonFatal
 
 class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcClientProvider) extends WordSpec {
-
   import org.scalatest.Matchers._
 
   // see https://github.com/grpc/grpc/blob/master/tools/run_tests/run_interop_tests.py#L543

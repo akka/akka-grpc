@@ -15,7 +15,6 @@ import io.grpc.Status
 import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
-
   def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Status]] =
     new jFunction[ActorSystem, jFunction[Throwable, Status]] {
       override def apply(system: ActorSystem): jFunction[Throwable, Status] =

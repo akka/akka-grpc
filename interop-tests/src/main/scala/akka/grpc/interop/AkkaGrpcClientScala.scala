@@ -15,7 +15,6 @@ import scala.concurrent.Await
 // TODO #151 use our own Settings object
 final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializer => ActorSystem => ClientTester)
     extends GrpcClient {
-
   override def run(args: Array[String]): Unit = {
     TestUtils.installConscryptIfAvailable()
     val settings = Settings.parseArgs(args)
@@ -32,5 +31,4 @@ final case class AkkaGrpcClientScala(clientTesterFactory: Settings => Materializ
       Await.result(sys.terminate(), 10.seconds)
     }
   }
-
 }

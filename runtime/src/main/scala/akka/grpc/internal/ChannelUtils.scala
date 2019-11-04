@@ -27,7 +27,6 @@ class ClientConnectionException(msg: String) extends RuntimeException(msg)
  */
 @InternalApi
 object ChannelUtils {
-
   /**
    * INTERNAL API
    */
@@ -52,7 +51,6 @@ object ChannelUtils {
       done: Promise[Done],
       channel: ManagedChannel,
       maxConnectionAttempts: Option[Int]): Unit = {
-
     def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit =
       if (maxConnectionAttempts.contains(connectionAttempts)) {
         // shutdown is idempotent in ManagedChannelImpl
@@ -80,6 +78,5 @@ object ChannelUtils {
       }
 
     monitor(channel.getState(false), 0)
-
   }
 }

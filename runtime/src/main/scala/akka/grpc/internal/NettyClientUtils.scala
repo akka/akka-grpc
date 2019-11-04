@@ -32,7 +32,6 @@ final class NoTargetException(msg: String) extends RuntimeException(msg)
  */
 @InternalApi
 object NettyClientUtils {
-
   /**
    * INTERNAL API
    */
@@ -113,5 +112,4 @@ object NettyClientUtils {
       case d: FiniteDuration => defaultOptions.withDeadlineAfter(d.toMillis, TimeUnit.MILLISECONDS)
       case _                 => defaultOptions
     }
-
 }

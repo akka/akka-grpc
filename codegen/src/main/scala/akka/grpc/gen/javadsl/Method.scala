@@ -54,7 +54,6 @@ final case class Method(
 
 object Method {
   def apply(descriptor: MethodDescriptor): Method = {
-
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that

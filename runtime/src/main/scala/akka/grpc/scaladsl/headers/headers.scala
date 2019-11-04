@@ -32,7 +32,6 @@ object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-A
     import scala.collection.JavaConverters._
     findIn(headers.asScala)
   }
-
 }
 
 final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Message-Encoding`] {

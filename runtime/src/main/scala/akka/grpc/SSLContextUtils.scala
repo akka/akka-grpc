@@ -11,7 +11,6 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.{ JdkSslContext, SslProvider }
 import javax.net.ssl.SSLContext
 
 object SSLContextUtils {
-
   def fromStream(certStream: InputStream): SSLContext = {
     val sslBuilder = try {
       GrpcSslContexts.forClient.trustManager(certStream)
@@ -28,5 +27,4 @@ object SSLContextUtils {
 
   def sslContextFromFile(certPath: File): SSLContext =
     fromStream(new FileInputStream(certPath))
-
 }

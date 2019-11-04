@@ -28,7 +28,6 @@ import scala.concurrent.{ Await, Future }
  */
 case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest => Future[HttpResponse])
     extends GrpcServer[(ActorSystem, ServerBinding)] {
-
   override def start() = {
     implicit val sys = ActorSystem()
     implicit val mat = ActorMaterializer()
@@ -52,7 +51,6 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
       sys.log.info("Exception thrown, unbinding")
       Await.result(binding.unbind(), 10.seconds)
       Await.result(sys.terminate(), 10.seconds)
-
   }
 
   private def serverHttpContext() = {

@@ -74,5 +74,4 @@ class GrpcMarshallingSpec extends WordSpec with Matchers {
       e.getStatus.getDescription should include(expectedMessageFragment)
     }
   }
-
 }

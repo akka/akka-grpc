@@ -15,7 +15,6 @@ import akka.grpc.ProtobufSerializer
 @InternalApi
 class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T])
     extends io.grpc.MethodDescriptor.Marshaller[T] {
-
   override def parse(stream: InputStream): T = {
     val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
     val buffer = new Array[Byte](32 * 1024)

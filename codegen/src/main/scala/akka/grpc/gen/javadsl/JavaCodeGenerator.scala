@@ -14,7 +14,6 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 abstract class JavaCodeGenerator extends CodeGenerator {
-
   /** Override this to add generated files per service */
   def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 

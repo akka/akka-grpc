@@ -41,7 +41,6 @@ final class ScalaUnaryRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[I, O]
     with MetadataOperations[ScalaUnaryRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -95,7 +94,6 @@ final class ScalaUnaryRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): ScalaUnaryRequestBuilder[I, O] =
     new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
-
 }
 
 /**
@@ -110,7 +108,6 @@ final class JavaUnaryRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ex: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[I, O]
     with MetadataOperations[JavaUnaryRequestBuilder[I, O]] {
-
   private val delegate = new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
   // aux constructor for defaults
@@ -145,7 +142,6 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     materializer: Materializer)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -215,7 +211,6 @@ final class ScalaClientStreamingRequestBuilder[I, O](
       settings,
       headers,
       materializer)
-
 }
 
 /**
@@ -232,7 +227,6 @@ final class JavaClientStreamingRequestBuilder[I, O](
     materializer: Materializer)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaClientStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -282,7 +276,6 @@ final class ScalaServerStreamingRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.StreamResponseRequestBuilder[I, O]
     with MetadataOperations[ScalaServerStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -329,7 +322,6 @@ final class ScalaServerStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): ScalaServerStreamingRequestBuilder[I, O] =
     new ScalaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
-
 }
 
 /**
@@ -345,7 +337,6 @@ final class JavaServerStreamingRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.StreamResponseRequestBuilder[I, O]
     with MetadataOperations[JavaServerStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -366,7 +357,6 @@ final class JavaServerStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): JavaServerStreamingRequestBuilder[I, O] =
     new JavaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
-
 }
 
 /**
@@ -382,7 +372,6 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.StreamResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaBidirectionalStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -450,7 +439,6 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.StreamResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaBidirectionalStreamingRequestBuilder[I, O]] {
-
   // aux constructor for defaults
   def this(
       descriptor: MethodDescriptor[I, O],
@@ -483,7 +471,6 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
       defaultOptions,
       settings,
       headers)
-
 }
 
 /**
@@ -499,5 +486,4 @@ trait MetadataOperations[T <: MetadataOperations[T]] {
 
   def addHeader(key: String, value: ByteString): T =
     withHeaders(headers = headers.addEntry(key, value))
-
 }
