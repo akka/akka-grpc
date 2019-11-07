@@ -15,7 +15,7 @@ import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.Failure
+import scala.util.{ Failure, Success }
 import scala.compat.java8.FutureConverters._
 
 /**
@@ -43,6 +43,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     case _ =>
   }
 
+  // only used in tests
   def withChannel[A](f: Future[ManagedChannel] => A): A =
     f {
       internalChannelRef.get().getOrElse(throw new ClientClosedException).managedChannel
@@ -96,23 +97,39 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
 
   private def create(): InternalChannel = {
     val internalChannel: InternalChannel = channelFactory(settings)
-    internalChannel.done.onComplete {
-      case Failure(_: ClientConnectionException | _: NoTargetException) =>
-        val old = internalChannelRef.get()
-        if (old.isDefined) {
-          val newInternalChannel = create()
-          // Only one client is alive at a time. However a close() could have happened between the get() and this set
-          if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
-            // close the newly created client we've been shutdown
-            ChannelUtils.close(newInternalChannel)
-          }
+    internalChannel.managedChannel.onComplete {
+      case _: Success[_] =>
+        internalChannel.done.onComplete {
+          case Failure(_: ClientConnectionException | _: NoTargetException) =>
+            // Would be better to retry with backoff
+            // Would be good to log
+            recreate()
+          case Failure(_) =>
+            // This makes the client unusable. Perhaps we should retry with backoff here too?
+            // Would be good to log
+            close()
+          case _ =>
+          // let success through
         }
       case Failure(_) =>
-        close()
-      case _ =>
-      // let success through
+        // Would be better to retry with backoff
+        // Would be good to log
+        recreate()
     }
+
     internalChannel
+  }
+
+  private def recreate(): Unit = {
+    val old = internalChannelRef.get()
+    if (old.isDefined) {
+      val newInternalChannel = create()
+      // Only one client is alive at a time. However a close() could have happened between the get() and this set
+      if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
+        // close the newly created client we've been shutdown
+        ChannelUtils.close(newInternalChannel)
+      }
+    }
   }
 }
 

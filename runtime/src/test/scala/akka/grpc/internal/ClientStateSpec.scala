@@ -26,9 +26,9 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
 
   private def clientState(channelCompletion: Promise[Done] = Promise[Done]()) = {
     val channelFactory: GrpcClientSettings => InternalChannel = { _ =>
-      val channel: Future[ManagedChannel] =
-        Future.successful(new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)))
-      new InternalChannel(channel, channelCompletion)
+      new InternalChannel(
+        Future.successful(
+          (new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)), channelCompletion.future)))
     }
     new ClientState(mockSettings, channelFactory)
   }
@@ -85,7 +85,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       var channel: Future[ManagedChannel] = Future.failed(new IllegalStateException("No targets returned for name"))
       var channelCompletion = Promise[Done]()
       val channelFactory: GrpcClientSettings => InternalChannel = { _ =>
-        new InternalChannel(channel, channelCompletion)
+        new InternalChannel(channel.map((_, channelCompletion.future)))
       }
 
       val state = new ClientState(mockSettings, channelFactory)
