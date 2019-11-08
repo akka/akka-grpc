@@ -170,7 +170,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       intercept[IllegalArgumentException] {
         GrpcClientSettings.fromConfig("project.WithNoServiceName")
       }.getMessage should be("requirement failed: Configuration must contain a service-name")
-
     }
     "fail fast when no service discovery is configured on the actor system" in {
       intercept[IllegalArgumentException] {
@@ -194,7 +193,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
       val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
       settings.serviceDiscovery should not be null
     }
-
   }
 }
 class FakeServiceDiscovery extends ServiceDiscovery {

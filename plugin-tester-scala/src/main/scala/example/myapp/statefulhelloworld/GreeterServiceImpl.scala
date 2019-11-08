@@ -15,7 +15,6 @@ import scala.concurrent.Future
 
 // #stateful-service
 class GreeterServiceImpl(system: ActorSystem) extends GreeterService {
-
   val greeterActor = system.actorOf(GreeterActor.props("Hello"), "greeter")
 
   def sayHello(in: HelloRequest): Future[HelloReply] = {

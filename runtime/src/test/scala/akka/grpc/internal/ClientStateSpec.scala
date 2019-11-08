@@ -17,7 +17,6 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future, Promise }
 
 class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
-
   implicit val sys = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher

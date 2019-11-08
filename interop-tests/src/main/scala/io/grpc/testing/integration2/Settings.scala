@@ -17,7 +17,6 @@ final case class Settings(
     defaultServiceAccount: String,
     serviceAccountKeyFile: String,
     oauthScope: String) {
-
   // some getters for access from java
   def getTestCase = testCase
   def getDefaultServiceAccount = defaultServiceAccount
@@ -26,9 +25,7 @@ final case class Settings(
 }
 
 object Settings {
-
   def parseArgs(args: Array[String]): Settings = {
-
     val defaultSettings = Settings(
       serverHost = "127.0.0.1",
       serverHostOverride = null,
@@ -42,7 +39,6 @@ object Settings {
       oauthScope = null)
 
     def showUsageAndExit() = {
-
       val validTestCasesHelpText = {
         val builder = new StringBuilder
         for (testCase <- TestCases.values) {
@@ -111,6 +107,5 @@ object Settings {
           settings // not really returning it because exiting, we need it for compile check
       }
     }
-
   }
 }

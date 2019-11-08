@@ -17,7 +17,6 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
 object GreeterClient {
-
   def main(args: Array[String]): Unit = {
     // Boot akka
     implicit val sys = ActorSystem("HelloWorldClient")
@@ -96,6 +95,5 @@ object GreeterClient {
       }
     }
   }
-
 }
 //#full-client

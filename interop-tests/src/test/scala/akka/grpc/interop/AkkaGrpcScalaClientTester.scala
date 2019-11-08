@@ -33,7 +33,6 @@ import scala.util.control.NoStackTrace
  */
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem)
     extends ClientTester {
-
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
@@ -80,7 +79,6 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     throw new RuntimeException("Not implemented: serverCompressedUnary") with NoStackTrace
 
   def clientStreaming(): Unit = {
-
     val requests = Seq(
       StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](27182))))),
       StreamingInputCallRequest(payload = Option(Payload(body = ByteString.copyFrom(new Array[Byte](8))))),
@@ -98,7 +96,6 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     throw new RuntimeException("Not implemented!")
 
   def serverStreaming(): Unit = {
-
     val request =
       StreamingOutputCallRequest(
         responseParameters =
@@ -136,7 +133,6 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   }
 
   def pingPong(): Unit = {
-
     val requests = Seq(
       StreamingOutputCallRequest(
         responseParameters = Seq(ResponseParameters(31415)),
@@ -231,11 +227,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
       s"Trailer should contain binary header [$trailers]",
       Some(binaryHeaderValue),
       trailers.getBinary("x-grpc-test-echo-trailing-bin"))
-
   }
 
   def statusCodeAndMessage(): Unit = {
-
     // Assert unary
     val errorMessage = "test status message"
     val echoStatus = EchoStatus(Status.UNKNOWN.getCode.value(), errorMessage)
@@ -275,5 +269,4 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
     assertEquals(expectedStatus.getCode, e.getStatus.getCode)
     assertEquals(expectedMessage, e.getStatus.getDescription)
   }
-
 }

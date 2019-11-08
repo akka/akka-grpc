@@ -67,7 +67,6 @@ class ErrorReportingSpec extends WordSpec with Matchers with ScalaFutures with B
         case _ =>
           response.headers
       }
-
   }
 
   override def afterAll: Unit =

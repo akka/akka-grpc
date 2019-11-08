@@ -10,7 +10,6 @@ import io.grpc.testing.integration2.TestServiceServer
  * Glue code to start a gRPC server based on io.grpc to test against
  */
 object IoGrpcServer extends GrpcServer[TestServiceServer] {
-
   @volatile var didAlreadyWarn = false
 
   override def start() = {

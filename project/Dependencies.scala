@@ -4,7 +4,6 @@ import sbt._
 import sbt.Keys._
 
 object Dependencies {
-
   object Versions {
     val scala212 = "2.12.10"
     val scala213 = "2.13.1"

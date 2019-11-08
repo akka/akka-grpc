@@ -23,7 +23,6 @@ import akka.grpc.scaladsl.ServiceHandler
 //#concatOrNotFound
 
 object CombinedServer {
-
   def main(args: Array[String]): Unit = {
     // important to enable HTTP/2 in ActorSystem's config
     val conf = ConfigFactory

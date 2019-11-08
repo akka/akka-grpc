@@ -18,7 +18,6 @@ final case class Service(
     serverPowerApi: Boolean,
     usePlayActions: Boolean,
     comment: Option[String] = None) {
-
   def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
   def packageDir = packageName.replace('.', '/')
 }
@@ -29,7 +28,6 @@ object Service {
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
       usePlayActions: Boolean): Service = {
-
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that

@@ -97,5 +97,4 @@ object GrpcResponseHelpers {
   def statusHeaders(status: Status): List[HttpHeader] =
     List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>
       headers.`Status-Message`(d))
-
 }

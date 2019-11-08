@@ -14,7 +14,6 @@ import example.myapp.helloworld.grpc._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PowerGreeterServer(system: ActorSystem) {
-
   def run(): Future[Http.ServerBinding] = {
     // Akka boot up code
     implicit val sys: ActorSystem = system

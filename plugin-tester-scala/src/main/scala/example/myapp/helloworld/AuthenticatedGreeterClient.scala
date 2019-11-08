@@ -13,7 +13,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object AuthenticatedGreeterClient {
-
   def main(args: Array[String]): Unit = {
     // Boot akka
     implicit val sys = ActorSystem("HelloWorldClient")
@@ -32,5 +31,4 @@ object AuthenticatedGreeterClient {
       Await.result(client.sayHello().addHeader("Token", "XYZ").invoke(HelloRequest("Alice")), 10.seconds)
     sys.log.warning(s"Call with authentication succeeds: $replyWhenAuthenticated")
   }
-
 }

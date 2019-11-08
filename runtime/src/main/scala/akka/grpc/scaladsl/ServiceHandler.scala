@@ -11,7 +11,6 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes
 
 object ServiceHandler {
-
   private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
 
   /**
@@ -25,5 +24,4 @@ object ServiceHandler {
         case (acc, pf) => acc.orElse(pf)
       }
       .orElse { case _ => notFound }
-
 }

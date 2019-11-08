@@ -80,7 +80,6 @@ import scala.compat.java8.OptionConverters._
 }
 
 @InternalApi private[akka] final class MetadataImpl(entries: List[(String, MetadataEntry)]) {
-
   def addEntry(key: String, value: String): MetadataImpl = {
     if (key.endsWith("-bin")) throw new IllegalArgumentException("String header names must not end with '-bin'")
     new MetadataImpl((key -> StringEntry(value)) :: entries)
@@ -105,5 +104,4 @@ import scala.compat.java8.OptionConverters._
     }
     mutableMetadata
   }
-
 }

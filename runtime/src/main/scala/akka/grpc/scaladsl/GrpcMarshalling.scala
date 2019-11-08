@@ -52,5 +52,4 @@ object GrpcMarshalling {
       codec: Codec,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, eHandler)
-
 }

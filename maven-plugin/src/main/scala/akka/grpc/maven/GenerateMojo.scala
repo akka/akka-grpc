@@ -85,8 +85,7 @@ object GenerateMojo {
   }
 }
 
-class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
-
+class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
   import GenerateMojo._
 
   @BeanProperty
@@ -262,5 +261,4 @@ class GenerateMojo @Inject()(project: MavenProject, buildContext: BuildContext) 
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }
-
 }
