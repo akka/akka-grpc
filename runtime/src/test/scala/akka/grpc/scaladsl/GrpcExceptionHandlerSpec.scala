@@ -12,12 +12,12 @@ import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import io.grpc.Status
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpec }
-
 import scala.concurrent.{ ExecutionException, Future }
 
-class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures {
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest._
+
+class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem("Test")
   implicit val materializer = ActorMaterializer()
 
@@ -70,4 +70,9 @@ class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures 
         chunks.runFold(Seq.empty[ChunkStreamPart]) { case (seq, chunk) => seq :+ chunk }
       case _ => Future.successful(Seq.empty[ChunkStreamPart])
     }).futureValue
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    system.terminate()
+  }
 }

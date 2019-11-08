@@ -16,10 +16,6 @@ import io.grpc.ManagedChannel
 
 /**
  * INTERNAL API
- * Used from generated code so can't be private.
  */
 @InternalApi
-class InternalChannel(channel: Future[(ManagedChannel, Future[Done])]) {
-  def managedChannel(implicit ec: ExecutionContext): Future[ManagedChannel] = channel.map(_._1)
-  def done(implicit ec: ExecutionContext): Future[Done] = channel.flatMap { case (_, done) => done }
-}
+case class InternalChannel(managedChannel: ManagedChannel, done: Future[Done])

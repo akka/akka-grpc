@@ -14,15 +14,16 @@ import akka.grpc.GrpcClientSettings
 import org.scalatest._
 import org.scalatest.concurrent._
 
-class NettyClientUtilsSpec extends WordSpec with Matchers with ScalaFutures {
-  "The Netty client-utilities" should {
-    implicit val system = ActorSystem(
-      "test",
-      ConfigFactory.parseString("""
-        akka.discovery.method = alwaystimingout
+class NettyClientUtilsSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+  implicit val system = ActorSystem(
+    "test",
+    ConfigFactory.parseString("""
+      akka.discovery.method = alwaystimingout
 
-        akka.discovery.alwaystimingout.class = akka.grpc.internal.AlwaysTimingOutDiscovery
-        """).withFallback(ConfigFactory.load()))
+      akka.discovery.alwaystimingout.class = akka.grpc.internal.AlwaysTimingOutDiscovery
+      """).withFallback(ConfigFactory.load()))
+
+  "The Netty client-utilities" should {
 
     implicit val ec = system.dispatcher
 
@@ -30,7 +31,12 @@ class NettyClientUtilsSpec extends WordSpec with Matchers with ScalaFutures {
       val settings = GrpcClientSettings.usingServiceDiscovery("testService")
 
       val channel = NettyClientUtils.createChannel(settings)
-      channel.done.failed.futureValue shouldBe a[AskTimeoutException]
+      channel.failed.futureValue shouldBe a[AskTimeoutException]
     }
+  }
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    system.terminate()
   }
 }

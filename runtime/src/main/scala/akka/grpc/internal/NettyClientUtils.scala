@@ -37,8 +37,8 @@ object NettyClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): InternalChannel = {
-    val mc: Future[(ManagedChannel, Future[Done])] = settings.serviceDiscovery
+  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): Future[InternalChannel] =
+    settings.serviceDiscovery
       .lookup(Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol), settings.resolveTimeout)
       .flatMap { targets =>
         if (targets.addresses.nonEmpty) {
@@ -69,14 +69,12 @@ object NettyClientUtils {
           val promise = Promise[Done]()
           ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
 
-          Future.successful((channel, promise.future))
+          Future.successful(InternalChannel(channel, promise.future))
         } else {
           val failure = new NoTargetException("No targets returned for name: " + settings.serviceName)
           Future.failed(failure)
         }
       }
-    new InternalChannel(mc)
-  }
 
   /**
    * INTERNAL API

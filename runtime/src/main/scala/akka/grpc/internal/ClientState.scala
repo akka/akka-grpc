@@ -11,10 +11,12 @@ import akka.Done
 import akka.annotation.InternalApi
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ ActorMaterializer, Materializer }
+import akka.pattern.Patterns
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 import scala.compat.java8.FutureConverters._
 
@@ -25,14 +27,14 @@ import scala.compat.java8.FutureConverters._
  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
  */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(
+final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => Future[InternalChannel])(
     implicit mat: Materializer,
     ex: ExecutionContext) {
   def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
     this(settings, s => NettyClientUtils.createChannel(s))
 
-  private val internalChannelRef =
-    new AtomicReference[Option[InternalChannel]](Some(create()))
+  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
+
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
@@ -43,10 +45,10 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     case _ =>
   }
 
-  // only used in tests
+  // used from generated client
   def withChannel[A](f: Future[ManagedChannel] => A): A =
     f {
-      internalChannelRef.get().getOrElse(throw new ClientClosedException).managedChannel
+      internalChannelRef.get().getOrElse(Future.failed(new ClientClosedException)).map(_.managedChannel)
     }
 
   def closedCS(): CompletionStage[Done] = closed().toJava
@@ -67,7 +69,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     maybeChannel match {
       case Some(channel) =>
         // invoke `close` on the channel and capture the `channel.done` returned
-        val done = ChannelUtils.close(channel)
+        val done = channel.flatMap(ChannelUtils.close(_))
         // set the `closing` to the current `channel.done`
         closing.compareAndSet(None, Some(done))
         // notify there's been close demand (see `def closed()` above)
@@ -77,7 +79,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
           done
         } else {
           // when internalChannelRef was not maybeChannel
-          if (internalChannelRef.get.isDefined) {
+          if (internalChannelRef.get != null) {
             // client has had a ClientConnectionException and been re-created, need to shutdown the new one
             close()
           } else {
@@ -95,28 +97,32 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     }
   }
 
-  private def create(): InternalChannel = {
-    val internalChannel: InternalChannel = channelFactory(settings)
-    internalChannel.managedChannel.onComplete {
-      case _: Success[_] =>
-        internalChannel.done.onComplete {
+  private def create(): Future[InternalChannel] = {
+    // todo keep recovering with backoff
+    val internalChannel: Future[InternalChannel] =
+      Patterns.retry(
+        () => channelFactory(settings),
+        // TODO get from settings
+        1000,
+        400.millis,
+        // TODO remove case once we update Akka
+        mat.asInstanceOf[ActorMaterializer].system.scheduler,
+        mat.asInstanceOf[ActorMaterializer].system.dispatcher)
+    internalChannel.foreach {
+      case InternalChannel(_, done) =>
+        done.onComplete {
           case Failure(_: ClientConnectionException | _: NoTargetException) =>
-            // Would be better to retry with backoff
-            // Would be good to log
+            // TODO Would be better to retry with backoff
+            // TODO Would be good to log
             recreate()
           case Failure(_) =>
-            // This makes the client unusable. Perhaps we should retry with backoff here too?
-            // Would be good to log
+            // TODO This makes the client unusable. Perhaps we should retry with backoff here too?
+            // TODO Would be good to log
             close()
           case _ =>
-          // let success through
+          // completed successfully, nothing else to do (except perhaps log?)
         }
-      case Failure(_) =>
-        // Would be better to retry with backoff
-        // Would be good to log
-        recreate()
     }
-
     internalChannel
   }
 
@@ -127,7 +133,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
       // Only one client is alive at a time. However a close() could have happened between the get() and this set
       if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
         // close the newly created client we've been shutdown
-        ChannelUtils.close(newInternalChannel)
+        newInternalChannel.map(ChannelUtils.close(_))
       }
     }
   }
