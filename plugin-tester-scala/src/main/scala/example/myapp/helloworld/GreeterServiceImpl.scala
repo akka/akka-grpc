@@ -36,6 +36,5 @@ class GreeterServiceImpl(implicit mat: Materializer) extends GreeterService {
     println(s"sayHello to stream...")
     in.map(request => HelloReply(s"Hello, ${request.name}"))
   }
-
 }
 //#full-service-impl

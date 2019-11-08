@@ -11,7 +11,6 @@ import akka.grpc.GrpcClientSettings
 import scala.concurrent.duration._
 
 object GrpcClientSettingsCompileOnly {
-
   implicit val actorSystem = ActorSystem()
   //#simple
   GrpcClientSettings.connectToServiceAt("localhost", 443)

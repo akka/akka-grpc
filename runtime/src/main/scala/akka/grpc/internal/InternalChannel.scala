@@ -19,8 +19,6 @@ import scala.compat.java8.FutureConverters._
  */
 @InternalApi
 class InternalChannel(val managedChannel: Future[ManagedChannel], promiseDone: Promise[Done]) {
-
   val doneCS: CompletionStage[Done] = promiseDone.future.toJava
   val done: Future[Done] = promiseDone.future
-
 }

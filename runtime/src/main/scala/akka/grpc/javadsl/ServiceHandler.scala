@@ -17,7 +17,6 @@ import akka.http.javadsl.model.HttpResponse
 import akka.http.javadsl.model.StatusCodes
 
 object ServiceHandler {
-
   private val notFound = CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND))
 
   /**
@@ -27,7 +26,6 @@ object ServiceHandler {
    */
   @varargs def concatOrNotFound(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
-
     def cont(
         req: HttpRequest,
         response: CompletionStage[HttpResponse],
@@ -49,5 +47,4 @@ object ServiceHandler {
         cont(req, notFound, handlers.toList)
     }
   }
-
 }

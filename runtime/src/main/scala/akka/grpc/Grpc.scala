@@ -77,7 +77,8 @@ object Grpc {
               ParseResult(None, Failed)
             case Some(uncompress) =>
               ParseResult(Some(uncompress(reader.take(length))), ReadFrameHeader)
-          } else ParseResult(Some(reader.take(length)), ReadFrameHeader)
+          }
+          else ParseResult(Some(reader.take(length)), ReadFrameHeader)
       }
 
       final case object Failed extends Step {
@@ -85,5 +86,4 @@ object Grpc {
       }
     }
   }
-
 }

@@ -5,7 +5,6 @@ import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 
 object Common extends AutoPlugin {
-
   override def trigger = allRequirements
 
   override def requires = JvmPlugin

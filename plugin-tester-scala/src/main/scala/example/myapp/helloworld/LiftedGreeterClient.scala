@@ -19,9 +19,7 @@ import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
 
 object LiftedGreeterClient {
-
   def main(args: Array[String]): Unit = {
-
     implicit val sys = ActorSystem("HelloWorldClient")
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
@@ -76,5 +74,4 @@ object LiftedGreeterClient {
       Await.ready(done, 1.minute)
     }
   }
-
 }

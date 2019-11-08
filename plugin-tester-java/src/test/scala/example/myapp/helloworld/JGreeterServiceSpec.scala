@@ -20,7 +20,6 @@ import org.scalatest.time.Span
 import example.myapp.helloworld.grpc._
 
 class JGreeterServiceSpec extends Matchers with WordSpecLike with BeforeAndAfterAll with ScalaFutures {
-
   implicit val patience = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   implicit val serverSystem: ActorSystem = {
@@ -69,5 +68,4 @@ class JGreeterServiceSpec extends Matchers with WordSpecLike with BeforeAndAfter
           }
       }
   }
-
 }

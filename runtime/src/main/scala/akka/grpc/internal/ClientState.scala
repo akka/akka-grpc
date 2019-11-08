@@ -28,7 +28,6 @@ import scala.compat.java8.FutureConverters._
 final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(
     implicit mat: Materializer,
     ex: ExecutionContext) {
-
   def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
     this(settings, s => NettyClientUtils.createChannel(s))
 

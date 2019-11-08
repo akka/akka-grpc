@@ -73,5 +73,4 @@ object GrpcMarshalling {
     LastChunk(
       trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription)
           .map(RawHeader("grpc-message", _)))
-
 }

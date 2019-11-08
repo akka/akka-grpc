@@ -16,7 +16,6 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.Promise
 
 object ChannelUtilsSpec {
-
   class FakeChannel(stateResponses: Stream[ConnectivityState]) extends ManagedChannel {
     var closed = false
     var nextResponse = stateResponses
@@ -49,11 +48,9 @@ object ChannelUtilsSpec {
       callb.run()
     }
   }
-
 }
 
 class ChannelUtilsSpec extends WordSpec with Matchers with ScalaFutures {
-
   "Channel monitor" should {
     "should fail if enter into failure configured number of times" in {
       val promise = Promise[Done]
@@ -135,5 +132,4 @@ class ChannelUtilsSpec extends WordSpec with Matchers with ScalaFutures {
       promise.future.futureValue shouldEqual Done
     }
   }
-
 }

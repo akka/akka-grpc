@@ -49,7 +49,6 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
     streamingResponse: Boolean,
     headers: MetadataImpl)
     extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
-
   val in = Inlet[I](fqMethodName + ".in")
   val out = Outlet[O](fqMethodName + ".out")
 
@@ -62,7 +61,6 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
     val trailerPromise = Promise[Metadata]()
 
     val logic = new GraphStageLogic(shape) with InHandler with OutHandler {
-
       // this is here just to fail single response requests getting more responses
       // duplicating behavior in io.grpc.stub.ClientCalls
       var sawFirstElement = false
@@ -187,5 +185,4 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
 
     (logic, matVal.future)
   }
-
 }

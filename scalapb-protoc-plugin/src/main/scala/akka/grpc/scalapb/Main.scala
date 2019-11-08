@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 import scalapb.ScalaPbCodeGenerator
 
 object Main extends App {
-
   val inBytes: Array[Byte] = {
     val baos = new ByteArrayOutputStream(math.max(64, System.in.available()))
     val buffer = Array.ofDim[Byte](32 * 1024)

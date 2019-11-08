@@ -10,13 +10,11 @@ import io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.netty.handler.ssl.SslContext
 
 object ChannelBuilder {
-
   def buildChannel(settings: Settings): ManagedChannel =
     if (settings.useAkkaHttp) {
       // TODO: here comes the akka-http based channel (when ready)
       throw new RuntimeException("Not implemented")
     } else {
-
       val sslContext: SslContext = {
         if (settings.useTestCa) {
           try GrpcSslContexts.forClient.trustManager(TestUtils.loadCert("ca.pem")).build

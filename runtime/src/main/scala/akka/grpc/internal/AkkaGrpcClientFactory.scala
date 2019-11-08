@@ -30,7 +30,6 @@ object AkkaGrpcClientFactory {
    * These objects are convenient to pass around as implicit values.
    */
   trait Configured[T <: AkkaGrpcClient] {
-
     /** Create the gRPC client. */
     def create(): T
   }
