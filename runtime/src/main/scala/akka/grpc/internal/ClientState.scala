@@ -34,6 +34,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     this(settings, s => NettyClientUtils.createChannel(s))
 
   private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
+  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done)))
 
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
@@ -97,39 +98,35 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     }
   }
 
-  private def create(): Future[InternalChannel] = {
-    // todo keep recovering with backoff
-    val internalChannel: Future[InternalChannel] =
-      Patterns.retry(
-        () => channelFactory(settings),
-        // TODO get from settings
-        1000,
-        400.millis,
-        // TODO remove case once we update Akka
-        mat.asInstanceOf[ActorMaterializer].system.scheduler,
-        mat.asInstanceOf[ActorMaterializer].system.dispatcher)
-    internalChannel.foreach {
-      case InternalChannel(_, done) =>
-        done.onComplete {
-          case Failure(_: ClientConnectionException | _: NoTargetException) =>
-            // TODO Would be better to retry with backoff
-            // TODO Would be good to log
-            recreate()
-          case Failure(_) =>
-            // TODO This makes the client unusable. Perhaps we should retry with backoff here too?
-            // TODO Would be good to log
-            close()
-          case _ =>
-          // completed successfully, nothing else to do (except perhaps log?)
-        }
+  private def create(): Future[InternalChannel] =
+    Patterns.retry(
+      () => channelFactory(settings),
+      // TODO get from settings
+      1000,
+      400.millis,
+      // TODO remove case once we update Akka
+      mat.asInstanceOf[ActorMaterializer].system.scheduler,
+      mat.asInstanceOf[ActorMaterializer].system.dispatcher)
+
+  private def recreateOnFailure(done: Future[Done]): Unit =
+    done.onComplete {
+      case Failure(_: ClientConnectionException | _: NoTargetException) =>
+        // TODO Would be better to retry with backoff
+        // TODO Would be good to log
+        recreate()
+      case Failure(_) =>
+        // TODO This makes the client unusable. Perhaps we should retry with backoff here too?
+        // TODO Would be good to log
+        close()
+      case _ =>
+      // completed successfully, nothing else to do (except perhaps log?)
     }
-    internalChannel
-  }
 
   private def recreate(): Unit = {
     val old = internalChannelRef.get()
     if (old.isDefined) {
       val newInternalChannel = create()
+      recreateOnFailure(newInternalChannel.flatMap(_.done))
       // Only one client is alive at a time. However a close() could have happened between the get() and this set
       if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
         // close the newly created client we've been shutdown
