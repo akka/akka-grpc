@@ -88,9 +88,9 @@ object GrpcClientSettings {
     val port = clientConfiguration.getInt("port")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val sd = serviceDiscoveryMechanism match {
-      case "static" =>
+      case "static" | "grpc-dns" =>
         val host = clientConfiguration.getString("host")
-        require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static")
+        require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static or grpc-dns")
         // Required by the Discovery infrastructure, even when we use static discovery.
         if (serviceName.isEmpty)
           serviceName = "static"
@@ -116,7 +116,8 @@ object GrpcClientSettings {
       userAgent = getOptionalString(clientConfiguration, "user-agent"),
       sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
       connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
-      useTls = clientConfiguration.getBoolean("use-tls"))
+      useTls = clientConfiguration.getBoolean("use-tls"),
+      grpcLoadBalancingType = getOptionalString(clientConfiguration, "grpc-load-balancing"))
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case ""    => None
@@ -180,6 +181,7 @@ final class GrpcClientSettings private (
     val deadline: Duration = Duration.Undefined,
     val userAgent: Option[String] = None,
     val useTls: Boolean = true,
+    val grpcLoadBalancingType: Option[String] = None,
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
 
   /**
@@ -252,6 +254,7 @@ final class GrpcClientSettings private (
       useTls: Boolean = useTls,
       resolveTimeout: FiniteDuration = resolveTimeout,
       connectionAttempts: Option[Int] = connectionAttempts,
+      grpcLoadBalancingType: Option[String] = grpcLoadBalancingType,
       channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
       : GrpcClientSettings =
     new GrpcClientSettings(
@@ -268,6 +271,7 @@ final class GrpcClientSettings private (
       useTls = useTls,
       resolveTimeout = resolveTimeout,
       connectionAttempts = connectionAttempts,
+      grpcLoadBalancingType = grpcLoadBalancingType,
       channelBuilderOverrides = channelBuilderOverrides)
 
 }

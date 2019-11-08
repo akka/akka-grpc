@@ -15,9 +15,10 @@ import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, Ne
 import io.grpc.netty.shaded.io.netty.handler.ssl._
 import io.grpc.{ CallOptions, ManagedChannel }
 import javax.net.ssl.SSLContext
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
+
+import io.grpc.internal.DnsNameResolverProvider
 
 /**
  * Used to indicate that the service discovery returned no target.
@@ -57,6 +58,10 @@ object NettyClientUtils {
               .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
           }
 
+          builder = settings.grpcLoadBalancingType
+            .map(builder.defaultLoadBalancingPolicy(_))
+            .map(_.nameResolverFactory(new DnsNameResolverProvider()))
+            .getOrElse(builder)
           builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
           builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
           builder = settings.channelBuilderOverrides(builder)
