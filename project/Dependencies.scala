@@ -11,7 +11,7 @@ object Dependencies {
     val akka = "2.5.25"
     val akkaHttp = "10.1.10"
 
-    val grpc = "1.24.1" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.25.0" // checked synced by GrpcVersionSyncCheckPlugin
     val config = "1.3.4"
     // We should follow Akka in whether to update to 0.4.0
     // https://github.com/akka/akka/issues/27142#issuecomment-503146305
