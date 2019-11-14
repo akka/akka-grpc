@@ -104,7 +104,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
       // TODO get from settings
       1000,
       400.millis,
-      // TODO remove case once we update Akka
+      // TODO remove cast once we update Akka
       mat.asInstanceOf[ActorMaterializer].system.scheduler,
       mat.asInstanceOf[ActorMaterializer].system.dispatcher)
 
