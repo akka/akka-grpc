@@ -110,7 +110,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
 
   private def recreateOnFailure(done: Future[Done]): Unit =
     done.onComplete {
-      case Failure(_: ClientConnectionException | _: NoTargetException) =>
+      case Failure(_: ClientConnectionException) =>
         // TODO Would be better to retry with backoff
         // TODO Would be good to log
         recreate()
