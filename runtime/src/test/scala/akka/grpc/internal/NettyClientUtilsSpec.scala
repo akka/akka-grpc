@@ -24,7 +24,6 @@ class NettyClientUtilsSpec extends WordSpec with Matchers with ScalaFutures with
       """).withFallback(ConfigFactory.load()))
 
   "The Netty client-utilities" should {
-
     implicit val ec = system.dispatcher
 
     "fail to create a channel when service discovery times out" in {

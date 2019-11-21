@@ -89,7 +89,6 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures wi
       .withFallback(ConfigFactory.load()))
 
   "The gRPC client settings spec" should {
-
     def sysWithCert(certFileName: String) = {
       val clientConfig = ConfigFactory.parseString(s"""
         akka.grpc.client {

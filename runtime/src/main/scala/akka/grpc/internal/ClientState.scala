@@ -101,10 +101,9 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
   private def create(): Future[InternalChannel] =
     Patterns.retry(
       () => channelFactory(settings),
-      // TODO get from settings
-      1000,
-      400.millis,
-      // TODO remove cast once we update Akka
+      settings.creationAttempts,
+      settings.creationDelay,
+      // TODO #733 remove cast once we update Akka
       mat.asInstanceOf[ActorMaterializer].system.scheduler,
       mat.asInstanceOf[ActorMaterializer].system.dispatcher)
 
