@@ -35,7 +35,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
           new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)),
           channelCompletion.future))
     }
-    new ClientState(mockSettings, channelFactory)
+    new ClientState(mockSettings, sys.log, channelFactory)
   }
 
   def userCodeToLiftChannel: Future[ManagedChannel] => ManagedChannel = { eventualChannel =>
@@ -76,7 +76,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
         channel.map(InternalChannel(_, channelCompletion.future))
       }
 
-      val state = new ClientState(mockSettings, channelFactory)
+      val state = new ClientState(mockSettings, sys.log, channelFactory)
 
       // Initially, looking up the channel times out since the creating is still retrying
       assertThrows[TimeoutException](state.withChannel(userCodeToLiftChannel))
@@ -122,7 +122,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
         }
       }
 
-      val state = new ClientState(mockSettings, channelFactory)
+      val state = new ClientState(mockSettings, sys.log, channelFactory)
 
       // Initially, looking up the channel times out since the creating is still retrying
       eventually {

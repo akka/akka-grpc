@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.annotation.InternalApi
+import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ ActorMaterializer, Materializer }
 import akka.pattern.Patterns
@@ -27,11 +28,12 @@ import scala.compat.java8.FutureConverters._
  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
  */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => Future[InternalChannel])(
-    implicit mat: Materializer,
-    ex: ExecutionContext) {
-  def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
-    this(settings, s => NettyClientUtils.createChannel(s))
+final class ClientState(
+    settings: GrpcClientSettings,
+    log: LoggingAdapter,
+    channelFactory: GrpcClientSettings => Future[InternalChannel])(implicit mat: Materializer, ex: ExecutionContext) {
+  def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
+    this(settings, log, s => NettyClientUtils.createChannel(s))
 
   private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
   internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done)))
@@ -109,15 +111,15 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
 
   private def recreateOnFailure(done: Future[Done]): Unit =
     done.onComplete {
-      case Failure(_: ClientConnectionException) =>
-        // TODO Would be better to retry with backoff
-        // TODO Would be good to log
+      case Failure(e: ClientConnectionException) =>
+        log.warning(s"Transient connection error [${e.getMessage}], recreating client")
         recreate()
-      case Failure(_) =>
-        // TODO This makes the client unusable. Perhaps we should retry with backoff here too?
-        // TODO Would be good to log
+      case Failure(e) =>
+        // TODO This makes the client unusable. Perhaps we should retry here too?
+        log.warning(s"Unrecoverable connection error [${e.getMessage}], closing client")
         close()
       case _ =>
+        log.info("Client closed")
       // completed successfully, nothing else to do (except perhaps log?)
     }
 
