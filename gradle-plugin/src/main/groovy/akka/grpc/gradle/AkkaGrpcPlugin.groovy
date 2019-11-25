@@ -114,7 +114,6 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                 }
             }
 
-            println project.getTasks()
             project.task("printProtocLogs") {
                 doLast {
                     Files.lines(logFile).forEach { line ->
