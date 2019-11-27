@@ -48,7 +48,7 @@ object ServerReflectionImpl {
   import scala.collection.JavaConverters._
 
   def apply(fileDescriptors: Seq[FileDescriptor], services: List[String]): ServerReflectionImpl =
-    new ServerReflectionImpl((AdditionalDescriptors ++ fileDescriptors).map(fd => fd.getName -> fd).toMap, services)
+    new ServerReflectionImpl((AdditionalDescriptors ++ fileDescriptors).map(fd => fd.getName -> fd).toMap, ServerReflection.name +: services)
 
   val AdditionalDescriptors =
     flattenDependencies(ReflectionProto.javaDescriptor).distinct
