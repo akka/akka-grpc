@@ -156,11 +156,12 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures wi
 
     "fail to parse configuration with non-existent certificate" in {
       val system = sysWithCert("no-such-cert.pem")
-      val thrown = the[IllegalArgumentException] thrownBy
-        GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(system)
-      // We want a good message since missing classpath resources are difficult to debug
-      thrown.getMessage should include("certs/no-such-cert.pem")
-      system.terminate()
+      try {
+        val thrown = the[IllegalArgumentException] thrownBy
+          GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(system)
+        // We want a good message since missing classpath resources are difficult to debug
+        thrown.getMessage should include("certs/no-such-cert.pem")
+      } finally system.terminate()
     }
 
     "provide a useful error message if configuration missing" in {
@@ -192,12 +193,12 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures wi
         """.stripMargin
       val actorSystem = ActorSystem("test-with-service-discovery", ConfigFactory.parseString(sdConfig))
 
-      // invoking usingServiceDiscovery provides a GrpcClientSettings instance
-      // that uses the ServiceDiscovery in the ActorSystem
-      val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
-      settings.serviceDiscovery should not be null
-
-      actorSystem.terminate()
+      try {
+        // invoking usingServiceDiscovery provides a GrpcClientSettings instance
+        // that uses the ServiceDiscovery in the ActorSystem
+        val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
+        settings.serviceDiscovery should not be null
+      } finally actorSystem.terminate()
     }
   }
 
