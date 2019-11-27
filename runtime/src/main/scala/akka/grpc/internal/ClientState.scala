@@ -36,7 +36,7 @@ final class ClientState(
     this(settings, log, s => NettyClientUtils.createChannel(s))
 
   private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
-  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done)))
+  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
 
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
@@ -83,7 +83,7 @@ final class ClientState(
         } else {
           // when internalChannelRef was not maybeChannel
           if (internalChannelRef.get != null) {
-            // client has had a ClientConnectionException and been re-created, need to shutdown the new one
+            // client has had an exception and been re-created, need to shutdown the new one
             close()
           } else {
             // or a competing thread already set `internalChannelRef` to None and CAS failed.
@@ -109,25 +109,32 @@ final class ClientState(
       mat.asInstanceOf[ActorMaterializer].system.scheduler,
       mat.asInstanceOf[ActorMaterializer].system.dispatcher)
 
-  private def recreateOnFailure(done: Future[Done]): Unit =
+  private def recreateOnFailure(done: Future[Done], creationsLeft: Int): Unit =
     done.onComplete {
-      case Failure(e: ClientConnectionException) =>
-        log.warning(s"Transient connection error [${e.getMessage}], recreating client")
-        recreate()
       case Failure(e) =>
-        // TODO This makes the client unusable. Perhaps we should retry here too?
-        log.warning(s"Unrecoverable connection error [${e.getMessage}], closing client")
-        close()
+        log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
+        // TODO #733 remove cast once we update Akka
+        val scheduler = mat.asInstanceOf[ActorMaterializer].system.scheduler
+        val ec = mat.asInstanceOf[ActorMaterializer].system.dispatcher
+        Patterns.after(
+          settings.creationDelay,
+          scheduler,
+          ec,
+          () =>
+            Future {
+              if (!closeDemand.isCompleted)
+                recreate(creationsLeft - 1)
+            })
       case _ =>
         log.info("Client closed")
       // completed successfully, nothing else to do (except perhaps log?)
     }
 
-  private def recreate(): Unit = {
+  private def recreate(creationsLeft: Int): Unit = {
     val old = internalChannelRef.get()
     if (old.isDefined) {
       val newInternalChannel = create()
-      recreateOnFailure(newInternalChannel.flatMap(_.done))
+      recreateOnFailure(newInternalChannel.flatMap(_.done), creationsLeft)
       // Only one client is alive at a time. However a close() could have happened between the get() and this set
       if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
         // close the newly created client we've been shutdown
