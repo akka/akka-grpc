@@ -233,6 +233,11 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
+  def withCreationAttempts(value: Int): GrpcClientSettings =
+    copy(creationAttempts = value)
+  def withCreationDelay(delay: FiniteDuration): GrpcClientSettings =
+    copy(creationDelay = delay)
+
   /**
    * How many times to retry establishing a connection before failing the client
    * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
@@ -253,6 +258,8 @@ final class GrpcClientSettings private (
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
       serviceProtocol: Option[String] = serviceProtocol,
+      creationAttempts: Int = creationAttempts,
+      creationDelay: FiniteDuration = creationDelay,
       defaultPort: Int = defaultPort,
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,

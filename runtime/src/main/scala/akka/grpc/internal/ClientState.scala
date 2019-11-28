@@ -122,8 +122,14 @@ final class ClientState(
           ec,
           () =>
             Future {
-              if (!closeDemand.isCompleted)
-                recreate(creationsLeft - 1)
+              if (!closeDemand.isCompleted) {
+                if (creationsLeft > 0)
+                  recreate(creationsLeft - 1)
+                else
+                  // Error does not need to be explicitly propagated here
+                  // since it's in the internalChannelRef already
+                  close()
+              }
             })
       case _ =>
         log.info("Client closed")

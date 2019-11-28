@@ -129,6 +129,28 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
         state.withChannel(userCodeToLiftChannel) should equal(secondChannel.managedChannel)
       }
     }
+
+    "try recreating the channel when it fails after initially being created successfully for a limited number of attempts" in {
+      // Successfully create a channel that fails
+      var actualCreations = 0
+      val channelFactory = (_: GrpcClientSettings) => {
+        val creation = actualCreations
+        actualCreations += 1
+        Future.successful {
+          InternalChannel(
+            new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)),
+            Future.failed(new RuntimeException(s"Failure $creation")))
+        }
+      }
+
+      val configuredAttempts = 32
+      val state = new ClientState(
+        mockSettings.withCreationAttempts(configuredAttempts).withCreationDelay(0.millis),
+        sys.log,
+        channelFactory)
+
+      state.closed.failed.futureValue.getMessage should be(s"Failure $configuredAttempts")
+    }
   }
 
   override def afterAll(): Unit = {
