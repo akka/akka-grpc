@@ -30,7 +30,7 @@ object Main extends App {
     val greeter: PartialFunction[HttpRequest, Future[HttpResponse]] =
       GreeterServiceHandler.partial(new GreeterServiceImpl())
     val reflection: PartialFunction[HttpRequest, Future[HttpResponse]] =
-      ServerReflectionHandler.partial(ServerReflectionImpl(Seq.empty, List.empty))
+      ServerReflectionHandler.partial(ServerReflectionImpl(Seq(HelloworldProto.javaDescriptor), List(GreeterService.name)))
 
     val service: HttpRequest => Future[HttpResponse] =
       ServiceHandler.concatOrNotFound(greeter, reflection)
