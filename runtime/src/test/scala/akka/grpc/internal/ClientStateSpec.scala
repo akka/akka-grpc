@@ -24,7 +24,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
   implicit val sys = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher
-  implicit val patience = PatienceConfig(timeout = 5.seconds, interval = 150.milliseconds)
+  implicit val patience = PatienceConfig(timeout = 10.seconds, interval = 150.milliseconds)
 
   private val mockSettings: GrpcClientSettings = GrpcClientSettings.connectToServiceAt("somehost.com", 3434)
 
@@ -143,7 +143,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
         }
       }
 
-      val configuredAttempts = 32
+      val configuredAttempts = 12
       val state = new ClientState(
         mockSettings.withCreationAttempts(configuredAttempts).withCreationDelay(0.millis),
         sys.log,
