@@ -35,12 +35,12 @@ final class ClientState(
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
     this(settings, log, s => NettyClientUtils.createChannel(s))
 
-  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
-  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
-
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
+
+  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
+  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
 
   mat match {
     case m: ActorMaterializer =>
@@ -112,25 +112,32 @@ final class ClientState(
   private def recreateOnFailure(done: Future[Done], creationsLeft: Int): Unit =
     done.onComplete {
       case Failure(e) =>
-        log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
-        // TODO #733 remove cast once we update Akka
-        val scheduler = mat.asInstanceOf[ActorMaterializer].system.scheduler
-        val ec = mat.asInstanceOf[ActorMaterializer].system.dispatcher
-        Patterns.after(
-          settings.creationDelay,
-          scheduler,
-          ec,
-          () =>
-            Future {
-              if (!closeDemand.isCompleted) {
-                if (creationsLeft > 0)
+        if (creationsLeft <= 0) {
+          // Error does not need to be explicitly propagated here
+          // since it's in the internalChannelRef already
+          log.warning(s"Client error [${e.getMessage}], not recreating client")
+          close()
+        } else if (settings.creationDelay.length < 1) {
+          if (!closeDemand.isCompleted) {
+            log.warning(s"Client error [${e.getMessage}], recreating client")
+            recreate(creationsLeft - 1)
+          }
+        } else {
+          log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
+
+          Patterns.after(
+            settings.creationDelay,
+            // TODO #733 remove cast once we update Akka
+            mat.asInstanceOf[ActorMaterializer].system.scheduler,
+            mat.asInstanceOf[ActorMaterializer].system.dispatcher,
+            () =>
+              Future {
+                log.info("Recreating channel now")
+                if (!closeDemand.isCompleted) {
                   recreate(creationsLeft - 1)
-                else
-                  // Error does not need to be explicitly propagated here
-                  // since it's in the internalChannelRef already
-                  close()
-              }
-            })
+                }
+              })
+        }
       case _ =>
         log.info("Client closed")
       // completed successfully, nothing else to do (except perhaps log?)
