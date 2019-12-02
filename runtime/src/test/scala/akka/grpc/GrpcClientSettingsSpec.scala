@@ -4,21 +4,22 @@
 
 package akka.grpc
 
-import akka.actor.ActorSystem
-import akka.discovery.{ Lookup, ServiceDiscovery }
-import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.discovery.config.ConfigServiceDiscovery
 import com.typesafe.config.ConfigFactory
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ Matchers, WordSpec }
 
 import scala.concurrent.duration._
 import scala.collection.{ immutable => im }
 import scala.concurrent.Future
 
-class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
-  "The gRPC client settings spec" should {
-    val clientWithServiceDiscovery = ConfigFactory.parseString("""
+import akka.actor.ActorSystem
+import akka.discovery.{ Lookup, ServiceDiscovery }
+import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
+import akka.discovery.config.ConfigServiceDiscovery
+
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest._
+
+class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+  val clientWithServiceDiscovery = ConfigFactory.parseString("""
         //#config-service-discovery
         akka.grpc.client {
           "project.WithConfigServiceDiscovery" {
@@ -53,7 +54,7 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
          }
         """)
 
-    val clientWithNoServiceName = ConfigFactory.parseString("""
+  val clientWithNoServiceName = ConfigFactory.parseString("""
         akka.grpc.client {
           "project.WithNoServiceName" {
             service-discovery {
@@ -64,10 +65,10 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         }
         """)
 
-    implicit val sys = ActorSystem(
-      "test",
-      ConfigFactory
-        .parseString("""
+  implicit val sys = ActorSystem(
+    "test",
+    ConfigFactory
+      .parseString("""
         //#client-config
         akka.grpc.client {
           "project.WithSpecificConfiguration" {
@@ -83,10 +84,11 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         }
         //#client-config
       """)
-        .withFallback(clientWithServiceDiscovery)
-        .withFallback(clientWithNoServiceName)
-        .withFallback(ConfigFactory.load()))
+      .withFallback(clientWithServiceDiscovery)
+      .withFallback(clientWithNoServiceName)
+      .withFallback(ConfigFactory.load()))
 
+  "The gRPC client settings spec" should {
     def sysWithCert(certFileName: String) = {
       val clientConfig = ConfigFactory.parseString(s"""
         akka.grpc.client {
@@ -153,10 +155,13 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
     }
 
     "fail to parse configuration with non-existent certificate" in {
-      val thrown = the[IllegalArgumentException] thrownBy
-        GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(sysWithCert("no-such-cert.pem"))
-      // We want a good message since missing classpath resources are difficult to debug
-      thrown.getMessage should include("certs/no-such-cert.pem")
+      val system = sysWithCert("no-such-cert.pem")
+      try {
+        val thrown = the[IllegalArgumentException] thrownBy
+          GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(system)
+        // We want a good message since missing classpath resources are difficult to debug
+        thrown.getMessage should include("certs/no-such-cert.pem")
+      } finally system.terminate()
     }
 
     "provide a useful error message if configuration missing" in {
@@ -188,11 +193,18 @@ class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures {
         """.stripMargin
       val actorSystem = ActorSystem("test-with-service-discovery", ConfigFactory.parseString(sdConfig))
 
-      // invoking usingServiceDiscovery provides a GrpcClientSettings instance
-      // that uses the ServiceDiscovery in the ActorSystem
-      val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
-      settings.serviceDiscovery should not be null
+      try {
+        // invoking usingServiceDiscovery provides a GrpcClientSettings instance
+        // that uses the ServiceDiscovery in the ActorSystem
+        val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")(actorSystem)
+        settings.serviceDiscovery should not be null
+      } finally actorSystem.terminate()
     }
+  }
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    sys.terminate()
   }
 }
 class FakeServiceDiscovery extends ServiceDiscovery {

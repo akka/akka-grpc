@@ -74,8 +74,7 @@ object GrpcClientSettings {
     val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val discovery = Discovery.get(actorSystem).discovery
-    val settings = new GrpcClientSettings(serviceName, discovery, -1, resolveTimeout)
-    withConfigDefaults(settings, clientConfiguration)
+    withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
   }
 
   /**
@@ -98,25 +97,35 @@ object GrpcClientSettings {
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
         Discovery(sys).loadServiceDiscovery(other)
     }
-    val settings = new GrpcClientSettings(serviceName, sd, port, resolveTimeout)
-    withConfigDefaults(settings, clientConfiguration)
+    withConfigDefaults(serviceName, sd, port, resolveTimeout, clientConfiguration)
   }
 
   /**
    * Given a base GrpcClientSettings, it generates a new instance with all values provided in config.
    */
-  private def withConfigDefaults(initialSettings: GrpcClientSettings, clientConfiguration: Config)(
-      implicit actorSystem: ActorSystem): GrpcClientSettings =
-    initialSettings.copy(
-      servicePortName = getOptionalString(clientConfiguration, "service-discovery.port-name"),
-      serviceProtocol = getOptionalString(clientConfiguration, "service-discovery.protocol"),
-      overrideAuthority = getOptionalString(clientConfiguration, "override-authority"),
-      deadline = getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
-      userAgent = getOptionalString(clientConfiguration, "user-agent"),
-      sslContext = getOptionalSSLContext(clientConfiguration, "ssl-config"),
-      connectionAttempts = getOptionalInt(clientConfiguration, "connection-attempts"),
-      useTls = clientConfiguration.getBoolean("use-tls"),
-      grpcLoadBalancingType = getOptionalString(clientConfiguration, "grpc-load-balancing"))
+  private def withConfigDefaults(
+      serviceName: String,
+      serviceDiscovery: ServiceDiscovery,
+      defaultPort: Int,
+      resolveTimeout: FiniteDuration,
+      clientConfiguration: Config)(implicit actorSystem: ActorSystem): GrpcClientSettings =
+    new GrpcClientSettings(
+      serviceName,
+      serviceDiscovery,
+      defaultPort,
+      resolveTimeout,
+      getOptionalString(clientConfiguration, "service-discovery.port-name"),
+      getOptionalString(clientConfiguration, "service-discovery.protocol"),
+      clientConfiguration.getInt("creation.attempts"),
+      clientConfiguration.getDuration("creation.delay").asScala,
+      getOptionalInt(clientConfiguration, "connection-attempts"),
+      None,
+      getOptionalString(clientConfiguration, "override-authority"),
+      getOptionalSSLContext(clientConfiguration, "ssl-config"),
+      getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
+      getOptionalString(clientConfiguration, "user-agent"),
+      clientConfiguration.getBoolean("use-tls"),
+      getOptionalString(clientConfiguration, "grpc-load-balancing"))
 
   private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
     case ""    => None
@@ -172,6 +181,8 @@ final class GrpcClientSettings private (
     val resolveTimeout: FiniteDuration,
     val servicePortName: Option[String] = None,
     val serviceProtocol: Option[String] = None,
+    val creationAttempts: Integer,
+    val creationDelay: FiniteDuration,
     val connectionAttempts: Option[Int] = None,
     val callCredentials: Option[CallCredentials] = None,
     val overrideAuthority: Option[String] = None,
@@ -222,6 +233,11 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
+  def withCreationAttempts(value: Int): GrpcClientSettings =
+    copy(creationAttempts = value)
+  def withCreationDelay(delay: FiniteDuration): GrpcClientSettings =
+    copy(creationDelay = delay)
+
   /**
    * How many times to retry establishing a connection before failing the client
    * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
@@ -242,6 +258,8 @@ final class GrpcClientSettings private (
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
       serviceProtocol: Option[String] = serviceProtocol,
+      creationAttempts: Int = creationAttempts,
+      creationDelay: FiniteDuration = creationDelay,
       defaultPort: Int = defaultPort,
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,
@@ -259,6 +277,8 @@ final class GrpcClientSettings private (
       serviceDiscovery = serviceDiscovery,
       servicePortName = servicePortName,
       serviceProtocol = serviceProtocol,
+      creationAttempts = creationAttempts,
+      creationDelay = creationDelay,
       deadline = deadline,
       serviceName = serviceName,
       overrideAuthority = overrideAuthority,
