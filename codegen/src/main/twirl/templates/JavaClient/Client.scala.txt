@@ -39,7 +39,12 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         this.settings = settings;
         this.mat = mat;
         this.ec = ec;
-        this.clientState = new ClientState(settings, mat, ec);
+        this.clientState = new ClientState(
+          settings,
+          // TODO #733 remove cast once we update Akka
+          akka.event.Logging$.MODULE$.apply(((ActorMaterializer)mat).system(), Default@{service.name}Client.class, akka.event.LogSource$.MODULE$.<Default@{service.name}Client>fromAnyClass()),
+          mat,
+          ec);
         this.options = NettyClientUtils.callOptions(settings);
 
         if (mat instanceof ActorMaterializer) {

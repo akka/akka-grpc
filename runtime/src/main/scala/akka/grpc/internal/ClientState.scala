@@ -9,13 +9,16 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.annotation.InternalApi
+import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ ActorMaterializer, Materializer }
+import akka.pattern.Patterns
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.Failure
+import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 import scala.compat.java8.FutureConverters._
 
 /**
@@ -25,17 +28,19 @@ import scala.compat.java8.FutureConverters._
  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
  */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClientSettings => InternalChannel)(
-    implicit mat: Materializer,
-    ex: ExecutionContext) {
-  def this(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) =
-    this(settings, s => NettyClientUtils.createChannel(s))
+final class ClientState(
+    settings: GrpcClientSettings,
+    log: LoggingAdapter,
+    channelFactory: GrpcClientSettings => Future[InternalChannel])(implicit mat: Materializer, ex: ExecutionContext) {
+  def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
+    this(settings, log, s => NettyClientUtils.createChannel(s))
 
-  private val internalChannelRef =
-    new AtomicReference[Option[InternalChannel]](Some(create()))
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
+
+  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
+  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
 
   mat match {
     case m: ActorMaterializer =>
@@ -43,9 +48,10 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     case _ =>
   }
 
+  // used from generated client
   def withChannel[A](f: Future[ManagedChannel] => A): A =
     f {
-      internalChannelRef.get().getOrElse(throw new ClientClosedException).managedChannel
+      internalChannelRef.get().getOrElse(Future.failed(new ClientClosedException)).map(_.managedChannel)
     }
 
   def closedCS(): CompletionStage[Done] = closed().toJava
@@ -66,7 +72,7 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     maybeChannel match {
       case Some(channel) =>
         // invoke `close` on the channel and capture the `channel.done` returned
-        val done = ChannelUtils.close(channel)
+        val done = channel.flatMap(ChannelUtils.close(_))
         // set the `closing` to the current `channel.done`
         closing.compareAndSet(None, Some(done))
         // notify there's been close demand (see `def closed()` above)
@@ -76,8 +82,8 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
           done
         } else {
           // when internalChannelRef was not maybeChannel
-          if (internalChannelRef.get.isDefined) {
-            // client has had a ClientConnectionException and been re-created, need to shutdown the new one
+          if (internalChannelRef.get != null) {
+            // client has had an exception and been re-created, need to shutdown the new one
             close()
           } else {
             // or a competing thread already set `internalChannelRef` to None and CAS failed.
@@ -94,25 +100,60 @@ final class ClientState(settings: GrpcClientSettings, channelFactory: GrpcClient
     }
   }
 
-  private def create(): InternalChannel = {
-    val internalChannel: InternalChannel = channelFactory(settings)
-    internalChannel.done.onComplete {
-      case Failure(_: ClientConnectionException | _: NoTargetException) =>
-        val old = internalChannelRef.get()
-        if (old.isDefined) {
-          val newInternalChannel = create()
-          // Only one client is alive at a time. However a close() could have happened between the get() and this set
-          if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
-            // close the newly created client we've been shutdown
-            ChannelUtils.close(newInternalChannel)
+  private def create(): Future[InternalChannel] =
+    Patterns.retry(
+      () => channelFactory(settings),
+      settings.creationAttempts,
+      settings.creationDelay,
+      // TODO #733 remove cast once we update Akka
+      mat.asInstanceOf[ActorMaterializer].system.scheduler,
+      mat.asInstanceOf[ActorMaterializer].system.dispatcher)
+
+  private def recreateOnFailure(done: Future[Done], creationsLeft: Int): Unit =
+    done.onComplete {
+      case Failure(e) =>
+        if (creationsLeft <= 0) {
+          // Error does not need to be explicitly propagated here
+          // since it's in the internalChannelRef already
+          log.warning(s"Client error [${e.getMessage}], not recreating client")
+          close()
+        } else if (settings.creationDelay.length < 1) {
+          if (!closeDemand.isCompleted) {
+            log.warning(s"Client error [${e.getMessage}], recreating client")
+            recreate(creationsLeft - 1)
           }
+        } else {
+          log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
+
+          Patterns.after(
+            settings.creationDelay,
+            // TODO #733 remove cast once we update Akka
+            mat.asInstanceOf[ActorMaterializer].system.scheduler,
+            mat.asInstanceOf[ActorMaterializer].system.dispatcher,
+            () =>
+              Future {
+                log.info("Recreating channel now")
+                if (!closeDemand.isCompleted) {
+                  recreate(creationsLeft - 1)
+                }
+              })
         }
-      case Failure(_) =>
-        close()
       case _ =>
-      // let success through
+        log.info("Client closed")
+      // completed successfully, nothing else to do (except perhaps log?)
     }
-    internalChannel
+
+  private def recreate(creationsLeft: Int): Unit = {
+    val old = internalChannelRef.get()
+    if (old.isDefined) {
+      val newInternalChannel = create()
+      recreateOnFailure(newInternalChannel.flatMap(_.done), creationsLeft)
+      // Only one client is alive at a time. However a close() could have happened between the get() and this set
+      if (!internalChannelRef.compareAndSet(old, Some(newInternalChannel))) {
+        // close the newly created client we've been shutdown
+        newInternalChannel.map(ChannelUtils.close(_))
+      }
+    }
   }
 }
 
