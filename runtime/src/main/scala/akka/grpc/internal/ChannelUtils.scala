@@ -27,6 +27,7 @@ class ClientConnectionException(msg: String) extends RuntimeException(msg)
  */
 @InternalApi
 object ChannelUtils {
+
   /**
    * INTERNAL API
    */

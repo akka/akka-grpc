@@ -5,6 +5,7 @@
 package akka.grpc
 
 package object javadsl {
+
   /**
    * Helper for creating akka.japi.function.Function instances from Scala
    * functions as Scala 2.11 does not know about SAMs.

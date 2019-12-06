@@ -97,9 +97,8 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
   def serverStreaming(): Unit = {
     val request =
-      StreamingOutputCallRequest(
-        responseParameters =
-          Seq(ResponseParameters(31415), ResponseParameters(9), ResponseParameters(2653), ResponseParameters(58979)))
+      StreamingOutputCallRequest(responseParameters =
+        Seq(ResponseParameters(31415), ResponseParameters(9), ResponseParameters(2653), ResponseParameters(58979)))
 
     val expected: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),
@@ -116,10 +115,9 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
   def serverCompressedStreaming(): Unit = {
     val request =
-      StreamingOutputCallRequest(
-        responseParameters = Seq(
-          ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
-          ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
+      StreamingOutputCallRequest(responseParameters = Seq(
+        ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
+        ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
 
     val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),

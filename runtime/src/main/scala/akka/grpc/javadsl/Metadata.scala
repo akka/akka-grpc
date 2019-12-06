@@ -18,6 +18,7 @@ import scala.collection.JavaConverters._
  * Not for user extension
  */
 @DoNotInherit trait Metadata {
+
   /**
    * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence
    *         that is a text key is used.

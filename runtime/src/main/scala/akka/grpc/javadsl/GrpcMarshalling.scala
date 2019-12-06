@@ -70,7 +70,6 @@ object GrpcMarshalling {
     SHttpResponse(entity = SHttpEntity.Chunked(Grpc.contentType, SSource.single(trailer(status))))
 
   private def trailer(status: Status): LastChunk =
-    LastChunk(
-      trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription)
-          .map(RawHeader("grpc-message", _)))
+    LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription)
+        .map(RawHeader("grpc-message", _)))
 }

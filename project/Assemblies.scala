@@ -2,6 +2,7 @@ import java.io.{ File, FileInputStream, FileOutputStream }
 import java.nio.file.Files
 
 object Assemblies {
+
   /**
    * Generates a Windows bat compatible assembly
    *

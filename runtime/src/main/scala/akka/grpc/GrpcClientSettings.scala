@@ -27,6 +27,7 @@ import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
 
 object GrpcClientSettings {
+
   /**
    * Create a client that uses a static host and port. Default configuration
    * is loaded from reference.conf
@@ -192,6 +193,7 @@ final class GrpcClientSettings private (
     val useTls: Boolean = true,
     val grpcLoadBalancingType: Option[String] = None,
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
+
   /**
    * If using ServiceDiscovery and no port is returned use this one.
    */
