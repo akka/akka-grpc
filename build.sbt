@@ -29,8 +29,8 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.gen.Main"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
+        Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions -= scala213))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
@@ -52,8 +52,8 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
       art.withClassifier(Some("assembly"))
     },
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-        prependShellScript = Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
+        Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Seq(scala212)))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
