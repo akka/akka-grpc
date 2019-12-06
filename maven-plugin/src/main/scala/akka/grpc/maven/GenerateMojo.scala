@@ -43,12 +43,13 @@ object GenerateMojo {
     val originalErr = System.err
     System.setOut(outPrinter)
     System.setErr(errPrinter)
-    val t = try {
-      block
-    } finally {
-      System.setOut(originalOut)
-      System.setErr(originalErr)
-    }
+    val t =
+      try {
+        block
+      } finally {
+        System.setOut(originalOut)
+        System.setErr(originalErr)
+      }
 
     (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }

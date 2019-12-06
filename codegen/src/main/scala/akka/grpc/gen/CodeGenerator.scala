@@ -27,6 +27,7 @@ trait CodeGenerator {
 }
 
 object CodeGenerator {
+
   /** Holds the prefix of a given Scala binary version **/
   case class ScalaBinaryVersion(prefix: String)
 }

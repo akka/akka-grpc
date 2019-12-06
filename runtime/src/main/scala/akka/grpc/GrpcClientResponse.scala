@@ -17,6 +17,7 @@ import scala.concurrent.Future
  */
 @DoNotInherit
 trait GrpcResponseMetadata {
+
   /**
    * Scala API: The response metadata, the metadata is only for reading and must not be mutated.
    */
@@ -45,6 +46,7 @@ trait GrpcResponseMetadata {
  */
 @DoNotInherit
 trait GrpcSingleResponse[T] extends GrpcResponseMetadata {
+
   /**
    * Scala API: The response body
    */

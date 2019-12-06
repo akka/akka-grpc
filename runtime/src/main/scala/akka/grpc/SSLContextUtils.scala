@@ -12,9 +12,10 @@ import javax.net.ssl.SSLContext
 
 object SSLContextUtils {
   def fromStream(certStream: InputStream): SSLContext = {
-    val sslBuilder = try {
-      GrpcSslContexts.forClient.trustManager(certStream)
-    } finally certStream.close()
+    val sslBuilder =
+      try {
+        GrpcSslContexts.forClient.trustManager(certStream)
+      } finally certStream.close()
     GrpcSslContexts.configure(sslBuilder, SslProvider.JDK).build.asInstanceOf[JdkSslContext].context
   }
 

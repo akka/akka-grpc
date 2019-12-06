@@ -33,6 +33,7 @@ final class NoTargetException(msg: String) extends RuntimeException(msg)
  */
 @InternalApi
 object NettyClientUtils {
+
   /**
    * INTERNAL API
    */
