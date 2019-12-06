@@ -87,15 +87,16 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
   }
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
-    val result = try {
-      block
-      Succeeded
-    } catch {
-      case NonFatal(_) if expectedToFail => pending
-      case NonFatal(e) =>
-        e.printStackTrace()
-        throw e
-    }
+    val result =
+      try {
+        block
+        Succeeded
+      } catch {
+        case NonFatal(_) if expectedToFail => pending
+        case NonFatal(e) =>
+          e.printStackTrace()
+          throw e
+      }
 
     result match {
       case Succeeded if expectedToFail => fail("Succeeded against expectations")

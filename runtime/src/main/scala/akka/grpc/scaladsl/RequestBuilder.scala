@@ -24,6 +24,7 @@ import scala.concurrent.duration.FiniteDuration
  */
 @DoNotInherit
 trait SingleResponseRequestBuilder[Req, Res] {
+
   /**
    * Add a header, the value will be ASCII encoded, the same header key can be added multiple times with
    * different values.
@@ -60,6 +61,7 @@ trait SingleResponseRequestBuilder[Req, Res] {
  */
 @DoNotInherit
 trait StreamResponseRequestBuilder[Req, Res] {
+
   /**
    * Add a header, the value will be ASCII encoded, the same header key can be added multiple times with
    * different values.
