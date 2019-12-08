@@ -18,7 +18,9 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
   implicit val sys = ActorSystem()

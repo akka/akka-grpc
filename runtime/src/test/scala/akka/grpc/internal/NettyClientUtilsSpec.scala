@@ -13,8 +13,10 @@ import akka.grpc.GrpcClientSettings
 
 import org.scalatest._
 import org.scalatest.concurrent._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class NettyClientUtilsSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+class NettyClientUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem(
     "test",
     ConfigFactory.parseString("""

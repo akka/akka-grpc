@@ -17,7 +17,7 @@ object Dependencies {
     // https://github.com/akka/akka/issues/27142#issuecomment-503146305
     val sslConfig = "0.3.8"
 
-    val scalaTest = "3.0.8"
+    val scalaTest = "3.1.0"
 
     val maven = "3.6.3"
   }
