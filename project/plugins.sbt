@@ -1,4 +1,4 @@
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.2.1")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.3.1")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.19")
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.0.0")
