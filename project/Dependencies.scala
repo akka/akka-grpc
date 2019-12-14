@@ -8,7 +8,7 @@ object Dependencies {
     val scala212 = "2.12.10"
     val scala213 = "2.13.1"
 
-    val akka = "2.6.1"
+    val akka = "2.5.27"
     val akkaHttp = "10.1.11"
 
     val grpc = "1.25.0" // checked synced by GrpcVersionSyncCheckPlugin
@@ -48,7 +48,7 @@ object Dependencies {
     val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.29"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
-    val protocJar = "com.github.os72" % "protoc-jar" % "3.10.1"
+    val protocJar = "com.github.os72" % "protoc-jar" % "3.11.1"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
   }
