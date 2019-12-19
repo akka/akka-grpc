@@ -11,6 +11,7 @@ import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
+import akka.stream.SystemMaterializer
 import example.myapp.helloworld.grpc.helloworld._
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException
@@ -26,7 +27,7 @@ import scala.concurrent.duration._
 
 class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
   implicit val system = ActorSystem("NonBalancingIntegrationSpec")
-  implicit val mat = akka.stream.ActorMaterializer.create(system)
+  implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
   override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
@@ -51,7 +52,7 @@ class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeA
     }
 
     "re-discover endpoints on failure" in {
-      val service1materializer = akka.stream.ActorMaterializer.create(system)
+      val service1materializer = SystemMaterializer(system).createAdditionalSystemMaterializer()
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
 

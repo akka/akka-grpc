@@ -9,7 +9,6 @@ import akka.http.scaladsl.{ Http, Http2, HttpConnectionContext }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.server.{ Directive0, Route, RouteResult }
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
 

@@ -8,7 +8,6 @@ package example.myapp.helloworld
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.Http
-import akka.stream.{ ActorMaterializer, Materializer }
 import example.myapp.helloworld.grpc._
 
 import scala.concurrent.{ ExecutionContext, Future }

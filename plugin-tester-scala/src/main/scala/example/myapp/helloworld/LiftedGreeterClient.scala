@@ -13,7 +13,6 @@ import akka.Done
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 
 import example.myapp.helloworld.grpc._

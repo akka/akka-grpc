@@ -8,7 +8,6 @@ package example.myapp.helloworld
 import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
 

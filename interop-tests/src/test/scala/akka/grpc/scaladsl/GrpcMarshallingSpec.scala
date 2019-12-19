@@ -10,7 +10,6 @@ import akka.grpc.internal.{ AbstractGrpcProtocol, GrpcProtocolNative, Gzip }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.stream.testkit.TestPublisher
 import akka.stream.testkit.scaladsl.TestSource

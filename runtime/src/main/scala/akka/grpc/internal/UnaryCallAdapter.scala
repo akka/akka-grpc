@@ -79,11 +79,10 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
       def headers = sMetadata
       def getHeaders() = jMetadata
 
-      private lazy val sTrailer = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(
-        ExecutionContexts.sameThreadExecutionContext)
-      private lazy val jTrailer = trailerPromise.future
-        .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
-        .toJava
+      private lazy val sTrailer =
+        trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
+      private lazy val jTrailer =
+        trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic).toJava
 
       def trailers = sTrailer
       def getTrailers() = jTrailer

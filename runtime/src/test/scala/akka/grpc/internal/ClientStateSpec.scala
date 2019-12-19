@@ -11,7 +11,6 @@ import io.grpc.ConnectivityState._
 
 import akka.Done
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.BeforeAndAfterAll

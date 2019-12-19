@@ -10,7 +10,6 @@ import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, Identity }
 import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
 import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.ActorMaterializer
 import io.grpc.Status
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures

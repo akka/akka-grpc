@@ -91,10 +91,10 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
             def headers = sMetadata
             def getHeaders() = jMetadata
 
-            private lazy val sTrailers = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(
-              ExecutionContexts.sameThreadExecutionContext)
+            private lazy val sTrailers =
+              trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
             private lazy val jTrailers = trailerPromise.future
-              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
+              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
               .toJava
             def trailers = sTrailers
             def getTrailers = jTrailers

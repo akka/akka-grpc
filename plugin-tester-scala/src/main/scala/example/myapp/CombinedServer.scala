@@ -11,8 +11,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.grpc.scaladsl.ServerReflection
-import akka.stream.ActorMaterializer
-import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld._
 import example.myapp.echo._
