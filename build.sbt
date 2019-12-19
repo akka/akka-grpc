@@ -41,13 +41,12 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(
     // We don't actually promise binary compatibility before 1.0.0, but want to
     // introduce the tooling
-    mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"),
-  )
+    mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"))
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
 lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file("scalapb-protoc-plugin"))
-  /** TODO we only really need to depend on scalapb */
+/** TODO we only really need to depend on scalapb */
   .dependsOn(codegen)
   .settings(Seq(
     mimaFailOnNoPrevious := false,
@@ -69,12 +68,12 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
   .settings(Dependencies.mavenPlugin)
   .enablePlugins(akka.grpc.SbtMavenPlugin)
-  .settings(Seq(
-    mimaFailOnNoPrevious := false,
-    publishMavenStyle := true,
-    crossPaths := false,
-    crossScalaVersions := Seq(scala212),
-  ))
+  .settings(
+    Seq(
+      mimaFailOnNoPrevious := false,
+      publishMavenStyle := true,
+      crossPaths := false,
+      crossScalaVersions := Seq(scala212)))
   .dependsOn(codegen)
 
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
