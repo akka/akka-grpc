@@ -101,7 +101,7 @@ Scala
 
 The plugin looks for `.proto` files under `src/main/protobuf`.
 
-Loading proto files from other directories this is currenlty not supported.
+Loading proto files from other directories is currently not supported.
 If you are interested in this feature you can find more background in issue
 [#288](https://github.com/akka/akka-grpc/issues/288)
 
@@ -112,7 +112,7 @@ explicit by duplicating the proto definitions in your project.
 
 When using @ref[sbt](sbt.md) as a build system, we also support loading your
 proto definitions from a dependency classpath. This is not yet supported
-for Maven an @ref[Gradle](gradle.md). If you are interested in this feature
+for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
 it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152)
 
 
