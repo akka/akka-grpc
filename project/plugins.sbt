@@ -1,12 +1,8 @@
-
-
 enablePlugins(BuildInfoPlugin)
 
 val sbtProtocV = "0.99.25"
 
-buildInfoKeys := Seq[BuildInfoKey](
-  "sbtProtocVersion"      -> sbtProtocV
-)
+buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.4.0")
