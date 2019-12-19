@@ -56,7 +56,7 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
-    val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
+    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % "3.1.0.0" % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }
@@ -71,9 +71,7 @@ object Dependencies {
 
   private val l = libraryDependencies
 
-  val testing = Seq(Test.scalaTest, Test.junit)
-
-  val codegen = l ++= Seq(Compile.scalapbCompilerPlugin, Compile.scalapbRuntime) ++ testing
+  val codegen = l ++= Seq(Compile.scalapbCompilerPlugin, Compile.scalapbRuntime, Test.scalaTest)
 
   val runtime = l ++= Seq(
         Compile.scalapbRuntime,
@@ -91,14 +89,17 @@ object Dependencies {
         Compile.akkaHttp2Support,
         Compile.akkaDiscovery,
         Test.akkaDiscoveryConfig,
-        Test.akkaTestkit) ++ testing
+        Test.akkaTestkit,
+        Test.scalaTest,
+        Test.scalaTestPlusJunit)
 
   val mavenPlugin = l ++= Seq(
         Compile.slf4jApi,
         Compile.mavenPluginApi,
         Compile.mavenCore,
         Compile.protocJar,
-        Compile.plexusBuildApi) ++ testing
+        Compile.plexusBuildApi,
+        Test.scalaTest)
 
   val sbtPlugin = Seq(
     l += Compile.scalapbCompilerPlugin,
@@ -110,9 +111,12 @@ object Dependencies {
         Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
         Compile.akkaHttp,
         Compile.akkaSlf4j,
-        Runtime.logback) ++ testing.map(_.withConfigurations(Some("compile")))
+        Runtime.logback,
+        Test.scalaTest.withConfigurations(Some("compile")),
+        Test.scalaTestPlusJunit.withConfigurations(Some("compile")))
 
   val pluginTester = l ++= Seq(
         // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
-        Compile.grpcStub) ++ testing
+        Compile.grpcStub,
+        Test.scalaTest)
 }
