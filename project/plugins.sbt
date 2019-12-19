@@ -1,6 +1,16 @@
+
+
+enablePlugins(BuildInfoPlugin)
+
+val sbtProtocV = "0.99.25"
+
+buildInfoKeys := Seq[BuildInfoKey](
+  "sbtProtocVersion"      -> sbtProtocV
+)
+
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.4.0")
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.19")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
 addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.0.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.0")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10")

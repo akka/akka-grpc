@@ -2,6 +2,7 @@ package akka.grpc
 
 import sbt._
 import sbt.Keys._
+import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
@@ -59,7 +60,7 @@ object Dependencies {
   }
 
   object Plugins {
-    val sbtProtoc = "com.thesamet" % "sbt-protoc" % "0.99.26"
+    val sbtProtoc = "com.thesamet" % "sbt-protoc" % BuildInfo.sbtProtocVersion
   }
 
   private val l = libraryDependencies
