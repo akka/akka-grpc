@@ -29,7 +29,7 @@ install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
 
 jobs:
   include:
-    - script: sbt test headerCheck test:headerCheck grpcVersionSyncCheck scalafmtCheckAll scalafmtSbtCheck
+    - script: sbt +test headerCheck test:headerCheck grpcVersionSyncCheck scalafmtCheckAll scalafmtSbtCheck
     - script: sbt scripted
       name: Test scripted
     - script: sbt publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
