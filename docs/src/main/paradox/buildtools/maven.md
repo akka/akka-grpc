@@ -87,8 +87,13 @@ which is a relative path to the project basedir. The below configuration overrid
 
 ## Loading proto files from artifacts
 
-TODO this is not supported yet See [#152](https://github.com/akka/akka-grpc/issues/152)
+In gRPC it is common to make the version of the protocol you are supporting
+explicit by duplicating the proto definitions in your project.
 
+When using @ref[sbt](sbt.md) as a build system, we also support loading your
+proto definitions from a dependency classpath. This is not yet supported
+for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
+it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152)
 
 ## Starting your Akka gRPC server from Maven
 
@@ -145,5 +150,4 @@ The server can then be started from the command line with:
 ```
 mvn compile dependency:properties exec:exec
 ```
-
 

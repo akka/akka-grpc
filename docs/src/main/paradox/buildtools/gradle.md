@@ -99,13 +99,22 @@ Scala
 
 ## Proto source directory
 
-By default the plugin looks for `.proto`-files under `src/main/protobuf`.
+The plugin looks for `.proto` files under `src/main/protobuf`.
 
-TODO Changing this is currenlty not supported, see [#288](https://github.com/akka/akka-grpc/issues/288)
+Loading proto files from other directories is currently not supported.
+If you are interested in this feature you can find more background in issue
+[#288](https://github.com/akka/akka-grpc/issues/288)
 
 ## Loading proto files from artifacts
 
-TODO this is not supported yet, see [#152](https://github.com/akka/akka-grpc/issues/152)
+In gRPC it is common to make the version of the protocol you are supporting
+explicit by duplicating the proto definitions in your project.
+
+When using @ref[sbt](sbt.md) as a build system, we also support loading your
+proto definitions from a dependency classpath. This is not yet supported
+for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
+it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152)
+
 
 ## Starting your Akka gRPC server from Gradle
 
