@@ -13,7 +13,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <grpc.version>1.25.0</grpc.version> <!-- checked synced by GrpcVersionSyncCheckPlugin -->
+    <grpc.version>1.26.0</grpc.version> <!-- checked synced by GrpcVersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
   </properties>
   

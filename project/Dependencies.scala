@@ -11,7 +11,7 @@ object Dependencies {
     val akka = "2.5.27"
     val akkaHttp = "10.1.11"
 
-    val grpc = "1.25.0" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.26.0" // checked synced by GrpcVersionSyncCheckPlugin
 
     val scalaTest = "3.0.8"
 
