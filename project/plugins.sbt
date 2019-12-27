@@ -11,7 +11,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.4.0")
 addSbtPlugin("com.lightbend.sbt" % "sbt-publish-rsync" % "0.1")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.18")
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.5")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.6")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.6.1")
 
 // For RawText
