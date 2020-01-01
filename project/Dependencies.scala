@@ -49,7 +49,7 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
-    val junit = "junit" % "junit" % "4.12" % "test" // Common Public License 1.0
+    val junit = "junit" % "junit" % "4.13" % "test" // Common Public License 1.0
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }
