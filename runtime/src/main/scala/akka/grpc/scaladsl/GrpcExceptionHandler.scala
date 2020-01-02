@@ -6,13 +6,14 @@ package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
-import akka.grpc.internal.GrpcResponseHelpers
+import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
 
 import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
+
   def default(mapper: PartialFunction[Throwable, Status])(
       implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =
     mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
@@ -24,8 +25,9 @@ object GrpcExceptionHandler {
     case grpcException: GrpcServiceException => grpcException.status
     case _: NotImplementedError              => Status.UNIMPLEMENTED
     case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
+    case _: MissingParameterException        => Status.INVALID_ARGUMENT
     case other =>
-      system.log.error(other, other.getMessage)
+      system.log.error(other, s"Unhandled error: [${other.getMessage}].")
       Status.INTERNAL
   }
 
