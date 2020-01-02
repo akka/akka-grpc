@@ -9,11 +9,12 @@ import java.util.concurrent.TimeUnit
 import akka.Done
 import akka.grpc.internal.ChannelUtilsSpec.FakeChannel
 import io.grpc._
-import org.scalatest.{ Matchers, WordSpec }
 import ConnectivityState._
 import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.Promise
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 object ChannelUtilsSpec {
   class FakeChannel(stateResponses: Stream[ConnectivityState]) extends ManagedChannel {
@@ -50,7 +51,7 @@ object ChannelUtilsSpec {
   }
 }
 
-class ChannelUtilsSpec extends WordSpec with Matchers with ScalaFutures {
+class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
   "Channel monitor" should {
     "should fail if enter into failure configured number of times" in {
       val promise = Promise[Done]

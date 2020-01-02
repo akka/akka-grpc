@@ -16,8 +16,10 @@ import scala.concurrent.{ ExecutionException, Future }
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class GrpcExceptionHandlerSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem("Test")
   implicit val materializer = ActorMaterializer()
 

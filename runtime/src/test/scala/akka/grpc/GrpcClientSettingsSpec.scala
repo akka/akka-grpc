@@ -17,8 +17,10 @@ import akka.discovery.config.ConfigServiceDiscovery
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class GrpcClientSettingsSpec extends WordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
+class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   val clientWithServiceDiscovery = ConfigFactory.parseString("""
         //#config-service-discovery
         akka.grpc.client {
