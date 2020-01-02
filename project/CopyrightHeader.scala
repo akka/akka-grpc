@@ -25,7 +25,9 @@ object CopyrightHeader extends AutoPlugin {
           unmanagedResourceDirectories in headerCreate += baseDirectory.value / "src" / "main" / "twirl"))
     })
 
-  val CurrentYear = java.time.Year.now.getValue.toString
+  // Not determined automatically so that it can be updated in a PR instead of
+  // branches randomly starting to fail in the new year
+  val CurrentYear = "2020"
   val CopyrightPattern = "Copyright \\([Cc]\\) (\\d{4}(-\\d{4})?) (Lightbend|Typesafe) Inc. <.*>".r
   val CopyrightHeaderPattern = s"(?s).*${CopyrightPattern}.*".r
 
