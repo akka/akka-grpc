@@ -54,14 +54,14 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
       allHeaders(response) should contain(RawHeader("grpc-status", Status.Code.UNIMPLEMENTED.value().toString))
     }
 
-    "respond with an 'internal' gRPC error status when calling an method without a request body" in {
+    "respond with an 'invalid argument' gRPC error status when calling an method without a request body" in {
       val request = HttpRequest(
         method = HttpMethods.POST,
         uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/SayHello")
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
-      allHeaders(response) should contain(RawHeader("grpc-status", Status.Code.INTERNAL.value().toString))
+      allHeaders(response) should contain(RawHeader("grpc-status", Status.Code.INVALID_ARGUMENT.value().toString))
     }
 
     def allHeaders(response: HttpResponse) =
