@@ -108,7 +108,9 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     // setting 'skip in publish' would be more elegant, but we need
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test
-    whitesourceIgnore := true)
+    whitesourceIgnore := true,
+    crossScalaVersions := Seq(scala212)
+  )
   .settings(inConfig(Test)(Seq(
     mainClass in reStart := (mainClass in run in Test).value, {
       import spray.revolver.Actions._
