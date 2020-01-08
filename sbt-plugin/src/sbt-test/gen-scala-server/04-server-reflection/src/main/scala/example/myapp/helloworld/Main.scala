@@ -1,7 +1,5 @@
 package example.myapp.helloworld
 
-import _root_.grpc.reflection.v1alpha.reflection._
-
 import com.typesafe.config._
 
 import scala.concurrent._
@@ -10,12 +8,12 @@ import akka.actor._
 import akka.stream._
 
 import akka.grpc.scaladsl.ServiceHandler
+import akka.grpc.scaladsl.ServerReflection
 
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 
 import example.myapp.helloworld.grpc._
-import akka.grpc.internal._
 
 object Main extends App {
     val conf = ConfigFactory
@@ -30,11 +28,10 @@ object Main extends App {
     val greeter: PartialFunction[HttpRequest, Future[HttpResponse]] =
       GreeterServiceHandler.partial(new GreeterServiceImpl())
     val reflection: PartialFunction[HttpRequest, Future[HttpResponse]] =
-      ServerReflectionHandler.partial(ServerReflectionImpl(Seq(HelloworldProto.javaDescriptor), List(GreeterService.name)))
+      ServerReflection.partial(List(GreeterService))
 
     val service: HttpRequest => Future[HttpResponse] =
       ServiceHandler.concatOrNotFound(greeter, reflection)
-
 
     // Bind service handler servers to localhost:8080/8081
     val binding = Http().bindAndHandleAsync(

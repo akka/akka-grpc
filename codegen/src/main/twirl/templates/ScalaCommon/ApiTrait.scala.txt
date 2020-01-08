@@ -17,8 +17,11 @@ trait @{service.name} {
   }
 }
 
-object @{service.name} {
+object @{service.name} extends akka.grpc.ServiceObject {
   val name = "@service.grpcName"
+
+  val descriptor: com.google.protobuf.Descriptors.FileDescriptor =
+    @service.descriptor;
 
   object Serializers {
     import akka.grpc.scaladsl.ScalapbProtobufSerializer

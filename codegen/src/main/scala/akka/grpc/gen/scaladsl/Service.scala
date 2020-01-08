@@ -11,6 +11,7 @@ import com.google.protobuf.Descriptors._
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 case class Service(
+    descriptor: String,
     packageName: String,
     name: String,
     grpcName: String,
@@ -35,6 +36,7 @@ object Service {
     val serviceClassName = serviceDescriptor.getName
 
     Service(
+      fileDesc.fileDescriptorObjectFullName + ".javaDescriptor",
       fileDesc.scalaPackageName,
       serviceClassName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
