@@ -70,3 +70,4 @@ cache:
     - $HOME/.jabba/jdk
     - $HOME/.sbt
     - $HOME/.gradle
+    - $HOME/.cache/coursier
