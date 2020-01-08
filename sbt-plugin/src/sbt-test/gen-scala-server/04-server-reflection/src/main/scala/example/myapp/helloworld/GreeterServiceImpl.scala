@@ -8,7 +8,7 @@ import akka.stream.scaladsl.Source
 import example.myapp.helloworld.grpc._
 
 class GreeterServiceImpl extends GreeterService {
-  override def sayHello(in: HelloRequest): Future[HelloReply] = ???
+  override def sayHello(in: HelloRequest): Future[HelloReply] = Future.successful(HelloReply(s"Hey ${in.name}"))
 
   override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = ???
 
