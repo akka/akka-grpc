@@ -3,15 +3,22 @@ package example.myapp.helloworld;
 import java.util.concurrent.CompletionStage;
 
 import akka.actor.ActorSystem;
-import akka.grpc.javadsl.ServiceHandler;
-import akka.grpc.javadsl.ServerReflection;
-import akka.http.javadsl.*;
+
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+//#server-reflection
+import java.util.Arrays;
+
+import akka.grpc.javadsl.ServiceHandler;
+import akka.grpc.javadsl.ServerReflection;
+import akka.http.javadsl.*;
+
 import example.myapp.helloworld.grpc.*;
+
+//#server-reflection
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -29,9 +36,11 @@ public class Main {
     public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
         Materializer mat = ActorMaterializer.create(sys);
 
+        //#server-reflection
         // Instantiate implementation
         GreeterService impl = new GreeterServiceImpl();
 
+        // Bind service handler servers to localhost:8080
         return Http.get(sys).bindAndHandleAsync(
             ServiceHandler.concatOrNotFound(
                 GreeterServiceHandlerFactory.create(impl, mat, sys),
@@ -39,6 +48,7 @@ public class Main {
             ),
             ConnectHttp.toHost("127.0.0.1", 8080),
             mat);
+        //#server-reflection
     }
 
 }

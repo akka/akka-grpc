@@ -141,6 +141,9 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     name := "Akka gRPC",
     publish / skip := true,
     whitesourceIgnore := true,
+    // We don't yet publish java/scaladoc, so this is not yet relevant
+    // https://github.com/akka/akka-grpc/issues/784
+    // apidocRootPackage := "akka.grpc",
     previewPath := (Paradox / siteSubdirName).value,
     Paradox / siteSubdirName := s"docs/akka-grpc/${if (isSnapshot.value) "snapshot" else version.value}",
     // Make sure code generation is ran before paradox:

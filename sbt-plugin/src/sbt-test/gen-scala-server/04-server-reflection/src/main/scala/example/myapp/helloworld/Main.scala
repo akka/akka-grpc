@@ -7,13 +7,17 @@ import scala.concurrent._
 import akka.actor._
 import akka.stream._
 
-import akka.grpc.scaladsl.ServiceHandler
-import akka.grpc.scaladsl.ServerReflection
-
+//#server-reflection
 import akka.http.scaladsl._
 import akka.http.scaladsl.model._
 
+import akka.grpc.scaladsl.ServiceHandler
+import akka.grpc.scaladsl.ServerReflection
+
 import example.myapp.helloworld.grpc._
+
+//#server-reflection
+
 
 object Main extends App {
     val conf = ConfigFactory
@@ -24,21 +28,20 @@ object Main extends App {
     implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
+    //#server-reflection
     // Create service handlers
     val greeter: PartialFunction[HttpRequest, Future[HttpResponse]] =
       GreeterServiceHandler.partial(new GreeterServiceImpl())
     val reflection: PartialFunction[HttpRequest, Future[HttpResponse]] =
       ServerReflection.partial(List(GreeterService))
 
-    val service: HttpRequest => Future[HttpResponse] =
-      ServiceHandler.concatOrNotFound(greeter, reflection)
-
-    // Bind service handler servers to localhost:8080/8081
+    // Bind service handler servers to localhost:8080
     val binding = Http().bindAndHandleAsync(
-      service,
+      ServiceHandler.concatOrNotFound(greeter, reflection),
       interface = "127.0.0.1",
       port = 8080,
       connectionContext = HttpConnectionContext())
+    //#server-reflection
 
     // report successful binding
     binding.foreach { binding =>
