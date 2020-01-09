@@ -21,7 +21,7 @@ commands.
 This is achieved by providing a gRPC service that provides endpoints that
 can be used to query this information
 
-## Providing gRPC Server Reflection
+## Providing
 
 When providing gRPC Server Reflection, you will be serving multiple services
 (at least your own service and the reflection service) as described
@@ -33,3 +33,21 @@ Scala
 
 Java
 :  @@snip [Main.java](/sbt-plugin/src/sbt-test/gen-java/02-server-reflection/src/main/java/example/myapp/helloworld/Main.java) { #server-reflection }
+
+## Consuming
+
+The Server Reflection endpoint exposed above can be used for example to consume
+the service with [grpc_cli](https://github.com/grpc/grpc/blob/master/doc/command_line_tool.md):
+
+```
+$ ./bins/opt/grpc_cli call localhost:8080 helloworld.GreeterService.SayHello "name:\"foo\""
+connecting to localhost:8080
+Received initial metadata from server:
+date : Wed, 08 Jan 2020 16:57:56 GMT
+server : akka-http/10.1.10
+message: "Hello, foo"
+
+Received trailing metadata from server:
+date : Wed, 08 Jan 2020 16:57:56 GMT
+Rpc succeeded with OK status
+```
