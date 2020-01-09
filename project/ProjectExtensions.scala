@@ -21,8 +21,5 @@ object ProjectExtensions {
             % "test")
         .dependsOn(ProjectRef(file("."), "akka-grpc-runtime"))
         .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
-        // needed to be able to override the PB.generate task reliably
-        .disablePlugins(ProtocPlugin)
-        .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
   }
 }
