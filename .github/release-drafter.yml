@@ -14,6 +14,8 @@ categories:
     label: 'maven'
   - title: 'sbt'
     label: 'sbt'
+  - title: 'Updates'
+    label: 'update'
 
 change-template: '- $TITLE [#$NUMBER](https://github.com/akka/akka-grpc/issues/$NUMBER) by [@$AUTHOR](https://github.com/$AUTHOR)'
 template: |
