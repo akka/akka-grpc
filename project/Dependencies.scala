@@ -102,8 +102,7 @@ object Dependencies {
         Runtime.logback,
         Test.scalaTest.withConfigurations(Some("compile")),
         Test.scalaTestPlusJunit.withConfigurations(Some("compile")),
-        Test.akkaTestkit
-  )
+        Test.akkaTestkit)
 
   val pluginTester = l ++= Seq(
         // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
