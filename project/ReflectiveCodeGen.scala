@@ -20,6 +20,9 @@ object ReflectiveCodeGen extends AutoPlugin {
   val extraGenerators = SettingKey[Seq[String]]("reflectiveGrpcExtraGenerators")
   val codeGeneratorSettings = settingKey[Seq[String]]("Code generator settings")
 
+  // needed to be able to override the PB.generate task reliably
+  override def requires = ProtocPlugin
+
   override def projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(
       Seq(
