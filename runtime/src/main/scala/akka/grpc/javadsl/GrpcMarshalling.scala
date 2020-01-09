@@ -17,7 +17,7 @@ import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.stream.scaladsl.{ Source => SSource }
 import akka.grpc._
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
+import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
 import akka.grpc.scaladsl.{ GrpcExceptionHandler => sGrpcExceptionHandler }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 
@@ -27,7 +27,11 @@ object GrpcMarshalling {
     req.entity.getDataBytes
       .via(Grpc.grpcFramingDecoder(messageEncoding))
       .map(japiFunction(u.deserialize))
-      .runWith(Sink.head[T], mat)
+      .runWith(Sink.headOption[T], mat)
+      .thenCompose { opt =>
+        if (opt.isPresent) CompletableFuture.completedFuture(opt.get)
+        else failure(new MissingParameterException())
+      }
   }
 
   def unmarshalStream[T](
@@ -72,4 +76,10 @@ object GrpcMarshalling {
   private def trailer(status: Status): LastChunk =
     LastChunk(trailer = List(RawHeader("grpc-status", status.getCode.value.toString)) ++ Option(status.getDescription)
         .map(RawHeader("grpc-message", _)))
+
+  private def failure[R](error: Throwable): CompletableFuture[R] = {
+    val future: java.util.concurrent.CompletableFuture[R] = new CompletableFuture();
+    future.completeExceptionally(error);
+    future
+  }
 }

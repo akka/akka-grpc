@@ -7,7 +7,7 @@ package akka.grpc.scaladsl
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc._
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers }
+import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
@@ -19,7 +19,17 @@ import scala.concurrent.Future
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     val messageEncoding = `Message-Encoding`.findIn(req.headers)
-    req.entity.dataBytes.via(Grpc.grpcFramingDecoder(messageEncoding)).map(u.deserialize).runWith(Sink.head)(mat)
+    implicit val ec = mat.executionContext
+    req.entity.dataBytes
+      .via(Grpc.grpcFramingDecoder(messageEncoding))
+      .map(u.deserialize)
+      .runWith(Sink.headOption)(mat)
+      .flatMap {
+        _ match {
+          case Some(element) => Future.successful(element)
+          case None          => Future.failed(new MissingParameterException())
+        }
+      }
   }
 
   def unmarshalStream[T](
