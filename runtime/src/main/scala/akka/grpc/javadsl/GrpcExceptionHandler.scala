@@ -6,13 +6,15 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
-import akka.http.javadsl.model.HttpResponse
-import akka.japi.{ Function => jFunction }
 import io.grpc.Status
 
 import scala.concurrent.ExecutionException
+
+import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
+import akka.grpc.internal.MissingParameterException
+import akka.http.javadsl.model.HttpResponse
+import akka.japi.{ Function => jFunction }
 
 object GrpcExceptionHandler {
   def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Status]] =
@@ -30,10 +32,11 @@ object GrpcExceptionHandler {
         if (e.getCause == null) Status.INTERNAL
         else default(system)(e.getCause)
       case grpcException: GrpcServiceException => grpcException.status
+      case _: MissingParameterException        => Status.INVALID_ARGUMENT
       case _: NotImplementedError              => Status.UNIMPLEMENTED
       case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
       case other =>
-        system.log.error(other, other.getMessage)
+        system.log.error(other, "Unhandled error: [" + other.getMessage + "]")
         Status.INTERNAL
     }
   }
