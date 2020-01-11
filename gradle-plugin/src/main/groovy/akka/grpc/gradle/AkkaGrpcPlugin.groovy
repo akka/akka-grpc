@@ -96,7 +96,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
                                 option "server_power_apis=${extension.serverPowerApis}"
                                 option "use_play_actions=${extension.usePlayActions}"
                                 option "extra_generators=${extension.extraGenerators.join(';')}"
-                                option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
+                                option "logfile=${logFile.toAbsolutePath().toString()}"
                                 if (extension.generatePlay) {
                                     option "generate_play=true"
                                 }
