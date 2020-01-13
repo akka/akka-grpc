@@ -59,7 +59,9 @@ object ReflectiveCodeGen extends AutoPlugin {
             PB.targets.value.asInstanceOf[ListBuffer[Target]],
             scalaBinaryVersion.value),
         PB.recompile ~= (_ => true),
-        PB.protoSources in Compile := Seq(PB.externalIncludePath.value, sourceDirectory.value / "proto"))) ++ Seq(
+        PB.protoSources in Compile := PB.protoSources.value ++ Seq(
+            PB.externalIncludePath.value,
+            sourceDirectory.value / "proto"))) ++ Seq(
       codeGeneratorSettings in Global := Nil,
       generatedLanguages in Global := Seq("Scala"),
       generatedSources in Global := Seq("Client", "Server"),
