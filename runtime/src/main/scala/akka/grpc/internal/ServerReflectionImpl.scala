@@ -16,7 +16,7 @@ import _root_.grpc.reflection.v1alpha.reflection._
  * INTERNAL API
  */
 @InternalApi
-class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor], services: List[String])
+final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor], services: List[String])
     extends ServerReflection {
   import ServerReflectionImpl._
 
@@ -49,6 +49,11 @@ class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor]
     })
   }
 }
+
+/**
+ * INTERNAL API
+ */
+@InternalApi
 object ServerReflectionImpl {
   import scala.collection.JavaConverters._
 

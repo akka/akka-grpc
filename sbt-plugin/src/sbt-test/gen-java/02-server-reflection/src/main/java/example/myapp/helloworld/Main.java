@@ -44,7 +44,7 @@ public class Main {
         return Http.get(sys).bindAndHandleAsync(
             ServiceHandler.concatOrNotFound(
                 GreeterServiceHandlerFactory.create(impl, mat, sys),
-                new ServerReflection(java.util.Arrays.asList(GreeterService.service)).create(mat, sys)
+                ServerReflection.create(Arrays.asList(GreeterService.description), mat, sys)
             ),
             ConnectHttp.toHost("127.0.0.1", 8080),
             mat);

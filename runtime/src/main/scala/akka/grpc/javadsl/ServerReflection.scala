@@ -17,9 +17,12 @@ import akka.stream.Materializer
 import grpc.reflection.v1alpha.reflection.ServerReflectionHandler
 
 @ApiMayChange
-class ServerReflection(objects: Collection[ServiceDescription]) {
+object ServerReflection {
   @ApiMayChange
-  def create(mat: Materializer, sys: ActorSystem): akka.japi.Function[HttpRequest, CompletionStage[HttpResponse]] = {
+  def create(
+      objects: Collection[ServiceDescription],
+      mat: Materializer,
+      sys: ActorSystem): akka.japi.Function[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.collection.JavaConverters._
     val delegate = ServerReflectionHandler.apply(
       ServerReflectionImpl(objects.asScala.map(_.descriptor).toSeq, objects.asScala.map(_.name).toList))(mat, sys)
