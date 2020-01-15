@@ -1,0 +1,7 @@
+> compile
+
+$ exists target/scala-2.12/src_managed
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloRequest.java
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloReply.java
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java
+$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterServiceClient.java

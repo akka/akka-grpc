@@ -7,5 +7,6 @@ Get our Quickstart project (available for [Scala](https://developer.lightbend.co
 @@@ index
 
  * [Walkthrough](walkthrough.md)
+ * [Server Reflection](reflection.md)
   
 @@@
