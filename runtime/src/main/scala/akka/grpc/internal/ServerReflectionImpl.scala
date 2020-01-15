@@ -7,10 +7,15 @@ package akka.grpc.internal
 import com.google.protobuf.Descriptors.FileDescriptor
 
 import akka.NotUsed
+import akka.annotation.InternalApi
 import akka.stream.scaladsl._
 
 import _root_.grpc.reflection.v1alpha.reflection._
 
+/**
+ * INTERNAL API
+ */
+@InternalApi
 class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor], services: List[String])
     extends ServerReflection {
   import ServerReflectionImpl._

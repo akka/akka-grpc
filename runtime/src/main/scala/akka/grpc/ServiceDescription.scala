@@ -9,7 +9,7 @@ import akka.annotation.ApiMayChange
 import com.google.protobuf.Descriptors.FileDescriptor;
 
 @ApiMayChange
-trait ServiceObject {
+trait ServiceDescription {
   def name: String
   def descriptor: FileDescriptor
 }

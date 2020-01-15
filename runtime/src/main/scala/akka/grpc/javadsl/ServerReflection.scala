@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage
 
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
-import akka.grpc.ServiceObject
+import akka.grpc.ServiceDescription
 import akka.grpc.internal.ServerReflectionImpl
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
@@ -17,7 +17,7 @@ import akka.stream.Materializer
 import grpc.reflection.v1alpha.reflection.ServerReflectionHandler
 
 @ApiMayChange
-class ServerReflection(objects: Collection[ServiceObject]) {
+class ServerReflection(objects: Collection[ServiceDescription]) {
   @ApiMayChange
   def create(mat: Materializer, sys: ActorSystem): akka.japi.Function[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.collection.JavaConverters._

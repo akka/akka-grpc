@@ -17,7 +17,7 @@ trait @{service.name} {
   }
 }
 
-object @{service.name} extends akka.grpc.ServiceObject {
+object @{service.name} extends akka.grpc.ServiceDescription {
   val name = "@service.grpcName"
 
   val descriptor: com.google.protobuf.Descriptors.FileDescriptor =
