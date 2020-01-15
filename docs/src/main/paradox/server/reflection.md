@@ -2,9 +2,13 @@
 
 @@@note
 
-This feature is **experimental**. The API may still change in further versions
-of Akka gRPC, and future versions of this feature may not work with services
-generated with older versions of Akka gRPC.
+This feature is **experimental**.
+
+It implements version v1alpha of the [upstream standard](https://github.com/grpc/grpc/blob/master/src/proto/grpc/reflection/v1alpha/reflection.proto),
+so we might expect subsequent versions of the service to emerge. Also,
+the Java/Scala API's to enable this feature may still change in further
+versions of Akka gRPC, and future versions of this feature may not work with
+services generated with older versions of Akka gRPC.
 
 There may be missing features and bugs in the current implementation. If you
 encounter any, you are welcome to share a reproducer in our
