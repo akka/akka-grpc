@@ -41,7 +41,10 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(
     // We don't actually promise binary compatibility before 1.0.0, but want to
     // introduce the tooling
-    mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"))
+    mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"),
+    ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
+  .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
@@ -138,6 +141,9 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     name := "Akka gRPC",
     publish / skip := true,
     whitesourceIgnore := true,
+    // We don't yet publish java/scaladoc, so this is not yet relevant
+    // https://github.com/akka/akka-grpc/issues/784
+    // apidocRootPackage := "akka.grpc",
     previewPath := (Paradox / siteSubdirName).value,
     Paradox / siteSubdirName := s"docs/akka-grpc/${if (isSnapshot.value) "snapshot" else version.value}",
     // Make sure code generation is ran before paradox:

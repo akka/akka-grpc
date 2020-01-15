@@ -11,6 +11,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 final case class Service(
+    descriptor: String,
     packageName: String,
     name: String,
     grpcName: String,
@@ -36,8 +37,12 @@ object Service {
       import ops._
       serviceDescriptor.comment
     }
-
+    val outerClassName =
+      if (fileDesc.getOptions.getJavaOuterClassname.isEmpty)
+        fileDesc.getOptions.getJavaPackage + "." + toCamelCase(basename(fileDesc.getName))
+      else fileDesc.getOptions.getJavaOuterClassname
     Service(
+      outerClassName + ".getDescriptor()",
       fileDesc.getOptions.getJavaPackage,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
@@ -45,5 +50,13 @@ object Service {
       serverPowerApi,
       usePlayActions,
       comment)
+  }
+
+  private[javadsl] def basename(name: String): String =
+    name.replaceAll("^.*/", "").replaceAll("\\.[^\\.]*$", "")
+
+  private[javadsl] def toCamelCase(name: String): String = {
+    if (name.isEmpty) ""
+    else name.head.toUpper + "_[a-z]".r.replaceAllIn(name.tail, s => s.group(0)(1).toUpper.toString)
   }
 }
