@@ -26,7 +26,6 @@ import akka.grpc.benchmarks.proto.Messages;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.Http;
-import akka.http.javadsl.UseHttp2;
 import akka.stream.ActorMaterializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -89,7 +88,7 @@ public class AsyncServer {
     } else {
       Http.get(system).bindAndHandleAsync(
         BenchmarkServiceHandlerFactory.create(benchmarkService, mat, system),
-        ConnectHttp.toHost(address.getHostName(), address.getPort(), UseHttp2.always()),
+        ConnectHttp.toHost(address.getHostName(), address.getPort()),
         mat
         ).thenAccept(binding -> {
         System.out.println("gRPC server bound to: http://" + address);
