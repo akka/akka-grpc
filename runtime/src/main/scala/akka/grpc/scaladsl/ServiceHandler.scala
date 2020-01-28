@@ -14,8 +14,10 @@ object ServiceHandler {
   private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
 
   /**
-   * Creates a [[HttpRequest]] to [[HttpResponse]] handler that can be used in for example `Http().bindAndHandleAsync`
-   * for the generated partial function handlers and ends with `StatusCodes.NotFound` if the request is not matching.
+   * Creates a [HttpRequest] to [HttpResponse] handler that can be used in
+   * for example `Http().bindAndHandleAsync` for the generated partial function
+   * handlers and ends with `StatusCodes.NotFound` if the request is not
+   * matching.
    */
   def concatOrNotFound(
       handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*): HttpRequest => Future[HttpResponse] =

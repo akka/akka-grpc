@@ -4,10 +4,10 @@
 
 package akka.grpc.gen.javadsl
 
-import org.scalatest.WordSpec
-import org.scalatest.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class ServiceSpec extends WordSpec with Matchers {
+class ServiceSpec extends AnyWordSpec with Matchers {
   "The Service model" should {
     "correctly camelcase strings" in {
       Service.toCamelCase("foo_bar") should be("FooBar")
