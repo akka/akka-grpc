@@ -50,7 +50,7 @@ pluginBundle {
 
 jar {
     manifest {
-        attributes 'Implementation-Version': version
+        attributes 'Implementation-Version': project.version
     }
 }
 
@@ -58,7 +58,7 @@ dependencies {
     compile localGroovy()
     compile gradleApi()
 
-    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
+    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.11'
 }
 
 repositories {

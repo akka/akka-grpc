@@ -1,6 +1,9 @@
 package akka.grpc.gradle
 
+
+import com.google.protobuf.gradle.Utils
 import org.apache.commons.lang.SystemUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencyResolutionListener
@@ -20,6 +23,11 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
 
     @Override
     void apply(Project project) {
+        if (Utils.compareGradleVersion(project, "5.6") < 0) {
+            throw new GradleException(
+                    "Gradle version is ${project.gradle.gradleVersion}. Minimum supported version is 5.6")
+        }
+
         this.project = project
         project.gradle.addListener(this)
 
