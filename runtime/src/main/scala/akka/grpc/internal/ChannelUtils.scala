@@ -52,32 +52,35 @@ object ChannelUtils {
       done: Promise[Done],
       channel: ManagedChannel,
       maxConnectionAttempts: Option[Int]): Unit = {
-    def monitor(previousState: ConnectivityState, connectionAttempts: Int): Unit =
-      if (maxConnectionAttempts.contains(connectionAttempts)) {
-        // shutdown is idempotent in ManagedChannelImpl
-        channel.shutdown()
-        done.tryFailure(new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]"))
-      } else {
-        val currentState = channel.getState(false)
-        if (currentState == ConnectivityState.SHUTDOWN) {
-          done.trySuccess(Done)
-        } else {
-          channel.notifyWhenStateChanged(
-            currentState,
-            new Runnable {
-              def run() =
-                if (currentState == ConnectivityState.TRANSIENT_FAILURE) {
-                  monitor(currentState, connectionAttempts + 1)
-                } else if (currentState == ConnectivityState.READY) {
-                  monitor(currentState, 0)
-                } else {
-                  // IDLE / CONNECTING / SHUTDOWN
-                  monitor(currentState, connectionAttempts)
-                }
-            })
-        }
-      }
+    def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
+      //TODO: remove before merge
+      println(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
+      val newAttemptOpt = currentState match {
+        case ConnectivityState.TRANSIENT_FAILURE =>
+          if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
+            // shutdown is idempotent in ManagedChannelImpl
+            channel.shutdown()
+            done.tryFailure(
+              new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]"))
+            None
+          } else Some(connectionAttempts + 1)
 
+        case ConnectivityState.READY =>
+          Some(0)
+
+        case ConnectivityState.SHUTDOWN =>
+          done.trySuccess(Done)
+          None
+
+        // IDLE / CONNECTING
+        case _ =>
+          Some(connectionAttempts)
+      }
+      newAttemptOpt.foreach { attempts =>
+        channel.notifyWhenStateChanged(currentState, () => monitor(channel.getState(false), attempts))
+      }
+    }
     monitor(channel.getState(false), 0)
   }
+
 }

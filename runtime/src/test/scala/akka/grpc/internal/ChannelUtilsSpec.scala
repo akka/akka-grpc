@@ -100,12 +100,12 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       promise.isCompleted shouldEqual false
       // CONNECTING => READY
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
-      // READY => FAILURE
-      fakeChannel.runCallBack()
       // going into ready should have reset counter
       promise.isCompleted shouldEqual false
 
+      // READY => FAILURE
+      fakeChannel.runCallBack()
+      promise.isCompleted shouldEqual false
       // FAILURE => CONNECTING
       fakeChannel.runCallBack()
       promise.isCompleted shouldEqual false
@@ -128,7 +128,9 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       promise.isCompleted shouldEqual false
       // CONNECTING => READY
       fakeChannel.runCallBack()
+      promise.isCompleted shouldEqual false
       // READY => SHUTDOWN as its checked after the call back
+      fakeChannel.runCallBack()
       promise.isCompleted shouldEqual true
       promise.future.futureValue shouldEqual Done
     }
