@@ -37,7 +37,9 @@ object Dependencies {
 
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
-    val grpcInteropTesting = ("io.grpc" % "grpc-interop-testing" % Versions.grpc).exclude("io.grpc", "grpc-alts")
+    val grpcInteropTesting = ("io.grpc" % "grpc-interop-testing" % Versions.grpc)
+      .exclude("io.grpc", "grpc-alts")
+      .exclude("io.grpc", "grpc-xds")
 
     val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.30"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
