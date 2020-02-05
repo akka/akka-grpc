@@ -34,4 +34,22 @@ Scala
 Java
 :  @@snip [GreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
 
+## Load balancing
 
+When multiple endpoints are discovered for a gRPC client, currently one is
+selected and used for all outgoing calls.
+
+This approach, while na&impl;ve, in fact works well in many cases: when there
+are multiple nodes available to handle requests, a server-side load balancer
+is better-positioned to make decisions than any single client, as it can
+take into account information from multiple clients, and sometimes even
+lifecycle information (e.g. not forward requests to nodes that are scheduled
+to shut down).
+
+When client-side load balancing is desirable, when you are using the default
+`static` or the `grpc-dns` discovery mechanism, you can set the
+`grpc-load-balancing` client configuration option to `round-robin` to enable
+the round-robin client-side load balancing strategy provided by grpc-java.
+
+Client-side load balancing for other discovery mechanisms is
+[not yet supported](https://github.com/akka/akka-grpc/issues/809).
