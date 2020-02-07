@@ -55,9 +55,9 @@ object GrpcClientSettings {
       // Use config named "*" by default
       val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
       require(
-        akkaGrpcClientConfig.hasPath('"' + clientName + '"'),
+        akkaGrpcClientConfig.hasPath(s""""$clientName""""),
         s"Config path `akka.grpc.client.$clientName` does not exist")
-      akkaGrpcClientConfig.getConfig('"' + clientName + '"').withFallback(defaultServiceConfig)
+      akkaGrpcClientConfig.getConfig(s""""$clientName"""").withFallback(defaultServiceConfig)
     }
 
     GrpcClientSettings.fromConfig(clientConfig)
