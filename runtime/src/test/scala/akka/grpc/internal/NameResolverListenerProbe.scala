@@ -12,7 +12,7 @@ class NameResolverListenerProbe extends NameResolver.Listener {
 
   override def onAddresses(servers: util.List[EquivalentAddressGroup], attributes: Attributes): Unit = {
     import scala.collection.JavaConverters._
-    promise.trySuccess(servers.asScala)
+    promise.trySuccess(servers.asScala.toSeq)
   }
 
   override def onError(error: Status): Unit =

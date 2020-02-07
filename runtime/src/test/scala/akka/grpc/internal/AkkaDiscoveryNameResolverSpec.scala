@@ -43,7 +43,7 @@ class AkkaDiscoveryNameResolverSpec
         case Seq(addressGroup) => addressGroup.getAddresses
         case _                 => fail("Expected a single address group")
       }
-      addresses.asScala match {
+      addresses.asScala.toSeq match {
         case Seq(address: InetSocketAddress) =>
           address.getPort should be(port)
           address.getAddress.getHostName should be(host)
