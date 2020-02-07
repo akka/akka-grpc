@@ -64,7 +64,8 @@ object Main extends App {
         else if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator)
         else throw new IllegalArgumentException("At least one of generateClient or generateServer must be enabled")
       }
-    val loadedExtraGenerators = extraGenerators.map(cls => Class.forName(cls).newInstance().asInstanceOf[CodeGenerator])
+    val loadedExtraGenerators =
+      extraGenerators.map(cls => Class.forName(cls).getDeclaredConstructor().newInstance().asInstanceOf[CodeGenerator])
 
     (codeGenerators ++ loadedExtraGenerators).foreach { g =>
       val gout = g.run(req, logger)
