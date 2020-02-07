@@ -3,12 +3,15 @@ organization := "com.lightbend.akka.grpc"
 // For the akka-http snapshot
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
-val grpcVersion = "1.26.0" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.27.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   // Excluding grpc-alts works around a complex resolution bug
   // Details are in https://github.com/akka/akka-grpc/pull/469
-  "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf" exclude("io.grpc", "grpc-alts"),
+  ("io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf")
+    .exclude("io.grpc", "grpc-alts")
+    .exclude("io.grpc", "grpc-xds")
+,
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
   "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
   )
