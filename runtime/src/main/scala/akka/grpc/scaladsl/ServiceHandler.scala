@@ -14,7 +14,7 @@ object ServiceHandler {
   private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
 
   /**
-   * Creates a [HttpRequest] to [HttpResponse] handler that can be used in
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in
    * for example `Http().bindAndHandleAsync` for the generated partial function
    * handlers and ends with `StatusCodes.NotFound` if the request is not
    * matching.

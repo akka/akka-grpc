@@ -8,7 +8,7 @@ import akka.grpc.gen.Logger
 import protocbridge.Artifact
 
 /**
- * Adapts existing [[akka.grpc.gen.CodeGenerator]] into the protocbridge required type
+ * Adapts existing `akka.grpc.gen.CodeGenerator` into the protocbridge required type
  */
 class ProtocBridgeCodeGenerator(
     impl: akka.grpc.gen.CodeGenerator,
