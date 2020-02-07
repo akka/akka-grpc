@@ -87,7 +87,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
 
     val expected = StreamingInputCallResponse(aggregatedPayloadSize = 74922)
 
-    val requestSrc = Source.fromIterator(() => requests.toIterator)
+    val requestSrc = Source.fromIterator(() => requests.iterator)
     val actual = Await.result(client.streamingInputCall(requestSrc), awaitTimeout)
     assertEquals(expected, actual)
   }
@@ -151,7 +151,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
       StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](2653))))),
       StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](58979))))))
 
-    val requestSrc = Source.fromIterator(() => requests.toIterator)
+    val requestSrc = Source.fromIterator(() => requests.iterator)
     val actual = Await.result(client.fullDuplexCall(requestSrc).runWith(Sink.seq), awaitTimeout)
 
     assertEquals(expectedResponses.size, actual.size)
