@@ -44,6 +44,8 @@ class GrpcExceptionHandlerSpec
           chunks.runWith(Sink.seq).futureValue match {
             case Seq(LastChunk("", List(`Status`("3")))) => // ok
           }
+        case other =>
+          fail(s"Unexpected [$other]")
       }
     }
   }

@@ -20,7 +20,7 @@ object ServiceHandler {
   private val notFound = CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND))
 
   /**
-   * Creates a [[HttpRequest]] to [[HttpResponse]] handler that can be used in for example
+   * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
    * `Http.get(system).bindAndHandleAsync` for the generated handlers and ends with `StatusCodes.NotFound`
    * if the request is not matching.
    */
