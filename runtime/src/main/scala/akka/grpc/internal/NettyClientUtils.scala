@@ -10,15 +10,16 @@ import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
 import akka.Done
 import akka.annotation.InternalApi
 import akka.discovery.Lookup
+import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
+import io.grpc.CallOptions
+import io.grpc.internal.DnsNameResolverProvider
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.grpc.netty.shaded.io.netty.handler.ssl._
-import io.grpc.{ CallOptions, ManagedChannel }
 import javax.net.ssl.SSLContext
+
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-
-import io.grpc.internal.DnsNameResolverProvider
 
 /**
  * Used to indicate that the service discovery returned no target.
@@ -38,7 +39,8 @@ object NettyClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def createChannel(settings: GrpcClientSettings)(implicit ec: ExecutionContext): Future[InternalChannel] =
+  def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
+      implicit ec: ExecutionContext): Future[InternalChannel] =
     settings.serviceDiscovery
       .lookup(Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol), settings.resolveTimeout)
       .flatMap { targets =>
@@ -68,7 +70,7 @@ object NettyClientUtils {
           val channel = builder.build()
 
           val promise = Promise[Done]()
-          ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts)
+          ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts, log)
 
           Future.successful(InternalChannel(channel, promise.future))
         } else {
