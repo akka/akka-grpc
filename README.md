@@ -55,6 +55,8 @@ project in Java and Scala respectively, with both sbt and Gradle configurations.
 
 This project does not yet have to obey the rule of staying binary compatible between releases that is common for Akka libraries. Breaking API changes may be introduced without notice as we refine and simplify based on your feedback.
 
+If used with JDK 8 you must add an [ALPN agent](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-).
+
 Akka gRPC is currently *[Incubating][]*. The Lightbend subscription does not yet cover support for this project.
 
 [Incubating]: https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-help/support-terminology.html#incubating
