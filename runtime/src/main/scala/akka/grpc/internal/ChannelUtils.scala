@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage
 
 import akka.Done
 import akka.annotation.InternalApi
+import akka.event.LoggingAdapter
 import io.grpc.{ ConnectivityState, ManagedChannel }
 
 import scala.compat.java8.FutureConverters._
@@ -51,10 +52,10 @@ object ChannelUtils {
   private[akka] def monitorChannel(
       done: Promise[Done],
       channel: ManagedChannel,
-      maxConnectionAttempts: Option[Int]): Unit = {
+      maxConnectionAttempts: Option[Int],
+      log: LoggingAdapter): Unit = {
     def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
-      //TODO: remove before merge
-      println(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
+      log.debug(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
       val newAttemptOpt = currentState match {
         case ConnectivityState.TRANSIENT_FAILURE =>
           if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
@@ -72,8 +73,7 @@ object ChannelUtils {
           done.trySuccess(Done)
           None
 
-        // IDLE / CONNECTING
-        case _ =>
+        case ConnectivityState.IDLE | ConnectivityState.CONNECTING =>
           Some(connectionAttempts)
       }
       newAttemptOpt.foreach { attempts =>

@@ -11,15 +11,14 @@ import akka.Done
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
-import akka.stream.{ ActorMaterializer, Materializer }
 import akka.pattern.Patterns
+import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.ManagedChannel
 
 import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.concurrent.duration._
-import scala.util.{ Failure, Success }
 import scala.compat.java8.FutureConverters._
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.Failure
 
 /**
  * INTERNAL API
@@ -33,7 +32,7 @@ final class ClientState(
     log: LoggingAdapter,
     channelFactory: GrpcClientSettings => Future[InternalChannel])(implicit mat: Materializer, ex: ExecutionContext) {
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
-    this(settings, log, s => NettyClientUtils.createChannel(s))
+    this(settings, log, s => NettyClientUtils.createChannel(s, log))
 
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)

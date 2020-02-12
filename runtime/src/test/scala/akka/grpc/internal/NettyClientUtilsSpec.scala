@@ -5,12 +5,10 @@
 package akka.grpc.internal
 
 import com.typesafe.config.ConfigFactory
-
 import akka.actor.ActorSystem
+import akka.event.Logging
 import akka.pattern.AskTimeoutException
-
 import akka.grpc.GrpcClientSettings
-
 import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.matchers.should.Matchers
@@ -31,7 +29,7 @@ class NettyClientUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures w
     "fail to create a channel when service discovery times out" in {
       val settings = GrpcClientSettings.usingServiceDiscovery("testService")
 
-      val channel = NettyClientUtils.createChannel(settings)
+      val channel = NettyClientUtils.createChannel(settings, Logging(system, this.getClass))
       channel.failed.futureValue shouldBe a[AskTimeoutException]
     }
   }

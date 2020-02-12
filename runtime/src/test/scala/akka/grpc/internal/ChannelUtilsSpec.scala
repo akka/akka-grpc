@@ -7,14 +7,15 @@ package akka.grpc.internal
 import java.util.concurrent.TimeUnit
 
 import akka.Done
+import akka.event.{ LoggingAdapter, NoLogging }
 import akka.grpc.internal.ChannelUtilsSpec.FakeChannel
+import io.grpc.ConnectivityState._
 import io.grpc._
-import ConnectivityState._
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.Promise
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.concurrent.Promise
 
 object ChannelUtilsSpec {
   class FakeChannel(stateResponses: Stream[ConnectivityState]) extends ManagedChannel {
@@ -53,12 +54,14 @@ object ChannelUtilsSpec {
 
 class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
   "Channel monitor" should {
+    val log: LoggingAdapter = NoLogging
+
     "should fail if enter into failure configured number of times" in {
       val promise = Promise[Done]
       val fakeChannel = new FakeChannel(
         Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
 
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2))
+      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promise.isCompleted shouldEqual false
@@ -88,7 +91,7 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
             TRANSIENT_FAILURE,
             CONNECTING,
             TRANSIENT_FAILURE))
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2))
+      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promise.isCompleted shouldEqual false
@@ -122,7 +125,7 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
     "should stop monitoring if SHUTDOWN" in {
       val promise = Promise[Done]
       val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, READY) ++ Stream.continually(SHUTDOWN))
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2))
+      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promise.isCompleted shouldEqual false
