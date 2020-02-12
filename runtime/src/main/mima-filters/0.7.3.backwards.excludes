@@ -1,0 +1,3 @@
+#PR #785
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.NettyClientUtils.createChannel")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ChannelUtils.monitorChannel")
