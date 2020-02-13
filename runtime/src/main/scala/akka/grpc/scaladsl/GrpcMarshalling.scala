@@ -7,38 +7,59 @@ package akka.grpc.scaladsl
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc._
+import akka.grpc.GrpcProtocol.{ GrpcProtocolMarshaller, GrpcProtocolUnmarshaller }
 import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
-import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
+import akka.util.ByteString
 import io.grpc.Status
 
 import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    val messageEncoding = `Message-Encoding`.findIn(req.headers)
-    implicit val ec = mat.executionContext
-    req.entity.dataBytes
-      .via(Grpc.grpcFramingDecoder(messageEncoding))
-      .map(u.deserialize)
-      .runWith(Sink.headOption)(mat)
-      .flatMap {
-        _ match {
-          case Some(element) => Future.successful(element)
-          case None          => Future.failed(new MissingParameterException())
-        }
+    GrpcProtocol
+      .negotiate(req)
+      .map {
+        case (maybeUnmarshaller, _) =>
+          maybeUnmarshaller.map(implicit unmarshaller => unmarshal(req.entity.dataBytes)).fold(Future.failed, identity)
       }
+      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
-    val messageEncoding = `Message-Encoding`.findIn(req.headers)
+    GrpcProtocol
+      .negotiate(req)
+      .map {
+        case (maybeUnmarshaller, _) =>
+          maybeUnmarshaller
+            .map(implicit unmarshaller => unmarshalStream(req.entity.dataBytes))
+            .fold(Future.failed, identity)
+      }
+      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+  }
+
+  def unmarshal[T](data: Source[ByteString, Any])(
+    implicit u: ProtobufSerializer[T],
+    mat: Materializer,
+    unmarshaller: GrpcProtocolUnmarshaller): Future[T] = {
+    import mat.executionContext
+    data.via(unmarshaller.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption).flatMap {
+      case Some(element) => Future.successful(element)
+      case None          => Future.failed(new MissingParameterException())
+    }
+  }
+
+  def unmarshalStream[T](data: Source[ByteString, Any])(
+      implicit u: ProtobufSerializer[T],
+      mat: Materializer,
+      unmarshaller: GrpcProtocolUnmarshaller): Future[Source[T, NotUsed]] = {
     Future.successful(
-      req.entity.dataBytes
+      data
         .mapMaterializedValue(_ => NotUsed)
-        .via(Grpc.grpcFramingDecoder(messageEncoding))
+        .via(unmarshaller.dataFrameDecoder)
         .map(u.deserialize)
         // In gRPC we signal failure by returning an error code, so we
         // don't want the cancellation bubbled out
@@ -51,8 +72,10 @@ object GrpcMarshalling {
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
-      system: ActorSystem): HttpResponse =
-    marshalStream(Source.single(e), eHandler)
+      system: ActorSystem): HttpResponse = {
+    implicit val grpc: GrpcProtocolMarshaller = Grpc.newMarshaller(codec)
+    marshalStream2(Source.single(e), eHandler)
+  }
 
   def marshalStream[T](
       e: Source[T, NotUsed],
@@ -60,6 +83,27 @@ object GrpcMarshalling {
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
+      system: ActorSystem): HttpResponse = {
+    implicit val grpc: GrpcProtocolMarshaller = Grpc.newMarshaller(codec)
+    marshalStream2(e, eHandler)
+  }
+
+  def marshal2[T](
+      e: T = Identity,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
+    marshalStream2(Source.single(e), eHandler)
+
+  def marshalStream2[T](
+      e: Source[T, NotUsed],
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      marshaller: GrpcProtocolMarshaller,
+      system: ActorSystem): HttpResponse = {
     GrpcResponseHelpers(e, eHandler)
+  }
 }

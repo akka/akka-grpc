@@ -7,16 +7,17 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.grpc.{ GrpcServiceException, ProtobufSerializer }
+import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolMarshaller, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 
 import scala.collection.immutable
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Some helpers for creating HTTP responses for use with gRPC
@@ -28,21 +29,21 @@ object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper _)
 
@@ -52,47 +53,47 @@ object GrpcResponseHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse = {
-    implicit val ec = mat.executionContext
-    GrpcResponseHelpers(
-      e,
-      Source.lazilyAsync(() => status.map(trailer(_))).mapMaterializedValue(_ => NotUsed),
-      eHandler)
+    implicit val ec: ExecutionContext = mat.executionContext
+    GrpcResponseHelpers(e, Source.lazilyAsync(() => status.map(trailer)).mapMaterializedValue(_ => NotUsed), eHandler)
   }
 
   def apply[T](
       e: Source[T, NotUsed],
-      trail: Source[HttpEntity.LastChunk, NotUsed],
+      trail: Source[TrailerFrame, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse = {
-    val outChunks = e
-      .map(m.serialize)
-      .via(Grpc.grpcFramingEncoder(codec))
-      .map(bytes => HttpEntity.Chunk(bytes))
-      .concat(trail)
-      .recover {
-        case t =>
-          val status = eHandler(system).orElse[Throwable, Status] {
-            case e: GrpcServiceException => e.status
-            case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
-          }(t)
-          trailer(status)
-      }
-
-    HttpResponse(
-      headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
-      entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
+    response(
+      e.map { msg =>
+          DataFrame(m.serialize(msg))
+        }
+        .concat(trail)
+        .via(marshaller.frameEncoder)
+        .recover {
+          case t =>
+            val status = eHandler(system).orElse[Throwable, Status] {
+              case e: GrpcServiceException => e.status
+              case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
+            }(t)
+            marshaller.encodeFrame(trailer(status))
+        })
   }
 
-  def status(status: Status): HttpResponse =
-    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
+  private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit marshaller: GrpcProtocolMarshaller) = {
+    HttpResponse(
+      headers = immutable.Seq(headers.`Message-Encoding`(marshaller.messageEncoding.name)),
+      entity = HttpEntity.Chunked(marshaller.contentType, entity))
+  }
 
-  def trailer(status: Status): LastChunk =
-    LastChunk(trailer = statusHeaders(status))
+  def status(status: Status)(implicit marshaller: GrpcProtocolMarshaller): HttpResponse =
+    response(Source.single(marshaller.encodeFrame(trailer(status))))
+
+  private def trailer(status: Status): TrailerFrame =
+    TrailerFrame(statusHeaders(status))
 
   def statusHeaders(status: Status): List[HttpHeader] =
     List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>

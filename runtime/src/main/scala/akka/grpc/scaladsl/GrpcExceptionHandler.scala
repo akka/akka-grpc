@@ -5,7 +5,8 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
+import akka.grpc.{ Grpc, GrpcServiceException, Identity }
+import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
@@ -15,8 +16,10 @@ import scala.concurrent.{ ExecutionException, Future }
 object GrpcExceptionHandler {
 
   def default(mapper: PartialFunction[Throwable, Status])(
-      implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =
-    mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
+      implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
+    implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
+    defaultHandler(mapper)
+  }
 
   def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Status] = {
     case e: ExecutionException =>
@@ -31,6 +34,19 @@ object GrpcExceptionHandler {
       Status.INTERNAL
   }
 
-  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =
-    default(defaultMapper(system))
+  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
+    implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
+    defaultHandler(defaultMapper(system))
+  }
+
+  def defaultHandler(
+      implicit system: ActorSystem,
+      marshaller: GrpcProtocolMarshaller): PartialFunction[Throwable, Future[HttpResponse]] =
+    defaultHandler(defaultMapper(system))
+
+  def defaultHandler(mapper: PartialFunction[Throwable, Status])(
+      implicit system: ActorSystem,
+      marshaller: GrpcProtocolMarshaller): PartialFunction[Throwable, Future[HttpResponse]] =
+    mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
+
 }

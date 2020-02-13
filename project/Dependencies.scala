@@ -28,6 +28,7 @@ object Dependencies {
     val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
+    val akkaHttpCors = "ch.megard" %% "akka-http-cors" % "0.4.2"
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
     val scalapbRuntime = ("com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion)
@@ -81,6 +82,7 @@ object Dependencies {
         Compile.akkaHttp,
         Compile.akkaHttp2Support,
         Compile.akkaDiscovery,
+        Compile.akkaHttpCors,
         Test.akkaDiscoveryConfig,
         Test.akkaTestkit,
         Test.scalaTest,

@@ -8,19 +8,17 @@ import scala.concurrent.duration._
 import scala.collection.immutable
 import akka.actor.ActorSystem
 import akka.grpc.scaladsl.headers.`Message-Encoding`
-import akka.grpc.{ Grpc, Gzip }
+import akka.grpc.{ Grpc, GrpcProtocol, Gzip }
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import io.grpc.{ Status, StatusException }
 import io.grpc.testing.integration.messages.{ BoolValue, SimpleRequest }
 import io.grpc.testing.integration.test.TestService
-import org.junit.Assert.assertEquals
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.{ Await, Future }
-import scala.util.Failure
 
 class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
   "The scaladsl GrpcMarshalling" should {
@@ -29,7 +27,7 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
     val awaitTimeout = 10.seconds
-    val zippedBytes = Grpc.encodeFrame(Grpc.compressed, Gzip.compress(serializer.serialize(message)))
+    val zippedBytes = Grpc.encodeFrameData(GrpcProtocol.compressed, Gzip.compress(serializer.serialize(message)))
 
     "correctly unmarshal a zipped object" in {
       val request = HttpRequest(

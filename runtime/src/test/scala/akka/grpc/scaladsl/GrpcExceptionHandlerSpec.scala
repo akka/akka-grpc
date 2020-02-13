@@ -5,7 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
+import akka.grpc.{ Grpc, GrpcServiceException, Identity }
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
 import akka.http.scaladsl.model.HttpEntity._
@@ -25,6 +25,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
   implicit val materializer = ActorMaterializer()
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
+  implicit val marshaller = Grpc.newMarshaller(Identity)
 
   val expected: Function[Throwable, Status] = {
     case e: ExecutionException =>

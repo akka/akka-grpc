@@ -7,9 +7,10 @@ package akka.grpc.scaladsl
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+import akka.grpc.Grpc
 import akka.grpc.scaladsl.headers.`Status`
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 
@@ -32,7 +33,7 @@ class GrpcExceptionHandlerSpec
   "The default ExceptionHandler" should {
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
       implicit val serializer = TestService.Serializers.SimpleRequestSerializer
-      val unmarshallableRequest = HttpRequest()
+      val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(Grpc.contentType))
 
       val result: Future[HttpResponse] = GrpcMarshalling
         .unmarshal(unmarshallableRequest)

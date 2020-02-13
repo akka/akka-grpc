@@ -5,10 +5,11 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
+import akka.grpc.Grpc
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.{ HttpEntity, HttpMethods, HttpRequest, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandlerFactory }
@@ -48,6 +49,7 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
     "respond with an 'invalid argument' gRPC error status when calling an method without a request body" in {
       val request = HttpRequest(
         method = HttpMethods.POST,
+        entity = HttpEntity.empty(Grpc.contentType),
         uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/SayHello")
       val response = Http().singleRequest(request).futureValue
 

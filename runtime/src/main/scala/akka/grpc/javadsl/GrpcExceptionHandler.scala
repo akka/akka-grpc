@@ -11,8 +11,9 @@ import io.grpc.Status
 import scala.concurrent.ExecutionException
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
-import akka.grpc.internal.MissingParameterException
+import akka.grpc.{ Grpc, GrpcServiceException, Identity }
+import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
+import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
 
@@ -47,5 +48,15 @@ object GrpcExceptionHandler {
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],
       system: ActorSystem): HttpResponse =
-    GrpcMarshalling.status(mapper(system)(t))
+    standard(t, mapper, Grpc.newMarshaller(Identity), system)
+
+  def standard(t: Throwable, marshaller: GrpcProtocolMarshaller, system: ActorSystem): HttpResponse =
+    standard(t, default, marshaller, system)
+
+  def standard(
+      t: Throwable,
+      mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],
+      marshaller: GrpcProtocolMarshaller,
+      system: ActorSystem): HttpResponse =
+    GrpcResponseHelpers.status(mapper(system)(t))(marshaller)
 }
