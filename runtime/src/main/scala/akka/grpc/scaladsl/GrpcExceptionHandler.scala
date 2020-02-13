@@ -15,6 +15,7 @@ import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
 
+  @deprecated("To be removed", "grpc-web")
   def default(mapper: PartialFunction[Throwable, Status])(
       implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
     implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
@@ -34,6 +35,7 @@ object GrpcExceptionHandler {
       Status.INTERNAL
   }
 
+  @deprecated("To be removed", "grpc-web")
   def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
     implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
     defaultHandler(defaultMapper(system))

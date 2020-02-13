@@ -38,6 +38,7 @@ object ServiceHandler {
    * handlers and ends with `StatusCodes.NotFound` if the request is not
    * matching.
    */
+  @deprecated("Use ServiceHandler.newBuilder instead", "grpc-web")
   def concatOrNotFound(
       handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*): HttpRequest => Future[HttpResponse] =
     concat(handlers: _*).orElse(handlerNotFound)

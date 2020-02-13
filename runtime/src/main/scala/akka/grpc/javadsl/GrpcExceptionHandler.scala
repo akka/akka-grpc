@@ -42,8 +42,10 @@ object GrpcExceptionHandler {
     }
   }
 
+  @Deprecated
   def standard(t: Throwable, system: ActorSystem): HttpResponse = standard(t, defaultMapper, system)
 
+  @Deprecated
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],

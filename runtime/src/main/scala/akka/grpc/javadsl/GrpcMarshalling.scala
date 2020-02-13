@@ -19,6 +19,7 @@ import akka.util.ByteString
 import io.grpc.Status
 
 object GrpcMarshalling {
+  @Deprecated
   def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] = {
     GrpcProtocol
       .negotiate(req)
@@ -31,6 +32,7 @@ object GrpcMarshalling {
       .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  @Deprecated
   def unmarshalStream[T](
       req: HttpRequest,
       u: ProtobufSerializer[T],
@@ -72,9 +74,11 @@ object GrpcMarshalling {
         .mapMaterializedValue(japiFunction(_ => NotUsed)))
   }
 
+  @Deprecated
   def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
     marshalStream2(Source.single(e), m, mat, Grpc.newMarshaller(codec), system)
 
+  @Deprecated
   def marshal[T](
       e: T,
       m: ProtobufSerializer[T],
@@ -84,6 +88,7 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
     marshalStream2(Source.single(e), m, mat, Grpc.newMarshaller(codec), system, eHandler)
 
+  @Deprecated
   def marshalStream[T](
       e: Source[T, NotUsed],
       m: ProtobufSerializer[T],

@@ -18,6 +18,7 @@ import io.grpc.Status
 import scala.concurrent.Future
 
 object GrpcMarshalling {
+  @deprecated("To be removed", "grpc-web")
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     GrpcProtocol
       .negotiate(req)
@@ -28,6 +29,7 @@ object GrpcMarshalling {
       .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  @deprecated("To be removed", "grpc-web")
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
     GrpcProtocol
@@ -66,6 +68,7 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage))
   }
 
+  @deprecated("To be removed", "grpc-web")
   def marshal[T](
       e: T = Identity,
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
@@ -77,6 +80,7 @@ object GrpcMarshalling {
     marshalStream2(Source.single(e), eHandler)
   }
 
+  @deprecated("To be removed", "grpc-web")
   def marshalStream[T](
       e: Source[T, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
