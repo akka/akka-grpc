@@ -25,7 +25,7 @@ object Common extends AutoPlugin {
       licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
       description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams.")
 
-  val silencerVersion = "1.4.4"
+  val silencerVersion = "1.5.0"
   override lazy val projectSettings = Seq(
     scalacOptions ++= List(
         "-unchecked",
