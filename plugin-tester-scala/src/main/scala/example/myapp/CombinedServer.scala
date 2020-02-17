@@ -48,8 +48,6 @@ object CombinedServer {
         port = 8080,
         connectionContext = HttpConnectionContext())
       //#concatOrNotFound
-      .foreach { binding =>
-        println(s"gRPC server bound to: ${binding.localAddress}")
-      }
+      .foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }
   }
 }

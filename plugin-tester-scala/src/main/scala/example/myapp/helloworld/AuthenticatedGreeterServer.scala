@@ -41,9 +41,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       GreeterServiceHandler(new GreeterServiceImpl())
 
     // As a Route
-    val handlerRoute: Route = { ctx =>
-      handler(ctx.request).map(RouteResult.Complete)
-    }
+    val handlerRoute: Route = { ctx => handler(ctx.request).map(RouteResult.Complete) }
 
     // A Route to authenticate with
     val authenticationRoute: Route = path("login") {
@@ -71,9 +69,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       connectionContext = HttpConnectionContext())
 
     // report successful binding
-    binding.foreach { binding =>
-      println(s"gRPC server bound to: ${binding.localAddress}")
-    }
+    binding.foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }
 
     binding
   }

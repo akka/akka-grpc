@@ -45,9 +45,7 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
       s"pass the $testCaseName integration test" in {
         val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
         pendingTestCaseSupport(allPending(testCaseName)) {
-          withGrpcServer(server) { port =>
-            runGrpcClient(testCaseName, client, port)
-          }
+          withGrpcServer(server) { port => runGrpcClient(testCaseName, client, port) }
         }
       }
     }

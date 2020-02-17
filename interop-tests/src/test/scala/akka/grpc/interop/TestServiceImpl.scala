@@ -67,9 +67,7 @@ class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends 
       in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] = ???
 
   override def streamingInputCall(in: Source[StreamingInputCallRequest, NotUsed]): Future[StreamingInputCallResponse] =
-    in.map(_.payload.map(_.body.size).getOrElse(0)).runFold(0)(_ + _).map { sum =>
-      StreamingInputCallResponse(sum)
-    }
+    in.map(_.payload.map(_.body.size).getOrElse(0)).runFold(0)(_ + _).map { sum => StreamingInputCallResponse(sum) }
 
   override def streamingOutputCall(in: StreamingOutputCallRequest): Source[StreamingOutputCallResponse, NotUsed] =
     Source(in.responseParameters.toList).via(parametersToResponseFlow)

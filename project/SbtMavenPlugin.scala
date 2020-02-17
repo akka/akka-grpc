@@ -46,9 +46,7 @@ object SbtMavenPlugin extends AutoPlugin {
 
         val configHash = Seq(pid.toString, pi.toString, deps.toString, sv, sbv).hashCode()
         val cacheFile = streams.value.cacheDirectory / "maven.plugin.xml.cache"
-        val cachedHash = Some(cacheFile).filter(_.exists()).flatMap { file =>
-          Try(IO.read(file).toInt).toOption
-        }
+        val cachedHash = Some(cacheFile).filter(_.exists()).flatMap { file => Try(IO.read(file).toInt).toOption }
         val configChanged = cachedHash.forall(_ != configHash)
 
         val outFiles = files.map { file =>

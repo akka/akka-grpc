@@ -212,9 +212,7 @@ class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext)
     generatedTargetDirs.foreach(_.mkdirs())
     if (schemas.nonEmpty && targets.nonEmpty) {
       getLog.info("Compiling %d protobuf files to %s".format(schemas.size, generatedTargetDirs.mkString(",")))
-      schemas.foreach { schema =>
-        buildContext.removeMessages(schema)
-      }
+      schemas.foreach { schema => buildContext.removeMessages(schema) }
       getLog.debug("Compiling schemas [%s]".format(schemas.mkString(",")))
       getLog.debug("protoc options: %s".format(protocOptions.mkString(",")))
 
