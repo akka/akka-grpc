@@ -57,9 +57,7 @@ final class ScalaUnaryRequestBuilder[I, O](
       case Some(Success(c)) => invoke(request, c)
       case Some(Failure(t)) => Future.failed(t)
       case None =>
-        channel.flatMap { c =>
-          invoke(request, c)
-        }
+        channel.flatMap { c => invoke(request, c) }
     }
 
   private def invoke(request: I, c: Channel) = {
@@ -77,9 +75,7 @@ final class ScalaUnaryRequestBuilder[I, O](
       case Some(Success(c)) => invokeWithMetadata(request, c)
       case Some(Failure(t)) => Future.failed(t)
       case None =>
-        channel.flatMap { c =>
-          invokeWithMetadata(request, c)
-        }
+        channel.flatMap { c => invokeWithMetadata(request, c) }
     }
 
   private def invokeWithMetadata(request: I, c: Channel): Future[GrpcSingleResponse[O]] = {

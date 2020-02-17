@@ -46,9 +46,7 @@ class GreeterServer(system: ActorSystem) {
       connectionContext = HttpConnectionContext())
 
     // report successful binding
-    binding.foreach { binding =>
-      println(s"gRPC server bound to: ${binding.localAddress}")
-    }
+    binding.foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }
 
     binding
   }
