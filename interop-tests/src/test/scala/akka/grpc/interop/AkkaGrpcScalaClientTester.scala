@@ -8,7 +8,7 @@ import java.io.InputStream
 
 import akka.actor.ActorSystem
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
-import akka.stream.Materializer
+import akka.stream.SystemMaterializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import com.google.protobuf.ByteString
 import io.grpc.testing.integration.empty.Empty
@@ -30,11 +30,11 @@ import scala.util.control.NoStackTrace
  * The same implementation is also be found as part of the 'scripted' tests at
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem)
-    extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSystem) extends ClientTester {
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
+  private implicit val mat = SystemMaterializer(system).materializer
 
   private val awaitTimeout = 15.seconds
 

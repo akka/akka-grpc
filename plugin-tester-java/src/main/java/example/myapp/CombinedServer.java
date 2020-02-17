@@ -42,9 +42,9 @@ class CombinedServer {
 
       //#concatOrNotFound
       Function<HttpRequest, CompletionStage<HttpResponse>> greeterService =
-          GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), mat, sys);
+          GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), sys);
       Function<HttpRequest, CompletionStage<HttpResponse>> echoService =
-        EchoServiceHandlerFactory.create(new EchoServiceImpl(), mat, sys);
+        EchoServiceHandlerFactory.create(new EchoServiceImpl(), sys);
       Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
         ServiceHandler.concatOrNotFound(greeterService, echoService);
 

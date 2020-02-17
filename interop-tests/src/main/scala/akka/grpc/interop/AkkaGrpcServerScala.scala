@@ -17,7 +17,7 @@ import akka.util.ByteString
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.SystemMaterializer
 import io.grpc.internal.testing.TestUtils
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
@@ -26,13 +26,13 @@ import scala.concurrent.{ Await, Future }
 /**
  * Glue code to start a gRPC server based on the akka-grpc Scala API to test against
  */
-case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem => HttpRequest => Future[HttpResponse])
+case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest => Future[HttpResponse])
     extends GrpcServer[(ActorSystem, ServerBinding)] {
   override def start() = {
     implicit val sys = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat = SystemMaterializer(sys).materializer
 
-    val testService = serverHandlerFactory(mat)(sys)
+    val testService = serverHandlerFactory(sys)
 
     val bindingFuture = Http2().bindAndHandleAsync(
       testService,

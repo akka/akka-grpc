@@ -3,7 +3,7 @@ package akka.grpc.interop
 import java.io.InputStream
 
 import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils}
-import akka.stream.Materializer
+import akka.stream.{ Materializer, SystemMaterializer }
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.google.protobuf.ByteString
@@ -29,11 +29,12 @@ import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServic
   * The same implementation is also be found as part of the 'non-scripted' tests at
   * /interop-tests/src/test/scala/akka/grpc/interop/AkkaGrpcScalaClientTester.scala
   */
-class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, system: ActorSystem) extends ClientTester {
+class AkkaGrpcClientTester(val settings: Settings)(implicit system: ActorSystem) extends ClientTester {
 
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val ec = system.dispatcher
+  private implicit val mat = SystemMaterializer(system).materializer
 
   private val awaitTimeout = 15.seconds
 

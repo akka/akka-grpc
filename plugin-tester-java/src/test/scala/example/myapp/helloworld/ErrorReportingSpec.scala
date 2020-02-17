@@ -30,7 +30,7 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
   "A gRPC server" should {
     implicit val mat = ActorMaterializer()
 
-    val handler = GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), mat, sys)
+    val handler = GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), sys)
     val binding = {
       import akka.http.javadsl.{ ConnectHttp, Http }
 

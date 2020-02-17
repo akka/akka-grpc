@@ -29,18 +29,18 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
     Set("custom_metadata")
 
   val server = new AkkaGrpcServerJava((mat, sys) => {
-    TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)
+    TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), sys)
   })
 }
 
 object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
   val label: String = "akka-grpc scala client tester"
 
-  def client = AkkaGrpcClientScala(settings => implicit mat => implicit as => new AkkaGrpcScalaClientTester(settings))
+  def client = AkkaGrpcClientScala(settings => implicit sys => new AkkaGrpcScalaClientTester(settings))
 }
 
 object AkkaHttpClientProviderJava extends AkkaHttpClientProvider {
   val label: String = "akka-grpc java client tester"
 
-  def client = new AkkaGrpcClientJava((settings, mat, as) => new AkkaGrpcJavaClientTester(settings, mat, as))
+  def client = new AkkaGrpcClientJava((settings, sys) => new AkkaGrpcJavaClientTester(settings, sys))
 }

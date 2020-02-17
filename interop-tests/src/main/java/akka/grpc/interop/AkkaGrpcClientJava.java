@@ -12,7 +12,7 @@ import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration2.ClientTester;
 import io.grpc.testing.integration2.TestServiceClient;
 import io.grpc.testing.integration2.Settings;
-import scala.Function3;
+import scala.Function2;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit;
 
 public class AkkaGrpcClientJava extends GrpcClient {
 
-  private final Function3<Settings, Materializer, ActorSystem, ClientTester> clientTesterFactory;
+  private final Function2<Settings, ActorSystem, ClientTester> clientTesterFactory;
 
-  public AkkaGrpcClientJava(Function3<Settings, Materializer, ActorSystem, ClientTester> clientTesterFactory) {
+  public AkkaGrpcClientJava(Function2<Settings, ActorSystem, ClientTester> clientTesterFactory) {
     this.clientTesterFactory = clientTesterFactory;
   }
 
@@ -31,9 +31,8 @@ public class AkkaGrpcClientJava extends GrpcClient {
     final Settings settings = Settings.parseArgs(args);
 
     final ActorSystem sys = ActorSystem.create("AkkaGrpcClientJava");
-    final Materializer mat = ActorMaterializer.create(sys);
 
-    final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, mat, sys));
+    final TestServiceClient client = new TestServiceClient(clientTesterFactory.apply(settings, sys));
     client.setUp();
 
     try {

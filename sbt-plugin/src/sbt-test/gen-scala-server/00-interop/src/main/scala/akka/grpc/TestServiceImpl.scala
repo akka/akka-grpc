@@ -8,9 +8,10 @@ import scala.collection.immutable
 import akka.grpc.scaladsl.{GrpcMarshalling}
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc._
 import akka.stream.scaladsl.{Flow, Source}
-import akka.stream.Materializer
+import akka.stream.{ Materializer, SystemMaterializer }
 
 import com.google.protobuf.ByteString
 import io.grpc.{ Status, StatusRuntimeException }
@@ -37,9 +38,12 @@ object TestServiceImpl {
   * The same implementation is also be found as part of the 'non-scripted' tests at
   * /interop-tests/src/test/scala/akka/grpc/interop/TestServiceImpl.scala
   */
-class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestService {
+class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
   import TestServiceImpl._
 
+  implicit val mat: Materializer = SystemMaterializer(sys).materializer
+  implicit val ec: ExecutionContext = sys.dispatcher
+  
   override def emptyCall(req: Empty) =
     Future.successful(Empty())
 
