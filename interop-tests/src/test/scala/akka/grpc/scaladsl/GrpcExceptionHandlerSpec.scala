@@ -53,12 +53,22 @@ class GrpcExceptionHandlerSpec
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
 
+      //#streaming
       import akka.NotUsed
       import akka.stream.scaladsl.Source
-      //#unary
-      import akka.grpc.GrpcServiceException
 
+      //#streaming
+
+      //#unary
+      //#streaming
+      import akka.grpc.GrpcServiceException
       import io.grpc.Status
+
+      //#unary
+      //#streaming
+
+      //#unary
+      // ...
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
@@ -67,7 +77,9 @@ class GrpcExceptionHandlerSpec
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
       //#unary
+
       lazy val myResponseSource: Source[HelloReply, NotUsed] = ???
+
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)

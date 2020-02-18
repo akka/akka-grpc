@@ -1,16 +1,28 @@
 package example.myapp.helloworld.grpc;
 
-import java.util.concurrent.CompletionStage;
+//#unary
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+//#unary
+
+//#streaming
+import akka.NotUsed;
+import akka.stream.javadsl.Source;
+//#streaming
+
+//#unary
+//#streaming
 
 import io.grpc.Status;
-
-import akka.NotUsed;
 import akka.grpc.GrpcServiceException;
-import akka.stream.javadsl.Source;
+
+//#unary
+//#streaming
 
 public class ExceptionGreeterServiceImpl implements GreeterService {
     //#unary
+    // ...
+
     @Override
     public CompletionStage<HelloReply> sayHello(HelloRequest in) {
         if (in.getName().isEmpty()) {
@@ -26,6 +38,8 @@ public class ExceptionGreeterServiceImpl implements GreeterService {
     private Source<HelloReply, NotUsed> myResponseSource = null;
     
     //#streaming
+    // ...
+
     @Override
     public Source<HelloReply, NotUsed> itKeepsReplying(HelloRequest in) {
       if (in.getName().isEmpty()) {
