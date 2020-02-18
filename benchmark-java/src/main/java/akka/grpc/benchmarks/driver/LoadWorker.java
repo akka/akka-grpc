@@ -68,7 +68,7 @@ public class LoadWorker {
     WorkerServiceImpl impl = new WorkerServiceImpl(mat);
 
     CompletionStage<ServerBinding> bound = Http.get(system).bindAndHandleAsync(
-        WorkerServiceHandlerFactory.create(impl, mat, system),
+        WorkerServiceHandlerFactory.create(impl, system),
         ConnectWithHttps.toHostHttps("0.0.0.0", driverPort).withCustomHttpsContext(Utils.serverHttpContext()),
         mat);
 

@@ -79,7 +79,7 @@ public class AsyncServer {
 
     if (useTls) {
       Http.get(system).bindAndHandleAsync(
-        BenchmarkServiceHandlerFactory.create(benchmarkService, mat, system),
+        BenchmarkServiceHandlerFactory.create(benchmarkService, system),
         ConnectWithHttps.toHostHttps(address.getHostName(), address.getPort()).withCustomHttpsContext(Utils.serverHttpContext()),
         mat)
         .thenAccept(binding -> {
@@ -87,7 +87,7 @@ public class AsyncServer {
         });
     } else {
       Http.get(system).bindAndHandleAsync(
-        BenchmarkServiceHandlerFactory.create(benchmarkService, mat, system),
+        BenchmarkServiceHandlerFactory.create(benchmarkService, system),
         ConnectHttp.toHost(address.getHostName(), address.getPort()),
         mat
         ).thenAccept(binding -> {
