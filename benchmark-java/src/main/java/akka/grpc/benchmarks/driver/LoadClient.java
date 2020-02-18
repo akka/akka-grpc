@@ -24,8 +24,8 @@ import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.*;
-import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -77,7 +77,7 @@ class LoadClient {
     this.config = config;
 
     this.system = ActorSystem.create("AsyncClient");
-    this.mat = Materializer.create(system);
+    this.mat = SystemMaterializer.get(system).materializer();
 
     // Create the clients
     clients = new BenchmarkServiceClient[config.getClientChannels()];
