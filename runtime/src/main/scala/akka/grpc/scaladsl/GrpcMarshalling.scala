@@ -4,17 +4,25 @@
 
 package akka.grpc.scaladsl
 
+import io.grpc.Status
+
+import scala.collection.immutable
+import scala.concurrent.Future
+
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.grpc._
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{
+  CancellationBarrierGraphStage,
+  GrpcEntityHelpers,
+  GrpcResponseHelpers,
+  MissingParameterException
+}
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
-import io.grpc.Status
-
-import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
@@ -53,6 +61,19 @@ object GrpcMarshalling {
       codec: Codec,
       system: ActorSystem): HttpResponse =
     marshalStream(Source.single(e), eHandler)
+
+  @InternalApi
+  def marshalRequest[T](
+      e: T = Identity,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      codec: Codec,
+      system: ActorSystem): HttpRequest =
+    HttpRequest(
+      // This is likely incomplete, but since we do not rely on this code for regular calls yet that is OK for now
+      headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
+      entity = GrpcEntityHelpers(e))
 
   def marshalStream[T](
       e: Source[T, NotUsed],

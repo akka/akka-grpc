@@ -19,7 +19,7 @@ import scala.collection.immutable
 import scala.concurrent.Future
 
 /**
- * Some helpers for creating HTTP responses for use with gRPC
+ * Some helpers for creating HTTP entities for use with gRPC.
  *
  * INTERNAL API
  */
@@ -30,14 +30,14 @@ object GrpcResponseHelpers {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(trailer(Status.OK)))
+    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(trailer(Status.OK)), eHandler)
+    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
@@ -57,7 +57,7 @@ object GrpcResponseHelpers {
     implicit val ec = mat.executionContext
     GrpcResponseHelpers(
       e,
-      Source.lazilyAsync(() => status.map(trailer(_))).mapMaterializedValue(_ => NotUsed),
+      Source.lazilyAsync(() => status.map(GrpcEntityHelpers.trailer(_))).mapMaterializedValue(_ => NotUsed),
       eHandler)
   }
 
@@ -69,32 +69,12 @@ object GrpcResponseHelpers {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem): HttpResponse = {
-    val outChunks = e
-      .map(m.serialize)
-      .via(Grpc.grpcFramingEncoder(codec))
-      .map(bytes => HttpEntity.Chunk(bytes))
-      .concat(trail)
-      .recover {
-        case t =>
-          val status = eHandler(system).orElse[Throwable, Status] {
-            case e: GrpcServiceException => e.status
-            case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
-          }(t)
-          trailer(status)
-      }
 
     HttpResponse(
       headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
-      entity = HttpEntity.Chunked(Grpc.contentType, outChunks))
+      entity = GrpcEntityHelpers(e, trail, eHandler))
   }
 
   def status(status: Status): HttpResponse =
-    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(trailer(status))))
-
-  def trailer(status: Status): LastChunk =
-    LastChunk(trailer = statusHeaders(status))
-
-  def statusHeaders(status: Status): List[HttpHeader] =
-    List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>
-      headers.`Status-Message`(d))
+    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(GrpcEntityHelpers.trailer(status))))
 }
