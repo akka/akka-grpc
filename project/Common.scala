@@ -2,6 +2,7 @@ import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
 import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
+import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 
 object Common extends AutoPlugin {
@@ -14,7 +15,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      //    apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${version.value}")),
+      apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${version.value}")),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -27,13 +28,9 @@ object Common extends AutoPlugin {
 
   val silencerVersion = "1.5.0"
   override lazy val projectSettings = Seq(
-    scalacOptions ++= List(
-        "-unchecked",
-        "-deprecation",
-        "-language:_",
-        "-Xfatal-warnings",
-        "-encoding",
-        "UTF-8",
+    projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
+    scalacOptions ++= List("-unchecked", "-deprecation", "-language:_", "-Xfatal-warnings", "-encoding", "UTF-8"),
+    Compile / scalacOptions ++= Seq(
         // generated code for methods/fields marked 'deprecated'
         "-P:silencer:globalFilters=Marked as deprecated in proto file",
         // generated scaladoc sometimes has this problem
@@ -42,6 +39,23 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
         "-P:silencer:globalFilters=Use LazyList instead of Stream"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
+    Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
+        "-doc-title",
+        "Akka gRPC",
+        "-doc-version",
+        version.value,
+        "-sourcepath",
+        (ThisBuild / baseDirectory).value.toString,
+        "-skip-packages",
+        "akka.pattern:" + // for some reason Scaladoc creates this
+        "templates",
+        "-doc-source-url", {
+          val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+          s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+        },
+        "-doc-canonical-base-url",
+        "https://doc.akka.io/api/akka-grpc/current/"),
+    Compile / doc / scalacOptions -= "-Xfatal-warnings",
     libraryDependencies ++= Seq(
         compilerPlugin(("com.github.ghik" % "silencer-plugin" % silencerVersion).cross(CrossVersion.full)),
         ("com.github.ghik" % "silencer-lib" % silencerVersion % Provided).cross(CrossVersion.full)),

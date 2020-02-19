@@ -135,17 +135,17 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
-  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PublishRsyncPlugin)
+  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
   .settings(
     mimaFailOnNoPrevious := false,
     name := "Akka gRPC",
     publish / skip := true,
     whitesourceIgnore := true,
-    // We don't yet publish java/scaladoc, so this is not yet relevant
-    // https://github.com/akka/akka-grpc/issues/784
-    // apidocRootPackage := "akka.grpc",
+    makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     previewPath := (Paradox / siteSubdirName).value,
-    Paradox / siteSubdirName := s"docs/akka-grpc/${if (isSnapshot.value) "snapshot" else version.value}",
+    Preprocess / siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
+    Preprocess / sourceDirectory := (LocalRootProject / ScalaUnidoc / unidoc / target).value,
+    Paradox / siteSubdirName := s"docs/akka-grpc/${projectInfoVersion.value}",
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala"), "Buildtool" -> Seq("sbt", "Gradle", "Maven")),
@@ -156,10 +156,19 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
         "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
         "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
         "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
-        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akka}/%s",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akka}",
-        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttp}/%s",
-        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttp}/"),
+        // Akka
+        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akkaBinary}/%s",
+        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akkaBinary}",
+        "javadoc.akka.base_url" -> s"https://doc.akka.io/japi/akka/${Dependencies.Versions.akkaBinary}/",
+        // Akka HTTP
+        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
+        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
+        "javadoc.akka.http.base_url" -> s"https://doc.akka.io/japi/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
+        // Akka gRPC
+        "scaladoc.akka.grpc.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
+        "javadoc.akka.grpc.base_url" -> "" // @apidoc links to Scaladoc
+      ),
+    apidocRootPackage := "akka",
     resolvers += Resolver.jcenterRepo,
     publishRsyncArtifact := makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io",
@@ -183,7 +192,8 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
   .pluginTestingSettings
 
 lazy val root = Project(id = "akka-grpc", base = file("."))
-  .disablePlugins(MimaPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
+  .disablePlugins(SitePlugin, MimaPlugin)
   .aggregate(
     runtime,
     codegen,
@@ -197,5 +207,6 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
   .settings(
     skip in publish := true,
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(codegen, runtime, scalapbProtocPlugin, sbtPlugin),
     // https://github.com/sbt/sbt/issues/3465
     crossScalaVersions := List())
