@@ -207,6 +207,6 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
   .settings(
     skip in publish := true,
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
-    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(codegen, runtime, scalapbProtocPlugin),
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(codegen, runtime, scalapbProtocPlugin, sbtPlugin),
     // https://github.com/sbt/sbt/issues/3465
     crossScalaVersions := List())
