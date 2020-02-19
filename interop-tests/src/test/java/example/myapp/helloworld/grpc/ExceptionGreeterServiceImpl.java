@@ -2,6 +2,8 @@
  * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
  */
 
+package example.myapp.helloworld.grpc;
+
 //#unary
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
