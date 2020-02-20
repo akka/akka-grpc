@@ -19,32 +19,32 @@ import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    GrpcProtocol
-      .negotiate(req)
-      .map {
-        case (maybeUnmarshaller, _) =>
-          maybeUnmarshaller.map(implicit unmarshaller => unmarshal(req.entity.dataBytes)).fold(Future.failed, identity)
-      }
-      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+    negotiated(req, (um, _) => {
+      implicit val unmarshaller = um
+      unmarshal(req.entity.dataBytes)
+    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
-    GrpcProtocol
-      .negotiate(req)
-      .map {
-        case (maybeUnmarshaller, _) =>
-          maybeUnmarshaller
-            .map(implicit unmarshaller => unmarshalStream(req.entity.dataBytes))
-            .fold(Future.failed, identity)
-      }
-      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+    negotiated(req, (um, _) => {
+      implicit val unmarshaller = um
+      unmarshalStream(req.entity.dataBytes)
+    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  def negotiated[T](
+      req: HttpRequest,
+      f: (GrpcProtocolUnmarshaller, GrpcProtocolMarshaller) => Future[T]): Option[Future[T]] =
+    GrpcProtocol.negotiate(req).map {
+      case (maybeUnmarshaller, marshaller) =>
+        maybeUnmarshaller.map(unmarshaller => f(unmarshaller, marshaller)).fold(Future.failed, identity)
+    }
+
   def unmarshal[T](data: Source[ByteString, Any])(
-    implicit u: ProtobufSerializer[T],
-    mat: Materializer,
-    unmarshaller: GrpcProtocolUnmarshaller): Future[T] = {
+      implicit u: ProtobufSerializer[T],
+      mat: Materializer,
+      unmarshaller: GrpcProtocolUnmarshaller): Future[T] = {
     import mat.executionContext
     data.via(unmarshaller.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption).flatMap {
       case Some(element) => Future.successful(element)

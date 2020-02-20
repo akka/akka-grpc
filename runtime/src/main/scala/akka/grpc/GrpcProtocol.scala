@@ -1,14 +1,10 @@
 package akka.grpc
 
-import java.util.Optional
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
-
 import akka.NotUsed
 import akka.grpc.GrpcProtocol.{ GrpcProtocolMarshaller, GrpcProtocolUnmarshaller }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ ContentType, HttpHeader }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.japi.Pair
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 
@@ -117,25 +113,5 @@ object GrpcProtocol {
     detect(request).map { variant =>
       (Codecs.detect(request).map(variant.newUnmarshaller), variant.newMarshaller(Codecs.negotiate(request)))
     }
-
-  /** Java API */
-  def negotiateProtocol(request: jmodel.HttpRequest)
-      : Optional[Pair[CompletionStage[GrpcProtocolUnmarshaller], GrpcProtocolMarshaller]] = {
-    negotiate(request)
-      .map {
-        case (maybeUnmarshaller, marshaller) =>
-          Pair(
-            maybeUnmarshaller
-              .fold[CompletionStage[GrpcProtocolUnmarshaller]](failure, CompletableFuture.completedFuture),
-            marshaller)
-      }
-      .fold(Optional.empty[Pair[CompletionStage[GrpcProtocolUnmarshaller], GrpcProtocolMarshaller]])(Optional.of)
-  }
-
-  private def failure[R](error: Throwable): CompletableFuture[R] = {
-    val future: CompletableFuture[R] = new CompletableFuture()
-    future.completeExceptionally(error)
-    future
-  }
 
 }

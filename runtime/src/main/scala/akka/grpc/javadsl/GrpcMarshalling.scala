@@ -5,6 +5,7 @@
 package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.Optional
 
 import akka.NotUsed
 import akka.actor.ActorSystem
@@ -48,11 +49,22 @@ object GrpcMarshalling {
       .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  def negotiated[T](
+      req: HttpRequest,
+      f: (GrpcProtocolUnmarshaller, GrpcProtocolMarshaller) => CompletionStage[T]): Optional[CompletionStage[T]] =
+    GrpcProtocol
+      .negotiate(req)
+      .map {
+        case (maybeUnmarshaller, marshaller) =>
+          maybeUnmarshaller.map(unmarshaller => f(unmarshaller, marshaller)).fold[CompletionStage[T]](failure, identity)
+      }
+      .fold(Optional.empty[CompletionStage[T]])(Optional.of)
+
   def unmarshal[T](
-                    data: Source[ByteString, AnyRef],
-                    u: ProtobufSerializer[T],
-                    mat: Materializer,
-                    unmarshaller: GrpcProtocolUnmarshaller): CompletionStage[T] =
+      data: Source[ByteString, AnyRef],
+      u: ProtobufSerializer[T],
+      mat: Materializer,
+      unmarshaller: GrpcProtocolUnmarshaller): CompletionStage[T] =
     data.via(unmarshaller.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption[T], mat).thenCompose[T] { opt =>
       if (opt.isPresent) CompletableFuture.completedFuture(opt.get)
       else failure(new MissingParameterException())

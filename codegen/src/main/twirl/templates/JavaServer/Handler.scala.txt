@@ -118,25 +118,23 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
     }
 
     private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler, ActorSystem system) {
-      return GrpcProtocol.negotiateProtocol(request).map(pair -> {
-        CompletionStage<GrpcProtocol.GrpcProtocolUnmarshaller> maybeUnmarshaller = pair.first();
-        GrpcProtocol.GrpcProtocolMarshaller marshaller = pair.second();
-        return maybeUnmarshaller.thenCompose(unmarshaller -> {
-          @{if(powerApis) { "Metadata metadata = new MetadataImpl(request.getHeaders());" } else { "" }}
-          switch(method) {
-            @for(method <- service.methods) {
-            case "@method.grpcName":
-              return @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, unmarshaller)
-                .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
-                .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, marshaller, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
-            }
-            default:
-              CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-              result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
-              return result;
+      return GrpcMarshalling.negotiated(request, (unmarshaller, marshaller) -> {
+        final CompletionStage<HttpResponse> response;
+        @{if(powerApis) { "Metadata metadata = new MetadataImpl(request.getHeaders());" } else { "" }}
+        switch(method) {
+          @for(method <- service.methods) {
+          case "@method.grpcName":
+            response = @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, unmarshaller)
+              .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
+              .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, marshaller, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
+            break;
           }
-        })
-        .exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, marshaller, system));
+          default:
+            CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+            result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
+            response = result;
+        }
+        return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, marshaller, system));
       })
       .orElseGet(() -> unsupportedMediaType);
     }
