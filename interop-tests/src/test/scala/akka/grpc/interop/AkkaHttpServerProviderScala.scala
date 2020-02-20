@@ -7,7 +7,7 @@ package akka.grpc.interop
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.Identity
-import akka.grpc.internal.GrpcResponseHelpers
+import akka.grpc.internal.{ GrpcEntityHelpers, GrpcResponseHelpers }
 import akka.grpc.scaladsl.GrpcMarshalling
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpRequest }
@@ -70,7 +70,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           case Some(responseStatus) =>
             mapTrailingResponseHeaders(
               _ =>
-                GrpcResponseHelpers.statusHeaders(
+                GrpcEntityHelpers.statusHeaders(
                   Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
