@@ -38,8 +38,10 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
     }
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {
-      val request =
-        HttpRequest(uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
+      val request = HttpRequest(
+        method = HttpMethods.POST,
+        entity = HttpEntity.empty(Grpc.contentType),
+        uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
