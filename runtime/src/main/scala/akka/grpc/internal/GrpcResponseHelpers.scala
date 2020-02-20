@@ -67,20 +67,14 @@ object GrpcResponseHelpers {
       mat: Materializer,
       marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse = {
-    response(
-      e.map { msg =>
-          DataFrame(m.serialize(msg))
-        }
-        .concat(trail)
-        .via(marshaller.frameEncoder)
-        .recover {
-          case t =>
-            val status = eHandler(system).orElse[Throwable, Status] {
-              case e: GrpcServiceException => e.status
-              case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
-            }(t)
-            marshaller.encodeFrame(trailer(status))
-        })
+    response(e.map { msg => DataFrame(m.serialize(msg)) }.concat(trail).via(marshaller.frameEncoder).recover {
+      case t =>
+        val status = eHandler(system).orElse[Throwable, Status] {
+          case e: GrpcServiceException => e.status
+          case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
+        }(t)
+        marshaller.encodeFrame(trailer(status))
+    })
   }
 
   private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit marshaller: GrpcProtocolMarshaller) = {

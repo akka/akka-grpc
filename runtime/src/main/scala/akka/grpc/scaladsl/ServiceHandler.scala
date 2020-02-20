@@ -5,9 +5,9 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{Grpc, GrpcVariant, GrpcWeb, GrpcWebText}
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
-import akka.http.scaladsl.model.headers.{`Access-Control-Request-Method`, Origin}
+import akka.grpc.{ Grpc, GrpcVariant, GrpcWeb, GrpcWebText }
+import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
+import akka.http.scaladsl.model.headers.{ `Access-Control-Request-Method`, Origin }
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MarshallingDirectives.handleWith
 import akka.stream.Materializer
@@ -110,7 +110,8 @@ object ServiceHandler {
         //       so make sure that handler is only entered if the underlying grpc-web services would serve the request
         val grpcWebHandler = Route.asyncHandler(cors(corsSettings) { handleWith(servicesHandler) })
         Some({
-          case r if (isGrpcWebRequest(r) || isCorsPreflightRequest(r)) && servicesHandler.isDefinedAt(r) => grpcWebHandler(r)
+          case r if (isGrpcWebRequest(r) || isCorsPreflightRequest(r)) && servicesHandler.isDefinedAt(r) =>
+            grpcWebHandler(r)
         }: PartialFunction[HttpRequest, Future[HttpResponse]])
       } else None).flatten: _*)
     }
@@ -125,7 +126,7 @@ object ServiceHandler {
     def asHandler(implicit as: ActorSystem, mat: Materializer): HttpRequest => Future[HttpResponse] = {
       asPartial.orElse {
         case r if isCorsPreflightRequest(r) => Future.successful(HttpResponse(StatusCodes.NotFound))
-        case _                     => Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
+        case _                              => Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
       }
     }
   }
