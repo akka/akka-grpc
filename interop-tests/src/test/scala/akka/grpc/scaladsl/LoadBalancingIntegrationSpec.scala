@@ -23,6 +23,7 @@ import org.scalatest.BeforeAndAfterAll
 
 import example.myapp.helloworld.grpc.helloworld._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.Span
 
 class CountingGreeterServiceImpl extends GreeterService {
   var greetings = new AtomicInteger(0);
@@ -41,10 +42,34 @@ class CountingGreeterServiceImpl extends GreeterService {
 
 }
 
+final class MutableServiceDiscovery(targets: List[Http.ServerBinding]) extends ServiceDiscovery {
+  var services: Future[Resolved] = _
+
+  setServices(targets)
+
+  def setServices(targets: List[Http.ServerBinding]): Unit =
+    services = Future.successful(
+      Resolved(
+        "greeter",
+        targets.map(
+          target =>
+            ResolvedTarget(
+              target.localAddress.getHostString,
+              Some(target.localAddress.getPort),
+              Some(target.localAddress.getAddress)))))
+
+  override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
+    require(query.serviceName == "greeter")
+    services
+  }
+}
+
 class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
   implicit val system = ActorSystem("LoadBalancingIntegrationSpec")
   implicit val mat = akka.stream.ActorMaterializer.create(system)
   implicit val ec = system.dispatcher
+
+  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   "Client-side loadbalancing" should {
     "send requests to multiple endpoints" in {
@@ -54,35 +79,59 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val server1 = Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0).futureValue
       val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
 
-      val discovery = new ServiceDiscovery() {
-        override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
-          require(query.serviceName == "greeter")
-          return Future.successful(
-            Resolved(
-              "greeter",
-              List(
-                ResolvedTarget(
-                  server1.localAddress.getHostString(),
-                  Some(server1.localAddress.getPort()),
-                  Some(server1.localAddress.getAddress())),
-                ResolvedTarget(
-                  server2.localAddress.getHostString(),
-                  Some(server2.localAddress.getPort()),
-                  Some(server2.localAddress.getAddress())))))
-        }
-      }
+      val discovery = new MutableServiceDiscovery(List(server1, server2))
       val client = GreeterServiceClient(
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
           .withGrpcLoadBalancingType("round_robin"))
       for (i <- 1 to 100) {
-        Await.result(client.sayHello(HelloRequest(s"Hello $i")), 10.seconds)
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
 
       service1.greetings.get + service2.greetings.get should be(100)
       service1.greetings.get should be > (0)
       service2.greetings.get should be > (0)
+    }
+
+    "re-discover endpoints on failure" in {
+      val service1materializer = akka.stream.ActorMaterializer.create(system)
+      val service1 = new CountingGreeterServiceImpl()
+      val service2 = new CountingGreeterServiceImpl()
+
+      val server1 =
+        Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0)(service1materializer).futureValue
+      val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
+
+      val discovery = new MutableServiceDiscovery(List(server1))
+      val client = GreeterServiceClient(
+        GrpcClientSettings
+          .usingServiceDiscovery("greeter", discovery)
+          .withTls(false)
+          .withGrpcLoadBalancingType("round_robin"))
+
+      val requestsPerServer = 2
+
+      for (i <- 1 to requestsPerServer) {
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+      }
+
+      discovery.setServices(List(server2))
+
+      // This is rather heavy-handed, but surprisingly it seems just terminating
+      // the binding isn't sufficient to actually abort the existing connection.
+      server1.unbind().futureValue
+      server1.terminate(hardDeadline = 100.milliseconds).futureValue
+      service1materializer.shutdown()
+      Thread.sleep(100)
+
+      for (i <- 1 to requestsPerServer) {
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+      }
+
+      service1.greetings.get + service2.greetings.get should be(2 * requestsPerServer)
+      service1.greetings.get should be(requestsPerServer)
+      service2.greetings.get should be(requestsPerServer)
     }
   }
 
