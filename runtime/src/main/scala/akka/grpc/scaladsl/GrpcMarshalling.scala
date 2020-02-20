@@ -18,7 +18,6 @@ import io.grpc.Status
 import scala.concurrent.Future
 
 object GrpcMarshalling {
-  @deprecated("To be removed", "grpc-web")
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     GrpcProtocol
       .negotiate(req)
@@ -29,7 +28,6 @@ object GrpcMarshalling {
       .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
-  @deprecated("To be removed", "grpc-web")
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
     GrpcProtocol

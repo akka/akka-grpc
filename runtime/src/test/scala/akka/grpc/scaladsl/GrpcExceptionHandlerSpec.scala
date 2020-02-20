@@ -61,7 +61,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
       s"Correctly map $e" in {
         val exp = GrpcResponseHelpers.status(defaultMapper(system)(e))
         val expChunks = getChunks(exp)
-        val act = default(defaultMapper(system))(system)(e).futureValue
+        val act = GrpcExceptionHandler.defaultHandler(defaultMapper(system))(system, marshaller)(e).futureValue
         val actChunks = getChunks(act)
         // Following is because aren't equal
         act.status shouldBe exp.status
