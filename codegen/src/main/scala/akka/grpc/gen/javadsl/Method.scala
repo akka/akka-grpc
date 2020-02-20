@@ -28,8 +28,8 @@ final case class Method(
     else "GrpcMarshalling.unmarshal"
 
   def marshal =
-    if (outputStreaming) "GrpcMarshalling.marshalStream"
-    else "GrpcMarshalling.marshal"
+    if (outputStreaming) "GrpcMarshalling.marshalStream2"
+    else "GrpcMarshalling.marshal2"
 
   def inputTypeUnboxed = getMessageType(inputType)
   def outputTypeUnboxed = getMessageType(outputType)

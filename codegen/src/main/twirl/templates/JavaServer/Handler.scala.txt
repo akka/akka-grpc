@@ -18,6 +18,7 @@ import akka.stream.Materializer;
 
 import akka.grpc.Codec;
 import akka.grpc.Codecs;
+import akka.grpc.GrpcProtocol;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
 import akka.grpc.javadsl.package$;
@@ -31,6 +32,9 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 
     private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
       HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+
+    private static final CompletionStage<HttpResponse> unsupportedMediaType = CompletableFuture.completedFuture(
+      HttpResponse.create().withStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE));
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -102,32 +106,39 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
           String method = segments.next();
           if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-          else return handle(req, method, implementation, mat, eHandler, system).exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, system));
+          else return handle(req, method, implementation, mat, eHandler, system);
         } else {
           return notFound;
         }
       });
     }
 
-      public String getServiceName() {
-        return @{service.name}.name;
-      }
+    public String getServiceName() {
+      return @{service.name}.name;
+    }
 
     private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, io.grpc.Status>> eHandler, ActorSystem system) {
-      Codec responseCodec = Codecs.negotiate(request);
-      @{if(powerApis) { "Metadata metadata = new MetadataImpl(request.getHeaders());" } else { "" }}
-      switch(method) {
-        @for(method <- service.methods) {
-        case "@method.grpcName":
-          return @{method.unmarshal}(request, @method.deserializer.name, mat)
-            .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
-            .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, responseCodec, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
-        }
-        default:
-          CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-          result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
-          return result;
-      }
+      return GrpcProtocol.negotiateProtocol(request).map(pair -> {
+        CompletionStage<GrpcProtocol.GrpcProtocolUnmarshaller> maybeUnmarshaller = pair.first();
+        GrpcProtocol.GrpcProtocolMarshaller marshaller = pair.second();
+        return maybeUnmarshaller.thenCompose(unmarshaller -> {
+          @{if(powerApis) { "Metadata metadata = new MetadataImpl(request.getHeaders());" } else { "" }}
+          switch(method) {
+            @for(method <- service.methods) {
+            case "@method.grpcName":
+              return @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, unmarshaller)
+                .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
+                .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, marshaller, system, package$.MODULE$.scalaAnonymousPartialFunction(eHandler)));
+            }
+            default:
+              CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+              result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
+              return result;
+          }
+        })
+        .exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, marshaller, system));
+      })
+      .orElseGet(() -> unsupportedMediaType);
     }
   }
 }
