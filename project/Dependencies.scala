@@ -16,7 +16,7 @@ object Dependencies {
 
     val grpc = "1.27.1" // checked synced by GrpcVersionSyncCheckPlugin
 
-    val scalaTest = "3.1.0"
+    val scalaTest = "3.1.1"
 
     val maven = "3.6.3"
   }
