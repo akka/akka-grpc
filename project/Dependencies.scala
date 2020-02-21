@@ -54,7 +54,7 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
-    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % "3.1.1.0" % "test" // Apache V2
+    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }
