@@ -10,7 +10,7 @@ import akka.annotation.InternalApi
 import akka.grpc.{ GrpcServiceException, ProtobufSerializer }
 import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolMarshaller, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpMessage, HttpResponse, ResponseEntity }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -20,7 +20,7 @@ import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * Some helpers for creating HTTP responses for use with gRPC
+ * Some helpers for creating HTTP entities for use with gRPC.
  *
  * INTERNAL API
  */
@@ -31,14 +31,14 @@ object GrpcResponseHelpers {
       mat: Materializer,
       marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(trailer(Status.OK)))
+    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(trailer(Status.OK)), eHandler)
+    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
@@ -56,7 +56,10 @@ object GrpcResponseHelpers {
       marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse = {
     implicit val ec: ExecutionContext = mat.executionContext
-    GrpcResponseHelpers(e, Source.lazilyAsync(() => status.map(trailer)).mapMaterializedValue(_ => NotUsed), eHandler)
+    GrpcResponseHelpers(
+      e,
+      Source.lazilyAsync(() => status.map(GrpcEntityHelpers.trailer)).mapMaterializedValue(_ => NotUsed),
+      eHandler)
   }
 
   def apply[T](
@@ -67,14 +70,7 @@ object GrpcResponseHelpers {
       mat: Materializer,
       marshaller: GrpcProtocolMarshaller,
       system: ActorSystem): HttpResponse = {
-    response(e.map { msg => DataFrame(m.serialize(msg)) }.concat(trail).via(marshaller.frameEncoder).recover {
-      case t =>
-        val status = eHandler(system).orElse[Throwable, Status] {
-          case e: GrpcServiceException => e.status
-          case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
-        }(t)
-        marshaller.encodeFrame(trailer(status))
-    })
+    response(GrpcEntityHelpers(e, trail, eHandler))
   }
 
   private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit marshaller: GrpcProtocolMarshaller) = {
@@ -84,12 +80,6 @@ object GrpcResponseHelpers {
   }
 
   def status(status: Status)(implicit marshaller: GrpcProtocolMarshaller): HttpResponse =
-    response(Source.single(marshaller.encodeFrame(trailer(status))))
+    response(Source.single(marshaller.encodeFrame(GrpcEntityHelpers.trailer(status))))
 
-  private def trailer(status: Status): TrailerFrame =
-    TrailerFrame(statusHeaders(status))
-
-  def statusHeaders(status: Status): List[HttpHeader] =
-    List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>
-      headers.`Status-Message`(d))
 }

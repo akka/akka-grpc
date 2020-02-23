@@ -6,10 +6,16 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolMarshaller, GrpcProtocolUnmarshaller }
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.grpc.internal.{
+  CancellationBarrierGraphStage,
+  GrpcRequestHelpers,
+  GrpcResponseHelpers,
+  MissingParameterException
+}
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
@@ -89,6 +95,28 @@ object GrpcMarshalling {
     implicit val grpc: GrpcProtocolMarshaller = Grpc.newMarshaller(codec)
     marshalStream2(e, eHandler)
   }
+
+  @InternalApi
+  def marshalRequest[T](
+      uri: Uri,
+      e: T,
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      marshaller: GrpcProtocolMarshaller,
+      system: ActorSystem): HttpRequest =
+    marshalStreamRequest(uri, Source.single(e), eHandler)
+
+  @InternalApi
+  def marshalStreamRequest[T](
+      uri: Uri,
+      e: Source[T, NotUsed],
+      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      marshaller: GrpcProtocolMarshaller,
+      system: ActorSystem): HttpRequest =
+    GrpcRequestHelpers(uri, e, eHandler)
 
   def marshal2[T](
       e: T = Identity,

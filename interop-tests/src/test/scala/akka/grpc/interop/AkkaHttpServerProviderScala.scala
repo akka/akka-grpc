@@ -7,7 +7,7 @@ package akka.grpc.interop
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.{ Grpc, Identity }
-import akka.grpc.internal.GrpcResponseHelpers
+import akka.grpc.internal.{ GrpcEntityHelpers, GrpcResponseHelpers }
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
 import akka.stream.Materializer
@@ -53,8 +53,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   // Route to pass the 'status_code_and_message' test
   def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer, system: ActorSystem): Route = {
     implicit val ec = mat.executionContext
-    implicit val codec = Identity
-    implicit val grpc = Grpc.newMarshaller(codec)
+    implicit val grpc = Grpc.newMarshaller(Identity)
 
     import TestServiceMarshallers._
 
@@ -68,7 +67,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           case Some(responseStatus) =>
             mapTrailingResponseHeaders(
               _ =>
-                GrpcResponseHelpers.statusHeaders(
+                GrpcEntityHelpers.statusHeaders(
                   Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
