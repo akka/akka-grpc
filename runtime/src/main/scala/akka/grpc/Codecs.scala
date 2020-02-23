@@ -27,7 +27,12 @@ object Codecs {
    * @return a codec to compress data frame bodies with, which will be [[Identity]] unless the client specifies support for another supported encoding.
    */
   def negotiate(request: jm.HttpRequest): Codec =
-    `Message-Accept-Encoding`.findIn(request.getHeaders).headOption.map(byName(_)).getOrElse(Identity)
+    `Message-Accept-Encoding`
+      .findIn(request.getHeaders)
+      .intersect(supported)
+      .headOption
+      .map(byName(_))
+      .getOrElse(Identity)
 
   /**
    * Determines the `Message-Encoding` specified in a request.
