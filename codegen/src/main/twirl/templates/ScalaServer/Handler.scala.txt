@@ -7,7 +7,7 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 
 import akka.grpc.Codecs
 import akka.grpc.GrpcProtocol
@@ -24,8 +24,8 @@ import akka.stream.Materializer
 
 @defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   object @{serviceName}Handler {
-    private val notFound = Future.successful(HttpResponse(StatusCodes.NotFound))
-    private val unsupportedMediaType = Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
+    private val notFound = scala.concurrent.Future.successful(HttpResponse(StatusCodes.NotFound))
+    private val unsupportedMediaType = scala.concurrent.Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -34,7 +34,7 @@ import akka.stream.Materializer
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
-    def apply(implementation: @serviceName)(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
+    def apply(implementation: @serviceName)(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation).orElse { case _ => notFound }
 
     /**
@@ -44,7 +44,7 @@ import akka.stream.Materializer
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
-    def apply(implementation: @serviceName, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
+    def apply(implementation: @serviceName, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation, @{service.name}.name, eHandler).orElse { case _ => notFound }
 
     /**
@@ -56,7 +56,7 @@ import akka.stream.Materializer
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def apply(implementation: @serviceName, prefix: String)(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
+    def apply(implementation: @serviceName, prefix: String)(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation, prefix).orElse { case _ => notFound }
 
     /**
@@ -68,7 +68,7 @@ import akka.stream.Materializer
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => Future[HttpResponse] =
+    def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation, prefix, eHandler).orElse { case _ => notFound }
 
     /**
@@ -80,11 +80,11 @@ import akka.stream.Materializer
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer, system: ActorSystem): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+    def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer, system: ActorSystem): PartialFunction[HttpRequest, scala.concurrent.Future[HttpResponse]] = {
       implicit val ec: ExecutionContext = mat.executionContext
       import @{service.name}.Serializers._
 
-      def handle(request: HttpRequest, method: String): Future[HttpResponse] =
+      def handle(request: HttpRequest, method: String): scala.concurrent.Future[HttpResponse] =
         GrpcMarshalling.negotiated(request, (unmarshaller, marshaller) =>
           (method match {
             @for(method <- service.methods) {
@@ -94,7 +94,7 @@ import akka.stream.Materializer
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
                   .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, mat, marshaller, system))
             }
-            case m => Future.failed(new NotImplementedError(s"Not implemented: $m"))
+            case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
           .recoverWith(GrpcExceptionHandler.defaultHandler(eHandler(system))(system, marshaller))
       ).getOrElse(unsupportedMediaType)
