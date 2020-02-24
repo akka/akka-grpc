@@ -19,13 +19,12 @@ import scala.util.{ Failure, Success }
 class AkkaDiscoveryNameResolver(
     discovery: ServiceDiscovery,
     defaultPort: Int,
-    authority: String,
+    serviceName: String,
     portName: Option[String],
     protocol: Option[String],
     resolveTimeout: FiniteDuration)(implicit val ec: ExecutionContext)
     extends NameResolver {
-  // TODO
-  override def getServiceAuthority: String = authority
+  override def getServiceAuthority: String = serviceName
 
   val listener: Promise[Listener] = Promise()
 
@@ -41,7 +40,7 @@ class AkkaDiscoveryNameResolver(
     }
 
   def lookup(listener: Listener): Unit = {
-    discovery.lookup(Lookup(authority, portName, protocol), resolveTimeout).onComplete {
+    discovery.lookup(Lookup(serviceName, portName, protocol), resolveTimeout).onComplete {
       case Success(result) =>
         try {
           listener.onAddresses(addresses(result.addresses), Attributes.EMPTY)
