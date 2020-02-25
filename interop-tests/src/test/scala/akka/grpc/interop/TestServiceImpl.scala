@@ -5,7 +5,7 @@
 package akka.grpc.interop
 
 import akka.NotUsed
-import akka.grpc.scaladsl.GrpcServiceException
+import akka.grpc.GrpcServiceException
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Flow, Source }
 import com.google.protobuf.ByteString

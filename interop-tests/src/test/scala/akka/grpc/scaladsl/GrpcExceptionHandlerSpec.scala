@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import scala.util.Try
 
 import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.GrpcEntityHelpers
 import akka.http.impl.util.Rendering

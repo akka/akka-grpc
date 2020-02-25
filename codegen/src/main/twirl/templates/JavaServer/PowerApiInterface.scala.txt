@@ -10,7 +10,7 @@ package @service.packageName;
 import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 import akka.grpc.javadsl.Metadata;
-import akka.grpc.javadsl.GrpcServiceException;
+import akka.grpc.GrpcServiceException;
 import io.grpc.Status;
 
 public interface @{service.name}PowerApi extends @{service.name} {

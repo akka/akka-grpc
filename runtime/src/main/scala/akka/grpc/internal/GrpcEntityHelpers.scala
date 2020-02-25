@@ -8,14 +8,8 @@ import io.grpc.Status
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ Codec, Grpc, ProtobufSerializer }
-import akka.grpc.javadsl.{ GrpcServiceException => jGrpcServiceException }
-import akka.grpc.scaladsl.{
-  GrpcErrorResponse,
-  GrpcExceptionHandler,
-  headers,
-  GrpcServiceException => sGrpcServiceException
-}
+import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
+import akka.grpc.scaladsl.{ headers, GrpcErrorResponse, GrpcExceptionHandler }
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.HttpHeader
@@ -36,9 +30,8 @@ object GrpcEntityHelpers {
     HttpEntity.Chunked(Grpc.contentType, chunks(e, trail).recover {
       case t =>
         val e = eHandler(system).orElse[Throwable, GrpcErrorResponse] {
-          case e: sGrpcServiceException => GrpcErrorResponse(e.status, e.headers)
-          case e: jGrpcServiceException => GrpcErrorResponse(e.status, GrpcExceptionHelper.asScala(e.headers))
-          case e: Exception             => GrpcErrorResponse(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
+          case e: GrpcServiceException => GrpcErrorResponse(e.status, e.headers)
+          case e: Exception            => GrpcErrorResponse(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
         }(t)
         trailer(e.status, e.headers)
     })

@@ -12,6 +12,7 @@ import io.grpc.Status
 import scala.concurrent.ExecutionException
 
 import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
 import akka.grpc.internal.MissingParameterException
 import akka.http.javadsl.model.{ HttpHeader, HttpResponse }
 import akka.japi.{ Function => jFunction }
@@ -38,7 +39,7 @@ object GrpcExceptionHandler {
         case e: CompletionException =>
           if (e.getCause == null) INTERNAL
           else default(system)(e.getCause)
-        case grpcException: GrpcServiceException => GrpcErrorResponse(grpcException.status, grpcException.headers)
+        case grpcException: GrpcServiceException => GrpcErrorResponse(grpcException.getStatus, grpcException.getHeaders)
         case _: MissingParameterException        => INVALID_ARGUMENT
         case _: NotImplementedError              => UNIMPLEMENTED
         case _: UnsupportedOperationException    => UNIMPLEMENTED

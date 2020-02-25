@@ -7,13 +7,7 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.javadsl.{ GrpcServiceException => jGrpcServiceException }
-import akka.grpc.scaladsl.{
-  headers,
-  GrpcErrorResponse,
-  GrpcExceptionHandler,
-  GrpcServiceException => sGrpcServiceException
-}
+import akka.grpc.scaladsl.{ headers, GrpcErrorResponse, GrpcExceptionHandler }
 import akka.grpc.{ Codec, Grpc, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }

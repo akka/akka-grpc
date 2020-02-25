@@ -5,7 +5,7 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.collection.immutable
 
-import akka.grpc.scaladsl.{GrpcMarshalling, GrpcServiceException}
+import akka.grpc.scaladsl.{GrpcMarshalling}
 
 import akka.NotUsed
 import akka.grpc._

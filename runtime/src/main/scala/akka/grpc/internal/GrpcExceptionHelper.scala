@@ -34,4 +34,6 @@ object GrpcExceptionHelper {
       : ActorSystem => PartialFunction[Throwable, sGrpcErrorResponse] =
     scalaAnonymousPartialFunction(m).andThen(f => f.andThen(asScala _))
 
+  def asJava(s: Seq[sHttpHeader]): jIterable[jHttpHeader] =
+    s.map(_.asInstanceOf[jHttpHeader]).asJava
 }

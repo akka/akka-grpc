@@ -5,6 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
 import akka.http.scaladsl.model.HttpEntity._

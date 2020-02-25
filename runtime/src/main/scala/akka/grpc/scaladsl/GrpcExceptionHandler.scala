@@ -8,8 +8,9 @@ import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
-
 import scala.concurrent.{ ExecutionException, Future }
+
+import akka.grpc.GrpcServiceException
 
 object GrpcExceptionHandler {
   private val INTERNAL = GrpcErrorResponse(Status.INTERNAL)
