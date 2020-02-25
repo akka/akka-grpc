@@ -79,6 +79,21 @@ object GrpcClientSettings {
   }
 
   /**
+   * Configure the client to lookup a valid hostname:port from a service registry accessed via the provided `ServiceDiscovery`.
+   * When invoking a lookup operation on the service registry, a
+   * name is required and optionally a port name and a protocol. This factory method only requires a `serviceName`.
+   * Use `withServicePortName` and `withServiceProtocol` to refine the lookup on the service registry.
+   *
+   * @param serviceName name of the remote service to lookup.
+   */
+  def usingServiceDiscovery(serviceName: String, discovery: ServiceDiscovery)(
+      implicit actorSystem: ActorSystem): GrpcClientSettings = {
+    val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
+    withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
+  }
+
+  /**
    * Configure client via the provided Config. See reference.conf for configuration properties.
    */
   def fromConfig(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
@@ -144,7 +159,7 @@ object GrpcClientSettings {
       case _          => Duration.fromNanos(underlying.getDuration(path).toNanos)
     }
 
-  private def staticServiceDiscovery(host: String, port: Int) =
+  private[grpc] def staticServiceDiscovery(host: String, port: Int) =
     new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
 
   /**
@@ -239,6 +254,9 @@ final class GrpcClientSettings private (
     copy(creationAttempts = value)
   def withCreationDelay(delay: FiniteDuration): GrpcClientSettings =
     copy(creationDelay = delay)
+
+  def withGrpcLoadBalancingType(loadBalancingType: String): GrpcClientSettings =
+    copy(grpcLoadBalancingType = Some(loadBalancingType))
 
   /**
    * How many times to retry establishing a connection before failing the client

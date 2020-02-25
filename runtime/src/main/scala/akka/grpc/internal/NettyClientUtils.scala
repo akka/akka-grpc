@@ -40,44 +40,41 @@ object NettyClientUtils {
    */
   @InternalApi
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
-      implicit ec: ExecutionContext): Future[InternalChannel] =
-    settings.serviceDiscovery
-      .lookup(Lookup(settings.serviceName, settings.servicePortName, settings.serviceProtocol), settings.resolveTimeout)
-      .flatMap { targets =>
-        if (targets.addresses.nonEmpty) {
-          val target = targets.addresses(ThreadLocalRandom.current().nextInt(targets.addresses.size))
-          var builder =
-            NettyChannelBuilder
-              .forAddress(target.host, target.port.getOrElse(settings.defaultPort))
-              .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
+      implicit ec: ExecutionContext): Future[InternalChannel] = {
+    var builder =
+      NettyChannelBuilder
+      // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
+      // we follow their lead and encode the service name as the 'authority' of the URI.
+        .forTarget("//" + settings.serviceName)
+        .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
+        .nameResolverFactory(
+          new AkkaDiscoveryNameResolverProvider(
+            settings.serviceDiscovery,
+            settings.defaultPort,
+            settings.servicePortName,
+            settings.serviceProtocol,
+            settings.resolveTimeout))
 
-          if (!settings.useTls)
-            builder = builder.usePlaintext()
-          else {
-            builder = settings.sslContext
-              .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
-              .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
-          }
+    if (!settings.useTls)
+      builder = builder.usePlaintext()
+    else {
+      builder = settings.sslContext
+        .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
+        .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+    }
 
-          builder = settings.grpcLoadBalancingType
-            .map(builder.defaultLoadBalancingPolicy(_))
-            .map(_.nameResolverFactory(new DnsNameResolverProvider()))
-            .getOrElse(builder)
-          builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
-          builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
-          builder = settings.channelBuilderOverrides(builder)
+    builder = settings.grpcLoadBalancingType.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)
+    builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
+    builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
+    builder = settings.channelBuilderOverrides(builder)
 
-          val channel = builder.build()
+    val channel = builder.build()
 
-          val promise = Promise[Done]()
-          ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts, log)
+    val promise = Promise[Done]()
+    ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts, log)
 
-          Future.successful(InternalChannel(channel, promise.future))
-        } else {
-          val failure = new NoTargetException("No targets returned for name: " + settings.serviceName)
-          Future.failed(failure)
-        }
-      }
+    Future.successful(InternalChannel(channel, promise.future))
+  }
 
   /**
    * INTERNAL API
