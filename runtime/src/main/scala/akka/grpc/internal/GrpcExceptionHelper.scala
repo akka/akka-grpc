@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018-2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.internal
 
 import akka.japi.{ Function => jFunction }
@@ -28,7 +32,6 @@ object GrpcExceptionHelper {
 
   def asScala(m: jFunction[ActorSystem, jFunction[Throwable, jGrpcErrorResponse]])
       : ActorSystem => PartialFunction[Throwable, sGrpcErrorResponse] =
-    scalaAnonymousPartialFunction(m).andThen(f => f.andThen(asScala))
     scalaAnonymousPartialFunction(m).andThen(f => f.andThen(asScala _))
 
 }
