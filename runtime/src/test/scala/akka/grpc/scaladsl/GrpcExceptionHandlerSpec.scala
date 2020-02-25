@@ -5,7 +5,6 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
 import akka.http.scaladsl.model.HttpEntity._
@@ -50,7 +49,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
     (otherTypes ++ executionExceptions).foreach { e =>
       val exp = expected(e)
       s"Map $e to $exp" in {
-        defaultMapper(system)(e) shouldBe exp
+        defaultMapper(system)(e).status shouldBe exp
       }
     }
   }

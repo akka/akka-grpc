@@ -7,14 +7,19 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
+import akka.grpc.javadsl.{ GrpcServiceException => jGrpcServiceException }
+import akka.grpc.scaladsl.{
+  headers,
+  GrpcErrorResponse,
+  GrpcExceptionHandler,
+  GrpcServiceException => sGrpcServiceException
+}
+import akka.grpc.{ Codec, Grpc, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
-
 import scala.collection.immutable
 import scala.concurrent.Future
 
@@ -32,7 +37,7 @@ object GrpcResponseHelpers {
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
-  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
+  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -49,7 +54,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       status: Future[Status],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status])(
+      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -64,7 +69,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       trail: Source[HttpEntity.LastChunk, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -75,6 +80,7 @@ object GrpcResponseHelpers {
       entity = GrpcEntityHelpers(e, trail, eHandler))
   }
 
-  def status(status: Status): HttpResponse =
-    HttpResponse(entity = HttpEntity.Chunked(Grpc.contentType, Source.single(GrpcEntityHelpers.trailer(status))))
+  def status(e: GrpcErrorResponse): HttpResponse =
+    HttpResponse(entity =
+      HttpEntity.Chunked(Grpc.contentType, Source.single(GrpcEntityHelpers.trailer(e.status, e.headers))))
 }

@@ -8,7 +8,7 @@
 package @service.packageName
 
 import akka.grpc.scaladsl.Metadata
-import akka.grpc.GrpcServiceException
+import akka.grpc.scaladsl.GrpcServiceException
 
 import io.grpc.Status
 

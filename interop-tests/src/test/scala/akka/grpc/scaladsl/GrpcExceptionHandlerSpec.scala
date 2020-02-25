@@ -5,21 +5,26 @@
 package akka.grpc.scaladsl
 
 import scala.concurrent.Future
+import scala.util.Try
 
 import akka.actor.ActorSystem
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.GrpcEntityHelpers
+import akka.http.impl.util.Rendering
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
+import akka.http.scaladsl.model.headers.{
+  ModeledCompanion,
+  ModeledCustomHeader,
+  ModeledCustomHeaderCompanion,
+  ResponseHeader
+}
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
-
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpecLike
-
 import akka.testkit.TestKit
-
 import io.grpc.testing.integration.test.TestService
 
 class GrpcExceptionHandlerSpec
@@ -50,6 +55,18 @@ class GrpcExceptionHandlerSpec
       }
     }
 
+    final class RichErrorHeader(data: String) extends ModeledCustomHeader[RichErrorHeader] {
+      override def renderInRequests = false
+      override def renderInResponses = true
+      override val companion = RichErrorHeader
+      override def value: String = data
+    }
+
+    object RichErrorHeader extends ModeledCustomHeaderCompanion[RichErrorHeader] {
+      override val name = "x-rich-error-header"
+      override def parse(value: String) = Try(new RichErrorHeader(value))
+    }
+
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
 
@@ -61,7 +78,6 @@ class GrpcExceptionHandlerSpec
 
       //#unary
       //#streaming
-      import akka.grpc.GrpcServiceException
       import io.grpc.Status
 
       //#unary
@@ -72,7 +88,10 @@ class GrpcExceptionHandlerSpec
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
-          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found")))
+          Future.failed(
+            new GrpcServiceException(
+              Status.INVALID_ARGUMENT.withDescription("No name found"),
+              List(RichErrorHeader("test-data"))))
         else
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
@@ -83,7 +102,10 @@ class GrpcExceptionHandlerSpec
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)
-          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found")))
+          Source.failed(
+            new GrpcServiceException(
+              Status.INVALID_ARGUMENT.withDescription("No name found"),
+              List(RichErrorHeader("test-data"))))
         else
           myResponseSource
       }
@@ -114,6 +136,8 @@ class GrpcExceptionHandlerSpec
       statusHeader.map(_.value()) should be(Some("3"))
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
+      val richErrorHeader = lastChunk.trailer.find { _.name == RichErrorHeader.name }
+      richErrorHeader.map(_.value()) should be(Some("test-data"))
     }
   }
 }

@@ -9,7 +9,7 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling }
+import akka.grpc.scaladsl.{ GrpcErrorResponse, GrpcExceptionHandler, GrpcMarshalling }
 import akka.grpc.Codecs
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
@@ -41,7 +41,7 @@ import akka.stream.Materializer
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
-    def apply(implementation: @serviceName, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
+    def apply(implementation: @serviceName, eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation, @{service.name}.name, eHandler).orElse { case _ => notFound }
 
     /**
@@ -65,7 +65,7 @@ import akka.stream.Materializer
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
+    def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(implicit mat: Materializer, system: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
       partial(implementation, prefix, eHandler).orElse { case _ => notFound }
 
     /**
@@ -77,7 +77,7 @@ import akka.stream.Materializer
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, io.grpc.Status] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer, system: ActorSystem): PartialFunction[HttpRequest, scala.concurrent.Future[HttpResponse]] = {
+    def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(implicit mat: Materializer, system: ActorSystem): PartialFunction[HttpRequest, scala.concurrent.Future[HttpResponse]] = {
       implicit val ec: ExecutionContext = mat.executionContext
       import @{service.name}.Serializers._
 

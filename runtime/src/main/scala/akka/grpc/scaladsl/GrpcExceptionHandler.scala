@@ -5,7 +5,6 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
@@ -13,22 +12,25 @@ import io.grpc.Status
 import scala.concurrent.{ ExecutionException, Future }
 
 object GrpcExceptionHandler {
+  private val INTERNAL = GrpcErrorResponse(Status.INTERNAL)
+  private val UNIMPLEMENTED = GrpcErrorResponse(Status.UNIMPLEMENTED)
+  private val INVALID_ARGUMENT = GrpcErrorResponse(Status.INVALID_ARGUMENT)
 
-  def default(mapper: PartialFunction[Throwable, Status])(
+  def default(mapper: PartialFunction[Throwable, GrpcErrorResponse])(
       implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =
     mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
 
-  def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Status] = {
+  def defaultMapper(system: ActorSystem): PartialFunction[Throwable, GrpcErrorResponse] = {
     case e: ExecutionException =>
-      if (e.getCause == null) Status.INTERNAL
+      if (e.getCause == null) INTERNAL
       else defaultMapper(system)(e.getCause)
-    case grpcException: GrpcServiceException => grpcException.status
-    case _: NotImplementedError              => Status.UNIMPLEMENTED
-    case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
-    case _: MissingParameterException        => Status.INVALID_ARGUMENT
+    case grpcException: GrpcServiceException => GrpcErrorResponse(grpcException.status, grpcException.headers)
+    case _: NotImplementedError              => UNIMPLEMENTED
+    case _: UnsupportedOperationException    => UNIMPLEMENTED
+    case _: MissingParameterException        => INVALID_ARGUMENT
     case other =>
       system.log.error(other, s"Unhandled error: [${other.getMessage}].")
-      Status.INTERNAL
+      INTERNAL
   }
 
   def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =

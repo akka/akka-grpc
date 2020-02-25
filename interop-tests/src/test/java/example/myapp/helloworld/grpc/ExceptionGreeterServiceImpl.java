@@ -18,7 +18,7 @@ import akka.stream.javadsl.Source;
 //#streaming
 
 import io.grpc.Status;
-import akka.grpc.GrpcServiceException;
+import akka.grpc.javadsl.GrpcServiceException;
 
 //#unary
 //#streaming

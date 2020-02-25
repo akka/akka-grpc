@@ -5,12 +5,17 @@
 package akka.grpc.internal
 
 import io.grpc.Status
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
-import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
+import akka.grpc.{ Codec, Grpc, ProtobufSerializer }
+import akka.grpc.javadsl.{ GrpcServiceException => jGrpcServiceException }
+import akka.grpc.scaladsl.{
+  GrpcErrorResponse,
+  GrpcExceptionHandler,
+  headers,
+  GrpcServiceException => sGrpcServiceException
+}
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.HttpHeader
@@ -23,18 +28,19 @@ object GrpcEntityHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       trail: Source[HttpEntity.LastChunk, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status])(
+      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
       system: ActorSystem): HttpEntity.Chunked = {
     HttpEntity.Chunked(Grpc.contentType, chunks(e, trail).recover {
       case t =>
-        val status = eHandler(system).orElse[Throwable, Status] {
-          case e: GrpcServiceException => e.status
-          case e: Exception            => Status.UNKNOWN.withCause(e).withDescription("Stream failed")
+        val e = eHandler(system).orElse[Throwable, GrpcErrorResponse] {
+          case e: sGrpcServiceException => GrpcErrorResponse(e.status, e.headers)
+          case e: jGrpcServiceException => GrpcErrorResponse(e.status, GrpcExceptionHelper.asScala(e.headers))
+          case e: Exception             => GrpcErrorResponse(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
         }(t)
-        trailer(status)
+        trailer(e.status, e.headers)
     })
   }
 
@@ -52,8 +58,8 @@ object GrpcEntityHelpers {
       system: ActorSystem) =
     e.map(m.serialize).via(Grpc.grpcFramingEncoder(codec)).map(bytes => HttpEntity.Chunk(bytes)).concat(trail)
 
-  def trailer(status: Status): LastChunk =
-    LastChunk(trailer = statusHeaders(status))
+  def trailer(status: Status, headers: Seq[HttpHeader] = Nil): LastChunk =
+    LastChunk(trailer = statusHeaders(status) ++ headers)
 
   def statusHeaders(status: Status): List[HttpHeader] =
     List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>
