@@ -2,7 +2,7 @@ package akka.grpc.interop
 
 import java.io.InputStream
 
-import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, SSLContextUtils}
+import akka.grpc.{GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils}
 import akka.stream.Materializer
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Sink, Source}
