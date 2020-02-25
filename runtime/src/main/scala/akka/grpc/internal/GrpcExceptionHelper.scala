@@ -29,5 +29,6 @@ object GrpcExceptionHelper {
   def asScala(m: jFunction[ActorSystem, jFunction[Throwable, jGrpcErrorResponse]])
       : ActorSystem => PartialFunction[Throwable, sGrpcErrorResponse] =
     scalaAnonymousPartialFunction(m).andThen(f => f.andThen(asScala))
+    scalaAnonymousPartialFunction(m).andThen(f => f.andThen(asScala _))
 
 }
