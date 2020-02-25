@@ -9,6 +9,9 @@ import io.grpc.Status
 
 class GrpcServiceException(val status: Status, val headers: Seq[HttpHeader])
     extends RuntimeException(status.getDescription) {
+
+  require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
+
   def this(status: Status) {
     this(status, Nil)
   }
