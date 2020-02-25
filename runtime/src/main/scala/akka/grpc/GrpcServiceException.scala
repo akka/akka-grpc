@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018-2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc
 
 import java.lang.{ Iterable => jIterable }
