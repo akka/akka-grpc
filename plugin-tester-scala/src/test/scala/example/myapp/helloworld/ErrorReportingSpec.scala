@@ -5,23 +5,23 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcProtocolNative
+import akka.grpc.internal.GrpcProtocolNative
+import akka.http.scaladsl.{ Http, HttpConnectionContext }
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.{ Http, HttpConnectionContext }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandler }
 import io.grpc.Status
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
 
 class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val sys = ActorSystem()

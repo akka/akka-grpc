@@ -5,19 +5,35 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocol, GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
+import akka.grpc.GrpcProtocol
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
-import akka.http.scaladsl.model.headers.{ `Access-Control-Request-Method`, Origin }
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MarshallingDirectives.handleWith
 import akka.stream.Materializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
+import ch.megard.akka.http.cors.scaladsl.model.HttpHeaderRange
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 
 import scala.collection.immutable
 import scala.concurrent.Future
 
 object ServiceHandler {
+
+  /** Default CORS settings to use for grpc-web */
+  val defaultCorsSettings: CorsSettings = CorsSettings.defaultSettings
+    .withAllowCredentials(true)
+    .withAllowedMethods(immutable.Seq(HttpMethods.POST, HttpMethods.OPTIONS))
+    .withExposedHeaders(immutable.Seq(headers.`Status`.name, headers.`Status-Message`.name, `Content-Encoding`.name))
+    .withAllowedHeaders(
+      HttpHeaderRange(
+        "x-user-agent",
+        "x-grpc-web",
+        `Content-Type`.name,
+        Accept.name,
+        "grpc-timeout",
+        `Accept-Encoding`.name))
 
   private val handlerNotFound: PartialFunction[HttpRequest, Future[HttpResponse]] = {
     case _ => Future.successful(HttpResponse(StatusCodes.NotFound))
@@ -61,7 +77,7 @@ object ServiceHandler {
 
     private var grpcServices = immutable.Seq.empty[PartialFunction[HttpRequest, Future[HttpResponse]]]
     private var grpcWebServices = immutable.Seq.empty[PartialFunction[HttpRequest, Future[HttpResponse]]]
-    private var corsSettings: CorsSettings = GrpcProtocolWeb.defaultCorsSettings
+    private var corsSettings: CorsSettings = defaultCorsSettings
 
     /**
      * Specifies a set of gRPC services to be served using the `application-grpc+proto` protocol.

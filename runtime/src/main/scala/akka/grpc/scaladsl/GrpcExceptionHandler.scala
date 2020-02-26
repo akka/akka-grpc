@@ -5,9 +5,9 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocolNative, GrpcServiceException, Identity }
+import akka.grpc.{ GrpcServiceException, Identity }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
 

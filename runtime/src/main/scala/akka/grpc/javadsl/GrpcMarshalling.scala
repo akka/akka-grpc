@@ -10,7 +10,12 @@ import java.util.Optional
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc._
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{
+  CancellationBarrierGraphStage,
+  GrpcProtocolNative,
+  GrpcResponseHelpers,
+  MissingParameterException
+}
 import akka.grpc.scaladsl.{ GrpcExceptionHandler => sGrpcExceptionHandler }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }

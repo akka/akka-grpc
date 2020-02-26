@@ -2,6 +2,7 @@ package akka.grpc
 
 import akka.NotUsed
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ ContentType, HttpHeader }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -16,7 +17,7 @@ import scala.util.Try
 trait GrpcProtocol {
 
   /** The canonical media type to use for this protocol variant */
-  val contentType: ContentType
+  val contentType: ContentType.Binary
 
   /** The set of media types that can identify this protocol variant (e.g. including an implicit +proto) */
   val mediaTypes: Set[jmodel.MediaType]
@@ -40,12 +41,6 @@ trait GrpcProtocol {
 object GrpcProtocol {
 
   private val grpcVariants: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol)
-
-  /** Field marker to signal the start of an uncompressed frame */
-  val notCompressed: ByteString = ByteString(0)
-
-  /** Field marker to signal the start of an frame compressed according to the Message-Encoding from the header */
-  val compressed: ByteString = ByteString(1)
 
   /** A frame in a logical gRPC protocol stream */
   sealed trait Frame

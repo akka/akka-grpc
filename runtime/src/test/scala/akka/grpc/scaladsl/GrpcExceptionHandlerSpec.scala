@@ -5,20 +5,20 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocolNative, GrpcServiceException, Identity }
-import akka.grpc.internal.GrpcResponseHelpers
-import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
+import akka.grpc.{ GrpcServiceException, Identity }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers }
+import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
 import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import io.grpc.Status
-import scala.concurrent.{ ExecutionException, Future }
-
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.concurrent.{ ExecutionException, Future }
 
 class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem("Test")

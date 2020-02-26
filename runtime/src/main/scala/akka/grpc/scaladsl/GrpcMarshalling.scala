@@ -9,12 +9,7 @@ import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
-import akka.grpc.internal.{
-  CancellationBarrierGraphStage,
-  GrpcRequestHelpers,
-  GrpcResponseHelpers,
-  MissingParameterException
-}
+import akka.grpc.internal._
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
@@ -39,9 +34,7 @@ object GrpcMarshalling {
     }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
-  def negotiated[T](
-      req: HttpRequest,
-      f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
+  def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
       case (maybeReader, writer) =>
         maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)

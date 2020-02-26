@@ -12,10 +12,10 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.grpc.Codec
-import akka.grpc.GrpcProtocolNative
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.GrpcMarshalling
+import akka.grpc.internal.GrpcProtocolNative
 import akka.http.scaladsl.marshalling.Marshaller
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.HttpRequest

@@ -4,21 +4,21 @@
 
 package akka.grpc.scaladsl
 
-import scala.concurrent.Future
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocolNative, Identity }
+import akka.grpc.Identity
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers }
 import akka.grpc.scaladsl.headers.`Status`
-import akka.grpc.internal.{ GrpcEntityHelpers, GrpcRequestHelpers }
-import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.wordspec.AnyWordSpecLike
 import akka.testkit.TestKit
 import io.grpc.testing.integration.test.TestService
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+
+import scala.concurrent.Future
 
 class GrpcExceptionHandlerSpec
     extends TestKit(ActorSystem("GrpcExceptionHandlerSpec"))
@@ -98,7 +98,6 @@ class GrpcExceptionHandlerSpec
     }
 
     "return the correct user-supplied status for a unary call" in {
-      import akka.http.scaladsl.client.RequestBuilding._
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
       implicit val marshaller = GrpcProtocolNative.newWriter(Identity)

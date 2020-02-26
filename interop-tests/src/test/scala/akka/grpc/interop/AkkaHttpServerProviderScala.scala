@@ -6,8 +6,8 @@ package akka.grpc.interop
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocolNative, Identity }
-import akka.grpc.internal.{ GrpcEntityHelpers, GrpcResponseHelpers }
+import akka.grpc.Identity
+import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcResponseHelpers }
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
 import akka.stream.Materializer
