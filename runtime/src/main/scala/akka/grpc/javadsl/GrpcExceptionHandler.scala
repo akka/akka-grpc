@@ -6,16 +6,15 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import io.grpc.Status
-
-import scala.concurrent.ExecutionException
-
 import akka.actor.ActorSystem
-import akka.grpc.{ Grpc, GrpcServiceException, Identity }
-import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
+import akka.grpc.{ GrpcProtocolNative, GrpcServiceException, Identity }
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
+import io.grpc.Status
+
+import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
   def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Status]] =
@@ -43,22 +42,23 @@ object GrpcExceptionHandler {
   }
 
   @Deprecated
-  def standard(t: Throwable, system: ActorSystem): HttpResponse = standard(t, defaultMapper, system)
+  def standard(t: Throwable, system: ActorSystem): HttpResponse =
+    standard(t, defaultMapper, GrpcProtocolNative.newWriter(Identity), system)
 
   @Deprecated
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],
       system: ActorSystem): HttpResponse =
-    standard(t, mapper, Grpc.newMarshaller(Identity), system)
+    standard(t, mapper, GrpcProtocolNative.newWriter(Identity), system)
 
-  def standard(t: Throwable, marshaller: GrpcProtocolMarshaller, system: ActorSystem): HttpResponse =
-    standard(t, default, marshaller, system)
+  def standard(t: Throwable, writer: GrpcProtocolWriter, system: ActorSystem): HttpResponse =
+    standard(t, default, writer, system)
 
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Status]],
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers.status(mapper(system)(t))(marshaller)
+    GrpcResponseHelpers.status(mapper(system)(t))(writer)
 }

@@ -6,10 +6,10 @@ package akka.grpc.scaladsl
 
 import scala.concurrent.Future
 import akka.actor.ActorSystem
-import akka.grpc.{ Grpc, Identity }
+import akka.grpc.{ GrpcProtocolNative, Identity }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.{ GrpcEntityHelpers, GrpcRequestHelpers }
-import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
@@ -31,8 +31,8 @@ class GrpcExceptionHandlerSpec
   "The default ExceptionHandler" should {
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
       implicit val serializer = TestService.Serializers.SimpleRequestSerializer
-      implicit val marshaller = Grpc.newMarshaller(Identity)
-      val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(Grpc.contentType))
+      implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
+      val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(GrpcProtocolNative.contentType))
 
       val result: Future[HttpResponse] = GrpcMarshalling
         .unmarshal(unmarshallableRequest)
@@ -101,7 +101,7 @@ class GrpcExceptionHandlerSpec
       import akka.http.scaladsl.client.RequestBuilding._
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
-      implicit val marshaller = Grpc.newMarshaller(Identity)
+      implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
 
       val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", Source.single(HelloRequest("")))
 

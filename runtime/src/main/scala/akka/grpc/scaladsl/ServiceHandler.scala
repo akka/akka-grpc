@@ -5,7 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ Grpc, GrpcVariant, GrpcWeb, GrpcWebText }
+import akka.grpc.{ GrpcProtocol, GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.headers.{ `Access-Control-Request-Method`, Origin }
 import akka.http.scaladsl.server.Route
@@ -23,11 +23,11 @@ object ServiceHandler {
     case _ => Future.successful(HttpResponse(StatusCodes.NotFound))
   }
 
-  private def matchesVariant(variants: Set[GrpcVariant])(request: HttpRequest) =
+  private def matchesVariant(variants: Set[GrpcProtocol])(request: HttpRequest) =
     variants.exists(_.mediaTypes.contains(request.entity.contentType.mediaType))
 
-  private val isGrpcRequest: HttpRequest => Boolean = matchesVariant(Set(Grpc))
-  private val isGrpcWebRequest: HttpRequest => Boolean = matchesVariant(Set(GrpcWeb, GrpcWebText))
+  private val isGrpcRequest: HttpRequest => Boolean = matchesVariant(Set(GrpcProtocolNative))
+  private val isGrpcWebRequest: HttpRequest => Boolean = matchesVariant(Set(GrpcProtocolWeb, GrpcWebTextProtocol))
 
   private def isCorsPreflightRequest(r: HttpRequest): Boolean =
     r.method == HttpMethods.OPTIONS && r.header[Origin].isDefined && r.header[`Access-Control-Request-Method`].isDefined
@@ -61,7 +61,7 @@ object ServiceHandler {
 
     private var grpcServices = immutable.Seq.empty[PartialFunction[HttpRequest, Future[HttpResponse]]]
     private var grpcWebServices = immutable.Seq.empty[PartialFunction[HttpRequest, Future[HttpResponse]]]
-    private var corsSettings: CorsSettings = GrpcWeb.defaultCorsSettings
+    private var corsSettings: CorsSettings = GrpcProtocolWeb.defaultCorsSettings
 
     /**
      * Specifies a set of gRPC services to be served using the `application-grpc+proto` protocol.

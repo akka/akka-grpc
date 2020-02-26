@@ -1,7 +1,7 @@
 package akka.grpc
 
 import akka.NotUsed
-import akka.grpc.GrpcProtocol.{ GrpcProtocolMarshaller, GrpcProtocolUnmarshaller }
+import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ ContentType, HttpHeader }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -13,7 +13,7 @@ import scala.util.Try
 /**
  * A variant of the gRPC protocol - e.g. gRPC and gRPC-Web
  */
-trait GrpcVariant {
+trait GrpcProtocol {
 
   /** The canonical media type to use for this protocol variant */
   val contentType: ContentType
@@ -22,16 +22,16 @@ trait GrpcVariant {
   val mediaTypes: Set[jmodel.MediaType]
 
   /**
-   * Constructs a marshaller for writing gRPC protocol frames for this variant
+   * Constructs a protocol writer for writing gRPC protocol frames for this variant
    * @param codec the compression codec to encode data frame bodies with.
    */
-  def newMarshaller(codec: Codec): GrpcProtocolMarshaller
+  def newWriter(codec: Codec): GrpcProtocolWriter
 
   /**
-   * Constructs an unmarshaller for reading gRPC protocol frames for this variant.
+   * Constructs a protocol reader for reading gRPC protocol frames for this variant.
    * @param codec the compression codec to decode data frame bodies with.
    */
-  def newUnmarshaller(codec: Codec): GrpcProtocolUnmarshaller
+  def newReader(codec: Codec): GrpcProtocolReader
 }
 
 /**
@@ -39,7 +39,7 @@ trait GrpcVariant {
  */
 object GrpcProtocol {
 
-  private val grpcVariants: Seq[GrpcVariant] = Seq(Grpc, GrpcWeb, GrpcWebText)
+  private val grpcVariants: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol)
 
   /** Field marker to signal the start of an uncompressed frame */
   val notCompressed: ByteString = ByteString(0)
@@ -61,8 +61,8 @@ object GrpcProtocol {
    *
    * This maps the logical gRPC frames into a stream of chunks that can be handled by the HTTP/2 or HTTP/1.1 transport layer.
    */
-  case class GrpcProtocolMarshaller(
-      /** The media type produced by this marshaller */
+  case class GrpcProtocolWriter(
+      /** The media type produced by this writer */
       contentType: ContentType,
       /** The compression codec to be used for data frame bodies */
       messageEncoding: Codec,
@@ -74,7 +74,7 @@ object GrpcProtocol {
   /**
    * Implements the decoding of the gRPC framing from a physical/transport layer.
    */
-  case class GrpcProtocolUnmarshaller(
+  case class GrpcProtocolReader(
       /** The compression codec to be used for data frames */
       messageEncoding: Codec,
       /** A Flow of Frames over a stream of messages encoded in gRPC framing. */
@@ -93,25 +93,25 @@ object GrpcProtocol {
 
   /**
    * Detects which gRPC protocol variant is indicated in a request.
-   * @return a [[GrpcVariant]] matching the request mediatype if specified and known.
+   * @return a [[GrpcProtocol]] matching the request mediatype if specified and known.
    */
-  def detect(request: jmodel.HttpRequest): Option[GrpcVariant] = detect(request.entity.getContentType.mediaType)
+  def detect(request: jmodel.HttpRequest): Option[GrpcProtocol] = detect(request.entity.getContentType.mediaType)
 
   /**
    * Detects which gRPC protocol variant is indicated by a mediatype.
-   * @return a [[GrpcVariant]] matching the request mediatype if known.
+   * @return a [[GrpcProtocol]] matching the request mediatype if known.
    */
-  def detect(mediaType: jmodel.MediaType): Option[GrpcVariant] = grpcVariants.find(_.mediaTypes.contains(mediaType))
+  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = grpcVariants.find(_.mediaTypes.contains(mediaType))
 
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.
    *
    * @param request the client request to respond to.
-   * @return the request unmarshaller, and the response marshaller.
+   * @return the protocol reader for the request, and a protocol writer for the response.
    */
-  def negotiate(request: jmodel.HttpRequest): Option[(Try[GrpcProtocolUnmarshaller], GrpcProtocolMarshaller)] =
+  def negotiate(request: jmodel.HttpRequest): Option[(Try[GrpcProtocolReader], GrpcProtocolWriter)] =
     detect(request).map { variant =>
-      (Codecs.detect(request).map(variant.newUnmarshaller), variant.newMarshaller(Codecs.negotiate(request)))
+      (Codecs.detect(request).map(variant.newReader), variant.newWriter(Codecs.negotiate(request)))
     }
 
 }

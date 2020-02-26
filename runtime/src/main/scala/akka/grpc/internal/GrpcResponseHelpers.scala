@@ -7,10 +7,10 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ GrpcServiceException, ProtobufSerializer }
-import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolMarshaller, TrailerFrame }
+import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
+import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpMessage, HttpResponse, ResponseEntity }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -29,21 +29,21 @@ object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper _)
 
@@ -53,7 +53,7 @@ object GrpcResponseHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
     implicit val ec: ExecutionContext = mat.executionContext
     GrpcResponseHelpers(
@@ -68,18 +68,18 @@ object GrpcResponseHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
     response(GrpcEntityHelpers(e, trail, eHandler))
   }
 
-  private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit marshaller: GrpcProtocolMarshaller) = {
+  private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit writer: GrpcProtocolWriter) = {
     HttpResponse(
-      headers = immutable.Seq(headers.`Message-Encoding`(marshaller.messageEncoding.name)),
-      entity = HttpEntity.Chunked(marshaller.contentType, entity))
+      headers = immutable.Seq(headers.`Message-Encoding`(writer.messageEncoding.name)),
+      entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 
-  def status(status: Status)(implicit marshaller: GrpcProtocolMarshaller): HttpResponse =
-    response(Source.single(marshaller.encodeFrame(GrpcEntityHelpers.trailer(status))))
+  def status(status: Status)(implicit writer: GrpcProtocolWriter): HttpResponse =
+    response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(status))))
 
 }

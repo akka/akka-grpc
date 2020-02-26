@@ -5,7 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ Grpc, GrpcServiceException, Identity }
+import akka.grpc.{ GrpcProtocolNative, GrpcServiceException, Identity }
 import akka.grpc.internal.GrpcResponseHelpers
 import akka.grpc.scaladsl.GrpcExceptionHandler.{ default, defaultMapper }
 import akka.http.scaladsl.model.HttpEntity._
@@ -25,7 +25,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
   implicit val materializer = ActorMaterializer()
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
-  implicit val marshaller = Grpc.newMarshaller(Identity)
+  implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
   val expected: Function[Throwable, Status] = {
     case e: ExecutionException =>
@@ -61,7 +61,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
       s"Correctly map $e" in {
         val exp = GrpcResponseHelpers.status(defaultMapper(system)(e))
         val expChunks = getChunks(exp)
-        val act = GrpcExceptionHandler.defaultHandler(defaultMapper(system))(system, marshaller)(e).futureValue
+        val act = GrpcExceptionHandler.defaultHandler(defaultMapper(system))(system, writer)(e).futureValue
         val actChunks = getChunks(act)
         // Following is because aren't equal
         act.status shouldBe exp.status

@@ -2,9 +2,9 @@ package akka.grpc
 
 import java.util.Base64
 
-import akka.grpc.Grpc.GrpcFramingDecoderStage
+import akka.grpc.GrpcProtocolNative.GrpcFramingDecoderStage
 import akka.grpc.GrpcProtocol._
-import akka.grpc.GrpcWebGen.{ marshaller, unmarshaller }
+import akka.grpc.GrpcWebGen.{ reader, writer }
 import akka.grpc.scaladsl.headers
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart }
@@ -18,7 +18,7 @@ import io.grpc.{ Status, StatusException }
 
 import scala.collection.immutable
 
-trait GrpcWebVariant extends GrpcVariant {
+trait GrpcWebVariant extends GrpcProtocol {
   override val contentType: ContentType.Binary
 
   def postEncode(frame: ByteString): ByteString
@@ -28,10 +28,10 @@ trait GrpcWebVariant extends GrpcVariant {
 /**
  * Implementation of the gRPC Web protocol.
  */
-object GrpcWeb extends GrpcWebVariant {
+object GrpcProtocolWeb extends GrpcWebVariant {
 
   /** Default CORS settings to use for grpc-web */
-  val defaultCorsSettings = CorsSettings.defaultSettings
+  val defaultCorsSettings: CorsSettings = CorsSettings.defaultSettings
     .withAllowCredentials(true)
     .withAllowedMethods(immutable.Seq(HttpMethods.POST, HttpMethods.OPTIONS))
     .withExposedHeaders(immutable.Seq(headers.`Status`.name, headers.`Status-Message`.name, `Content-Encoding`.name))
@@ -44,7 +44,7 @@ object GrpcWeb extends GrpcWebVariant {
         "grpc-timeout",
         `Accept-Encoding`.name))
 
-  override val contentType = MediaType.applicationBinary("grpc-web+proto", MediaType.NotCompressible).toContentType
+  override val contentType: ContentType.Binary = MediaType.applicationBinary("grpc-web+proto", MediaType.NotCompressible).toContentType
   private val shortMediaType = MediaType.applicationBinary("grpc-web", MediaType.NotCompressible)
 
   override val mediaTypes: Set[jmodel.MediaType] = Set(contentType.mediaType, shortMediaType)
@@ -54,39 +54,39 @@ object GrpcWeb extends GrpcWebVariant {
   override def postEncode(frame: ByteString): ByteString = frame
 
   /**
-   * Obtains a marshaller for the `application/grpc-web+proto` protocol:
+   * Obtains a writer for the `application/grpc-web+proto` protocol:
    *  - Data frames are encoded to a stream of [[Chunk]] as per the gRPC-web specification.
    *  - Trailer frames are encoded to a [[Chunk]] (containing a marked trailer frame) as per the gRPC-web specification.
    *
    * @param codec the compression codec to apply to data frame contents.
    */
-  override def newMarshaller(codec: Codec): GrpcProtocolMarshaller = codec match {
-    case Identity => grpcWebIdentityMarshaller
-    case Gzip     => grpcWebGzipMarshaller
-    case _        => marshaller(GrpcWeb, codec)
+  override def newWriter(codec: Codec): GrpcProtocolWriter = codec match {
+    case Identity => grpcWebIdentityWriter
+    case Gzip     => grpcWebGzipWriter
+    case _        => writer(GrpcProtocolWeb, codec)
   }
 
-  override def newUnmarshaller(codec: Codec): GrpcProtocolUnmarshaller = codec match {
-    case Identity => grpcWebIdentityUnmarshaller
-    case Gzip     => grpcWebGzipUnmarshaller
-    case _        => unmarshaller(GrpcWeb, codec)
+  override def newReader(codec: Codec): GrpcProtocolReader = codec match {
+    case Identity => grpcWebIdentityReader
+    case Gzip     => grpcWebGzipReader
+    case _        => reader(GrpcProtocolWeb, codec)
   }
 
-  private val grpcWebIdentityMarshaller = marshaller(GrpcWeb, Identity)
-  private val grpcWebGzipMarshaller = marshaller(GrpcWeb, Gzip)
-  private val grpcWebIdentityUnmarshaller = unmarshaller(GrpcWeb, Identity)
-  private val grpcWebGzipUnmarshaller = unmarshaller(GrpcWeb, Gzip)
+  private val grpcWebIdentityWriter = writer(GrpcProtocolWeb, Identity)
+  private val grpcWebGzipWriter = writer(GrpcProtocolWeb, Gzip)
+  private val grpcWebIdentityReader = reader(GrpcProtocolWeb, Identity)
+  private val grpcWebGzipReader = reader(GrpcProtocolWeb, Gzip)
 
 }
 
 /**
- * The ``application/grpc-web-text+proto`` variant of gRPC.
+ * The `application/grpc-web-text+proto` variant of gRPC.
  *
- * This is the same as ``application/grpc-web+proto``, but with each chunk of the frame encoded gRPC data also base64 encoded.
+ * This is the same as `application/grpc-web+proto`, but with each chunk of the frame encoded gRPC data also base64 encoded.
  */
-object GrpcWebText extends GrpcWebVariant {
+object GrpcWebTextProtocol extends GrpcWebVariant {
 
-  override val contentType = MediaType.applicationBinary("grpc-web-text+proto", MediaType.Compressible).toContentType
+  override val contentType: ContentType.Binary = MediaType.applicationBinary("grpc-web-text+proto", MediaType.Compressible).toContentType
   private val shortMediaType = MediaType.applicationBinary("grpc-web-text", MediaType.Compressible)
 
   override val mediaTypes: Set[jmodel.MediaType] = Set(contentType.mediaType, shortMediaType)
@@ -95,37 +95,36 @@ object GrpcWebText extends GrpcWebVariant {
 
   override def preDecode(frame: ByteString): ByteString = ByteString(Base64.getDecoder.decode(frame.toByteBuffer))
 
-  override def newMarshaller(codec: Codec): GrpcProtocolMarshaller = codec match {
-    case Identity => grpcWebTextIdentityMarshaller
-    case Gzip     => grpcWebTextGzipMarshaller
-    case _        => marshaller(GrpcWebText, codec)
+  override def newWriter(codec: Codec): GrpcProtocolWriter = codec match {
+    case Identity => grpcWebTextIdentityWriter
+    case Gzip     => grpcWebTextGzipWriter
+    case _        => writer(GrpcWebTextProtocol, codec)
   }
 
-  override def newUnmarshaller(codec: Codec): GrpcProtocolUnmarshaller = codec match {
-    case Identity => grpcWebTextIdentityUnmarshaller
-    case Gzip     => grpcWebTextGzipUnmarshaller
-    case _        => unmarshaller(GrpcWebText, codec)
+  override def newReader(codec: Codec): GrpcProtocolReader = codec match {
+    case Identity => grpcWebTextIdentityReader
+    case Gzip     => grpcWebTextGzipReader
+    case _        => reader(GrpcWebTextProtocol, codec)
   }
 
-  // Pre-defined supported marshallers
-  private val grpcWebTextIdentityMarshaller = marshaller(GrpcWebText, Identity)
-  private val grpcWebTextGzipMarshaller = marshaller(GrpcWebText, Gzip)
-  private val grpcWebTextIdentityUnmarshaller = unmarshaller(GrpcWebText, Identity)
-  private val grpcWebTextGzipUnmarshaller = unmarshaller(GrpcWebText, Gzip)
+  private val grpcWebTextIdentityWriter = writer(GrpcWebTextProtocol, Identity)
+  private val grpcWebTextGzipWriter = writer(GrpcWebTextProtocol, Gzip)
+  private val grpcWebTextIdentityReader = reader(GrpcWebTextProtocol, Identity)
+  private val grpcWebTextGzipReader = reader(GrpcWebTextProtocol, Gzip)
 
 }
 
 private[grpc] object GrpcWebGen {
 
-  private[grpc] def marshaller(variant: GrpcWebVariant, codec: Codec): GrpcProtocolMarshaller =
-    GrpcProtocolMarshaller(
-      Grpc.adjustCompressibility(variant.contentType, codec),
+  private[grpc] def writer(variant: GrpcWebVariant, codec: Codec): GrpcProtocolWriter =
+    GrpcProtocolWriter(
+      GrpcProtocolNative.adjustCompressibility(variant.contentType, codec),
       codec,
       encodeFrame(variant, codec, _),
       Flow[Frame].map(encodeFrame(variant, codec, _)))
 
-  private[grpc] def unmarshaller(variant: GrpcWebVariant, codec: Codec) =
-    GrpcProtocolUnmarshaller(
+  private[grpc] def reader(variant: GrpcWebVariant, codec: Codec) =
+    GrpcProtocolReader(
       codec,
       Flow[ByteString]
         .map(frame => variant.preDecode(frame))
@@ -138,7 +137,7 @@ private[grpc] object GrpcWebGen {
       case DataFrame(data)       => (dataFrameType, data)
       case TrailerFrame(trailer) => (ByteString(dataFrameType(0) | 0x80), encodeTrailer(trailer))
     }
-    val framed = Grpc.encodeFrameData(frameType, codec.compress(data))
+    val framed = GrpcProtocolNative.encodeFrameData(frameType, codec.compress(data))
     Chunk(variant.postEncode(framed))
   }
 

@@ -1,7 +1,7 @@
 package akka.grpc.internal
 import akka.actor.ActorSystem
 import akka.grpc.{ Codecs, ProtobufSerializer }
-import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -22,19 +22,19 @@ object GrpcRequestHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      marshaller: GrpcProtocolMarshaller,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpRequest =
     request(uri, GrpcEntityHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler))
 
   private def request[T](uri: Uri, entity: Source[ChunkStreamPart, NotUsed])(
-      implicit marshaller: GrpcProtocolMarshaller): HttpRequest = {
+      implicit writer: GrpcProtocolWriter): HttpRequest = {
     HttpRequest(
       uri = uri,
       method = HttpMethods.POST,
       headers = immutable.Seq(
-        headers.`Message-Encoding`(marshaller.messageEncoding.name),
+        headers.`Message-Encoding`(writer.messageEncoding.name),
         headers.`Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(","))),
-      entity = HttpEntity.Chunked(marshaller.contentType, entity))
+      entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 
 }

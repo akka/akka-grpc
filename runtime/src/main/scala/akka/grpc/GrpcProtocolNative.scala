@@ -4,11 +4,10 @@
 
 package akka.grpc
 
-import akka.NotUsed
-import akka.grpc.GrpcProtocol.{ GrpcProtocolMarshaller, _ }
+import akka.grpc.GrpcProtocol._
 import akka.http.javadsl.{ model => jmodel }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, LastChunk }
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, LastChunk }
 import akka.stream.Attributes
 import akka.stream.impl.io.ByteStringParser
 import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep }
@@ -20,7 +19,7 @@ import io.grpc.{ Status, StatusException }
 /**
  * Implementation of the gRPC protocol.
  */
-object Grpc extends GrpcVariant {
+object GrpcProtocolNative extends GrpcProtocol {
 
   /** The `application/grpc+proto` content type */
   override val contentType = MediaType.applicationBinary("grpc+proto", MediaType.Compressible).toContentType
@@ -37,43 +36,43 @@ object Grpc extends GrpcVariant {
   override val mediaTypes: Set[jmodel.MediaType] = Set(contentType.mediaType, shortMediaType)
 
   /**
-   * Obtains a marshaller for the `application/grpc+proto` protocol:
+   * Obtains a writer for the `application/grpc+proto` protocol:
    *  - Data frames are encoded to a stream of [[Chunk]] as per the gRPC specification
    *  - Trailer frames are encoded to [[LastChunk]], to be rendered into the underlying HTTP/2 transport
    *
    * @param codec the compression codec to apply to data frame contents.
    */
-  override def newMarshaller(codec: Codec): GrpcProtocolMarshaller = codec match {
-    case Identity => grpcIdentityMarshaller
-    case Gzip     => grpcGzipMarshaller
-    case _        => marshaller(codec)
+  override def newWriter(codec: Codec): GrpcProtocolWriter = codec match {
+    case Identity => grpcIdentityWriter
+    case Gzip     => grpcGzipWriter
+    case _        => writer(codec)
   }
 
   /**
-   * Obtains an unmarshaller for the `application/grpc+proto` protocol.
+   * Obtains an reader for the `application/grpc+proto` protocol.
    *
    * @param codec the codec to use for compressed frames.
    */
-  override def newUnmarshaller(codec: Codec): GrpcProtocolUnmarshaller = codec match {
-    case Identity => grpcIdentityUnMarshaller
-    case Gzip     => grpcGzipUnMarshaller
-    case _        => unmarshaller(codec)
+  override def newReader(codec: Codec): GrpcProtocolReader = codec match {
+    case Identity => grpcIdentityReader
+    case Gzip     => grpcGzipReader
+    case _        => reader(codec)
   }
 
-  private val grpcIdentityMarshaller = marshaller(Identity)
-  private val grpcGzipMarshaller = marshaller(Gzip)
-  private val grpcIdentityUnMarshaller = unmarshaller(Identity)
-  private val grpcGzipUnMarshaller = unmarshaller(Gzip)
+  private val grpcIdentityWriter = writer(Identity)
+  private val grpcGzipWriter = writer(Gzip)
+  private val grpcIdentityReader = reader(Identity)
+  private val grpcGzipReader = reader(Gzip)
 
-  private def marshaller(codec: Codec) =
-    GrpcProtocolMarshaller(
-      adjustCompressibility(Grpc.contentType, codec),
+  private def writer(codec: Codec) =
+    GrpcProtocolWriter(
+      adjustCompressibility(GrpcProtocolNative.contentType, codec),
       codec,
-      Grpc.encodeFrame(codec, _),
-      Flow[Frame].map(Grpc.encodeFrame(codec, _)))
+      GrpcProtocolNative.encodeFrame(codec, _),
+      Flow[Frame].map(GrpcProtocolNative.encodeFrame(codec, _)))
 
-  private def unmarshaller(codec: Codec) =
-    GrpcProtocolUnmarshaller(codec, Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame)))
+  private def reader(codec: Codec) =
+    GrpcProtocolReader(codec, Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame)))
 
   private def decodeFrame(frameType: Int, data: ByteString) = DataFrame(data)
 

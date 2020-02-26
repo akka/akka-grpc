@@ -5,8 +5,8 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ Grpc, GrpcServiceException, Identity }
-import akka.grpc.GrpcProtocol.GrpcProtocolMarshaller
+import akka.grpc.{ GrpcProtocolNative, GrpcServiceException, Identity }
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
@@ -18,7 +18,7 @@ object GrpcExceptionHandler {
   @deprecated("To be removed", "grpc-web")
   def default(mapper: PartialFunction[Throwable, Status])(
       implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
+    implicit val writer: GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
     defaultHandler(mapper)
   }
 
@@ -37,18 +37,18 @@ object GrpcExceptionHandler {
 
   @deprecated("To be removed", "grpc-web")
   def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    implicit val marshaller: GrpcProtocolMarshaller = Grpc.newMarshaller(Identity)
+    implicit val writer: GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
     defaultHandler(defaultMapper(system))
   }
 
   def defaultHandler(
       implicit system: ActorSystem,
-      marshaller: GrpcProtocolMarshaller): PartialFunction[Throwable, Future[HttpResponse]] =
+      writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
     defaultHandler(defaultMapper(system))
 
   def defaultHandler(mapper: PartialFunction[Throwable, Status])(
       implicit system: ActorSystem,
-      marshaller: GrpcProtocolMarshaller): PartialFunction[Throwable, Future[HttpResponse]] =
+      writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
     mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
 
 }
