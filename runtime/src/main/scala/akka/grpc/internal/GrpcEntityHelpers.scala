@@ -51,7 +51,7 @@ object GrpcEntityHelpers {
       system: ActorSystem) =
     e.map(m.serialize).via(Grpc.grpcFramingEncoder(codec)).map(bytes => HttpEntity.Chunk(bytes)).concat(trail)
 
-  def trailer(status: Status, headers: Seq[HttpHeader] = Nil): LastChunk =
+  def trailer(status: Status, headers: List[HttpHeader] = Nil): LastChunk =
     LastChunk(trailer = statusHeaders(status) ++ headers)
 
   def statusHeaders(status: Status): List[HttpHeader] =

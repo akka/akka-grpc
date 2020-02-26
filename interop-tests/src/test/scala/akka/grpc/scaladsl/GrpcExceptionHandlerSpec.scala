@@ -56,7 +56,7 @@ class GrpcExceptionHandlerSpec
       }
     }
 
-    final class RichErrorHeader(data: String) extends ModeledCustomHeader[RichErrorHeader] {
+    final case class RichErrorHeader(data: String) extends ModeledCustomHeader[RichErrorHeader] {
       override def renderInRequests = false
       override def renderInResponses = true
       override val companion = RichErrorHeader
@@ -137,8 +137,8 @@ class GrpcExceptionHandlerSpec
       statusHeader.map(_.value()) should be(Some("3"))
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
-      val richErrorHeader = lastChunk.trailer.find { _.name == RichErrorHeader.name }
-      richErrorHeader.map(_.value()) should be(Some("test-data"))
+      val richErrorHeaderValue = lastChunk.trailer.collectFirst { case RichErrorHeader(value) => value }
+      richErrorHeaderValue should be(Some("test-data"))
     }
   }
 }

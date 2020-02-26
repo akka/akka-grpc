@@ -4,9 +4,9 @@
 
 package akka.grpc.javadsl
 
-import java.lang.{ Iterable => jIterable }
+import java.lang.Iterable
 import java.util.concurrent.CompletionException
-import java.util.{ ArrayList => jArrayList }
+import java.util.ArrayList
 
 import io.grpc.Status
 import scala.concurrent.ExecutionException
@@ -18,7 +18,7 @@ import akka.http.javadsl.model.{ HttpHeader, HttpResponse }
 import akka.japi.{ Function => jFunction }
 
 object GrpcExceptionHandler {
-  private val NO_HEADERS: jIterable[HttpHeader] = new jArrayList[HttpHeader]();
+  private val NO_HEADERS: Iterable[HttpHeader] = new ArrayList[HttpHeader]();
 
   private val INVALID_ARGUMENT = GrpcErrorResponse(Status.INVALID_ARGUMENT, NO_HEADERS)
   private val INTERNAL = GrpcErrorResponse(Status.INTERNAL, NO_HEADERS)
