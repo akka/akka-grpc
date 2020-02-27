@@ -8,17 +8,10 @@ import scala.concurrent.Future
 import scala.util.Try
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
+import akka.grpc.{ BytesEntry, GrpcServiceException, StringEntry }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.GrpcEntityHelpers
-import akka.http.impl.util.Rendering
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
-import akka.http.scaladsl.model.headers.{
-  ModeledCompanion,
-  ModeledCustomHeader,
-  ModeledCustomHeaderCompanion,
-  ResponseHeader
-}
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
@@ -26,6 +19,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpecLike
 import akka.testkit.TestKit
+import akka.util.ByteString
 import io.grpc.testing.integration.test.TestService
 
 class GrpcExceptionHandlerSpec
@@ -56,17 +50,8 @@ class GrpcExceptionHandlerSpec
       }
     }
 
-    final case class RichErrorHeader(data: String) extends ModeledCustomHeader[RichErrorHeader] {
-      override def renderInRequests = false
-      override def renderInResponses = true
-      override val companion = RichErrorHeader
-      override def value: String = data
-    }
-
-    object RichErrorHeader extends ModeledCustomHeaderCompanion[RichErrorHeader] {
-      override val name = "x-rich-error-header"
-      override def parse(value: String) = Try(new RichErrorHeader(value))
-    }
+    val metadata =
+      Map("test-string" -> StringEntry("test-string-data"), "test-bytes" -> BytesEntry(ByteString("test-bytes-data")))
 
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
@@ -89,10 +74,7 @@ class GrpcExceptionHandlerSpec
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
-          Future.failed(
-            new GrpcServiceException(
-              Status.INVALID_ARGUMENT.withDescription("No name found"),
-              List(RichErrorHeader("test-data"))))
+          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
         else
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
@@ -103,10 +85,7 @@ class GrpcExceptionHandlerSpec
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)
-          Source.failed(
-            new GrpcServiceException(
-              Status.INVALID_ARGUMENT.withDescription("No name found"),
-              List(RichErrorHeader("test-data"))))
+          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
         else
           myResponseSource
       }
@@ -137,8 +116,32 @@ class GrpcExceptionHandlerSpec
       statusHeader.map(_.value()) should be(Some("3"))
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
-      val richErrorHeaderValue = lastChunk.trailer.collectFirst { case RichErrorHeader(value) => value }
-      richErrorHeaderValue should be(Some("test-data"))
+
+      val metadata = new MetadataImpl(lastChunk.trailer)
+      metadata.getText("test-string") should be(Some("test-string-data"))
+      metadata.getBinary("test-bytes") should be(Some(ByteString("test-bytes-data")))
+    }
+
+    "return the correct user-supplied status for a streaming call" in {
+      import akka.http.scaladsl.client.RequestBuilding._
+      implicit val serializer =
+        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
+      implicit val codec = akka.grpc.Identity
+
+      val request = Get(s"/${GreeterService.name}/ItKeepsReplying", GrpcEntityHelpers(HelloRequest("")))
+
+      val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
+
+      val lastChunk = reply.entity.asInstanceOf[Chunked].chunks.runWith(Sink.last).futureValue.asInstanceOf[LastChunk]
+      // Invalid argument is '3' https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+      val statusHeader = lastChunk.trailer.find { _.name == "grpc-status" }
+      statusHeader.map(_.value()) should be(Some("3"))
+      val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
+      statusMessageHeader.map(_.value()) should be(Some("No name found"))
+
+      val metadata = new MetadataImpl(lastChunk.trailer)
+      metadata.getText("test-string") should be(Some("test-string-data"))
+      metadata.getBinary("test-bytes") should be(Some(ByteString("test-bytes-data")))
     }
   }
 }

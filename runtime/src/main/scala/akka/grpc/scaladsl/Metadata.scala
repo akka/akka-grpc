@@ -9,8 +9,9 @@ import java.util.Base64
 import akka.annotation.DoNotInherit
 import akka.http.scaladsl.model.HttpHeader
 import akka.util.ByteString
-
 import scala.collection.immutable
+
+import akka.grpc.{ BytesEntry, MetadataEntry, StringEntry }
 
 /**
  * Immutable representation of the metadata in a call

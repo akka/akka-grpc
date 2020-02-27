@@ -6,7 +6,6 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
-import io.grpc.Status
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
@@ -14,13 +13,7 @@ import akka.japi.Function
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.grpc._
-import akka.grpc.internal.{
-  CancellationBarrierGraphStage,
-  GrpcExceptionHelper,
-  GrpcResponseHelpers,
-  MissingParameterException
-}
-import akka.grpc.scaladsl.{ GrpcErrorResponse => sGrpcErrorResponse, GrpcExceptionHandler => sGrpcExceptionHandler }
+import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 
 object GrpcMarshalling {
@@ -72,10 +65,10 @@ object GrpcMarshalling {
       system: ActorSystem,
       eHandler: Function[ActorSystem, Function[Throwable, GrpcErrorResponse]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
-    GrpcResponseHelpers(e.asScala, GrpcExceptionHelper.asScala(eHandler))(m, mat, Identity, system)
+    GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, mat, Identity, system)
 
   def status(e: GrpcErrorResponse): HttpResponse =
-    GrpcResponseHelpers.status(GrpcExceptionHelper.asScala(e))
+    GrpcResponseHelpers.status(e)
 
   private def failure[R](error: Throwable): CompletableFuture[R] = {
     val future: java.util.concurrent.CompletableFuture[R] = new CompletableFuture();

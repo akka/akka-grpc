@@ -9,8 +9,9 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import akka.grpc.scaladsl.{ GrpcErrorResponse, GrpcExceptionHandler, GrpcMarshalling }
+import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling }
 import akka.grpc.Codecs
+import akka.grpc.GrpcErrorResponse
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.Uri.Path

@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2020 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc.scaladsl
+package akka.grpc
 
 import akka.util.ByteString
 

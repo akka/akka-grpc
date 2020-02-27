@@ -4,15 +4,27 @@
 
 package akka.grpc.internal
 
+import java.util.Base64
+
 import io.grpc.Status
-import akka.NotUsed
+import akka.{ grpc, NotUsed }
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer }
-import akka.grpc.scaladsl.{ headers, GrpcErrorResponse, GrpcExceptionHandler }
+import akka.grpc.{
+  BytesEntry,
+  Codec,
+  Grpc,
+  GrpcErrorResponse,
+  GrpcServiceException,
+  MetadataEntry,
+  ProtobufSerializer,
+  StringEntry
+}
+import akka.grpc.scaladsl.headers
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 
@@ -30,10 +42,10 @@ object GrpcEntityHelpers {
     HttpEntity.Chunked(Grpc.contentType, chunks(e, trail).recover {
       case t =>
         val e = eHandler(system).orElse[Throwable, GrpcErrorResponse] {
-          case e: GrpcServiceException => GrpcErrorResponse(e.status, e.headers)
-          case e: Exception            => GrpcErrorResponse(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
+          case e: GrpcServiceException => grpc.GrpcErrorResponse(e.status, e.metadata)
+          case e: Exception            => grpc.GrpcErrorResponse(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
         }(t)
-        trailer(e.status, e.headers)
+        trailer(e.status, e.metadata)
     })
   }
 
@@ -54,7 +66,16 @@ object GrpcEntityHelpers {
   def trailer(status: Status, headers: List[HttpHeader] = Nil): LastChunk =
     LastChunk(trailer = statusHeaders(status) ++ headers)
 
+  def trailer(status: Status, metadata: Map[String, MetadataEntry]): LastChunk =
+    LastChunk(trailer = statusHeaders(status) ++ metadataHeaders(metadata))
+
   def statusHeaders(status: Status): List[HttpHeader] =
     List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>
       headers.`Status-Message`(d))
+
+  def metadataHeaders(metadata: Map[String, MetadataEntry]): List[HttpHeader] =
+    metadata.map {
+      case (key, StringEntry(value)) => RawHeader(key, value)
+      case (key, BytesEntry(value))  => RawHeader(key, new String(Base64.getEncoder.encode(value.toByteBuffer).array))
+    }.toList
 }

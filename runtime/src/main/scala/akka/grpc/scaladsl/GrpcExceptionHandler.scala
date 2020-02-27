@@ -7,15 +7,15 @@ package akka.grpc.scaladsl
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
-import io.grpc.Status
 import scala.concurrent.{ ExecutionException, Future }
 
-import akka.grpc.GrpcServiceException
+import akka.grpc.{ GrpcErrorResponse, GrpcServiceException }
+import io.grpc.Status
 
 object GrpcExceptionHandler {
   private val INTERNAL = GrpcErrorResponse(Status.INTERNAL)
-  private val UNIMPLEMENTED = GrpcErrorResponse(Status.UNIMPLEMENTED)
   private val INVALID_ARGUMENT = GrpcErrorResponse(Status.INVALID_ARGUMENT)
+  private val UNIMPLEMENTED = GrpcErrorResponse(Status.UNIMPLEMENTED)
 
   def default(mapper: PartialFunction[Throwable, GrpcErrorResponse])(
       implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] =
@@ -25,7 +25,7 @@ object GrpcExceptionHandler {
     case e: ExecutionException =>
       if (e.getCause == null) INTERNAL
       else defaultMapper(system)(e.getCause)
-    case grpcException: GrpcServiceException => GrpcErrorResponse(grpcException.status, grpcException.headers)
+    case grpcException: GrpcServiceException => GrpcErrorResponse(grpcException.status, grpcException.metadata)
     case _: NotImplementedError              => UNIMPLEMENTED
     case _: UnsupportedOperationException    => UNIMPLEMENTED
     case _: MissingParameterException        => INVALID_ARGUMENT

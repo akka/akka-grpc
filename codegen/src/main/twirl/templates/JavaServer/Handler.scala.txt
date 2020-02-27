@@ -18,8 +18,8 @@ import akka.stream.Materializer;
 
 import akka.grpc.Codec;
 import akka.grpc.Codecs;
+import akka.grpc.GrpcErrorResponse;
 import akka.grpc.javadsl.GrpcMarshalling;
-import akka.grpc.javadsl.GrpcErrorResponse;
 import akka.grpc.javadsl.GrpcExceptionHandler;
 import akka.grpc.javadsl.package$;
 
