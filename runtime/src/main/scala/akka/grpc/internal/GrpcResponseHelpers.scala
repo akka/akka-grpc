@@ -8,7 +8,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.grpc.{ Codec, Grpc, GrpcErrorResponse, ProtobufSerializer }
+import akka.grpc.{ Codec, Grpc, ProtobufSerializer, Trailers }
 import akka.http.scaladsl.model.HttpEntity.LastChunk
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
 import akka.stream.Materializer
@@ -31,7 +31,7 @@ object GrpcResponseHelpers {
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
-  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(
+  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -48,7 +48,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       status: Future[Status],
-      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse])(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -63,7 +63,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       trail: Source[HttpEntity.LastChunk, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -74,7 +74,7 @@ object GrpcResponseHelpers {
       entity = GrpcEntityHelpers(e, trail, eHandler))
   }
 
-  def status(e: GrpcErrorResponse): HttpResponse =
+  def status(e: Trailers): HttpResponse =
     HttpResponse(entity =
       HttpEntity.Chunked(Grpc.contentType, Source.single(GrpcEntityHelpers.trailer(e.status, e.metadata))))
 }

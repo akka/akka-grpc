@@ -4,25 +4,24 @@
 
 package akka.grpc
 
-import java.util.{ Map => jMap }
-
-import scala.collection.JavaConverters._
 import io.grpc.Status
 
-class GrpcServiceException(val status: Status, val metadata: Map[String, MetadataEntry])
-    extends RuntimeException(status.getDescription) {
+import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
+import akka.grpc.internal.JavaMetadataImpl
+
+class GrpcServiceException(val status: Status, val metadata: Metadata) extends RuntimeException(status.getDescription) {
 
   require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
 
   def this(status: Status) {
-    this(status, Map[String, MetadataEntry]())
+    this(status, MetadataBuilder.empty)
   }
 
   /**
    * Java API: Constructs a service exception which includes response metadata.
    */
-  def this(status: Status, metadata: jMap[String, MetadataEntry]) {
-    this(status, metadata.asScala.toMap)
+  def this(status: Status, metadata: javadsl.Metadata) {
+    this(status, metadata.asScala)
   }
 
   /**
@@ -32,9 +31,9 @@ class GrpcServiceException(val status: Status, val metadata: Map[String, Metadat
     status
 
   /**
-   * Java API: The response headers.
+   * Java API: The response metadata.
    */
-  def getMetadata: jMap[String, MetadataEntry] =
-    metadata.asJava
+  def getMetadata: javadsl.Metadata =
+    new JavaMetadataImpl(metadata)
 
 }

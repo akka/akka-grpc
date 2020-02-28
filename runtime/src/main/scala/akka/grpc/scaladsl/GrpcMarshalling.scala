@@ -4,8 +4,6 @@
 
 package akka.grpc.scaladsl
 
-import io.grpc.Status
-
 import scala.collection.immutable
 import scala.concurrent.Future
 
@@ -55,7 +53,7 @@ object GrpcMarshalling {
 
   def marshal[T](
       e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -65,7 +63,7 @@ object GrpcMarshalling {
   @InternalApi
   def marshalRequest[T](
       e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -77,7 +75,7 @@ object GrpcMarshalling {
 
   def marshalStream[T](
       e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, GrpcErrorResponse] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,

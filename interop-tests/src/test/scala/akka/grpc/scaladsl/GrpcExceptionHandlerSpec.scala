@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import scala.util.Try
 
 import akka.actor.ActorSystem
-import akka.grpc.{ BytesEntry, GrpcServiceException, StringEntry }
+import akka.grpc.GrpcServiceException
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.GrpcEntityHelpers
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
@@ -50,8 +50,10 @@ class GrpcExceptionHandlerSpec
       }
     }
 
-    val metadata =
-      Map("test-string" -> StringEntry("test-string-data"), "test-bytes" -> BytesEntry(ByteString("test-bytes-data")))
+    val metadata = (new MetadataBuilder)
+      .addText("test-text", "test-text-data")
+      .addBinary("test-binary-bin", ByteString("test-binary-data"))
+      .build()
 
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
@@ -117,9 +119,9 @@ class GrpcExceptionHandlerSpec
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
 
-      val metadata = new MetadataImpl(lastChunk.trailer)
-      metadata.getText("test-string") should be(Some("test-string-data"))
-      metadata.getBinary("test-bytes") should be(Some(ByteString("test-bytes-data")))
+      val metadata = MetadataBuilder.fromHeaders(lastChunk.trailer)
+      metadata.getText("test-text") should be(Some("test-text-data"))
+      metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
     }
 
     "return the correct user-supplied status for a streaming call" in {
@@ -139,9 +141,9 @@ class GrpcExceptionHandlerSpec
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
 
-      val metadata = new MetadataImpl(lastChunk.trailer)
-      metadata.getText("test-string") should be(Some("test-string-data"))
-      metadata.getBinary("test-bytes") should be(Some(ByteString("test-bytes-data")))
+      val metadata = MetadataBuilder.fromHeaders(lastChunk.trailer)
+      metadata.getText("test-text") should be(Some("test-text-data"))
+      metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
     }
   }
 }

@@ -6,7 +6,7 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
-import akka.NotUsed
+import akka.{ grpc, NotUsed }
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.japi.Function
@@ -53,7 +53,7 @@ object GrpcMarshalling {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem,
-      eHandler: Function[ActorSystem, Function[Throwable, GrpcErrorResponse]] = GrpcExceptionHandler.defaultMapper)
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     marshalStream(Source.single(e), m, mat, codec, system, eHandler)
 
@@ -63,11 +63,11 @@ object GrpcMarshalling {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem,
-      eHandler: Function[ActorSystem, Function[Throwable, GrpcErrorResponse]] = GrpcExceptionHandler.defaultMapper)
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, mat, Identity, system)
 
-  def status(e: GrpcErrorResponse): HttpResponse =
+  def status(e: Trailers): HttpResponse =
     GrpcResponseHelpers.status(e)
 
   private def failure[R](error: Throwable): CompletableFuture[R] = {
