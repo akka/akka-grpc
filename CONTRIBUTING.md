@@ -98,10 +98,11 @@ Akka gRPC is still in experimental mode, so this section does not apply yet.
 However, once we declare the project stable, we will adhere to the following
 rules:
 
-Binary compatibility rules and guarantees are described in depth in the [Binary Compatibility Rules
-](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html) section of the documentation.
+Our binary compatibility guarantees are described in depth in the
+[Binary Compatibility](https://doc.akka.io/docs/akka-grpc/current/binary-compatibility.html)
+section of the documentation.
 
-Akka HTTP uses MiMa (which is short for [Lightbend Migration Manager](https://github.com/lightbend/migration-manager)) to
+Akka gRPC uses MiMa (which is short for [Lightbend Migration Manager](https://github.com/lightbend/migration-manager)) to
 validate binary compatibility of incoming Pull Requests. If your PR fails due to binary compatibility issues, you may see 
 an error like this:
 
@@ -111,20 +112,28 @@ an error like this:
 [error]    filter with: ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.stream.scaladsl.FlowOps.foldAsync")
 ```
 
-In such situations it's good to consult with a core team member if the violation can be safely ignored (by adding the above snippet to the project's
-`src/main/mima-filters`), or if it would indeed break binary compatibility.
+In such situations it's good to consult with a core team member if the violation can be safely ignored, or if it would
+indeed break binary compatibility in a problematic way.  Situations when it may be fine to ignore a MiMa issued warning include:
 
-Situations when it may be fine to ignore a MiMa issued warning include:
-
-- if it is touching any class marked as `private[akka]`, `/** INTERNAL API*/` or similar markers
+- if it is touching any class marked as `private[akka]`, `/** INTERNAL API*/`, `@InternalApi`, `@ApiMayChange` or similar markers
 - if it is concerning internal classes (often recognisable by package names like `dungeon`, `impl`, `internal` etc.)
-- if it is adding API to classes / traits which are only meant for extension by Akka itself, i.e. should not be extended by end-users
+- if it is adding API to classes / traits which are only meant for extension within the library itself, i.e. should not be extended by end-users
 - other tricky situations
 
-If it turns out that the change can be safely ignored, please add the filter to the submodule's `src/main/mima-filters/<last-released-version>.backwards.excludes` file using (or creating) the file corresponding to the latest released version.
+If it turns out that the change can be safely ignored, please add the filter to a new file in the submodule's `src/main/mima-filters/<last-released-version>.backwards.excludes` directory.
 
 You can run `mimaReportBinaryIssues` on the sbt console to check if you introduced a binary incompatibility or whether an
 incompatibility has been successfully ignored after adding it to the filter file.
+
+### Generated code
+
+Generated code is not checked by MiMa. However, we do want code generated with a previous version of Akka gRPC
+to be usable with later versions. This means you should be extra careful not to introduce binary incompatibilities
+when changing the code generators. Of course, when adding new Akka gRPC features it is not required that those
+features work with code generated for previous versions.
+
+Generated code may call Akka gRPC code that is internal. In those cases we mark those internal API's as
+`@InternalStableApi` to avoid accidentally breaking compatibility.
 
 ## Pull Request Requirements
 
