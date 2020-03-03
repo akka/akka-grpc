@@ -1,0 +1,40 @@
+# Replaced javadsl.MetadataImpl with internal.JavaMetadataImpl adapter.
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.javadsl.MetadataImpl")
+
+# Replaced scaladsl.MetadataImpl with internal.HeaderMetadataImpl.
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.scaladsl.MetadataImpl")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.scaladsl.MetadataImpl$")
+
+# Modified GrpcExceptionHandler to return Trailers instead of io.grpc.Status.
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.javadsl.GrpcExceptionHandler.standard")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.javadsl.GrpcExceptionHandler.default")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.javadsl.GrpcExceptionHandler.defaultMapper")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.status")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcExceptionHandler.default")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshal")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshal$default$2")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshalStream")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshalStream$default$2")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.GrpcResponseHelpers.status")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.internal.GrpcResponseHelpers.apply")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.internal.GrpcResponseHelpers.apply$default$3")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.GrpcResponseHelpers.status")
+
+# Added methods to iterate metadata entries to javadsl.Metadata interface.
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.Metadata.asMap")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.Metadata.asList")
+
+# Added javadsl.Metadata.asScala method.
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.Metadata.asScala")
+
+# Added scaladsl.Metadata.asList method.
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.asList")
+
+# Moved exception handler conversion inside javadsl.GrpcMarshalling.
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshal")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshal$default$6")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshalStream")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshalStream$default$6")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshalStream$default$6")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcMarshalling.marshalStream")
