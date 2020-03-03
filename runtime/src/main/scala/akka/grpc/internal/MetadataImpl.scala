@@ -92,7 +92,7 @@ import akka.grpc.javadsl
  */
 @InternalApi
 class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
-  private lazy val map = MetadataImpl.toMap(asList)
+  private lazy val map = delegate.keys.iterator.asScala.map(key => key -> getEntries(key)).toMap
 
   override def getText(key: String): Option[String] =
     Option(delegate.get(textKey(key)))
@@ -104,14 +104,7 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
     map
 
   override def asList: List[(String, MetadataEntry)] = {
-    delegate.keys.iterator.asScala.flatMap { key =>
-      val entries = if (key.endsWith(io.grpc.Metadata.BINARY_HEADER_SUFFIX)) {
-        delegate.getAll(binaryKey(key)).asScala.map(b => BytesEntry(ByteString.fromArray(b)))
-      } else {
-        delegate.getAll(textKey(key)).asScala.map(s => StringEntry(s))
-      }
-      entries.map(e => (key, e))
-    }.toList
+    delegate.keys.iterator.asScala.flatMap(key => getEntries(key).map(entry => (key, entry))).toList
   }
 
   override def toString: String =
@@ -122,6 +115,13 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
 
   private def textKey(key: String): io.grpc.Metadata.Key[String] =
     io.grpc.Metadata.Key.of(key, io.grpc.Metadata.ASCII_STRING_MARSHALLER)
+
+  private def getEntries(key: String): List[MetadataEntry] =
+    if (key.endsWith(io.grpc.Metadata.BINARY_HEADER_SUFFIX)) {
+      delegate.getAll(binaryKey(key)).asScala.map(b => BytesEntry(ByteString.fromArray(b))).toList
+    } else {
+      delegate.getAll(textKey(key)).asScala.map(StringEntry).toList
+    }
 }
 
 /**
