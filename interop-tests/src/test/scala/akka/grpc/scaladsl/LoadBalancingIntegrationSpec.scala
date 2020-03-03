@@ -4,6 +4,7 @@
 
 package akka.grpc.scaladsl
 
+import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.{ Await, Future }
@@ -15,6 +16,7 @@ import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.GrpcClientSettings
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.scaladsl.Source
 
 import org.scalatest.wordspec.AnyWordSpec
@@ -42,26 +44,24 @@ class CountingGreeterServiceImpl extends GreeterService {
 
 }
 
-final class MutableServiceDiscovery(targets: List[Http.ServerBinding]) extends ServiceDiscovery {
+final class MutableServiceDiscovery(targets: List[InetSocketAddress]) extends ServiceDiscovery {
   var services: Future[Resolved] = _
 
   setServices(targets)
 
-  def setServices(targets: List[Http.ServerBinding]): Unit =
+  def setServices(targets: List[InetSocketAddress]): Unit =
     services = Future.successful(
       Resolved(
         "greeter",
-        targets.map(
-          target =>
-            ResolvedTarget(
-              target.localAddress.getHostString,
-              Some(target.localAddress.getPort),
-              Some(target.localAddress.getAddress)))))
+        targets.map(target => ResolvedTarget(target.getHostString, Some(target.getPort), Some(target.getAddress)))))
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     require(query.serviceName == "greeter")
     services
   }
+}
+object MutableServiceDiscovery {
+  def apply(targets: List[Http.ServerBinding]) = new MutableServiceDiscovery(targets.map(_.localAddress))
 }
 
 class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
@@ -79,7 +79,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val server1 = Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0).futureValue
       val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
 
-      val discovery = new MutableServiceDiscovery(List(server1, server2))
+      val discovery = MutableServiceDiscovery(List(server1, server2))
       val client = GreeterServiceClient(
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
@@ -103,7 +103,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0)(service1materializer).futureValue
       val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
 
-      val discovery = new MutableServiceDiscovery(List(server1))
+      val discovery = MutableServiceDiscovery(List(server1))
       val client = GreeterServiceClient(
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
@@ -116,7 +116,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
 
-      discovery.setServices(List(server2))
+      discovery.setServices(List(server2.localAddress))
 
       // This is rather heavy-handed, but surprisingly it seems just terminating
       // the binding isn't sufficient to actually abort the existing connection.
@@ -132,6 +132,28 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       service1.greetings.get + service2.greetings.get should be(2 * requestsPerServer)
       service1.greetings.get should be(requestsPerServer)
       service2.greetings.get should be(requestsPerServer)
+    }
+
+    "select the right endpoint among invalid ones" in {
+      val service = new CountingGreeterServiceImpl()
+      val server = Http().bindAndHandleAsync(GreeterServiceHandler(service), "127.0.0.1", 0).futureValue
+      val discovery =
+        new MutableServiceDiscovery(
+          List(
+            new InetSocketAddress("example.invalid", 80),
+            server.localAddress,
+            new InetSocketAddress("example.invalid", 80)))
+      val client = GreeterServiceClient(
+        GrpcClientSettings
+          .usingServiceDiscovery("greeter", discovery)
+          .withTls(false)
+          .withGrpcLoadBalancingType("round_robin"))
+
+      for (i <- 1 to 100) {
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+      }
+
+      service.greetings.get should be(100)
     }
   }
 
