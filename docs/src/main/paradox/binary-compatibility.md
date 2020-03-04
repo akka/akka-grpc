@@ -31,7 +31,9 @@ Libraries that use such methods may not work in applications that depend on a ne
 
 ## Downstream libraries
 
-We depend on a number of downstream libraries that don't formally maintain binary compatibility,
-such as [ScalaPB](https://scalapb.github.io/) (when generating Scala code) and 
-[grpc-java](https://github.com/grpc/grpc-java/). Updates to those libraries might introduce
-incompatibilities that are outside the scope of Akka gRPC's binary compatibility.
+We depend on a number of downstream libraries that don't formally maintain
+binary compatibility, such as [ScalaPB](https://scalapb.github.io/) (when
+generating Scala code) and [grpc-java](https://github.com/grpc/grpc-java/).
+When updates to those libraries introduce incompatibilities it will be decided
+on a case-by-case basis, based on the expected impact of the change,
+whether those should impact Akka gRPC's versioning.
