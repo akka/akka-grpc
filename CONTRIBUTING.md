@@ -102,7 +102,7 @@ Our binary compatibility guarantees are described in depth in the
 [Binary Compatibility](https://doc.akka.io/docs/akka-grpc/current/binary-compatibility.html)
 section of the documentation.
 
-Akka gRPC uses MiMa (which is short for [Lightbend Migration Manager](https://github.com/lightbend/migration-manager)) to
+Akka gRPC uses [Lightbend MiMa](https://github.com/lightbend/mima) to
 validate binary compatibility of incoming Pull Requests. If your PR fails due to binary compatibility issues, you may see 
 an error like this:
 
