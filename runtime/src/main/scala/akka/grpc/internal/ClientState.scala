@@ -5,21 +5,17 @@
 package akka.grpc.internal
 
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.atomic.AtomicReference
 
 import akka.Done
 import akka.annotation.InternalApi
 import akka.annotation.InternalStableApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
-import akka.pattern.Patterns
 import akka.stream.{ ActorMaterializer, Materializer }
 import io.grpc.ManagedChannel
 
-import scala.annotation.tailrec
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.Failure
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * INTERNAL API
