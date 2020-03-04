@@ -100,7 +100,7 @@ the server project are needed.
 
 For example, this is the definition of a Hello World service:
 
-@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto)
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { filterLabels=true }
 
 From this definition, Akka gRPC generates interfaces that look like this:
 

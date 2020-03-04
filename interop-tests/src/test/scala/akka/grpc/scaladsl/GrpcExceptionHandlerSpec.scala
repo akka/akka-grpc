@@ -5,16 +5,14 @@
 package akka.grpc.scaladsl
 
 import scala.concurrent.Future
-import scala.util.Try
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
 import akka.grpc.scaladsl.headers.`Status`
 import akka.grpc.internal.GrpcEntityHelpers
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.Sink
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -50,11 +48,6 @@ class GrpcExceptionHandlerSpec
       }
     }
 
-    val metadata = (new MetadataBuilder)
-      .addText("test-text", "test-text-data")
-      .addBinary("test-binary-bin", ByteString("test-binary-data"))
-      .build()
-
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
 
@@ -66,7 +59,13 @@ class GrpcExceptionHandlerSpec
 
       //#unary
       //#streaming
+      import akka.grpc.GrpcServiceException
       import io.grpc.Status
+
+      val exceptionMetadata = new MetadataBuilder()
+        .addText("test-text", "test-text-data")
+        .addBinary("test-binary-bin", ByteString("test-binary-data"))
+        .build()
 
       //#unary
       //#streaming
@@ -76,7 +75,7 @@ class GrpcExceptionHandlerSpec
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
-          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
+          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
         else
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
@@ -87,7 +86,7 @@ class GrpcExceptionHandlerSpec
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)
-          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
+          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
         else
           myResponseSource
       }

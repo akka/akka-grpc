@@ -77,17 +77,7 @@ Scala
 To additionally generate server "power APIs" that have access to request metata, as described
 @ref[here](../server/walkthrough.md#accessing-request-metadata), set the `serverPowerApis` option:
 
-Java
-:   @@@vars
-    ```gradle
-    akkaGrpc {
-      ...
-      serverPowerApis = true
-    }
-    ```
-    @@@
-
-Scala
+`build.gradle`
 :   @@@vars
     ```gradle
     akkaGrpc {
@@ -101,9 +91,9 @@ Scala
 
 The plugin looks for `.proto` files under `src/main/protobuf`.
 
-Loading proto files from other directories is currently not supported.
+Loading `.proto` files from other directories is currently not supported.
 If you are interested in this feature you can find more background in issue
-[#288](https://github.com/akka/akka-grpc/issues/288)
+[#288](https://github.com/akka/akka-grpc/issues/288).
 
 ## Loading proto files from artifacts
 
@@ -112,36 +102,35 @@ explicit by duplicating the proto definitions in your project.
 
 When using @ref[sbt](sbt.md) as a build system, we also support loading your
 proto definitions from a dependency classpath. This is not yet supported
-for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
-it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152)
+for Maven and Gradle. If you are interested in this feature
+it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
 
 
 ## Starting your Akka gRPC server from Gradle
 
-As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
 you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
 
 Doing this from inside of Gradle requires a little bit of configuration in the `build.gradle`:
 
-
-```gradle
-// Define a separate configuration for managing the dependency on Jetty ALPN agent.
-configurations {
-  alpnagent
-}
-
-dependencies {
-  // Configuration for modules that use Jetty ALPN agent
-  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
-}
-
-task runServer(type: JavaExec) {
-  classpath = sourceSets.main.runtimeClasspath
-  main = 'com.example.helloworld.GreeterServer'
-  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
-}
-
-```
+`build.gradle` for JVM 8
+:   @@@vars
+    ```gradle
+    // Define a separate configuration for managing the dependency on Jetty ALPN agent.
+    configurations {
+      alpnagent
+    }
+    dependencies {
+      // Configuration for modules that use Jetty ALPN agent
+      alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
+    }
+    task runServer(type: JavaExec) {
+      classpath = sourceSets.main.runtimeClasspath
+      main = 'com.example.helloworld.GreeterServer'
+      jvmArgs "-javaagent:" + configurations.alpnagent.asPath
+    }
+    ```
+    @@@
 
 The server can then be started from the command line with:
 
@@ -151,4 +140,4 @@ The server can then be started from the command line with:
 
 ## Play Framework support
 
-See the [Play gRPC docs](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md) for details.
+See the [Play gRPC documentation](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md) for details.

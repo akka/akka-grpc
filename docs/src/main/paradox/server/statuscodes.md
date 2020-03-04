@@ -1,6 +1,6 @@
 # Status codes
 
-To signal an error, you can fail the @scala[`Future`]@java[`CompletionStage`] or `Source` you are returning with a `GrpcServiceException` containing the status code you want to return.
+To signal an error, you can fail the @scala[`Future`]@java[`CompletionStage`] or `Source` you are returning with a @apidoc[GrpcServiceException] containing the status code you want to return.
 
 For an overview of gRPC status codes and their meaning see [statuscodes.md](https://github.com/grpc/grpc/blob/master/doc/statuscodes.md).
 

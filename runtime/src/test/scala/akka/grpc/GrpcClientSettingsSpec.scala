@@ -140,7 +140,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
 
     "load a user defined service discovery mechanism" in {
       //#sd-settings
-      // sys is an ActorSystem which is required for service discovery
+      // an implicit ActorSystem is required to be in scope for service discovery
       val settings = GrpcClientSettings.fromConfig(clientName = "project.WithConfigServiceDiscovery")
       //#sd-settings
 
