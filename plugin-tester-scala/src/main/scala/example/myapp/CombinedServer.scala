@@ -10,12 +10,14 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.{ Http, HttpConnectionContext }
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
+import akka.grpc.scaladsl.ServerReflection
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld._
 import example.myapp.echo._
 import example.myapp.echo.grpc._
+import example.myapp.helloworld.grpc.GreeterService
 
 //#concatOrNotFound
 import akka.grpc.scaladsl.ServiceHandler
@@ -38,8 +40,9 @@ object CombinedServer {
       example.myapp.helloworld.grpc.GreeterServiceHandler.partial(new GreeterServiceImpl())
     val echoService: PartialFunction[HttpRequest, Future[HttpResponse]] =
       EchoServiceHandler.partial(new EchoServiceImpl)
+    val reflectionService = ServerReflection.partial(List(GreeterService, EchoService))
     val serviceHandlers: HttpRequest => Future[HttpResponse] =
-      ServiceHandler.concatOrNotFound(greeterService, echoService)
+      ServiceHandler.concatOrNotFound(greeterService, echoService, reflectionService)
 
     Http()
       .bindAndHandleAsync(
