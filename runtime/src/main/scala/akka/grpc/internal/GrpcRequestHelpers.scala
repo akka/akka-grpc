@@ -1,6 +1,6 @@
 package akka.grpc.internal
 import akka.actor.ActorSystem
-import akka.grpc.{ Codecs, ProtobufSerializer }
+import akka.grpc.{ Codecs, ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
@@ -19,7 +19,7 @@ object GrpcRequestHelpers {
   def apply[T](
       uri: Uri,
       e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,

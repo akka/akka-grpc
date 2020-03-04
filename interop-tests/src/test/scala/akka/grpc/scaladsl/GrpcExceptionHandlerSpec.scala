@@ -5,14 +5,15 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.Identity
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers }
+import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcRequestHelpers }
+import akka.grpc.{ GrpcServiceException, Identity }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
+import akka.util.ByteString
 import io.grpc.testing.integration.test.TestService
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -49,6 +50,11 @@ class GrpcExceptionHandlerSpec
       }
     }
 
+    val metadata = (new MetadataBuilder)
+      .addText("test-text", "test-text-data")
+      .addBinary("test-binary-bin", ByteString("test-binary-data"))
+      .build()
+
     import example.myapp.helloworld.grpc.helloworld._
     object ExampleImpl extends GreeterService {
 
@@ -60,7 +66,6 @@ class GrpcExceptionHandlerSpec
 
       //#unary
       //#streaming
-      import akka.grpc.GrpcServiceException
       import io.grpc.Status
 
       //#unary
@@ -71,7 +76,7 @@ class GrpcExceptionHandlerSpec
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
-          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found")))
+          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
         else
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
@@ -82,7 +87,7 @@ class GrpcExceptionHandlerSpec
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)
-          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found")))
+          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), metadata))
         else
           myResponseSource
       }
@@ -100,7 +105,7 @@ class GrpcExceptionHandlerSpec
     "return the correct user-supplied status for a unary call" in {
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
-      implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
+      implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
       val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", Source.single(HelloRequest("")))
 
@@ -112,6 +117,32 @@ class GrpcExceptionHandlerSpec
       statusHeader.map(_.value()) should be(Some("3"))
       val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
       statusMessageHeader.map(_.value()) should be(Some("No name found"))
+
+      val metadata = MetadataBuilder.fromHeaders(lastChunk.trailer)
+      metadata.getText("test-text") should be(Some("test-text-data"))
+      metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
+    }
+
+    "return the correct user-supplied status for a streaming call" in {
+      import akka.http.scaladsl.client.RequestBuilding._
+      implicit val serializer =
+        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
+      implicit val writer = GrpcProtocolNative.newWriter(Identity)
+
+      val request = GrpcRequestHelpers(s"/${GreeterService.name}/ItKeepsReplying", Source.single(HelloRequest("")))
+
+      val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
+
+      val lastChunk = reply.entity.asInstanceOf[Chunked].chunks.runWith(Sink.last).futureValue.asInstanceOf[LastChunk]
+      // Invalid argument is '3' https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+      val statusHeader = lastChunk.trailer.find { _.name == "grpc-status" }
+      statusHeader.map(_.value()) should be(Some("3"))
+      val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
+      statusMessageHeader.map(_.value()) should be(Some("No name found"))
+
+      val metadata = MetadataBuilder.fromHeaders(lastChunk.trailer)
+      metadata.getText("test-text") should be(Some("test-text-data"))
+      metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
     }
   }
 }

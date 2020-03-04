@@ -4,13 +4,12 @@
 
 package akka.grpc.javadsl
 
-import java.util.{ Base64, Optional }
+import java.util.{ List, Map, Optional }
 
 import akka.annotation.DoNotInherit
-import akka.http.javadsl.model.HttpHeader
 import akka.util.ByteString
-import java.lang.{ Iterable => jIterable }
-import scala.collection.JavaConverters._
+import akka.japi.Pair
+import akka.grpc.scaladsl
 
 /**
  * Immutable representation of the metadata in a call
@@ -30,25 +29,21 @@ import scala.collection.JavaConverters._
    *         that is a text key is used.
    */
   def getBinary(key: String): Optional[ByteString]
-}
 
-class MetadataImpl(jHeaders: jIterable[HttpHeader]) extends Metadata {
-  private val headers = jHeaders.asScala
+  /**
+   * @return A map from keys to a list of metadata entries. Entries with the same key will be ordered based on
+   *         when they were added or received.
+   */
+  def asMap(): Map[String, List[MetadataEntry]]
 
-  override def getText(key: String): Optional[String] =
-    headers.collectFirst {
-      case header if header.name == key => header.value
-    } match {
-      case Some(v) => Optional.of(v)
-      case None    => Optional.empty[String]
-    }
+  /**
+   * @return A list of (key, entry) pairs. Pairs with the same key will be ordered based on when they were added
+   *         or received.
+   */
+  def asList(): List[Pair[String, MetadataEntry]]
 
-  override def getBinary(key: String): Optional[ByteString] =
-    headers.collectFirst {
-      case header if header.name == key =>
-        ByteString(Base64.getDecoder.decode(header.value))
-    } match {
-      case Some(v) => Optional.of(v)
-      case None    => Optional.empty[ByteString]
-    }
+  /**
+   * @return Returns the scaladsl.Metadata interface for this instance.
+   */
+  def asScala: scaladsl.Metadata
 }

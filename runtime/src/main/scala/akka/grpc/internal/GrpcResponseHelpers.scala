@@ -7,8 +7,8 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
-import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -33,7 +33,7 @@ object GrpcResponseHelpers {
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
-  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Status])(
+  def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -50,7 +50,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       status: Future[Status],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status])(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -65,7 +65,7 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       trail: Source[TrailerFrame, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -79,7 +79,6 @@ object GrpcResponseHelpers {
       entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 
-  def status(status: Status)(implicit writer: GrpcProtocolWriter): HttpResponse =
-    response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(status))))
-
+  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter): HttpResponse =
+    response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(trailer.status, trailer.metadata))))
 }

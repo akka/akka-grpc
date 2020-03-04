@@ -68,7 +68,7 @@ object GrpcMarshalling {
   @deprecated("To be removed", "grpc-web")
   def marshal[T](
       e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -80,7 +80,7 @@ object GrpcMarshalling {
   @deprecated("To be removed", "grpc-web")
   def marshalStream[T](
       e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       codec: Codec,
@@ -93,7 +93,7 @@ object GrpcMarshalling {
   def marshalRequest[T](
       uri: Uri,
       e: T,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -104,7 +104,7 @@ object GrpcMarshalling {
   def marshalStreamRequest[T](
       uri: Uri,
       e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -113,7 +113,7 @@ object GrpcMarshalling {
 
   def marshal2[T](
       e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
@@ -122,7 +122,7 @@ object GrpcMarshalling {
 
   def marshalStream2[T](
       e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,

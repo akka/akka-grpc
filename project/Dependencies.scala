@@ -14,9 +14,9 @@ object Dependencies {
     val akkaHttp = "10.1.11"
     val akkaHttpBinary = "10.1"
 
-    val grpc = "1.27.1" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.27.2" // checked synced by GrpcVersionSyncCheckPlugin
 
-    val scalaTest = "3.1.0"
+    val scalaTest = "3.1.1"
 
     val maven = "3.6.3"
   }
@@ -55,7 +55,7 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
-    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % "3.1.0.0" % "test" // Apache V2
+    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
   }

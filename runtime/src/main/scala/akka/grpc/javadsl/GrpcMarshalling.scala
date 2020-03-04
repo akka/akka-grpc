@@ -16,9 +16,9 @@ import akka.grpc.internal.{
   GrpcResponseHelpers,
   MissingParameterException
 }
-import akka.grpc.scaladsl.{ GrpcExceptionHandler => sGrpcExceptionHandler }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
+import akka.japi.Function
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.util.ByteString
@@ -100,7 +100,8 @@ object GrpcMarshalling {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      : HttpResponse =
     marshalStream2(Source.single(e), m, mat, GrpcProtocolNative.newWriter(codec), system, eHandler)
 
   @Deprecated
@@ -110,7 +111,8 @@ object GrpcMarshalling {
       mat: Materializer,
       codec: Codec,
       system: ActorSystem,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      : HttpResponse =
     marshalStream2(e, m, mat, GrpcProtocolNative.newWriter(codec), system, eHandler)
 
   def marshal2[T](
@@ -119,7 +121,8 @@ object GrpcMarshalling {
       mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      : HttpResponse =
     marshalStream2(Source.single(e), m, mat, writer, system, eHandler)
 
   def marshalStream2[T](
@@ -128,8 +131,9 @@ object GrpcMarshalling {
       mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem,
-      eHandler: ActorSystem => PartialFunction[Throwable, Status] = sGrpcExceptionHandler.defaultMapper): HttpResponse =
-    GrpcResponseHelpers(e.asScala, eHandler)(m, mat, writer, system)
+      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      : HttpResponse =
+    GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, mat, writer, system)
 
   private def failure[R](error: Throwable): CompletableFuture[R] = {
     val future: CompletableFuture[R] = new CompletableFuture()
