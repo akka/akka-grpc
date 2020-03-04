@@ -19,9 +19,9 @@ trait AkkaGrpcClient {
   def close(): Future[Done]
 
   /**
-   * Returns a Future that completes successfully when shutdown via close()
+   * A Future that completes successfully when shutdown via close()
    * or exceptionally if a connection can not be established or reestablished
    * after maxConnectionAttempts.
    */
-  def closed(): Future[Done]
+  def closed: Future[Done]
 }

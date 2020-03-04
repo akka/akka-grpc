@@ -9,21 +9,20 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.GrpcClientSettings
+import akka.grpc.internal.ClientConnectionException
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.scaladsl.Source
-
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.BeforeAndAfterAll
-
 import example.myapp.helloworld.grpc.helloworld._
+import io.grpc.Status.Code
+import io.grpc.StatusRuntimeException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.Span
 
@@ -154,6 +153,24 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       }
 
       service.greetings.get should be(100)
+    }
+
+    "eventually fail when no valid endpoints are provided" in {
+      val discovery =
+        new MutableServiceDiscovery(
+          List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
+      val client = GreeterServiceClient(
+        GrpcClientSettings
+          .usingServiceDiscovery("greeter", discovery)
+          .withTls(false)
+          .withGrpcLoadBalancingType("round_robin")
+          // Low value to speed up the test
+          .withConnectionAttempts(2))
+
+      val failure =
+        client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
+      failure.getStatus.getCode should be(Code.UNAVAILABLE)
+      client.closed.failed.futureValue shouldBe a[ClientConnectionException]
     }
   }
 
