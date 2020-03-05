@@ -11,6 +11,7 @@ import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.testkit.TestKit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.collection.JavaConverters._
@@ -21,6 +22,8 @@ class AkkaDiscoveryNameResolverSpec
     with Matchers
     with ScalaFutures {
   implicit val ex = system.dispatcher
+  implicit override val patienceConfig =
+    PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
 
   "The AkkaDiscovery-backed NameResolver" should {
     "correctly report an error for an unknown hostname" in {
