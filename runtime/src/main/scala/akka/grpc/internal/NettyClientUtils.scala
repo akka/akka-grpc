@@ -40,7 +40,7 @@ object NettyClientUtils {
    */
   @InternalApi
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
-      implicit ec: ExecutionContext): Future[InternalChannel] = {
+      implicit ec: ExecutionContext): InternalChannel = {
     var builder =
       NettyChannelBuilder
       // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
@@ -73,7 +73,7 @@ object NettyClientUtils {
     val promise = Promise[Done]()
     ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts, log)
 
-    Future.successful(InternalChannel(channel, promise.future))
+    InternalChannel(channel, promise.future)
   }
 
   /**
