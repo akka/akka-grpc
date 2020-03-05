@@ -3,8 +3,6 @@ package akka.grpc
 import sbt._
 import com.lightbend.sbt.javaagent.JavaAgent
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
-import sbtprotoc.ProtocPlugin
-import sbtprotoc.ProtocPlugin.autoImport.PB
 
 // helper to define projects that test the plugin infrastructure
 object ProjectExtensions {
@@ -16,6 +14,7 @@ object ProjectExtensions {
         .enablePlugins(JavaAgent)
         .settings(
           // #alpn
+          // ALPN agent, only required on JVM 8
           javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
             // #alpn
             % "test")

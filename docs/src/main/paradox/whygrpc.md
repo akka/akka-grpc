@@ -10,8 +10,8 @@ connection.
 It has several advantages:
 
  * Schema-first design favors well-defined and decoupled service interfaces over brittle ad-hoc solutions.
- * Protobuf-based wire protocol is efficient, well-known, and allows compatible schema evolution.
- * Based on HTTP/2 which allows multiplexing several data streams over a single connection.
+ * The Protobuf-based wire protocol is efficient, well-known, and allows compatible schema evolution.
+ * It is based on HTTP/2 which allows multiplexing several data streams over a single connection.
  * Streaming requests and responses are first class.
  * There are tools available for many languages allowing seamless interoperability between clients and services written
    in different languages.
@@ -34,8 +34,8 @@ That makes it well-suited for:
 
 ## gRPC vs Message Bus
 
-* While built on an efficient non-blocking implementation, gRPC is still 'synchronous' in the sense that it requires both 'sides' of the communication to be available at the same time. When using a (persistent) message bus only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
-* While gRPC supports bidirectional streaming for each request, when using a message bus the streams are decoupled
+* While built on an efficient non-blocking implementation, gRPC is still 'synchronous' in the sense that it requires both 'sides' of the communication to be available at the same time. When using a (persistent) message bus, only the producer and the bus must be up, the consumer does not need to be available, leading to a higher degree of decoupling.
+* While gRPC supports bidirectional streaming for each request, when using a message bus the streams are decoupled.
 
 ## gRPC vs Akka Remoting
 

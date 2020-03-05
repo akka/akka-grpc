@@ -13,11 +13,11 @@ sbt
     ```scala
     // in project/plugins.sbt:
     addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
-    addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent
+    addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent, only required on JVM 8 
     //
     // in build.sbt:
     enablePlugins(AkkaGrpcPlugin)
-    // ALPN agent
+    // ALPN agent, only required on JVM 8
     enablePlugins(JavaAgent)
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
     ```
@@ -101,7 +101,7 @@ Define the interfaces you want to implement in your project's
 
 For example, this is the definition of a Hello World service:
 
-@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto)
+@@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { filterLabels=true }
 
 ## Generating interfaces and stubs
 
@@ -110,17 +110,17 @@ Start by generating code from the `.proto` definition with:
 sbt
 :   ```
 sbt compile
-```
+    ```
 
 Gradle
 :   ```
 ./gradlew build
-```
+    ```
 
 Maven
 :   ```
 mvn akka-grpc:generate
-```
+    ```
 
 From the above definition, Akka gRPC generates interfaces that look like this:
 
@@ -221,8 +221,8 @@ methods to create partial functions that are combined by `concatOrNotFound`.]
 
 ## Running the server
 
-To run the server with HTTP/2 enabled correctly, you will likely have to configure the Jetty ALPN
-agent as described @extref[in the Akka HTTP documentation](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-):
+To run the server with HTTP/2 enabled on a **JVM version 8**, you will likely have to configure the Jetty ALPN
+agent as described @extref[in the Akka HTTP documentation](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-). Later JVM versions have this support built-in.
 
 See the detailed chapters on @ref[sbt](../buildtools/sbt.md#starting-your-akka-grpc-server-from-sbt), @ref[Gradle](../buildtools/gradle.md#starting-your-akka-grpc-server-from-gradle)
 and @ref[Maven](../buildtools/maven.md#starting-your-akka-grpc-server-from-maven) for details on adding the agent.
@@ -260,8 +260,8 @@ Now the actor mailbox is used to synchronize accesses to the mutable state.
 ## Accessing request metadata
 
 By default the generated service interfaces don't provide access to the request metadata, only to the request
-body (via the rpc method input parameter). If your methods require access to the request metadata, you can tell
-akka-grpc to generate server "power APIs" that extend the base service interfaces to provide an additional
+body (via the RPC method input parameter). If your methods require access to the request @apidoc[Metadata], you can configure
+Akka gRPC to generate server "power APIs" that extend the base service interfaces to provide an additional
 request metadata parameter to each service method. See the detailed chapters on @ref[sbt](../buildtools/sbt.md), @ref[Gradle](../buildtools/gradle.md)
 and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
 generated client stubs.

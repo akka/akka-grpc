@@ -1,6 +1,6 @@
 # Configuration
 
-A gRPC client is configured with a `GrpcClientSettings` instance. There are a number of ways of creating one and the API
+A gRPC client is configured with a @apidoc[GrpcClientSettings] instance. There are a number of ways of creating one and the API
 docs are the best reference. An `ActorSystem` is always required as it is used for default configuration and service discovery.
 
 ## By Code
@@ -33,10 +33,7 @@ Java
 
 Clients defined in configuration pick up defaults from `reference.conf`:
 
-Scala
-:  @@snip [reference](/runtime/src/main/resources/reference.conf) { #defaults }
-
-Java
+`reference.conf`
 :  @@snip [reference](/runtime/src/main/resources/reference.conf) { #defaults }
 
 ## Using Akka Discovery for Endpoint Discovery
