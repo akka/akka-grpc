@@ -75,7 +75,8 @@ class GrpcExceptionHandlerSpec
 
       def sayHello(in: HelloRequest): Future[HelloReply] = {
         if (in.name.isEmpty)
-          Future.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
+          Future.failed(
+            new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
         else
           Future.successful(HelloReply(s"Hi ${in.name}!"))
       }
@@ -86,7 +87,8 @@ class GrpcExceptionHandlerSpec
       //#streaming
       def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
         if (in.name.isEmpty)
-          Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
+          Source.failed(
+            new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription("No name found"), exceptionMetadata))
         else
           myResponseSource
       }

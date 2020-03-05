@@ -102,7 +102,7 @@ explicit by duplicating the proto definitions in your project.
 
 When using @ref[sbt](sbt.md) as a build system, we also support loading your
 proto definitions from a dependency classpath. This is not yet supported
-for Maven and Gradle. If you are interested in this feature
+for @ref[Maven](maven.md) and Gradle. If you are interested in this feature
 it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
 
 
