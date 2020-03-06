@@ -16,9 +16,9 @@ import akka.stream.Materializer
 
 import grpc.reflection.v1alpha.reflection.ServerReflectionHandler
 
-@ApiMayChange
+@ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
 object ServerReflection {
-  @ApiMayChange
+  @ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
   def create(
       objects: Collection[ServiceDescription],
       mat: Materializer,
