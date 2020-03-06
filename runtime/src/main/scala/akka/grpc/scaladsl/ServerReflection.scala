@@ -13,14 +13,15 @@ import akka.stream.Materializer
 
 import grpc.reflection.v1alpha.reflection.ServerReflectionHandler
 
-@ApiMayChange
+@ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
 object ServerReflection {
-  @ApiMayChange
+  @ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
   def apply(objects: List[ServiceDescription])(
       implicit mat: Materializer,
       sys: ActorSystem): HttpRequest => scala.concurrent.Future[HttpResponse] =
     ServerReflectionHandler.apply(ServerReflectionImpl(objects.map(_.descriptor), objects.map(_.name)))
-  @ApiMayChange
+
+  @ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
   def partial(objects: List[ServiceDescription])(
       implicit mat: Materializer,
       sys: ActorSystem): PartialFunction[HttpRequest, scala.concurrent.Future[HttpResponse]] =

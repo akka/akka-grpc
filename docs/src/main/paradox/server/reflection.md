@@ -2,7 +2,7 @@
 
 @@@note
 
-This feature is **experimental**.
+This feature is **experimental** (@github[Issue #850](#850)).
 
 It implements version v1alpha of the [upstream standard](https://github.com/grpc/grpc/blob/master/src/proto/grpc/reflection/v1alpha/reflection.proto),
 so we might expect subsequent versions of the service to emerge. Also,
