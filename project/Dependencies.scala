@@ -69,7 +69,7 @@ object Dependencies {
 
   private val l = libraryDependencies
 
-  val codegen = l ++= Seq(Compile.scalapbCompilerPlugin, Compile.scalapbRuntime, Test.scalaTest)
+  val codegen = l ++= Seq(Compile.scalapbCompilerPlugin, Test.scalaTest)
 
   val runtime = l ++= Seq(
         Compile.scalapbRuntime,

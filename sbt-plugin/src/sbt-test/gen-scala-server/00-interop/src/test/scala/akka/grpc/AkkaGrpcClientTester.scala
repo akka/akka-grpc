@@ -136,8 +136,8 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit mat: Materializer, s
     val request =
       StreamingOutputCallRequest(
         responseParameters = Seq(
-          ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
-          ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
+          ResponseParameters(size = 31415, compressed = Some(BoolValue(true))),
+          ResponseParameters(size = 92653, compressed = Some(BoolValue(true)))))
 
     val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(

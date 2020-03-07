@@ -24,7 +24,7 @@ import scala.util.Failure
 
 class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
   "The scaladsl GrpcMarshalling" should {
-    val message = SimpleRequest(responseCompressed = Some(BoolValue.of(true)))
+    val message = SimpleRequest(responseCompressed = Some(BoolValue(true)))
     implicit val serializer = TestService.Serializers.SimpleRequestSerializer
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
@@ -37,7 +37,7 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
         entity = HttpEntity.Strict(Grpc.contentType, zippedBytes))
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
-      marshalled.responseCompressed should be(Some(BoolValue.of(true)))
+      marshalled.responseCompressed should be(Some(BoolValue(true)))
     }
 
     "correctly unmarshal a zipped stream" in {
@@ -47,8 +47,8 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
 
       val stream = Await.result(GrpcMarshalling.unmarshalStream(request), 10.seconds)
       val items = Await.result(stream.runWith(Sink.seq), 10.seconds)
-      items(0).responseCompressed should be(Some(BoolValue.of(true)))
-      items(1).responseCompressed should be(Some(BoolValue.of(true)))
+      items(0).responseCompressed should be(Some(BoolValue(true)))
+      items(1).responseCompressed should be(Some(BoolValue(true)))
     }
 
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
