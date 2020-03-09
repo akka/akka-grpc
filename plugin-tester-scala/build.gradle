@@ -13,8 +13,6 @@ buildscript {
     classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
 
     classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.22"
-
-    compile group: 'ch.megard', name: 'akka-http-cors_2.13', version: '0.4.2'
   }
 }
 
@@ -53,6 +51,8 @@ dependencies {
 
   // Configuration for modules that use Jetty ALPN agent
   alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
+
+  compile group: 'ch.megard', name: 'akka-http-cors_2.13', version: '0.4.2'
 }
 
 test {
