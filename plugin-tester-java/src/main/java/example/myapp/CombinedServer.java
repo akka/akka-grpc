@@ -22,6 +22,11 @@ import akka.japi.Function;
 
 //#import
 
+//#grpc-web
+import akka.grpc.javadsl.WebHandler;
+
+//#grpc-web
+
 import example.myapp.helloworld.*;
 import example.myapp.helloworld.grpc.*;
 import example.myapp.echo.*;
@@ -54,7 +59,7 @@ class CombinedServer {
 
       //#grpc-web
       Function<HttpRequest, CompletionStage<HttpResponse>> grpcWebServiceHandlers =
-          ServiceHandler.grpcWebHandler(Arrays.asList(greeterService, echoService), sys, mat);
+          WebHandler.grpcWebHandler(Arrays.asList(greeterService, echoService), sys, mat);
 
       Http.get(sys).bindAndHandleAsync(
           grpcWebServiceHandlers,

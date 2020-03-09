@@ -24,6 +24,11 @@ import akka.grpc.scaladsl.ServiceHandler
 
 //#concatOrNotFound
 
+//#grpc-web
+import akka.grpc.scaladsl.WebHandler
+
+//#grpc-web
+
 object CombinedServer {
   def main(args: Array[String]): Unit = {
     // important to enable HTTP/2 in ActorSystem's config
@@ -54,7 +59,7 @@ object CombinedServer {
       .foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }
 
     //#grpc-web
-    val grpcWebServiceHandlers = ServiceHandler.grpcWebHandler(greeterService, echoService)
+    val grpcWebServiceHandlers = WebHandler.grpcWebHandler(greeterService, echoService)
 
     Http()
       .bindAndHandleAsync(

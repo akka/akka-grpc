@@ -32,7 +32,7 @@ supports gRPC-Web directly. This is now possible with Akka gRPC as well.
 To serve a gRPC service with Akka gRPC, it is recommended to serve the
 native gRPC protocol on a different port than gRPC-Web, as the two protocols
 will likely require a different security story. You can use
-@apidoc[ServiceHandler.grpcWebHandler](ServiceHandler$) to serve your
+@apidoc[WebHandler.grpcWebHandler](WebHandler$) to serve your
 gRPC-Web endpoint with basic CORS infrastructure in place. To use CORS,
 you will need to add the akka-http-cors dependency to your project:
 
@@ -42,7 +42,7 @@ you will need to add the akka-http-cors dependency to your project:
   version="0.4.2"
 }
 
-And then serve the handlers with @apidoc[ServiceHandler.grpcWebHandler](ServiceHandler$) like this:
+And then serve the handlers with @apidoc[WebHandler.grpcWebHandler](WebHandler$) like this:
 
 Scala
 :  @@snip [Main.scala](/plugin-tester-scala/src/main/scala/example/myapp/CombinedServer.scala) { #grpc-web }
