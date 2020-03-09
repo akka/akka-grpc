@@ -11,6 +11,7 @@ import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletionStage;
 
 //#import
@@ -50,5 +51,19 @@ class CombinedServer {
       .thenAccept(binding -> {
         System.out.println("gRPC server bound to: " + binding.localAddress());
       });
+
+      //#grpc-web
+      Function<HttpRequest, CompletionStage<HttpResponse>> grpcWebServiceHandlers =
+          ServiceHandler.grpcWebHandler(Arrays.asList(greeterService, echoService), sys, mat);
+
+      Http.get(sys).bindAndHandleAsync(
+          grpcWebServiceHandlers,
+          ConnectHttp.toHost("127.0.0.1", 8081),
+          mat)
+      //#grpc-web
+      .thenAccept(binding -> {
+          System.out.println("gRPC-Web server bound to: " + binding.localAddress());
+      });
+
   }
 }

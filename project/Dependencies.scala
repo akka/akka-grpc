@@ -115,5 +115,6 @@ object Dependencies {
   val pluginTester = l ++= Seq(
         // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
         Compile.grpcStub,
+        Compile.akkaHttpCors,
         Test.scalaTest)
 }
