@@ -4,8 +4,6 @@
 
 package akka.grpc.sbt
 
-import java.io.{ ByteArrayOutputStream, PrintStream }
-
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
@@ -16,7 +14,6 @@ import sbt.{ GlobFilter, _ }
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
-import scala.util.Try
 import language.implicitConversions
 
 object AkkaGrpcPlugin extends AutoPlugin {
@@ -108,7 +105,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
           generatorsFor(
             akkaGrpcGeneratedSources.value,
             akkaGrpcGeneratedLanguages.value,
-            akkaGrpcCodeGeneratorSettings.value,
             ScalaBinaryVersion(scalaBinaryVersion.value),
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
             toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
@@ -161,7 +157,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
   def generatorsFor(
       stubs: Seq[AkkaGrpc.GeneratedSource],
       languages: Seq[AkkaGrpc.Language],
-      options: Seq[String],
       scalaBinaryVersion: ScalaBinaryVersion,
       logger: GenLogger): Seq[protocbridge.Generator] = {
     import AkkaGrpc._
@@ -213,30 +208,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
     override def run(request: Array[Byte]): Array[Byte] = impl.run(request, logger)
     override def suggestedDependencies: Seq[protocbridge.Artifact] = impl.suggestedDependencies(scalaBinaryVersion)
     override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${impl.name}: $impl)"
-  }
-
-  /**
-   * Redirect stdout and stderr to buffers while running the given block, then reinstall original
-   * stdin and out and return the logged output
-   */
-  private def captureStdOutAnderr[T](block: => T): (String, String, T) = {
-    val errBao = new ByteArrayOutputStream()
-    val errPrinter = new PrintStream(errBao, true, "UTF-8")
-    val outBao = new ByteArrayOutputStream()
-    val outPrinter = new PrintStream(outBao, true, "UTF-8")
-    val originalOut = System.out
-    val originalErr = System.err
-    System.setOut(outPrinter)
-    System.setErr(errPrinter)
-    val t =
-      try {
-        block
-      } finally {
-        System.setOut(originalOut)
-        System.setErr(originalErr)
-      }
-
-    (outBao.toString("UTF-8"), errBao.toString("UTF-8"), t)
   }
 
   private def ancestorConfigsFilter(config: Configuration) = {

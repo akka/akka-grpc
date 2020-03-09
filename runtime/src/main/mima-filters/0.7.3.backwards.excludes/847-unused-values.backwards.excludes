@@ -1,0 +1,6 @@
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.javadsl.GrpcMarshalling.marshal*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshal*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ChannelUtils.closeCS")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ChannelUtils.close")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.GrpcResponseHelpers.apply")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.GrpcResponseHelpers.apply")

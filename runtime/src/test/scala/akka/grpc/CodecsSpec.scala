@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.HttpRequest
 import io.grpc.Status
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.{ OptionValues, TryValues }
+import org.scalatest.TryValues
 
 import scala.collection.immutable
 

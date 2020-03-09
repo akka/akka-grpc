@@ -8,7 +8,6 @@ import scala.concurrent.Await
 
 import org.scalatest.BeforeAndAfterAll
 import scala.concurrent.duration._
-import scala.language.postfixOps
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings

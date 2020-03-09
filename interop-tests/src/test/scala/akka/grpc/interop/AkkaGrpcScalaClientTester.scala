@@ -20,7 +20,6 @@ import org.junit.Assert._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
-import scala.util.Failure
 import scala.util.control.NoStackTrace
 
 /**

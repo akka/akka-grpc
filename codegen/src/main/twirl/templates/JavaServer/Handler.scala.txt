@@ -124,7 +124,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
           case "@method.grpcName":
             response = @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, reader)
               .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
-              .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, writer, system, eHandler));
+              .thenApply(e -> @{method.marshal}(e, @method.serializer.name, writer, system, eHandler));
             break;
           }
           default:

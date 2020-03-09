@@ -30,7 +30,7 @@ object Common extends AutoPlugin {
   val silencerVersion = "1.6.0"
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
-    scalacOptions ++= List("-unchecked", "-deprecation", "-language:_", "-Xfatal-warnings", "-encoding", "UTF-8"),
+    scalacOptions ++= List("-unchecked", "-deprecation", "-language:_", "-Xfatal-warnings", "-Ywarn-unused", "-encoding", "UTF-8"),
     Compile / scalacOptions ++= Seq(
         // generated code for methods/fields marked 'deprecated'
         "-P:silencer:globalFilters=Marked as deprecated in proto file",
@@ -38,7 +38,10 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=unbalanced or unclosed heading",
         // deprecated in 2.13, but used as long as we support 2.12
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
-        "-P:silencer:globalFilters=Use LazyList instead of Stream"),
+        "-P:silencer:globalFilters=Use LazyList instead of Stream",
+        // ignore imports in templates
+        "-P:silencer:pathFilters=.*.txt"
+    ),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",

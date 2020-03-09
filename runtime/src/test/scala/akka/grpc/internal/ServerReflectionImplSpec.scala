@@ -4,14 +4,6 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.TimeUnit
-
-import io.grpc._
-
-import scala.concurrent.Promise
-
-import akka.Done
-
 import grpc.reflection.v1alpha.reflection.ServerReflection
 
 import org.scalatest.concurrent.ScalaFutures

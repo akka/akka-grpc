@@ -3,11 +3,11 @@
  */
 
 package akka.grpc.internal
+
 import akka.actor.ActorSystem
 import akka.grpc.{ Codecs, ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.NotUsed
 import akka.annotation.InternalApi
@@ -25,7 +25,6 @@ object GrpcRequestHelpers {
       e: Source[T, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem): HttpRequest =
     request(uri, GrpcEntityHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler))

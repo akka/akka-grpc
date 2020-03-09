@@ -70,18 +70,4 @@ object Method {
     import ops._
     messageType.scalaType.fullName
   }
-
-  private def outerClass(t: Descriptor) =
-    if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""
-    else {
-      val outerClassName = t.getFile.toProto.getOptions.getJavaOuterClassname
-      if (outerClassName == "") {
-        protoName(t).head.toUpper + protoName(t).tail + "."
-      } else {
-        outerClassName + "."
-      }
-    }
-
-  private def protoName(t: Descriptor) =
-    t.getFile.getName.replaceAll("\\.proto", "").split("/").last
 }

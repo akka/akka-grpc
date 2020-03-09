@@ -4,8 +4,6 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.CompletionStage
-
 import akka.annotation.InternalApi
 import akka.dispatch.ExecutionContexts
 import akka.grpc.GrpcResponseMetadata
@@ -13,7 +11,6 @@ import akka.stream
 import akka.stream.{ Attributes => _, _ }
 import akka.stream.stage._
 import io.grpc._
-import io.grpc.stub.StreamObserver
 
 import scala.concurrent.{ Future, Promise }
 import scala.compat.java8.FutureConverters._

@@ -5,21 +5,19 @@
 package akka.grpc.internal
 
 import java.lang.reflect.Field
-import java.util.concurrent.{ ThreadLocalRandom, TimeUnit }
+import java.util.concurrent.TimeUnit
 
 import akka.Done
 import akka.annotation.InternalApi
-import akka.discovery.Lookup
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import io.grpc.CallOptions
-import io.grpc.internal.DnsNameResolverProvider
 import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.grpc.netty.shaded.io.netty.handler.ssl._
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ ExecutionContext, Promise }
 
 /**
  * Used to indicate that the service discovery returned no target.

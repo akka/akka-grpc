@@ -6,9 +6,6 @@ package akka.grpc.internal
 
 import com.typesafe.config.ConfigFactory
 import akka.actor.ActorSystem
-import akka.event.Logging
-import akka.pattern.AskTimeoutException
-import akka.grpc.GrpcClientSettings
 import org.scalatest._
 import org.scalatest.concurrent._
 import org.scalatest.matchers.should.Matchers
@@ -24,8 +21,6 @@ class NettyClientUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures w
       """).withFallback(ConfigFactory.load()))
 
   "The Netty client-utilities" should {
-    implicit val ec = system.dispatcher
-
 //    The channel can now retry service discovery as needed itself,
 //    I guess we should test that instead?
 //    "fail to create a channel when service discovery times out" in {

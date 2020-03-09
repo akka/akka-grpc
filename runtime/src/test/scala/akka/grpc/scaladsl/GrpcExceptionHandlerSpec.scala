@@ -34,7 +34,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
     case grpcException: GrpcServiceException => grpcException.status
     case _: NotImplementedError              => Status.UNIMPLEMENTED
     case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
-    case other                               => Status.INTERNAL
+    case _                                   => Status.INTERNAL
   }
 
   val otherTypes: Seq[Throwable] = Seq(
@@ -72,7 +72,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
 
   def getChunks(resp: HttpResponse): Seq[ChunkStreamPart] =
     (resp.entity match {
-      case Chunked(contentType, chunks) =>
+      case Chunked(_, chunks) =>
         chunks.runFold(Seq.empty[ChunkStreamPart]) { case (seq, chunk) => seq :+ chunk }
       case _ => Future.successful(Seq.empty[ChunkStreamPart])
     }).futureValue

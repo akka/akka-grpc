@@ -6,12 +6,11 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.annotation.DoNotInherit
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
+import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.scaladsl.Source
-import akka.util.{ ByteString, JavaDurationConverters }
+import akka.util.ByteString
 
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Request builder for requests providing per call specific metadata capabilities in
