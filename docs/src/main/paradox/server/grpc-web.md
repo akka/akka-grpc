@@ -38,7 +38,7 @@ you will need to add the akka-http-cors dependency to your project:
 
 @@dependency[sbt,Maven,Gradle] {
   group="ch.megard"
-  artifact="akka-http-cors_2.13"
+  artifact="akka-http-cors_2.12"
   version="0.4.2"
 }
 

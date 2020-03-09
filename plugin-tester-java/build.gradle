@@ -45,7 +45,7 @@ dependencies {
   // Configuration for modules that use Jetty ALPN agent
   alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
 
-  compile group: 'ch.megard', name: 'akka-http-cors_2.13', version: '0.4.2'
+  compile group: 'ch.megard', name: 'akka-http-cors_2.12', version: '0.4.2'
 }
 
 task runServer(type: JavaExec) {
