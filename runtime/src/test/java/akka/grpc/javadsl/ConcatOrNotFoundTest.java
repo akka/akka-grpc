@@ -4,9 +4,9 @@
 
 package akka.grpc.javadsl;
 
-import akka.http.javadsl.model.HttpRequest;
-import akka.http.javadsl.model.HttpResponse;
-import akka.http.javadsl.model.StatusCodes;
+import akka.grpc.internal.GrpcProtocolNative;
+import akka.http.javadsl.model.*;
+import akka.util.ByteString;
 import org.junit.Test;
 import org.scalatestplus.junit.JUnitSuite;
 
@@ -17,6 +17,9 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 public class ConcatOrNotFoundTest extends JUnitSuite {
+
+  private final HttpRequest emptyGrpcRequest =
+      HttpRequest.create().withEntity(GrpcProtocolNative.contentType(), ByteString.empty());
 
   private final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
       HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
@@ -31,7 +34,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
   public void testSingleMatching() throws Exception {
     CompletionStage<HttpResponse> response = ServiceHandler.concatOrNotFound(
         req -> response(231)
-    ).apply(HttpRequest.create());
+    ).apply(emptyGrpcRequest);
 
     assertEquals(231, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -42,7 +45,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
     CompletionStage<HttpResponse> response = ServiceHandler.concatOrNotFound(
         req -> response(231),
         req -> notFound
-    ).apply(HttpRequest.create());
+    ).apply(emptyGrpcRequest);
 
     assertEquals(231, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -54,7 +57,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
         req -> notFound,
         req -> response(232),
         req -> notFound
-    ).apply(HttpRequest.create());
+    ).apply(emptyGrpcRequest);
 
     assertEquals(232, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -66,7 +69,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
         req -> notFound,
         req -> notFound,
         req -> response(233)
-        ).apply(HttpRequest.create());
+        ).apply(emptyGrpcRequest);
 
     assertEquals(233, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -78,7 +81,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
         req -> notFound,
         req -> notFound,
         req -> notFound
-    ).apply(HttpRequest.create());
+    ).apply(emptyGrpcRequest);
 
     assertEquals(404, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -86,7 +89,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
   @Test
   @SuppressWarnings("unchecked")
   public void testEmpty() throws Exception {
-    CompletionStage<HttpResponse> response = ServiceHandler.concatOrNotFound().apply(HttpRequest.create());
+    CompletionStage<HttpResponse> response = ServiceHandler.concatOrNotFound().apply(emptyGrpcRequest);
 
     assertEquals(404, response.toCompletableFuture().get(3, TimeUnit.SECONDS).status().intValue());
   }
@@ -101,7 +104,7 @@ public class ConcatOrNotFoundTest extends JUnitSuite {
         req -> laterNotFound,
         req -> laterResponse,
         req -> notFound
-    ).apply(HttpRequest.create());
+    ).apply(emptyGrpcRequest);
 
     Thread.sleep(100);
     laterNotFound.complete(notFound.toCompletableFuture().get());
