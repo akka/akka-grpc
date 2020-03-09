@@ -18,8 +18,6 @@ object Codecs {
   private val supported = supportedCodecs.map(_.name)
   private val byName = supportedCodecs.map(c => c.name -> c).toMap
 
-  val supportedMessageAcceptEncoding: `Message-Accept-Encoding` = `Message-Accept-Encoding`(supported.mkString(","))
-
   /**
    * Determines the message encoding to use for a server response to a client.
    *

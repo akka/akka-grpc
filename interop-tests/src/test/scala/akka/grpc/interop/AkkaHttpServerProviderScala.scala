@@ -53,7 +53,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   // Route to pass the 'status_code_and_message' test
   def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer, system: ActorSystem): Route = {
     implicit val ec = mat.executionContext
-    implicit val grpc = GrpcProtocolNative.newWriter(Identity)
+    implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
     import TestServiceMarshallers._
 

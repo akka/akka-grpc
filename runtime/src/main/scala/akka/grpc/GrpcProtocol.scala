@@ -2,7 +2,7 @@ package akka.grpc
 
 import akka.NotUsed
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ ContentType, HttpHeader }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -40,7 +40,7 @@ trait GrpcProtocol {
  */
 object GrpcProtocol {
 
-  private val grpcVariants: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol)
+  private val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)
 
   /** A frame in a logical gRPC protocol stream */
   sealed trait Frame
@@ -96,7 +96,7 @@ object GrpcProtocol {
    * Detects which gRPC protocol variant is indicated by a mediatype.
    * @return a [[GrpcProtocol]] matching the request mediatype if known.
    */
-  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = grpcVariants.find(_.mediaTypes.contains(mediaType))
+  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = protocols.find(_.mediaTypes.contains(mediaType))
 
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.

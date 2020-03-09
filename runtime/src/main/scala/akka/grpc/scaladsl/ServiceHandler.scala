@@ -6,7 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcProtocol
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcWebTextProtocol }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.model.headers._
@@ -48,7 +48,7 @@ object ServiceHandler {
 
   private[grpc] val isGrpcRequest: jmodel.HttpRequest => Boolean = matchesVariant(Set(GrpcProtocolNative))
   private[grpc] val isGrpcWebRequest: jmodel.HttpRequest => Boolean = matchesVariant(
-    Set(GrpcProtocolWeb, GrpcWebTextProtocol))
+    Set(GrpcProtocolWeb, GrpcProtocolWebText))
 
   private[grpc] def isCorsPreflightRequest(r: jmodel.HttpRequest): Boolean =
     r.method == HttpMethods.OPTIONS && r.getHeader(classOf[Origin]).isPresent && r
