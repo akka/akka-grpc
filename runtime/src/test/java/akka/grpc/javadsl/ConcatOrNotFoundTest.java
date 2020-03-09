@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 public class ConcatOrNotFoundTest extends JUnitSuite {
 
   private final HttpRequest emptyGrpcRequest =
-      HttpRequest.create().withEntity(GrpcProtocolNative.contentType(), ByteString.empty());
+      HttpRequest.create().withEntity(GrpcProtocolNative.contentType(), ByteString.emptyByteString());
 
   private final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
       HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
