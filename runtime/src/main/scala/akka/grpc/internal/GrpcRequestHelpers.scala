@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.internal
 import akka.actor.ActorSystem
 import akka.grpc.{ Codecs, ProtobufSerializer, Trailers }

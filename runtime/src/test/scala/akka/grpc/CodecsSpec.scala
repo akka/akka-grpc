@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc
 import akka.grpc.scaladsl.headers
 import akka.http.scaladsl.model.HttpRequest
