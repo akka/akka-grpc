@@ -42,6 +42,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     // We don't actually promise binary compatibility before 1.0.0, but want to
     // introduce the tooling
     mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % "0.7.3"),
+    AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
