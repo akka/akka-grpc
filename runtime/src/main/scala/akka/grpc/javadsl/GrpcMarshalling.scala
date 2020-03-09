@@ -10,47 +10,15 @@ import java.util.Optional
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc._
-import akka.grpc.internal.{
-  CancellationBarrierGraphStage,
-  GrpcProtocolNative,
-  GrpcResponseHelpers,
-  MissingParameterException
-}
+import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.japi.Function
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.util.ByteString
-import io.grpc.Status
 
 object GrpcMarshalling {
-  @Deprecated
-  def unmarshal[T](req: HttpRequest, u: ProtobufSerializer[T], mat: Materializer): CompletionStage[T] = {
-    GrpcProtocol
-      .negotiate(req)
-      .map {
-        case (maybeReader, _) =>
-          maybeReader.map(reader => unmarshal(req.entity.getDataBytes, u, mat, reader)).fold(failure[T], identity)
-      }
-      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
-  }
-
-  @Deprecated
-  def unmarshalStream[T](
-      req: HttpRequest,
-      u: ProtobufSerializer[T],
-      mat: Materializer): CompletionStage[Source[T, NotUsed]] = {
-    GrpcProtocol
-      .negotiate(req)
-      .map {
-        case (maybeReader, _) =>
-          maybeReader
-            .map(reader => unmarshalStream(req.entity.getDataBytes, u, mat, reader))
-            .fold(failure[Source[T, NotUsed]], identity)
-      }
-      .getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
-  }
 
   def negotiated[T](
       req: HttpRequest,
@@ -89,33 +57,7 @@ object GrpcMarshalling {
         .mapMaterializedValue(japiFunction(_ => NotUsed)))
   }
 
-  @Deprecated
-  def marshal[T](e: T, m: ProtobufSerializer[T], mat: Materializer, codec: Codec, system: ActorSystem): HttpResponse =
-    marshalStream2(Source.single(e), m, mat, GrpcProtocolNative.newWriter(codec), system)
-
-  @Deprecated
   def marshal[T](
-      e: T,
-      m: ProtobufSerializer[T],
-      mat: Materializer,
-      codec: Codec,
-      system: ActorSystem,
-      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
-      : HttpResponse =
-    marshalStream2(Source.single(e), m, mat, GrpcProtocolNative.newWriter(codec), system, eHandler)
-
-  @Deprecated
-  def marshalStream[T](
-      e: Source[T, NotUsed],
-      m: ProtobufSerializer[T],
-      mat: Materializer,
-      codec: Codec,
-      system: ActorSystem,
-      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
-      : HttpResponse =
-    marshalStream2(e, m, mat, GrpcProtocolNative.newWriter(codec), system, eHandler)
-
-  def marshal2[T](
       e: T,
       m: ProtobufSerializer[T],
       mat: Materializer,
@@ -123,9 +65,9 @@ object GrpcMarshalling {
       system: ActorSystem,
       eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
-    marshalStream2(Source.single(e), m, mat, writer, system, eHandler)
+    marshalStream(Source.single(e), m, mat, writer, system, eHandler)
 
-  def marshalStream2[T](
+  def marshalStream[T](
       e: Source[T, NotUsed],
       m: ProtobufSerializer[T],
       mat: Materializer,

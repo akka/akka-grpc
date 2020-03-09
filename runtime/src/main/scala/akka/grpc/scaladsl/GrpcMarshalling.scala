@@ -65,28 +65,23 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage))
   }
 
-  @deprecated("To be removed", "grpc-web")
   def marshal[T](
       e: T = Identity,
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
-      system: ActorSystem): HttpResponse = {
-    implicit val grpc: GrpcProtocolWriter = GrpcProtocolNative.newWriter(codec)
-    marshalStream2(Source.single(e), eHandler)
-  }
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): HttpResponse =
+    marshalStream(Source.single(e), eHandler)
 
-  @deprecated("To be removed", "grpc-web")
   def marshalStream[T](
       e: Source[T, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
-    implicit val grpc: GrpcProtocolWriter = GrpcProtocolNative.newWriter(codec)
-    marshalStream2(e, eHandler)
+    GrpcResponseHelpers(e, eHandler)
   }
 
   @InternalApi
@@ -111,22 +106,4 @@ object GrpcMarshalling {
       system: ActorSystem): HttpRequest =
     GrpcRequestHelpers(uri, e, eHandler)
 
-  def marshal2[T](
-      e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
-      implicit m: ProtobufSerializer[T],
-      mat: Materializer,
-      writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
-    marshalStream2(Source.single(e), eHandler)
-
-  def marshalStream2[T](
-      e: Source[T, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
-      implicit m: ProtobufSerializer[T],
-      mat: Materializer,
-      writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse = {
-    GrpcResponseHelpers(e, eHandler)
-  }
 }

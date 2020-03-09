@@ -26,8 +26,8 @@ case class Method(
     else "GrpcMarshalling.unmarshal"
 
   def marshal =
-    if (outputStreaming) "GrpcMarshalling.marshalStream2"
-    else "GrpcMarshalling.marshal2"
+    if (outputStreaming) "GrpcMarshalling.marshalStream"
+    else "GrpcMarshalling.marshal"
 
   def parameterType =
     if (inputStreaming) s"akka.stream.scaladsl.Source[${messageType(inputType)}, akka.NotUsed]"
