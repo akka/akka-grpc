@@ -7,8 +7,8 @@ package akka.grpc.javadsl
 import java.util.concurrent.CompletionException
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.{ GrpcServiceException, Identity, Trailers }
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
