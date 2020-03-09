@@ -14,13 +14,12 @@ What language to generate stubs for is also configurable:
 
 ### Configurations
 
-By default, the plugin will run generators against proto sources in the `Compile` directories, as well as the `Test` ones if
-there are some.
+By default, the plugin will run generators against `.proto` sources in the `Compile` directories (`src/main/protobuf`), as well as the `Test` ones (`src/test/protobuf`) if there are any.
 
 The settings documented above can have different values for each configuration, allowing you for example to generate in `Test`
 (and in `Test` only) client stubs for a service defined in `Compile`.
 
-If you have other configurations with proto sources (for example `IntegrationTest`), you can enable the plugin on them:
+If you have other configurations with `.proto` sources (for example `IntegrationTest`), you can enable the plugin on them:
 
 ```
 .settings(AkkaGrpcPlugin.configSettings(IntegrationTest))
@@ -37,7 +36,7 @@ akkaGrpcCodeGeneratorSettings += "server_power_apis"
 
 ## Passing parameters to the generators
 
-The sbt plugin for Akka-gRPC uses ScalaPB and `sbt-protoc`. It is possible to tune these libraries if the provided defaults
+The sbt plugin for Akka-gRPC uses [ScalaPB](https://scalapb.github.io) and `sbt-protoc`. It is possible to tune these libraries if the provided defaults
 don't suit your needs.
 
 ### ScalaPB settings
@@ -54,7 +53,7 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 
 ### `sbt-protoc` settings
 
-To tune the [`sbt-protoc` additional options](https://github.com/thesamet/sbt-protoc#additional-options) such as the proto source directory
+To tune the `sbt-protoc` [additional options](https://github.com/thesamet/sbt-protoc#additional-options) such as the proto source directory
 you can configure them like this:
 
 
@@ -68,7 +67,7 @@ you can configure them like this:
 The above, for example, removes `descriptor.proto` from the list of files to be processed.
 
 By default protobuf files are looked for in `src/main/protobuf` (and `src/main/proto`).
-You can configure where your .proto files are located like this:
+You can configure where your `.proto` files are located like this:
 
 ```
 // "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto_custom":
@@ -88,12 +87,12 @@ libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 
 ## Starting your Akka gRPC server from sbt
 
-As the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
 you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
 
-This can be done automatically using the `JavaAgent` sbt plugin.
+This can be done automatically using the [`sbt-javaagent`](https://github.com/sbt/sbt-javaagent) plugin.
 
-Add the plugin to `project/plugin.sbt`
+Add the plugin to `project/plugins.sbt`
 
 @@snip [plugin.sbt](/project/plugins.sbt) { #java-agent-plugin }
 

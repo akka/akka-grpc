@@ -36,7 +36,7 @@ public class GrpcClientSettingsCompileOnly {
         //#provide-sd
 
         //#sd-settings
-        // sys is an ActorSystem which is required for service discovery
+        // an ActorSystem is required for service discovery
         GrpcClientSettings.fromConfig(
                 "project.WithConfigServiceDiscovery", actorSystem
         );

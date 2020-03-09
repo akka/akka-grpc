@@ -14,17 +14,17 @@ The client offers a method `closed()` that returns a @scala[`Future`]@java[`Comp
 that will complete once the client is explicitly closed after invoking `close()`.
 
 If you're using a static name for your server (or a Service Discovery with hard-corded values) then the server will
-be re-resolved between connection attempts and infinite is a sensible default value for `GrpcClientSettings#connectionAttempts`. However,
+be re-resolved between connection attempts and infinite is a sensible default value for @apidoc[GrpcClientSettings.connectionAttempts](GrpcClientSettings). However,
 if you setup another service discovery mechanism (e.g. a service discovery based on DNS-SRV in Kubernetes) then the reconnection attempts should be set to
 a small value (i.e. 5) so the client can recreate the connection to a different server instance when the connection is dropped and can't be restablished. 
 
 ## Request Metadata
 
 Default request metadata, for example for authentication, can be provided through the
-`GrpcClientSettings` passed to the client when it is created, it will be the base metadata used for each request.
+@apidoc[GrpcClientSettings] passed to the client when it is created, it will be the base metadata used for each request.
 
 In some cases you will want to provide specific metadata to a single request, this can be done through the "lifted"
-client API, each method of the service has an empty parameter list version on the client returning a `RequestBuilder`.
+client API, each method of the service has an empty parameter list version (`.sayHello()`) on the client returning a @apidoc[SingleResponseRequestBuilder] or @apidoc[StreamResponseRequestBuilder].
 
 After adding the required metadata the request is done by calling `invoke` with the request parameters.
 
@@ -39,7 +39,7 @@ Java
 When multiple endpoints are discovered for a gRPC client, currently one is
 selected and used for all outgoing calls.
 
-This approach, while na&impl;ve, in fact works well in many cases: when there
+This approach, while naïve, in fact works well in many cases: when there
 are multiple nodes available to handle requests, a server-side load balancer
 is better-positioned to make decisions than any single client, as it can
 take into account information from multiple clients, and sometimes even
