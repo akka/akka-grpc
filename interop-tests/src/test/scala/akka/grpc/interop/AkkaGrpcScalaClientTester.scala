@@ -116,8 +116,8 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit mat: Materializ
   def serverCompressedStreaming(): Unit = {
     val request =
       StreamingOutputCallRequest(responseParameters = Seq(
-        ResponseParameters(size = 31415, compressed = Some(BoolValue.of(true))),
-        ResponseParameters(size = 92653, compressed = Some(BoolValue.of(true)))))
+        ResponseParameters(size = 31415, compressed = Some(BoolValue(true))),
+        ResponseParameters(size = 92653, compressed = Some(BoolValue(true)))))
 
     val expectedResponses: Seq[StreamingOutputCallResponse] = Seq(
       StreamingOutputCallResponse(Option(Payload(body = ByteString.copyFrom(new Array[Byte](31415))))),

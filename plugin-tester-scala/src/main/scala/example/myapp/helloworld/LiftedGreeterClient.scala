@@ -45,7 +45,7 @@ object LiftedGreeterClient {
     //#with-metadata
 
     def streamingRequest(): Unit = {
-      val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
+      val requests = List("Alice", "Bob", "Peter").map(HelloRequest(_))
       val reply = client.itKeepsTalking().addHeader("key", "value").invoke(Source(requests))
       println(s"got single reply for streaming requests: ${Await.result(reply, 5.seconds).message}")
     }

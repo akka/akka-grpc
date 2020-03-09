@@ -25,7 +25,7 @@ import akka.grpc.benchmarks.proto.Stats;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.scalatest.junit.JUnitSuite;
+import org.scalatestplus.junit.JUnitSuite;
 
 /**
  * Tests for {@link LoadClient}.

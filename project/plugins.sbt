@@ -28,7 +28,7 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.1.20200213
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.9.6"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.10.1"
 
 // #java-agent-plugin
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.5")

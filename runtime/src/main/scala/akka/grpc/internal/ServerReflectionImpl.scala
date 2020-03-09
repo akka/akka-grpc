@@ -34,7 +34,7 @@ final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescr
         case In.FileContainingSymbol(symbol) =>
           val list = findFileDescForSymbol(symbol, fileDescriptors).map(_.toProto.toByteString).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
-        case In.FileContainingExtension(ExtensionRequest(container, number)) =>
+        case In.FileContainingExtension(ExtensionRequest(container, number, _)) =>
           val list = findFileDescForExtension(container, number, fileDescriptors).map(_.toProto.toByteString).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
         case In.AllExtensionNumbersOfType(container) =>

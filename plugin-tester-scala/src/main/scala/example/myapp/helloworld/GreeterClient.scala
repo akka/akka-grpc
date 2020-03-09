@@ -50,7 +50,7 @@ object GreeterClient {
     }
 
     def runStreamingRequestExample(): Unit = {
-      val requests = List("Alice", "Bob", "Peter").map(HelloRequest.apply)
+      val requests = List("Alice", "Bob", "Peter").map(HelloRequest(_))
       val reply = client.itKeepsTalking(Source(requests))
       reply.onComplete {
         case Success(msg) =>

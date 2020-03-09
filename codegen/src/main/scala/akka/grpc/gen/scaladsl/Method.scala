@@ -68,7 +68,7 @@ object Method {
 
   def messageType(messageType: Descriptor)(implicit ops: DescriptorImplicits) = {
     import ops._
-    messageType.scalaTypeName
+    messageType.scalaType.fullName
   }
 
   private def outerClass(t: Descriptor) =

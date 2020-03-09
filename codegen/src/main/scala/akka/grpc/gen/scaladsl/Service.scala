@@ -36,8 +36,8 @@ object Service {
     val serviceClassName = serviceDescriptor.getName
 
     Service(
-      fileDesc.fileDescriptorObjectFullName + ".javaDescriptor",
-      fileDesc.scalaPackageName,
+      fileDesc.fileDescriptorObject.fullName + ".javaDescriptor",
+      fileDesc.scalaPackage.fullName,
       serviceClassName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],
