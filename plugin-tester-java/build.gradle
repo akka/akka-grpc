@@ -11,6 +11,8 @@ buildscript {
 
     // For testing on travis, we use another group id:
     classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
+
+    compile group: 'ch.megard', name: 'akka-http-cors_2.13', version: '0.4.2'
   }
 }
 
