@@ -20,19 +20,19 @@ import akka.util.ByteString
 object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
 
   override protected def writer(codec: Codec) =
-    Grpc.writer(this, codec, encodeFrame(codec, _))
+    AbstractGrpcProtocol.writer(this, codec, encodeFrame(codec, _))
 
   override protected def reader(codec: Codec): GrpcProtocolReader =
-    Grpc.reader(this, codec, decodeFrame)
+    AbstractGrpcProtocol.reader(this, codec, decodeFrame)
 
   @inline
   private def decodeFrame(frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart = {
-    val compressedFlag = Grpc.fieldType(codec)
+    val compressedFlag = AbstractGrpcProtocol.fieldType(codec)
     frame match {
-      case DataFrame(data)       => Chunk(Grpc.encodeFrameData(compressedFlag, codec.compress(data)))
+      case DataFrame(data)       => Chunk(AbstractGrpcProtocol.encodeFrameData(compressedFlag, codec.compress(data)))
       case TrailerFrame(headers) => LastChunk(trailer = headers)
     }
   }

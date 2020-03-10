@@ -19,19 +19,23 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
   protected def preDecode(frame: ByteString): ByteString
 
   override protected def writer(codec: Codec): GrpcProtocolWriter =
-    Grpc.writer(this, codec, frame => encodeFrame(codec, frame))
+    AbstractGrpcProtocol.writer(this, codec, frame => encodeFrame(codec, frame))
 
   override protected def reader(codec: Codec): GrpcProtocolReader =
-    Grpc.reader(this, codec, decodeFrame, flow => Flow[ByteString].map(frame => preDecode(frame)).via(flow))
+    AbstractGrpcProtocol.reader(
+      this,
+      codec,
+      decodeFrame,
+      flow => Flow[ByteString].map(frame => preDecode(frame)).via(flow))
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart = {
-    val dataFrameType = Grpc.fieldType(codec)
+    val dataFrameType = AbstractGrpcProtocol.fieldType(codec)
     val (frameType, data) = frame match {
       case DataFrame(data)       => (dataFrameType, data)
       case TrailerFrame(trailer) => (ByteString(dataFrameType(0) | 0x80), encodeTrailer(trailer))
     }
-    val framed = Grpc.encodeFrameData(frameType, codec.compress(data))
+    val framed = AbstractGrpcProtocol.encodeFrameData(frameType, codec.compress(data))
     Chunk(postEncode(framed))
   }
 

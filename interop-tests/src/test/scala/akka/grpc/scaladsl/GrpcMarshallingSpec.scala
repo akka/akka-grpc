@@ -5,8 +5,8 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcProtocol, Gzip }
-import akka.grpc.internal.{ Grpc, GrpcProtocolNative }
+import akka.grpc.Gzip
+import akka.grpc.internal.{ AbstractGrpcProtocol, GrpcProtocolNative }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
@@ -29,7 +29,9 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     implicit val mat = ActorMaterializer()
     val awaitTimeout = 10.seconds
     val zippedBytes =
-      Grpc.encodeFrameData(Grpc.fieldType(Gzip), Gzip.compress(serializer.serialize(message)))
+      AbstractGrpcProtocol.encodeFrameData(
+        AbstractGrpcProtocol.fieldType(Gzip),
+        Gzip.compress(serializer.serialize(message)))
 
     "correctly unmarshal a zipped object" in {
       val request = HttpRequest(
