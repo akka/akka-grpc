@@ -6,15 +6,15 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
 
-import scala.concurrent.ExecutionException
-
 import akka.actor.ActorSystem
+import akka.grpc.{ GrpcServiceException, Identity, Trailers }
+import akka.grpc.GrpcProtocol.GrpcProtocolWriter
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
 import io.grpc.Status
 
-import akka.grpc.{ GrpcServiceException, Trailers }
-import akka.grpc.internal.MissingParameterException
+import scala.concurrent.ExecutionException
 
 object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
@@ -46,11 +46,24 @@ object GrpcExceptionHandler {
       }
     }
 
-  def standard(t: Throwable, system: ActorSystem): HttpResponse = standard(t, defaultMapper, system)
+  @Deprecated
+  def standard(t: Throwable, system: ActorSystem): HttpResponse =
+    standard(t, defaultMapper, GrpcProtocolNative.newWriter(Identity), system)
 
+  @Deprecated
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
       system: ActorSystem): HttpResponse =
-    GrpcMarshalling.status(mapper(system)(t))
+    standard(t, mapper, GrpcProtocolNative.newWriter(Identity), system)
+
+  def standard(t: Throwable, writer: GrpcProtocolWriter, system: ActorSystem): HttpResponse =
+    standard(t, default, writer, system)
+
+  def standard(
+      t: Throwable,
+      mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): HttpResponse =
+    GrpcResponseHelpers.status(mapper(system)(t))(writer)
 }

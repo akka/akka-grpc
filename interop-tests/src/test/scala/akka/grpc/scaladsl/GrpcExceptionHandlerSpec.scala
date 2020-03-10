@@ -7,18 +7,22 @@ package akka.grpc.scaladsl
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
+
+import akka.grpc.{ GrpcServiceException, Identity }
+import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcRequestHelpers }
 import akka.grpc.scaladsl.headers.`Status`
-import akka.grpc.internal.GrpcEntityHelpers
+import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.wordspec.AnyWordSpecLike
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
 import akka.util.ByteString
 import io.grpc.testing.integration.test.TestService
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+
+import scala.concurrent.Future
 
 class GrpcExceptionHandlerSpec
     extends TestKit(ActorSystem("GrpcExceptionHandlerSpec"))
@@ -31,12 +35,13 @@ class GrpcExceptionHandlerSpec
   "The default ExceptionHandler" should {
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
       implicit val serializer = TestService.Serializers.SimpleRequestSerializer
-      val unmarshallableRequest = HttpRequest()
+      implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
+      val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(GrpcProtocolNative.contentType))
 
       val result: Future[HttpResponse] = GrpcMarshalling
         .unmarshal(unmarshallableRequest)
         .map(_ => HttpResponse())
-        .recoverWith(GrpcExceptionHandler.default)
+        .recoverWith(GrpcExceptionHandler.defaultHandler)
 
       result.futureValue.entity match {
         case Chunked(contentType, chunks) =>
@@ -104,12 +109,11 @@ class GrpcExceptionHandlerSpec
     }
 
     "return the correct user-supplied status for a unary call" in {
-      import akka.http.scaladsl.client.RequestBuilding._
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
-      implicit val codec = akka.grpc.Identity
+      implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
-      val request = Get(s"/${GreeterService.name}/SayHello", GrpcEntityHelpers(HelloRequest("")))
+      val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", Source.single(HelloRequest("")))
 
       val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
 
@@ -129,9 +133,9 @@ class GrpcExceptionHandlerSpec
       import akka.http.scaladsl.client.RequestBuilding._
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
-      implicit val codec = akka.grpc.Identity
+      implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
-      val request = Get(s"/${GreeterService.name}/ItKeepsReplying", GrpcEntityHelpers(HelloRequest("")))
+      val request = GrpcRequestHelpers(s"/${GreeterService.name}/ItKeepsReplying", Source.single(HelloRequest("")))
 
       val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
 

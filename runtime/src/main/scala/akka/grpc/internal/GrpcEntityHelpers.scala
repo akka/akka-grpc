@@ -4,59 +4,59 @@
 
 package akka.grpc.internal
 
-import io.grpc.Status
-import akka.{ grpc, NotUsed }
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ Codec, Grpc, GrpcServiceException, ProtobufSerializer, Trailers }
+import akka.grpc.{ GrpcServiceException, ProtobufSerializer, Trailers }
+import akka.grpc.GrpcProtocol.{ DataFrame, Frame, GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, BytesEntry, Metadata, StringEntry }
-import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.model.HttpEntity.LastChunk
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import io.grpc.Status
 
 /** INTERNAL API */
 @InternalApi
 object GrpcEntityHelpers {
   def apply[T](
       e: Source[T, NotUsed],
-      trail: Source[HttpEntity.LastChunk, NotUsed],
+      trail: Source[TrailerFrame, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
-      system: ActorSystem): HttpEntity.Chunked = {
-    HttpEntity.Chunked(Grpc.contentType, chunks(e, trail).recover {
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): Source[ChunkStreamPart, NotUsed] = {
+    chunks(e, trail).recover {
       case t =>
         val e = eHandler(system).orElse[Throwable, Trailers] {
-          case e: GrpcServiceException => grpc.Trailers(e.status, e.metadata)
-          case e: Exception            => grpc.Trailers(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
+          case e: GrpcServiceException => Trailers(e.status, e.metadata)
+          case e: Exception            => Trailers(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
         }(t)
-        trailer(e.status, e.metadata)
-    })
+        writer.encodeFrame(trailer(e.status, e.metadata))
+    }
   }
 
   def apply[T](e: T)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
-      system: ActorSystem): HttpEntity.Chunked =
-    HttpEntity.Chunked(Grpc.contentType, chunks(Source.single(e), Source.empty))
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): Source[ChunkStreamPart, NotUsed] =
+    chunks(Source.single(e), Source.empty)
 
-  private def chunks[T](e: Source[T, NotUsed], trail: Source[HttpEntity.LastChunk, NotUsed])(
+  private def chunks[T](e: Source[T, NotUsed], trail: Source[Frame, NotUsed])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
-      system: ActorSystem) =
-    e.map(m.serialize).via(Grpc.grpcFramingEncoder(codec)).map(bytes => HttpEntity.Chunk(bytes)).concat(trail)
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): Source[ChunkStreamPart, NotUsed] =
+    e.map { msg => DataFrame(m.serialize(msg)) }.concat(trail).via(writer.frameEncoder)
 
-  def trailer(status: Status): LastChunk =
-    LastChunk(trailer = statusHeaders(status))
+  def trailer(status: Status): TrailerFrame =
+    TrailerFrame(trailers = statusHeaders(status))
 
-  def trailer(status: Status, metadata: Metadata): LastChunk =
-    LastChunk(trailer = statusHeaders(status) ++ metadataHeaders(metadata))
+  def trailer(status: Status, metadata: Metadata): TrailerFrame =
+    TrailerFrame(trailers = statusHeaders(status) ++ metadataHeaders(metadata))
 
   def statusHeaders(status: Status): List[HttpHeader] =
     List(headers.`Status`(status.getCode.value.toString)) ++ Option(status.getDescription).map(d =>

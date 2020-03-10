@@ -4,11 +4,12 @@
 
 package akka.grpc.internal
 
-import java.net.{ InetSocketAddress, URI }
+import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
 import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.testkit.TestKit
+import io.grpc.Status
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
@@ -34,7 +35,10 @@ class AkkaDiscoveryNameResolverSpec
       resolver.start(probe)
 
       val exception = probe.future.failed.futureValue.asInstanceOf[GrpcServiceException]
-      exception.status.getDescription should equal(host + ": Name or service not known")
+      exception shouldBe an[GrpcServiceException]
+      exception.status.getCode == Status.UNKNOWN.getCode
+      // FIXME: This description is not portable - it arises from native function response, which differs by OS
+      // exception.status.getDescription should equal(host + ": Name or service not known")
     }
 
     "support serving a static host/port" in {

@@ -7,15 +7,17 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
+import akka.grpc.{ ProtobufSerializer, Trailers }
+import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.grpc.{ Codec, Grpc, ProtobufSerializer, Trailers }
-import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
+
 import scala.collection.immutable
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Some helpers for creating HTTP entities for use with gRPC.
@@ -27,21 +29,21 @@ object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper _)
 
@@ -51,30 +53,32 @@ object GrpcResponseHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
-    implicit val ec = mat.executionContext
+    implicit val ec: ExecutionContext = mat.executionContext
     GrpcResponseHelpers(
       e,
-      Source.lazilyAsync(() => status.map(GrpcEntityHelpers.trailer(_))).mapMaterializedValue(_ => NotUsed),
+      Source.lazilyAsync(() => status.map(GrpcEntityHelpers.trailer)).mapMaterializedValue(_ => NotUsed),
       eHandler)
   }
 
   def apply[T](
       e: Source[T, NotUsed],
-      trail: Source[HttpEntity.LastChunk, NotUsed],
+      trail: Source[TrailerFrame, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
-
-    HttpResponse(
-      headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
-      entity = GrpcEntityHelpers(e, trail, eHandler))
+    response(GrpcEntityHelpers(e, trail, eHandler))
   }
 
-  def status(e: Trailers): HttpResponse =
-    HttpResponse(entity =
-      HttpEntity.Chunked(Grpc.contentType, Source.single(GrpcEntityHelpers.trailer(e.status, e.metadata))))
+  private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit writer: GrpcProtocolWriter) = {
+    HttpResponse(
+      headers = immutable.Seq(headers.`Message-Encoding`(writer.messageEncoding.name)),
+      entity = HttpEntity.Chunked(writer.contentType, entity))
+  }
+
+  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter): HttpResponse =
+    response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(trailer.status, trailer.metadata))))
 }

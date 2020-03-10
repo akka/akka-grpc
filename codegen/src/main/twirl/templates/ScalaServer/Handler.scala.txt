@@ -10,7 +10,6 @@ package @service.packageName
 import scala.concurrent.ExecutionContext
 
 import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling }
-import akka.grpc.Codecs
 import akka.grpc.Trailers
 
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
@@ -24,6 +23,7 @@ import akka.stream.Materializer
 @defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
   object @{serviceName}Handler {
     private val notFound = scala.concurrent.Future.successful(HttpResponse(StatusCodes.NotFound))
+    private val unsupportedMediaType = scala.concurrent.Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -82,21 +82,24 @@ import akka.stream.Materializer
       implicit val ec: ExecutionContext = mat.executionContext
       import @{service.name}.Serializers._
 
-      def handle(request: HttpRequest, method: String): scala.concurrent.Future[HttpResponse] = method match {
-        @for(method <- service.methods) {
-        case "@method.grpcName" =>
-          val responseCodec = Codecs.negotiate(request)
-          @{if(powerApis) { "val metadata = MetadataBuilder.fromHeaders(request.headers)" } else { "" }}
-          @{method.unmarshal}(request)(@method.deserializer.name, mat)
-            .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
-            .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, mat, responseCodec, system))
-        }
-        case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
-      }
+      def handle(request: HttpRequest, method: String): scala.concurrent.Future[HttpResponse] =
+        GrpcMarshalling.negotiated(request, (reader, writer) =>
+          (method match {
+            @for(method <- service.methods) {
+            case "@method.grpcName" =>
+                @{if(powerApis) { "val metadata = MetadataBuilder.fromHeaders(request.headers)" } else { "" }}
+                @{method.unmarshal}(request.entity.dataBytes)(@method.deserializer.name, mat, reader)
+                  .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
+                  .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, mat, writer, system))
+            }
+            case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
+          })
+          .recoverWith(GrpcExceptionHandler.defaultHandler(eHandler(system))(system, writer))
+      ).getOrElse(unsupportedMediaType)
 
       Function.unlift((req: HttpRequest) => req.uri.path match {
         case Path.Slash(Segment(`prefix`, Path.Slash(Segment(method, Path.Empty)))) =>
-          Some(handle(req, method).recoverWith(GrpcExceptionHandler.default(eHandler(system))))
+          Some(handle(req, method))
         case _ =>
           None
       })

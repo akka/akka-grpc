@@ -13,16 +13,23 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <akka.http.cors.version>0.4.2</akka.http.cors.version>
     <grpc.version>1.27.2</grpc.version> <!-- checked synced by GrpcVersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
   </properties>
-  
+
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>ch.megard</groupId>
+      <artifactId>akka-http-cors_2.12</artifactId>
+      <version>${akka.http.cors.version}</version>
+    </dependency>
+
     <!-- Needed for the generated client -->
     <dependency>
       <groupId>io.grpc</groupId>

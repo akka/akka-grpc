@@ -4,22 +4,7 @@
 
 package akka.grpc.interop
 
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.grpc.Identity
-import akka.grpc.internal.GrpcResponseHelpers
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server._
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
-import io.grpc.Status
 import io.grpc.testing.integration.TestServiceHandlerFactory
-import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration.test.{ TestService, TestServiceHandler, TestServiceMarshallers }
-import org.scalatest._
-
-import scala.collection.immutable
-import scala.concurrent.Promise
 
 class GrpcInteropIoWithIoSpec extends GrpcInteropTests(IoGrpcJavaServerProvider, IoGrpcJavaClientProvider)
 class GrpcInteropIoWithAkkaScalaSpec extends GrpcInteropTests(IoGrpcJavaServerProvider, AkkaHttpClientProviderScala)

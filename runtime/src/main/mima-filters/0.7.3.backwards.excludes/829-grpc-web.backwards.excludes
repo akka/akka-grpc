@@ -1,0 +1,5 @@
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Grpc*")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.Codecs.supportedCodecs")
+ProblemFilters.exclude[Problem]("akka.grpc.internal.GrpcResponseHelpers.*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.javadsl.GrpcMarshalling.*")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.scaladsl.GrpcMarshalling.*")

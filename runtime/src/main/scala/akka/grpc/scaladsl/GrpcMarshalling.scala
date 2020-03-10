@@ -4,47 +4,61 @@
 
 package akka.grpc.scaladsl
 
-import scala.collection.immutable
-import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.grpc._
-import akka.grpc.internal.{
-  CancellationBarrierGraphStage,
-  GrpcEntityHelpers,
-  GrpcResponseHelpers,
-  MissingParameterException
-}
-import akka.grpc.scaladsl.headers.`Message-Encoding`
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
+import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
+import akka.grpc.internal._
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
+import akka.util.ByteString
+import io.grpc.Status
+
+import scala.concurrent.Future
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    val messageEncoding = `Message-Encoding`.findIn(req.headers)
-    implicit val ec = mat.executionContext
-    req.entity.dataBytes
-      .via(Grpc.grpcFramingDecoder(messageEncoding))
-      .map(u.deserialize)
-      .runWith(Sink.headOption)(mat)
-      .flatMap {
-        _ match {
-          case Some(element) => Future.successful(element)
-          case None          => Future.failed(new MissingParameterException())
-        }
-      }
+    negotiated(req, (r, _) => {
+      implicit val reader: GrpcProtocolReader = r
+      unmarshal(req.entity.dataBytes)
+    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
-    val messageEncoding = `Message-Encoding`.findIn(req.headers)
+    negotiated(req, (r, _) => {
+      implicit val reader: GrpcProtocolReader = r
+      unmarshalStream(req.entity.dataBytes)
+    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+  }
+
+  def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
+    GrpcProtocol.negotiate(req).map {
+      case (maybeReader, writer) =>
+        maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)
+    }
+
+  def unmarshal[T](data: Source[ByteString, Any])(
+      implicit u: ProtobufSerializer[T],
+      mat: Materializer,
+      reader: GrpcProtocolReader): Future[T] = {
+    import mat.executionContext
+    data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption).flatMap {
+      case Some(element) => Future.successful(element)
+      case None          => Future.failed(new MissingParameterException())
+    }
+  }
+
+  def unmarshalStream[T](data: Source[ByteString, Any])(
+      implicit u: ProtobufSerializer[T],
+      mat: Materializer,
+      reader: GrpcProtocolReader): Future[Source[T, NotUsed]] = {
     Future.successful(
-      req.entity.dataBytes
+      data
         .mapMaterializedValue(_ => NotUsed)
-        .via(Grpc.grpcFramingDecoder(messageEncoding))
+        .via(reader.dataFrameDecoder)
         .map(u.deserialize)
         // In gRPC we signal failure by returning an error code, so we
         // don't want the cancellation bubbled out
@@ -56,29 +70,40 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
+      writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     marshalStream(Source.single(e), eHandler)
-
-  @InternalApi
-  def marshalRequest[T](
-      e: T = Identity,
-      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
-      implicit m: ProtobufSerializer[T],
-      mat: Materializer,
-      codec: Codec,
-      system: ActorSystem): HttpRequest =
-    HttpRequest(
-      // This is likely incomplete, but since we do not rely on this code for regular calls yet that is OK for now
-      headers = immutable.Seq(headers.`Message-Encoding`(codec.name)),
-      entity = GrpcEntityHelpers(e))
 
   def marshalStream[T](
       e: Source[T, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
-      codec: Codec,
-      system: ActorSystem): HttpResponse =
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): HttpResponse = {
     GrpcResponseHelpers(e, eHandler)
+  }
+
+  @InternalApi
+  def marshalRequest[T](
+      uri: Uri,
+      e: T,
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): HttpRequest =
+    marshalStreamRequest(uri, Source.single(e), eHandler)
+
+  @InternalApi
+  def marshalStreamRequest[T](
+      uri: Uri,
+      e: Source[T, NotUsed],
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
+      implicit m: ProtobufSerializer[T],
+      mat: Materializer,
+      writer: GrpcProtocolWriter,
+      system: ActorSystem): HttpRequest =
+    GrpcRequestHelpers(uri, e, eHandler)
+
 }

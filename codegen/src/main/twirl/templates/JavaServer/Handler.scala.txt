@@ -16,8 +16,6 @@ import akka.http.javadsl.model.*;
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
 
-import akka.grpc.Codec;
-import akka.grpc.Codecs;
 import akka.grpc.Trailers;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
@@ -32,6 +30,9 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 
     private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
       HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+
+    private static final CompletionStage<HttpResponse> unsupportedMediaType = CompletableFuture.completedFuture(
+      HttpResponse.create().withStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE));
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -103,32 +104,37 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
           String method = segments.next();
           if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-          else return handle(req, method, implementation, mat, eHandler, system).exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, system));
+          else return handle(req, method, implementation, mat, eHandler, system);
         } else {
           return notFound;
         }
       });
     }
 
-      public String getServiceName() {
-        return @{service.name}.name;
-      }
+    public String getServiceName() {
+      return @{service.name}.name;
+    }
 
     private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
-      Codec responseCodec = Codecs.negotiate(request);
-      @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}
-      switch(method) {
-        @for(method <- service.methods) {
-        case "@method.grpcName":
-          return @{method.unmarshal}(request, @method.deserializer.name, mat)
-            .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
-            .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, responseCodec, system, eHandler));
+      return GrpcMarshalling.negotiated(request, (reader, writer) -> {
+        final CompletionStage<HttpResponse> response;
+        @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}
+        switch(method) {
+          @for(method <- service.methods) {
+          case "@method.grpcName":
+            response = @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, reader)
+              .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
+              .thenApply(e -> @{method.marshal}(e, @method.serializer.name, mat, writer, system, eHandler));
+            break;
+          }
+          default:
+            CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+            result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
+            response = result;
         }
-        default:
-          CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-          result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
-          return result;
-      }
+        return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, system));
+      })
+      .orElseGet(() -> unsupportedMediaType);
     }
   }
 }

@@ -5,10 +5,11 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
+import akka.grpc.internal.GrpcProtocolNative
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse, StatusCodes }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandlerFactory }
@@ -16,11 +17,11 @@ import io.grpc.Status
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.Span
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
 
 class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val sys = ActorSystem()
@@ -31,14 +32,16 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
 
     val handler = GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), mat, sys)
     val binding = {
-      import akka.http.javadsl.{ ConnectHttp, Http, HttpConnectionContext }
+      import akka.http.javadsl.{ ConnectHttp, Http }
 
       Http(sys).bindAndHandleAsync(handler, ConnectHttp.toHost("127.0.0.1", 0), mat).toCompletableFuture.get
     }
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {
-      val request =
-        HttpRequest(uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
+      val request = HttpRequest(
+        method = HttpMethods.POST,
+        entity = HttpEntity.empty(GrpcProtocolNative.contentType),
+        uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/UnknownMethod")
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
@@ -48,6 +51,7 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
     "respond with an 'invalid argument' gRPC error status when calling an method without a request body" in {
       val request = HttpRequest(
         method = HttpMethods.POST,
+        entity = HttpEntity.empty(GrpcProtocolNative.contentType),
         uri = s"http://localhost:${binding.localAddress.getPort}/${GreeterService.name}/SayHello")
       val response = Http().singleRequest(request).futureValue
 
