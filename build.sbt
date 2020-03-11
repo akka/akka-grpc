@@ -208,6 +208,12 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
   .settings(
     skip in publish := true,
     unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
-    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(codegen, runtime, scalapbProtocPlugin),
+    // unidoc combines sources and jars from all subprojects and that
+    // might include some incompatible ones. Depending on the
+    // classpath order that might lead to scaladoc compilation errors.
+    // the scalapb compilerplugin has a scalapb/package$.class that conflicts
+    // with the one from the scalapb runtime, so for that reason we don't produce
+    // unidoc for the codegen projects:
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(runtime),
     // https://github.com/sbt/sbt/issues/3465
     crossScalaVersions := List())
