@@ -25,15 +25,20 @@ import akka.discovery.ServiceDiscovery.Resolved
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.testkit.TestKit
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatest.wordspec.AnyWordSpecLike
 
 class AkkaDiscoveryNameResolverProviderSpec
     extends TestKit(ActorSystem())
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
+
+  implicit override val patienceConfig =
+    PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
+
   "AkkaDiscoveryNameResolverProviderSpec" should {
     "provide a NameResolver that uses the supplied serviceName" in {
       val serviceName = "testServiceName"
