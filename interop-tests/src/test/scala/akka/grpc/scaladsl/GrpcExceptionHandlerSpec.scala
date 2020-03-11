@@ -8,8 +8,8 @@ import scala.concurrent.Future
 
 import akka.actor.ActorSystem
 
-import akka.grpc.{ GrpcServiceException, Identity }
-import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcRequestHelpers }
+import akka.grpc.Identity
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
@@ -44,7 +44,7 @@ class GrpcExceptionHandlerSpec
         .recoverWith(GrpcExceptionHandler.defaultHandler)
 
       result.futureValue.entity match {
-        case Chunked(contentType, chunks) =>
+        case Chunked(_, chunks) =>
           chunks.runWith(Sink.seq).futureValue match {
             case Seq(LastChunk("", List(`Status`("3")))) => // ok
           }
@@ -130,7 +130,6 @@ class GrpcExceptionHandlerSpec
     }
 
     "return the correct user-supplied status for a streaming call" in {
-      import akka.http.scaladsl.client.RequestBuilding._
       implicit val serializer =
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
       implicit val writer = GrpcProtocolNative.newWriter(Identity)

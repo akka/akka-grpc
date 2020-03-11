@@ -13,7 +13,6 @@ import akka.grpc.scaladsl.{ headers, BytesEntry, Metadata, StringEntry }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 
@@ -25,7 +24,6 @@ object GrpcEntityHelpers {
       trail: Source[TrailerFrame, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem): Source[ChunkStreamPart, NotUsed] = {
     chunks(e, trail).recover {
@@ -38,18 +36,12 @@ object GrpcEntityHelpers {
     }
   }
 
-  def apply[T](e: T)(
-      implicit m: ProtobufSerializer[T],
-      mat: Materializer,
-      writer: GrpcProtocolWriter,
-      system: ActorSystem): Source[ChunkStreamPart, NotUsed] =
+  def apply[T](e: T)(implicit m: ProtobufSerializer[T], writer: GrpcProtocolWriter): Source[ChunkStreamPart, NotUsed] =
     chunks(Source.single(e), Source.empty)
 
   private def chunks[T](e: Source[T, NotUsed], trail: Source[Frame, NotUsed])(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
-      writer: GrpcProtocolWriter,
-      system: ActorSystem): Source[ChunkStreamPart, NotUsed] =
+      writer: GrpcProtocolWriter): Source[ChunkStreamPart, NotUsed] =
     e.map { msg => DataFrame(m.serialize(msg)) }.concat(trail).via(writer.frameEncoder)
 
   def trailer(status: Status): TrailerFrame =

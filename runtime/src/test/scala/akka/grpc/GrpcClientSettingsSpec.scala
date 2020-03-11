@@ -180,7 +180,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
     }
     "fail fast when no service discovery is configured on the actor system" in {
       intercept[IllegalArgumentException] {
-        val settings = GrpcClientSettings.usingServiceDiscovery("a-downstream-service")
+        GrpcClientSettings.usingServiceDiscovery("a-downstream-service")
       }
     }
 

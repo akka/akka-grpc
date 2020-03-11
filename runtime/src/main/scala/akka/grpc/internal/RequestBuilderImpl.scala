@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.TimeUnit
 
 import akka.NotUsed
 import akka.annotation.InternalApi

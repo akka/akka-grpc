@@ -84,7 +84,6 @@ object AbstractGrpcProtocol {
       Flow[Frame].map(encodeFrame))
 
   def reader(
-      protocol: GrpcProtocol,
       codec: Codec,
       decodeFrame: (Int, ByteString) => Frame,
       flowAdapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] = identity)

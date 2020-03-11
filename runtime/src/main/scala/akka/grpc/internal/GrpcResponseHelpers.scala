@@ -28,14 +28,12 @@ import scala.concurrent.{ ExecutionContext, Future }
 object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
@@ -67,7 +65,6 @@ object GrpcResponseHelpers {
       trail: Source[TrailerFrame, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
     response(GrpcEntityHelpers(e, trail, eHandler))

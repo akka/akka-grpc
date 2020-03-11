@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
 import akka.annotation.DoNotInherit
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
+import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 

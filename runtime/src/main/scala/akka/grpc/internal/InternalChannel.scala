@@ -4,10 +4,7 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.CompletionStage
-
-import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.Future
 
 import akka.Done
 import akka.annotation.InternalApi

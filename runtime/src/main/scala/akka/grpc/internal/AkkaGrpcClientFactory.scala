@@ -9,7 +9,6 @@ import scala.reflect.{ classTag, ClassTag }
 import akka.grpc.GrpcClientSettings
 import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.stream.Materializer
-import language.reflectiveCalls
 
 object AkkaGrpcClientFactory {
   def create[T <: AkkaGrpcClient: ClassTag](

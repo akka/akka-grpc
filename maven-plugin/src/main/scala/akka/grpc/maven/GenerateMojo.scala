@@ -69,7 +69,7 @@ object GenerateMojo {
       case "scala" => Scala
       case "java"  => Java
       case unknown =>
-        throw new IllegalArgumentException("[$unknown] is not a supported language, supported are java or scala")
+        throw new IllegalArgumentException("[" + unknown + "] is not a supported language, supported are java or scala")
     }
 
   /**

@@ -12,13 +12,17 @@ import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGen
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
 
+import com.github.ghik.silencer.silent
+
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
   def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   // Override these to add service-independent generated files
-  def staticContent(logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
-  def staticContent(logger: Logger, allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(@silent("never used") logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(
+      @silent("never used") logger: Logger,
+      @silent("never used") allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
   override def suggestedDependencies =
     (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>

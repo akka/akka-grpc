@@ -4,7 +4,7 @@
 
 package akka.grpc.internal
 
-import java.net.{ InetAddress, InetSocketAddress, SocketAddress, URI, UnknownHostException }
+import java.net.{ InetAddress, InetSocketAddress, UnknownHostException }
 
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.discovery.{ Lookup, ServiceDiscovery }

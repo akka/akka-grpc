@@ -12,7 +12,7 @@ import akka.event.LoggingAdapter
 import io.grpc.{ ConnectivityState, ManagedChannel }
 
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ Future, Promise }
 
 /**
  * Used to indicate that a gRPC client can not establish a connection
@@ -33,7 +33,7 @@ object ChannelUtils {
    * INTERNAL API
    */
   @InternalApi
-  def close(internalChannel: InternalChannel)(implicit ec: ExecutionContext): Future[Done] = {
+  def close(internalChannel: InternalChannel): Future[Done] = {
     internalChannel.managedChannel.shutdown()
     internalChannel.done
   }
@@ -42,7 +42,7 @@ object ChannelUtils {
    * INTERNAL API
    */
   @InternalApi
-  def closeCS(internalChannel: InternalChannel)(implicit ec: ExecutionContext): CompletionStage[Done] =
+  def closeCS(internalChannel: InternalChannel): CompletionStage[Done] =
     close(internalChannel).toJava
 
   /**

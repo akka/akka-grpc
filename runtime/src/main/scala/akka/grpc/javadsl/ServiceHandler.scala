@@ -8,7 +8,6 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
-import akka.http.scaladsl.unmarshalling.Unmarshaller
 // using japi because bindAndHandleAsync expects that
 import akka.japi.{ Function => JFunction }
 
@@ -21,9 +20,6 @@ object ServiceHandler {
 
   private[javadsl] val unsupportedMediaType: CompletionStage[HttpResponse] =
     CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE))
-
-  private implicit val idUnmarshaller: Unmarshaller[HttpRequest, HttpRequest] =
-    Unmarshaller.identityUnmarshaller[HttpRequest]
 
   /**
    * This is an alias for handler.

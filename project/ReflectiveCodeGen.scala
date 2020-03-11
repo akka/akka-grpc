@@ -104,13 +104,12 @@ object ReflectiveCodeGen extends AutoPlugin {
           |val languages: Seq[AkkaGrpc.Language] = Seq($languages)
           |val sources: Seq[AkkaGrpc.GeneratedSource] = Seq($sources)
           |val scalaBinaryVersion = ScalaBinaryVersion("$scalaBinaryVersion")
-          |val generatorSettings: Seq[String] = Seq($generatorSettings1)
           |
           |val logger = akka.grpc.gen.StdoutLogger
           |
           |(targetPath: java.io.File, settings: Seq[String]) => {
           |  val generators =
-          |    AkkaGrpcPlugin.generatorsFor(sources, languages, generatorSettings, scalaBinaryVersion, logger) ++
+          |    AkkaGrpcPlugin.generatorsFor(sources, languages, scalaBinaryVersion, logger) ++
           |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, scalaBinaryVersion, akka.grpc.gen.StdoutLogger))
           |  AkkaGrpcPlugin.targetsFor(targetPath, settings, generators)
           |}

@@ -18,6 +18,8 @@ import akka.stream.Materializer
 import akka.stream.javadsl.{ Sink, Source }
 import akka.util.ByteString
 
+import com.github.ghik.silencer.silent
+
 object GrpcMarshalling {
 
   def negotiated[T](
@@ -44,7 +46,7 @@ object GrpcMarshalling {
   def unmarshalStream[T](
       data: Source[ByteString, AnyRef],
       u: ProtobufSerializer[T],
-      mat: Materializer,
+      @silent("never used") mat: Materializer,
       reader: GrpcProtocolReader): CompletionStage[Source[T, NotUsed]] = {
     CompletableFuture.completedFuture[Source[T, NotUsed]](
       data
@@ -60,22 +62,20 @@ object GrpcMarshalling {
   def marshal[T](
       e: T,
       m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem,
       eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
-    marshalStream(Source.single(e), m, mat, writer, system, eHandler)
+    marshalStream(Source.single(e), m, writer, system, eHandler)
 
   def marshalStream[T](
       e: Source[T, NotUsed],
       m: ProtobufSerializer[T],
-      mat: Materializer,
       writer: GrpcProtocolWriter,
       system: ActorSystem,
       eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
-    GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, mat, writer, system)
+    GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, writer, system)
 
   private def failure[R](error: Throwable): CompletableFuture[R] = {
     val future: CompletableFuture[R] = new CompletableFuture()
