@@ -6,8 +6,8 @@ package akka.grpc.scaladsl
 
 import scala.collection.immutable
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
+import akka.annotation.ApiMayChange
 import akka.grpc.scaladsl.ServiceHandler.{ handlerNotFound, isGrpcWebRequest, unsupportedMediaType }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse }
@@ -15,11 +15,11 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MarshallingDirectives.handleWith
 import akka.stream.Materializer
-
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import ch.megard.akka.http.cors.scaladsl.model.HttpHeaderRange
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 
+@ApiMayChange
 object WebHandler {
 
   /** Default CORS settings to use for grpc-web */

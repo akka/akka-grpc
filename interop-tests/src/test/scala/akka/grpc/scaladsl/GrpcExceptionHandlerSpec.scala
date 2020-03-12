@@ -5,11 +5,8 @@
 package akka.grpc.scaladsl
 
 import scala.concurrent.Future
-
 import akka.actor.ActorSystem
-
-import akka.grpc.Identity
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers }
+import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
@@ -41,7 +38,7 @@ class GrpcExceptionHandlerSpec
       val result: Future[HttpResponse] = GrpcMarshalling
         .unmarshal(unmarshallableRequest)
         .map(_ => HttpResponse())
-        .recoverWith(GrpcExceptionHandler.defaultHandler)
+        .recoverWith(GrpcExceptionHandler.default)
 
       result.futureValue.entity match {
         case Chunked(_, chunks) =>

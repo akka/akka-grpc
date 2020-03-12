@@ -4,16 +4,19 @@
 
 package akka.grpc
 
+import akka.annotation.ApiMayChange
 import io.grpc.Status
 import akka.grpc.internal.JavaMetadataImpl
 import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
 import akka.grpc.javadsl.{ Metadata => jMetadata }
 
+@ApiMayChange
 case class Trailers(status: Status, metadata: Metadata) {
   def this(status: Status) {
     this(status, MetadataBuilder.empty)
   }
 
+  @ApiMayChange
   def this(status: Status, metadata: jMetadata) {
     this(status, metadata.asScala)
   }
@@ -27,6 +30,7 @@ case class Trailers(status: Status, metadata: Metadata) {
   /**
    * Java API: Returns the trailing metadata.
    */
+  @ApiMayChange
   def getMetadata: jMetadata =
     new JavaMetadataImpl(metadata)
 }

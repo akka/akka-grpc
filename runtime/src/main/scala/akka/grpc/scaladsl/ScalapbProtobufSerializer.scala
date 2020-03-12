@@ -4,12 +4,14 @@
 
 package akka.grpc.scaladsl
 
+import akka.annotation.ApiMayChange
 import akka.grpc.ProtobufSerializer
 import akka.util.ByteString
 import scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Message }
 import com.github.ghik.silencer.silent
 
 @silent("deprecated")
+@ApiMayChange
 class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion: GeneratedMessageCompanion[T])
     extends ProtobufSerializer[T] {
   override def serialize(t: T) = ByteString(companion.toByteArray(t))

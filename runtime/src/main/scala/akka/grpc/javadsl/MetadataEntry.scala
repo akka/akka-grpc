@@ -4,13 +4,14 @@
 
 package akka.grpc.javadsl
 
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 
 /**
  * Represents metadata entry.
  */
 @DoNotInherit
+@ApiMayChange
 trait MetadataEntry
 
 /**

@@ -4,13 +4,14 @@
 
 package akka.grpc.scaladsl
 
+import akka.annotation.ApiMayChange
 import akka.util.ByteString
-
 import akka.grpc.javadsl
 
 /**
  * Represents a entry (value) in a collection of Metadata.
  */
+@ApiMayChange
 sealed trait MetadataEntry extends javadsl.MetadataEntry
 
 /**

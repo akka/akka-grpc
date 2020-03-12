@@ -4,6 +4,7 @@
 
 package akka.grpc.scaladsl
 
+import akka.annotation.ApiMayChange
 import akka.grpc.GrpcProtocol
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
@@ -11,6 +12,7 @@ import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 
 import scala.concurrent.Future
 
+@ApiMayChange
 object ServiceHandler {
 
   private[scaladsl] val handlerNotFound: PartialFunction[HttpRequest, Future[HttpResponse]] = {

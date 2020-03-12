@@ -1,11 +1,8 @@
-/*
- * Copyright (C) 2018-2020 Lightbend Inc. <https://www.lightbend.com>
- */
+package akka.grpc.internal
 
-package akka.grpc
-
-import akka.grpc.scaladsl.headers.{ `Message-Accept-Encoding`, `Message-Encoding` }
 import akka.http.javadsl.{ model => jm }
+import akka.grpc.GrpcServiceException
+import akka.grpc.scaladsl.headers.{ `Message-Accept-Encoding`, `Message-Encoding` }
 import io.grpc.Status
 
 import scala.collection.immutable

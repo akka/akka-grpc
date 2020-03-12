@@ -5,7 +5,7 @@
 package akka.grpc.internal
 
 import akka.actor.ActorSystem
-import akka.grpc.{ Codecs, ProtobufSerializer, Trailers }
+import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.scaladsl.Source

@@ -5,7 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.NotUsed
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -22,6 +22,7 @@ import scala.concurrent.Future
  * Not for user extension
  */
 @DoNotInherit
+@ApiMayChange
 trait SingleResponseRequestBuilder[Req, Res] {
 
   /**
@@ -59,6 +60,7 @@ trait SingleResponseRequestBuilder[Req, Res] {
  * Not for user extension
  */
 @DoNotInherit
+@ApiMayChange
 trait StreamResponseRequestBuilder[Req, Res] {
 
   /**

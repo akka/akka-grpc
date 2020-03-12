@@ -6,19 +6,20 @@ package akka.grpc.javadsl
 
 import java.lang.{ Iterable => jIterable }
 
-import scala.collection.JavaConverters._
+import akka.annotation.ApiMayChange
 
+import scala.collection.JavaConverters._
 import akka.http.javadsl.model.HttpHeader
 import akka.http.scaladsl.model.{ HttpHeader => sHttpHeader }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.util.ByteString
-
 import akka.grpc.scaladsl
 import akka.grpc.internal.JavaMetadataImpl
 
 /**
  * This class provides an interface for constructing immutable Metadata instances.
  */
+@ApiMayChange
 class MetadataBuilder {
   private val delegate = new scaladsl.MetadataBuilder
 
@@ -52,6 +53,7 @@ class MetadataBuilder {
     new JavaMetadataImpl(delegate.build())
 }
 
+@ApiMayChange
 object MetadataBuilder {
 
   /**

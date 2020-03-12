@@ -6,7 +6,6 @@ package akka.grpc.internal
 
 import java.util.Base64
 
-import akka.grpc.Codec
 import akka.grpc.GrpcProtocol._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart }

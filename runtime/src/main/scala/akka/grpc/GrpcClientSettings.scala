@@ -5,7 +5,7 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.annotation.{ ApiMayChange, InternalApi }
+import akka.annotation.{ ApiMayChange, DoNotInherit, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
@@ -23,6 +23,7 @@ import com.typesafe.sslconfig.ssl.{
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import javax.net.ssl.SSLContext
+
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
 
@@ -190,6 +191,8 @@ object GrpcClientSettings {
       None
 }
 
+@ApiMayChange
+@DoNotInherit
 final class GrpcClientSettings private (
     val serviceName: String,
     val serviceDiscovery: ServiceDiscovery,
