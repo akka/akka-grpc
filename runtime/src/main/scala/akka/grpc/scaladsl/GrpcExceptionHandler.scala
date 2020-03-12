@@ -5,25 +5,20 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcServiceException, Identity, Trailers }
+import akka.annotation.{ ApiMayChange, InternalStableApi }
+import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
 import io.grpc.Status
 
 import scala.concurrent.{ ExecutionException, Future }
 
+@ApiMayChange
 object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
   private val UNIMPLEMENTED = Trailers(Status.UNIMPLEMENTED)
-
-  @deprecated("To be removed", "grpc-web")
-  def default(mapper: PartialFunction[Throwable, Trailers])(
-      implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    implicit val writer: GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
-    defaultHandler(mapper)
-  }
 
   def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Trailers] = {
     case e: ExecutionException =>
@@ -38,18 +33,14 @@ object GrpcExceptionHandler {
       INTERNAL
   }
 
-  @deprecated("To be removed", "grpc-web")
-  def default(implicit system: ActorSystem): PartialFunction[Throwable, Future[HttpResponse]] = {
-    implicit val writer: GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
-    defaultHandler(defaultMapper(system))
-  }
-
-  def defaultHandler(
+  @InternalStableApi
+  def default(
       implicit system: ActorSystem,
       writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
-    defaultHandler(defaultMapper(system))
+    from(defaultMapper(system))
 
-  def defaultHandler(mapper: PartialFunction[Throwable, Trailers])(
+  @InternalStableApi
+  def from(mapper: PartialFunction[Throwable, Trailers])(
       implicit system: ActorSystem,
       writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
     mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))

@@ -4,6 +4,7 @@
 
 package akka.grpc.scaladsl.headers
 
+import akka.annotation.ApiMayChange
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
 import akka.http.javadsl.{ model => jm }
@@ -11,6 +12,7 @@ import akka.http.javadsl.{ model => jm }
 import scala.collection.immutable
 import scala.util.Try
 
+@ApiMayChange
 final class `Message-Accept-Encoding`(override val value: String)
     extends ModeledCustomHeader[`Message-Accept-Encoding`] {
   override def renderInRequests = true
@@ -20,6 +22,7 @@ final class `Message-Accept-Encoding`(override val value: String)
   lazy val values: Array[String] = value.split(",")
 }
 
+@ApiMayChange
 object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-Accept-Encoding`] {
   override val name = "grpc-accept-encoding"
   override def parse(value: String) = Try(new `Message-Accept-Encoding`(value))
@@ -34,6 +37,7 @@ object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-A
   }
 }
 
+@ApiMayChange
 final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Message-Encoding`] {
   override def renderInRequests = true
   override def renderInResponses = true
@@ -41,6 +45,7 @@ final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Me
   override def value: String = encoding
 }
 
+@ApiMayChange
 object `Message-Encoding` extends ModeledCustomHeaderCompanion[`Message-Encoding`] {
   override val name = "grpc-encoding"
   override def parse(encoding: String) = Try(new `Message-Encoding`(encoding))

@@ -94,7 +94,7 @@ import akka.stream.Materializer
             }
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
-          .recoverWith(GrpcExceptionHandler.defaultHandler(eHandler(system))(system, writer))
+          .recoverWith(GrpcExceptionHandler.from(eHandler(system))(system, writer))
       ).getOrElse(unsupportedMediaType)
 
       Function.unlift((req: HttpRequest) => req.uri.path match {

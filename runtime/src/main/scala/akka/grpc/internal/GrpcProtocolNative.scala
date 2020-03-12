@@ -4,11 +4,9 @@
 
 package akka.grpc.internal
 
-import akka.grpc.Codec
 import akka.grpc.GrpcProtocol._
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, LastChunk }
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
 
 /**

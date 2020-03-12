@@ -5,8 +5,9 @@
 package akka.grpc
 
 import akka.NotUsed
+import akka.annotation.InternalApi
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
+import akka.grpc.internal.{ Codec, Codecs, GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ ContentType, HttpHeader }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -21,27 +22,34 @@ import scala.util.Try
 trait GrpcProtocol {
 
   /** The canonical media type to use for this protocol variant */
-  val contentType: ContentType.Binary
+  private[grpc] val contentType: ContentType.Binary
 
   /** The set of media types that can identify this protocol variant (e.g. including an implicit +proto) */
-  val mediaTypes: Set[jmodel.MediaType]
+  private[grpc] val mediaTypes: Set[jmodel.MediaType]
 
   /**
+   * INTERNAL API
+   *
    * Constructs a protocol writer for writing gRPC protocol frames for this variant
    * @param codec the compression codec to encode data frame bodies with.
    */
+  @InternalApi
   def newWriter(codec: Codec): GrpcProtocolWriter
 
   /**
+   * INTERNAL API
+   *
    * Constructs a protocol reader for reading gRPC protocol frames for this variant.
    * @param codec the compression codec to decode data frame bodies with.
    */
+  @InternalApi
   def newReader(codec: Codec): GrpcProtocolReader
 }
 
 /**
  * Core definitions for gRPC protocols.
  */
+@InternalApi
 object GrpcProtocol {
 
   private val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)

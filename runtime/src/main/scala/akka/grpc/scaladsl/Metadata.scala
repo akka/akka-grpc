@@ -4,7 +4,7 @@
 
 package akka.grpc.scaladsl
 
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 
 /**
@@ -12,6 +12,7 @@ import akka.util.ByteString
  *
  * Not for user extension
  */
+@ApiMayChange
 @DoNotInherit trait Metadata {
 
   /**
@@ -29,10 +30,12 @@ import akka.util.ByteString
   /**
    * @return The metadata as a map.
    */
+  @ApiMayChange
   def asMap: Map[String, List[MetadataEntry]]
 
   /**
    * @return A list of (key, MetadataEntry) tuples.
    */
+  @ApiMayChange
   def asList: List[(String, MetadataEntry)]
 }

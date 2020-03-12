@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2018-2020 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package akka.grpc
+package akka.grpc.internal
 
 import akka.util.ByteString
 

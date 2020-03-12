@@ -7,15 +7,17 @@ package akka.grpc.javadsl
 import java.util.concurrent.CompletionException
 
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcServiceException, Identity, Trailers }
+import akka.annotation.ApiMayChange
+import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
 import io.grpc.Status
 
 import scala.concurrent.ExecutionException
 
+@ApiMayChange
 object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
@@ -45,17 +47,6 @@ object GrpcExceptionHandler {
           INTERNAL
       }
     }
-
-  @Deprecated
-  def standard(t: Throwable, system: ActorSystem): HttpResponse =
-    standard(t, defaultMapper, GrpcProtocolNative.newWriter(Identity), system)
-
-  @Deprecated
-  def standard(
-      t: Throwable,
-      mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
-      system: ActorSystem): HttpResponse =
-    standard(t, mapper, GrpcProtocolNative.newWriter(Identity), system)
 
   def standard(t: Throwable, writer: GrpcProtocolWriter, system: ActorSystem): HttpResponse =
     standard(t, default, writer, system)

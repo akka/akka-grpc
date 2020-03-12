@@ -6,7 +6,7 @@ package akka.grpc.javadsl
 
 import java.util.{ List, Map, Optional }
 
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 import akka.japi.Pair
 import akka.grpc.scaladsl
@@ -16,7 +16,9 @@ import akka.grpc.scaladsl
  *
  * Not for user extension
  */
-@DoNotInherit trait Metadata {
+@DoNotInherit
+@ApiMayChange
+trait Metadata {
 
   /**
    * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence

@@ -7,7 +7,7 @@ package akka.grpc.javadsl
 import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.javadsl.Source
 import akka.util.ByteString
@@ -22,6 +22,7 @@ import akka.util.ByteString
  * Not for user extension
  */
 @DoNotInherit
+@ApiMayChange
 trait SingleResponseRequestBuilder[Req, Res] {
 
   /**
@@ -59,6 +60,7 @@ trait SingleResponseRequestBuilder[Req, Res] {
  * Not for user extension
  */
 @DoNotInherit
+@ApiMayChange
 trait StreamResponseRequestBuilder[Req, Res] {
 
   /**

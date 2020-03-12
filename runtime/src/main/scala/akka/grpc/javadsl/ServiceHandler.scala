@@ -6,6 +6,7 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
+import akka.annotation.ApiMayChange
 import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 // using japi because bindAndHandleAsync expects that
@@ -13,6 +14,7 @@ import akka.japi.{ Function => JFunction }
 
 import scala.annotation.varargs
 
+@ApiMayChange
 object ServiceHandler {
 
   private[javadsl] val notFound: CompletionStage[HttpResponse] =

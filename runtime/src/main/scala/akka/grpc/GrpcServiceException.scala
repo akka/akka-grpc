@@ -5,10 +5,11 @@
 package akka.grpc
 
 import io.grpc.Status
-
+import akka.annotation.ApiMayChange
 import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
 import akka.grpc.internal.JavaMetadataImpl
 
+@ApiMayChange
 class GrpcServiceException(val status: Status, val metadata: Metadata) extends RuntimeException(status.getDescription) {
 
   require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")

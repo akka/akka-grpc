@@ -5,8 +5,7 @@
 package akka.grpc.scaladsl
 
 import scala.collection.immutable
-
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.http.scaladsl.model.HttpHeader
 import akka.util.ByteString
 import akka.grpc.internal.{ EntryMetadataImpl, HeaderMetadataImpl, MetadataImpl }
@@ -15,6 +14,7 @@ import akka.grpc.internal.{ EntryMetadataImpl, HeaderMetadataImpl, MetadataImpl 
  * This class provides an interface for constructing immutable Metadata instances.
  */
 @DoNotInherit
+@ApiMayChange
 class MetadataBuilder {
 
   /**

@@ -9,6 +9,7 @@ import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.annotation.ApiMayChange
 import akka.grpc.javadsl.ServiceHandler.{ concat, unsupportedMediaType }
 import akka.http.javadsl.marshalling.Marshaller
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
@@ -21,10 +22,10 @@ import akka.japi.{ Function => JFunction }
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Keep, Sink, Source }
 import akka.util.ConstantFun
-
 import ch.megard.akka.http.cors.javadsl.settings.CorsSettings
 import ch.megard.akka.http.cors.javadsl.CorsDirectives
 
+@ApiMayChange
 object WebHandler {
 
   /**

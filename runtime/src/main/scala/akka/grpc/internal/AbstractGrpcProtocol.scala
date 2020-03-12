@@ -4,7 +4,7 @@
 
 package akka.grpc.internal
 import akka.NotUsed
-import akka.grpc.{ Codec, Codecs, GrpcProtocol, Identity }
+import akka.grpc.GrpcProtocol
 import akka.grpc.GrpcProtocol.{ Frame, GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart

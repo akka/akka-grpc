@@ -23,6 +23,7 @@ import com.typesafe.sslconfig.ssl.{
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import javax.net.ssl.SSLContext
+
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
 
@@ -190,6 +191,7 @@ object GrpcClientSettings {
       None
 }
 
+@ApiMayChange
 final class GrpcClientSettings private (
     val serviceName: String,
     val serviceDiscovery: ServiceDiscovery,

@@ -6,7 +6,7 @@ package akka.grpc
 
 import java.util.concurrent.CompletionStage
 
-import akka.annotation.DoNotInherit
+import akka.annotation.{ ApiMayChange, DoNotInherit }
 
 import scala.concurrent.Future
 
@@ -16,6 +16,7 @@ import scala.concurrent.Future
  * Not for user extension
  */
 @DoNotInherit
+@ApiMayChange
 trait GrpcResponseMetadata {
 
   /**

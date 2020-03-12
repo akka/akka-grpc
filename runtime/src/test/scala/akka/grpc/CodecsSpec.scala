@@ -3,6 +3,7 @@
  */
 
 package akka.grpc
+import akka.grpc.internal.{ Codecs, Gzip, Identity }
 import akka.grpc.scaladsl.headers
 import akka.http.scaladsl.model.HttpRequest
 import io.grpc.Status
