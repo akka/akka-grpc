@@ -5,7 +5,7 @@
 package akka.grpc
 
 import akka.actor.ActorSystem
-import akka.annotation.{ ApiMayChange, DoNotInherit, InternalApi }
+import akka.annotation.{ ApiMayChange, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery

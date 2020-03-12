@@ -1,0 +1,15 @@
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.scaladsl.GrpcExceptionHandler.default")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.GrpcExceptionHandler.default")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.scaladsl.GrpcMarshalling.marshal$default$1")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcExceptionHandler.standard")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.javadsl.GrpcExceptionHandler.standard")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.GrpcExceptionHandler.standard")
+
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Codec")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Codecs")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Codecs$")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Identity")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Identity$")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Gzip")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.Gzip$")
+
