@@ -192,7 +192,6 @@ object GrpcClientSettings {
 }
 
 @ApiMayChange
-@DoNotInherit
 final class GrpcClientSettings private (
     val serviceName: String,
     val serviceDiscovery: ServiceDiscovery,
