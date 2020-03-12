@@ -1,17 +1,24 @@
 # Binary compatibility
 
-Conflicting versions in transitive dependencies can make upgrading a painful exercise.
+If possible we recommend using Akka gRPC directly from your downstream projects,
+and share protocols among projects by distributing the .proto service definition rather
+than creating libraries that contain generated code. However, in some cases it can be
+convenient to use Akka gRPC in a library project.
 
-To make this easier, starting with version 1.0.0 Akka gRPC provides binary compatibility.
+Conflicting versions in transitive dependencies can make upgrading a painful exercise.
+To make this easier, starting with version 1.0.0 Akka gRPC provides binary compatibility
+for the runtime library within each major version.
 This means if you use a library that in turn uses Akka gRPC, it should be possible to use
 that library with any newer version of Akka gRPC as well (with the exceptions listed below).
 
 This is especially relevant if you depend on one library that depends on Akka gRPC
 version 'A', and another library that depends on Akka gRPC version 'B': due to
-binary compatibility, you can simply choose the lastest version of Akka gRPC and
+binary compatibility, you can simply choose the latest version of Akka gRPC and
 use both libraries with that.
 
 ## Limitations
+
+No binary compatibility is guaranteed between major versions.
 
 ### New features
 
@@ -36,4 +43,4 @@ binary compatibility, such as [ScalaPB](https://scalapb.github.io/) (when
 generating Scala code) and [grpc-java](https://github.com/grpc/grpc-java/).
 When updates to those libraries introduce incompatibilities it will be decided
 on a case-by-case basis, based on the expected impact of the change,
-whether those should impact Akka gRPC's versioning.
+whether the update requires a new major Akka gRPC version.
