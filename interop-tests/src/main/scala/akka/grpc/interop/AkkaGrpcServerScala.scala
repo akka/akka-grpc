@@ -9,11 +9,11 @@ import java.nio.file.{ Files, Paths }
 import java.security.cert.CertificateFactory
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.{ KeyFactory, KeyStore, SecureRandom }
-import java.util.Base64
 
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
+import akka.util.ByteString
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
@@ -59,7 +59,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: Materializer => ActorSystem
         .replace("-----END PRIVATE KEY-----\n", "")
         .replace("\n", "")
 
-    val decodedKey = Base64.getDecoder.decode(keyEncoded)
+    val decodedKey = ByteString(keyEncoded).decodeBase64.toArray
 
     val spec = new PKCS8EncodedKeySpec(decodedKey)
 

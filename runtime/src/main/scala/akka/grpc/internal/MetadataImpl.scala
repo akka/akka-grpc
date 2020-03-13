@@ -4,7 +4,7 @@
 
 package akka.grpc.internal
 
-import java.util.{ Base64, Optional, List => jList, Map => jMap }
+import java.util.{ Optional, List => jList, Map => jMap }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
@@ -29,11 +29,9 @@ import akka.grpc.javadsl
   def javaMetadataFromGoogleGrpcMetadata(mutableMetadata: io.grpc.Metadata): javadsl.Metadata =
     new JavaMetadataImpl(scalaMetadataFromGoogleGrpcMetadata(mutableMetadata))
 
-  def encodeBinaryHeader(bytes: ByteString): String =
-    new String(Base64.getEncoder.encode(bytes.toByteBuffer).array)
+  def encodeBinaryHeader(bytes: ByteString): String = bytes.encodeBase64.utf8String
 
-  def decodeBinaryHeader(value: String): ByteString =
-    ByteString.fromArray(Base64.getDecoder.decode(value))
+  def decodeBinaryHeader(value: String): ByteString = ByteString(value).decodeBase64
 
   def toMap(list: List[(String, MetadataEntry)]): Map[String, List[MetadataEntry]] = {
     // This method is complicated by the changes to mapValues in scala 2.13.
