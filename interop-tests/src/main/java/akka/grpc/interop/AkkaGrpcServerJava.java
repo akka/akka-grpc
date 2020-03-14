@@ -12,13 +12,13 @@ import java.security.cert.*;
 import java.security.cert.Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.*;
-import java.util.Base64;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.*;
 
 import akka.actor.ActorSystem;
+import akka.util.ByteString;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.*;
@@ -90,7 +90,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
       .replace("-----END PRIVATE KEY-----\n", "")
       .replace("\n", "");
 
-    byte[] decodedKey = Base64.getDecoder().decode(keyEncoded);
+    byte[] decodedKey = ByteString.fromString(keyEncoded).decodeBase64().toArray();
 
     PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decodedKey);
 

@@ -4,8 +4,6 @@
 
 package akka.grpc.internal
 
-import java.util.Base64
-
 import akka.grpc.GrpcProtocol._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart }
@@ -21,7 +19,7 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
     AbstractGrpcProtocol.writer(this, codec, frame => encodeFrame(codec, frame))
 
   override protected def reader(codec: Codec): GrpcProtocolReader =
-    AbstractGrpcProtocol.reader(codec, decodeFrame, flow => Flow[ByteString].map(frame => preDecode(frame)).via(flow))
+    AbstractGrpcProtocol.reader(codec, decodeFrame, flow => Flow[ByteString].map(preDecode).via(flow))
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart = {
@@ -35,7 +33,7 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
   }
 
   @inline
-  private def decodeFrame(frameHeader: Int, data: ByteString): Frame = {
+  private final def decodeFrame(frameHeader: Int, data: ByteString): Frame = {
     (frameHeader & 80) match {
       case 0 => DataFrame(data)
       case 1 => TrailerFrame(decodeTrailer(data))
@@ -43,13 +41,12 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
     }
   }
 
-  private val CrLf = "\r\n"
+  @inline
+  private final def encodeTrailer(trailer: Seq[HttpHeader]): ByteString =
+    ByteString(trailer.mkString("", "\r\n", "\r\n"))
 
   @inline
-  private def encodeTrailer(trailer: Seq[HttpHeader]): ByteString = ByteString(trailer.mkString("", CrLf, CrLf))
-
-  @inline
-  private def decodeTrailer(data: ByteString): List[HttpHeader] = ???
+  private final def decodeTrailer(data: ByteString): List[HttpHeader] = ???
 
 }
 
@@ -62,9 +59,9 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
  */
 object GrpcProtocolWeb extends GrpcProtocolWebBase("grpc-web") {
 
-  override def preDecode(frame: ByteString): ByteString = frame
+  override final def preDecode(frame: ByteString): ByteString = frame
 
-  override def postEncode(frame: ByteString): ByteString = frame
+  override final def postEncode(frame: ByteString): ByteString = frame
 
 }
 
@@ -75,7 +72,7 @@ object GrpcProtocolWeb extends GrpcProtocolWebBase("grpc-web") {
  */
 object GrpcProtocolWebText extends GrpcProtocolWebBase("grpc-web-text") {
 
-  override def postEncode(framed: ByteString): ByteString = ByteString(Base64.getEncoder.encode(framed.toByteBuffer))
+  override final def postEncode(framed: ByteString): ByteString = framed.encodeBase64
 
-  override def preDecode(frame: ByteString): ByteString = ByteString(Base64.getDecoder.decode(frame.toByteBuffer))
+  override final def preDecode(frame: ByteString): ByteString = frame.decodeBase64
 }
