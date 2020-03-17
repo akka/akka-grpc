@@ -57,16 +57,16 @@ final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescr
 object ServerReflectionImpl {
   import scala.collection.JavaConverters._
 
-  def apply(fileDescriptors: Seq[FileDescriptor], services: List[String]): ServerReflectionImpl =
+  def apply(fileDescriptors: Seq[FileDescriptor], services: List[String]): ServerReflectionImpl = {
+    val fileDescriptorsWithDeps = (ReflectionProto.javaDescriptor +: fileDescriptors).toSet.flatMap(flattenDependencies)
+
     new ServerReflectionImpl(
-      (AdditionalDescriptors ++ fileDescriptors).map(fd => fd.getName -> fd).toMap,
+      fileDescriptorsWithDeps.map(fd => fd.getName -> fd).toMap,
       ServerReflection.name +: services)
+  }
 
-  val AdditionalDescriptors =
-    flattenDependencies(ReflectionProto.javaDescriptor).distinct
-
-  private def flattenDependencies(descriptor: FileDescriptor): List[FileDescriptor] = {
-    descriptor :: descriptor.getDependencies.asScala.toList.flatMap(flattenDependencies)
+  private def flattenDependencies(descriptor: FileDescriptor): Set[FileDescriptor] = {
+    descriptor.getDependencies.asScala.toSet.flatMap(flattenDependencies) + descriptor
   }
 
   def splitNext(name: String): (String, String) = {
