@@ -37,13 +37,16 @@ object Service {
       import ops._
       serviceDescriptor.comment
     }
+    val packageName =
+      if (fileDesc.getOptions.hasJavaPackage) fileDesc.getOptions.getJavaPackage
+      else fileDesc.getPackage
     val outerClassName =
       if (fileDesc.getOptions.getJavaOuterClassname.isEmpty)
-        fileDesc.getOptions.getJavaPackage + "." + toCamelCase(basename(fileDesc.getName))
+        (if (packageName.isEmpty) "" else packageName + ".") + toCamelCase(basename(fileDesc.getName))
       else fileDesc.getOptions.getJavaOuterClassname
     Service(
       outerClassName + ".getDescriptor()",
-      fileDesc.getOptions.getJavaPackage,
+      packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],

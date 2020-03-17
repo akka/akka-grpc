@@ -80,8 +80,12 @@ object Method {
     "_root_." + t.getFile.getOptions.getJavaPackage + "." + protoName(t) + "." + t.getName
 
   /** Java API */
-  def getMessageType(t: Descriptor) =
-    t.getFile.getOptions.getJavaPackage + "." + outerClass(t) + t.getName
+  def getMessageType(t: Descriptor) = {
+    val packageName =
+      if (t.getFile.getOptions.hasJavaPackage) t.getFile.getOptions.getJavaPackage
+      else t.getFile.getPackage
+    (if (packageName.isEmpty) "" else packageName + ".") + outerClass(t) + t.getName
+  }
 
   private def outerClass(t: Descriptor) =
     if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""
