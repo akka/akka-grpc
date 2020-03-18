@@ -1,0 +1,2 @@
+# Internal
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ServerReflectionImpl.AdditionalDescriptors")
