@@ -63,5 +63,4 @@ For non-patch releases:
 
 ### Afterwards
 
-- [ ] Update the version MiMa check against in build.sbt
 - Close this issue
