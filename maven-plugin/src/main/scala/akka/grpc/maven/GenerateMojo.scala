@@ -86,8 +86,11 @@ object GenerateMojo {
   }
 }
 
-class GenerateMojo @Inject() (project: MavenProject, buildContext: BuildContext) extends AbstractMojo {
+class GenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
   import GenerateMojo._
+
+  @BeanProperty
+  var project: MavenProject = _
 
   @BeanProperty
   var protoPaths: java.util.List[String] = _

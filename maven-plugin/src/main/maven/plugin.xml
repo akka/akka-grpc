@@ -16,6 +16,12 @@
 
       <parameters>
         <parameter>
+          <name>project</name>
+          <required>true</required>
+          <editable>false</editable>
+          <description>inject the project</description>
+        </parameter>
+        <parameter>
           <name>language</name>
           <type>string</type>
           <required>false</required>
@@ -59,6 +65,7 @@
         </parameter>
       </parameters>
       <configuration>
+        <project implementation="" default-value="${project}"/>
         <language implementation="enum" default-value="JAVA">${akka-grpc.language}</language>
         <generateClient implementation="boolean" default-value="true">${akka-grpc.generate-client}</generateClient>
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
