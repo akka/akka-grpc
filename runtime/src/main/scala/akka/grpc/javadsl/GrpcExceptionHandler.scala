@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionException
 
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
-import akka.grpc.{ GrpcServiceException, Trailers }
+import akka.grpc.{ GrpcServiceException, ProtobufSerialization, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
@@ -48,13 +48,18 @@ object GrpcExceptionHandler {
       }
     }
 
-  def standard(t: Throwable, writer: GrpcProtocolWriter, system: ActorSystem): HttpResponse =
-    standard(t, default, writer, system)
+  def standard(
+      t: Throwable,
+      writer: GrpcProtocolWriter,
+      format: ProtobufSerialization,
+      system: ActorSystem): HttpResponse =
+    standard(t, default, writer, format, system)
 
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
       writer: GrpcProtocolWriter,
+      format: ProtobufSerialization,
       system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers.status(mapper(system)(t))(writer)
+    GrpcResponseHelpers.status(mapper(system)(t))(writer, format)
 }

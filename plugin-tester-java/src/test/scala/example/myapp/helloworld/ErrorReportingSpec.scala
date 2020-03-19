@@ -6,6 +6,7 @@ package example.myapp.helloworld
 
 import akka.actor.ActorSystem
 import akka.grpc.internal.GrpcProtocolNative
+import akka.grpc.ProtobufSerialization
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
@@ -25,6 +26,7 @@ import scala.concurrent.duration._
 
 class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val sys = ActorSystem()
+  implicit val format = ProtobufSerialization.Protobuf
   override implicit val patienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   "A gRPC server" should {

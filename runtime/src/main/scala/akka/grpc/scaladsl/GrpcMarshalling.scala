@@ -4,44 +4,44 @@
 
 package akka.grpc.scaladsl
 
-import io.grpc.Status
-
-import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal._
+import akka.grpc.ProtobufSerialization.Selector
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
+import io.grpc.Status
+
+import scala.concurrent.Future
 
 object GrpcMarshalling {
-  def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    negotiated(req, (r, _) => {
-      implicit val reader: GrpcProtocolReader = r
-      unmarshal(req.entity.dataBytes)
+  def unmarshal[T](
+      req: HttpRequest)(implicit serializers: Selector[ProtobufSerializer[T]], mat: Materializer): Future[T] = {
+    negotiated(req, (r, _, format) => {
+      unmarshal(req.entity.dataBytes)(serializers(format), mat, r)
     }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def unmarshalStream[T](req: HttpRequest)(
-      implicit u: ProtobufSerializer[T],
-      @silent("never used") mat: Materializer): Future[Source[T, NotUsed]] = {
-    negotiated(req, (r, _) => {
-      implicit val reader: GrpcProtocolReader = r
-      unmarshalStream(req.entity.dataBytes)
+      implicit serializers: Selector[ProtobufSerializer[T]],
+      mat: Materializer): Future[Source[T, NotUsed]] = {
+    negotiated(req, (r, _, format) => {
+      unmarshalStream(req.entity.dataBytes)(serializers(format), mat, r)
     }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
-  def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
+  def negotiated[T](
+      req: HttpRequest,
+      f: (GrpcProtocolReader, GrpcProtocolWriter, ProtobufSerialization) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
-      case (maybeReader, writer) =>
-        maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)
+      case (maybeReader, writer, format) =>
+        maybeReader.map(reader => f(reader, writer, format)).fold(Future.failed, identity)
     }
 
   def unmarshal[T](data: Source[ByteString, Any])(

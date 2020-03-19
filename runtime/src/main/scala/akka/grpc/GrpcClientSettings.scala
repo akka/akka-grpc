@@ -8,7 +8,7 @@ import akka.actor.ActorSystem
 import akka.annotation.{ ApiMayChange, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
-import akka.grpc.internal.HardcodedServiceDiscovery
+import akka.grpc.internal.{ GrpcProtocolNative, HardcodedServiceDiscovery }
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
@@ -209,7 +209,9 @@ final class GrpcClientSettings private (
     val userAgent: Option[String],
     val useTls: Boolean,
     val grpcLoadBalancingType: Option[String],
-    val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
+    val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity,
+    val grpcProtocol: GrpcProtocol = GrpcProtocolNative,
+    val protobufSerialization: ProtobufSerialization = ProtobufSerialization.Protobuf) {
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
@@ -276,6 +278,12 @@ final class GrpcClientSettings private (
   def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =
     copy(channelBuilderOverrides = builderOverrides)
 
+  private[grpc] def withProtobufSerialization(serialization: ProtobufSerialization): GrpcClientSettings =
+    copy(protobufSerialization = serialization)
+
+  private[grpc] def withGrpcProtocol(protocol: GrpcProtocol): GrpcClientSettings =
+    copy(grpcProtocol = protocol)
+
   private def copy(
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
@@ -292,8 +300,9 @@ final class GrpcClientSettings private (
       resolveTimeout: FiniteDuration = resolveTimeout,
       connectionAttempts: Option[Int] = connectionAttempts,
       grpcLoadBalancingType: Option[String] = grpcLoadBalancingType,
-      channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
-      : GrpcClientSettings =
+      channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides,
+      grpcProtocol: GrpcProtocol = grpcProtocol,
+      protobufSerialization: ProtobufSerialization = protobufSerialization): GrpcClientSettings =
     new GrpcClientSettings(
       callCredentials = callCredentials,
       serviceDiscovery = serviceDiscovery,
@@ -311,5 +320,7 @@ final class GrpcClientSettings private (
       resolveTimeout = resolveTimeout,
       connectionAttempts = connectionAttempts,
       grpcLoadBalancingType = grpcLoadBalancingType,
-      channelBuilderOverrides = channelBuilderOverrides)
+      channelBuilderOverrides = channelBuilderOverrides,
+      grpcProtocol = grpcProtocol,
+      protobufSerialization = protobufSerialization)
 }

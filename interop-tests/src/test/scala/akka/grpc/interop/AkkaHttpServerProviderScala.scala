@@ -7,6 +7,7 @@ package akka.grpc.interop
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcResponseHelpers, Identity }
+import akka.grpc.ProtobufSerialization
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
 import akka.stream.Materializer
@@ -52,6 +53,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   // Route to pass the 'status_code_and_message' test
   def customStatusRoute(testServiceImpl: TestServiceImpl)(implicit mat: Materializer, system: ActorSystem): Route = {
     implicit val ec = mat.executionContext
+    implicit val format = ProtobufSerialization.Protobuf
     implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
     import TestServiceMarshallers._
@@ -91,6 +93,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
             NotUsed
           })
 
+        import StreamingOutputCallResponseSerializers._
         complete(GrpcResponseHelpers(testServiceImpl.fullDuplexCall(effectingSource), status.future))
       }
     }

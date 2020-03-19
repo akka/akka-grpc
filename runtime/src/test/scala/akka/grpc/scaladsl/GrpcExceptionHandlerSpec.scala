@@ -5,9 +5,10 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcServiceException
+import akka.grpc.{ GrpcServiceException, ProtobufSerialization }
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, Identity }
 import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
+import akka.grpc.ProtobufSerialization.Protobuf
 import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
@@ -26,6 +27,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
   implicit val writer = GrpcProtocolNative.newWriter(Identity)
+  implicit val format: ProtobufSerialization = Protobuf
 
   val expected: Function[Throwable, Status] = {
     case e: ExecutionException =>
@@ -61,7 +63,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
       s"Correctly map $e" in {
         val exp = GrpcResponseHelpers.status(defaultMapper(system)(e))
         val expChunks = getChunks(exp)
-        val act = GrpcExceptionHandler.from(defaultMapper(system))(system, writer)(e).futureValue
+        val act = GrpcExceptionHandler.from(defaultMapper(system))(system, writer, format)(e).futureValue
         val actChunks = getChunks(act)
         // Following is because aren't equal
         act.status shouldBe exp.status

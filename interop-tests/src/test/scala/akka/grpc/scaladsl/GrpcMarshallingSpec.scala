@@ -7,6 +7,7 @@ package akka.grpc.scaladsl
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ AbstractGrpcProtocol, GrpcProtocolNative, Gzip }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
+import akka.grpc.ProtobufSerialization
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -21,16 +22,18 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
+  implicit val format = ProtobufSerialization.Protobuf
+
   "The scaladsl GrpcMarshalling" should {
     val message = SimpleRequest(responseCompressed = Some(BoolValue(true)))
-    implicit val serializer = TestService.Serializers.SimpleRequestSerializer
+    implicit val serializers = TestService.Serializers.SimpleRequestSerializers
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
     val awaitTimeout = 10.seconds
     val zippedBytes =
       AbstractGrpcProtocol.encodeFrameData(
         AbstractGrpcProtocol.fieldType(Gzip),
-        Gzip.compress(serializer.serialize(message)))
+        Gzip.compress(serializers(format).serialize(message)))
 
     "correctly unmarshal a zipped object" in {
       val request = HttpRequest(
@@ -65,6 +68,7 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     // https://github.com/grpc/grpc/blob/master/doc/compression.md#compression-method-asymmetry-between-peers
     // test case 6
     "fail with INTERNAL when the compressed bit is on but the encoding is missing" in {
+      implicit val format = ProtobufSerialization.Protobuf
       val request = HttpRequest(entity = HttpEntity.Strict(GrpcProtocolNative.contentType, zippedBytes))
 
       assertFailure(GrpcMarshalling.unmarshal(request), Status.Code.INTERNAL, "encoding")

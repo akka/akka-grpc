@@ -39,6 +39,9 @@ object Dependencies {
     val grpcStub = "io.grpc" % "grpc-stub" % Versions.grpc
     val grpcNettyShaded = "io.grpc" % "grpc-netty-shaded" % Versions.grpc
 
+    val protobufUtil = "com.google.protobuf" % "protobuf-java-util" % "3.11.0"
+    val scalapbJson = "com.thesamet.scalapb" %% "scalapb-json4s" % "0.9.3"
+
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
     val grpcInteropTesting = ("io.grpc" % "grpc-interop-testing" % Versions.grpc)
@@ -83,6 +86,8 @@ object Dependencies {
         Compile.akkaHttp,
         Compile.akkaHttp2Support,
         Compile.akkaDiscovery,
+        Compile.protobufUtil,
+        Compile.scalapbJson,
         Compile.akkaHttpCors % "provided",
         Test.akkaDiscoveryConfig,
         Test.akkaTestkit,

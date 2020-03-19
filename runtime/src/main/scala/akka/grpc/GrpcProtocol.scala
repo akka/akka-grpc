@@ -7,9 +7,10 @@ package akka.grpc
 import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
-import akka.grpc.internal.{ Codec, Codecs, GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
+import akka.grpc.internal._
+import akka.grpc.ProtobufSerialization.Protobuf
 import akka.http.javadsl.{ model => jmodel }
-import akka.http.scaladsl.model.{ ContentType, HttpHeader }
+import akka.http.scaladsl.model.{ ContentType, HttpHeader, MediaType }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
@@ -21,11 +22,11 @@ import scala.util.Try
  */
 trait GrpcProtocol {
 
-  /** The canonical media type to use for this protocol variant */
-  private[grpc] val contentType: ContentType.Binary
+  /** The canonical media subType to use for this protocol variant, without an explicit serialization format (e.g. no +proto or +json) */
+  val subType: String
 
-  /** The set of media types that can identify this protocol variant (e.g. including an implicit +proto) */
-  private[grpc] val mediaTypes: Set[jmodel.MediaType]
+  def contentType(implicit format: ProtobufSerialization): ContentType.Binary =
+    MediaType.applicationBinary(s"${subType}+${format.name}", MediaType.Compressible)
 
   /**
    * INTERNAL API
@@ -52,7 +53,9 @@ trait GrpcProtocol {
 @InternalApi
 object GrpcProtocol {
 
-  private val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)
+  private[grpc] val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)
+  private[grpc] val formats: Seq[ProtobufSerialization] =
+    Seq(ProtobufSerialization.Protobuf, ProtobufSerialization.Json)
 
   /** A frame in a logical gRPC protocol stream */
   sealed trait Frame
@@ -69,8 +72,8 @@ object GrpcProtocol {
    * This maps the logical gRPC frames into a stream of chunks that can be handled by the HTTP/2 or HTTP/1.1 transport layer.
    */
   case class GrpcProtocolWriter(
-      /** The media type produced by this writer */
-      contentType: ContentType,
+      /** The protocol this writer encodes for */
+      protocol: GrpcProtocol,
       /** The compression codec to be used for data frame bodies */
       messageEncoding: Codec,
       /** Encodes a frame as a part in a chunk stream. */
@@ -102,23 +105,46 @@ object GrpcProtocol {
    * Detects which gRPC protocol variant is indicated in a request.
    * @return a [[GrpcProtocol]] matching the request mediatype if specified and known.
    */
-  def detect(request: jmodel.HttpRequest): Option[GrpcProtocol] = detect(request.entity.getContentType.mediaType)
+  def detect(request: jmodel.HttpRequest): Option[(GrpcProtocol, ProtobufSerialization)] =
+    detect(request.entity.getContentType.mediaType)
 
   /**
-   * Detects which gRPC protocol variant is indicated by a mediatype.
-   * @return a [[GrpcProtocol]] matching the request mediatype if known.
+   * Detects which gRPC protocol variant and message serialization is indicated by a mediatype.
+   * e.g. `application/grpc`, `application/grpc-web+proto`, `application/grpc+json`.
+   * @return The [[GrpcProtocol]] and [[ProtobufSerialization]] specified by the mediatype,
+   *         or None if the protocol or serialization format is unknown.
    */
-  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = protocols.find(_.mediaTypes.contains(mediaType))
+  def detect(mediaType: jmodel.MediaType): Option[(GrpcProtocol, ProtobufSerialization)] = {
+    if (!mediaType.isApplication) None
+    else {
+      val mSubType = mediaType.subType
+      protocols
+        .find { p =>
+          val baseSubType = p.subType
+          mSubType.startsWith(baseSubType) && ((baseSubType.length == mSubType.length) || (mSubType(baseSubType.length) == '+'))
+        }
+        .flatMap { p =>
+          if (mSubType.length == p.subType.length) Some((p, Protobuf))
+          else {
+            val formatSpec = mSubType.substring(p.subType.length + 1)
+            formats.find(_.name == formatSpec).map((p, _))
+          }
+        }
+    }
+  }
 
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.
-   *
+   * @see detect(jmodel.MediaType)
    * @param request the client request to respond to.
-   * @return the protocol reader for the request, and a protocol writer for the response.
+   * @return the protocol reader for the request, a protocol writer for the response,
+   *         and the protobuf serialization format to use.
    */
-  def negotiate(request: jmodel.HttpRequest): Option[(Try[GrpcProtocolReader], GrpcProtocolWriter)] =
-    detect(request).map { variant =>
-      (Codecs.detect(request).map(variant.newReader), variant.newWriter(Codecs.negotiate(request)))
+  def negotiate(
+      request: jmodel.HttpRequest): Option[(Try[GrpcProtocolReader], GrpcProtocolWriter, ProtobufSerialization)] =
+    detect(request).map {
+      case (proto, format) =>
+        (Codecs.detect(request).map(proto.newReader), proto.newWriter(Codecs.negotiate(request)), format)
     }
 
 }

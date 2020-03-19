@@ -4,14 +4,16 @@
 
 package akka.grpc.javadsl
 
+import java.io.InputStream
+
 import akka.annotation.ApiMayChange
-import akka.grpc.ProtobufSerializer
+import akka.grpc.{ ProtobufSerialization, ProtobufSerializer }
+import akka.grpc.ProtobufSerialization.Protobuf
+import akka.util.ByteString
 
 @ApiMayChange
-class GoogleProtobufSerializer[T <: com.google.protobuf.Message](clazz: Class[T]) extends ProtobufSerializer[T] {
-  override def serialize(t: T) = akka.util.ByteString(t.toByteArray)
-  override def deserialize(bytes: akka.util.ByteString): T = {
-    val parser = clazz.getMethod("parseFrom", classOf[Array[Byte]])
-    parser.invoke(clazz, bytes.toArray).asInstanceOf[T]
-  }
+class GoogleProtobufSerializer[T <: com.google.protobuf.Message](defaultInstance: T) extends ProtobufSerializer[T] {
+  override val format: ProtobufSerialization = Protobuf
+  override def serialize(t: T): ByteString = ByteString.fromArrayUnsafe(t.toByteArray)
+  override def deserialize(bytes: InputStream): T = defaultInstance.getParserForType.parseFrom(bytes).asInstanceOf[T]
 }

@@ -116,15 +116,15 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
     }
 
     private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
-      return GrpcMarshalling.negotiated(request, (reader, writer) -> {
+      return GrpcMarshalling.negotiated(request, (reader, writer, format) -> {
         final CompletionStage<HttpResponse> response;
         @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}
         switch(method) {
           @for(method <- service.methods) {
           case "@method.grpcName":
-            response = @{method.unmarshal}(request.entity().getDataBytes(), @method.deserializer.name, mat, reader)
+            response = @{method.unmarshal}(request.entity().getDataBytes(), @{method.deserializer.name}.select(format), mat, reader)
               .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
-              .thenApply(e -> @{method.marshal}(e, @method.serializer.name, writer, system, eHandler));
+              .thenApply(e -> @{method.marshal}(e, @{method.serializer.name}.select(format), writer, system, eHandler));
             break;
           }
           default:
@@ -132,7 +132,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
             result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
             response = result;
         }
-        return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, system));
+        return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, format, system));
       })
       .orElseGet(() -> unsupportedMediaType);
     }

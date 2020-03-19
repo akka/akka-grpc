@@ -16,6 +16,10 @@ object Codecs {
   // TODO should this list be made user-extensible?
   val supportedCodecs = immutable.Seq(Gzip, Identity)
 
+  /* Java API */
+  val identity: Codec = Identity
+  val gzip: Codec = Gzip
+
   private val supported = supportedCodecs.map(_.name)
   private val byName = supportedCodecs.map(c => c.name -> c).toMap
 

@@ -23,7 +23,7 @@ object ServiceHandler {
     Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
 
   private def matchesVariant(variants: Set[GrpcProtocol])(request: jmodel.HttpRequest) =
-    variants.exists(_.mediaTypes.contains(request.entity.getContentType.mediaType))
+    GrpcProtocol.detect(request).map { case (proto, _) => variants.contains(proto) }.getOrElse(false)
 
   private[grpc] val isGrpcRequest: jmodel.HttpRequest => Boolean = matchesVariant(Set(GrpcProtocolNative))
   private[grpc] val isGrpcWebRequest: jmodel.HttpRequest => Boolean = matchesVariant(

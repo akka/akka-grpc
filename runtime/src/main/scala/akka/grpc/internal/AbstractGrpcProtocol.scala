@@ -6,9 +6,8 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.grpc.GrpcProtocol
 import akka.grpc.GrpcProtocol.{ Frame, GrpcProtocolReader, GrpcProtocolWriter }
-import akka.http.javadsl.{ model => jmodel }
-import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{ ContentType, MediaType }
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Attributes
 import akka.stream.impl.io.ByteStringParser
 import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep }
@@ -17,13 +16,7 @@ import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
 import io.grpc.{ Status, StatusException }
 
-abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
-
-  override val contentType: ContentType.Binary =
-    MediaType.applicationBinary(s"$subType+proto", MediaType.Compressible).toContentType
-
-  override val mediaTypes: Set[jmodel.MediaType] =
-    Set(contentType.mediaType, MediaType.applicationBinary(subType, MediaType.Compressible))
+abstract class AbstractGrpcProtocol(val subType: String) extends GrpcProtocol {
 
   private lazy val knownWriters = Codecs.supportedCodecs.map(c => c -> writer(c)).toMap.withDefault(writer)
   private lazy val knownReaders = Codecs.supportedCodecs.map(c => c -> reader(c)).toMap.withDefault(reader)
@@ -46,6 +39,7 @@ abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
   protected def reader(codec: Codec): GrpcProtocolReader
 
 }
+
 object AbstractGrpcProtocol {
 
   /** Field marker to signal the start of an uncompressed frame */
@@ -62,7 +56,7 @@ object AbstractGrpcProtocol {
    * @param codec the message encoding being used to encode objects.
    * @return the provided content type, with the compressibility adapted to reflect whether HTTP transport level compression should be used.
    */
-  private def adjustCompressibility(contentType: ContentType.Binary, codec: Codec): ContentType.Binary =
+  private[grpc] def adjustCompressibility(contentType: ContentType.Binary, codec: Codec): ContentType.Binary =
     contentType.mediaType
       .withComp(codec match {
         case Identity => MediaType.Compressible
@@ -77,11 +71,7 @@ object AbstractGrpcProtocol {
   }
 
   def writer(protocol: GrpcProtocol, codec: Codec, encodeFrame: Frame => ChunkStreamPart): GrpcProtocolWriter =
-    GrpcProtocolWriter(
-      adjustCompressibility(protocol.contentType, codec),
-      codec,
-      encodeFrame,
-      Flow[Frame].map(encodeFrame))
+    GrpcProtocolWriter(protocol, codec, encodeFrame, Flow[Frame].map(encodeFrame))
 
   def reader(
       codec: Codec,

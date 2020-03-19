@@ -25,8 +25,13 @@ object @{service.name} extends akka.grpc.ServiceDescription {
 
   object Serializers {
     import akka.grpc.scaladsl.ScalapbProtobufSerializer
+    import akka.grpc.scaladsl.ScalapbJsonProtobufSerializer
+    import akka.grpc.ProtobufSerialization
+
+    private val typeRegistry = Some(scalapb.json4s.TypeRegistry().addFile(@{service.fileProto}))
     @for(serializer <- service.serializers) {
-    val @serializer.name = @serializer.init
+    val @serializer.name = ProtobufSerialization.selector(@serializer.init,
+                            @serializer.jsonInit)
     }
   }
 }

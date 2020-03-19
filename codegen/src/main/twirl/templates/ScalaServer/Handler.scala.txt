@@ -83,18 +83,18 @@ import akka.stream.Materializer
       import @{service.name}.Serializers._
 
       def handle(request: HttpRequest, method: String): scala.concurrent.Future[HttpResponse] =
-        GrpcMarshalling.negotiated(request, (reader, writer) =>
+        GrpcMarshalling.negotiated(request, (reader, writer, format) =>
           (method match {
             @for(method <- service.methods) {
             case "@method.grpcName" =>
                 @{if(powerApis) { "val metadata = MetadataBuilder.fromHeaders(request.headers)" } else { "" }}
-                @{method.unmarshal}(request.entity.dataBytes)(@method.deserializer.name, mat, reader)
+                @{method.unmarshal}(request.entity.dataBytes)(@{method.deserializer.name}(format), mat, reader)
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.name}(_@{if(powerApis) { ", metadata" } else { "" }}))
-                  .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, writer, system))
+                  .map(e => @{method.marshal}(e, eHandler)(@{method.serializer.name}(format), writer, system))
             }
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
-          .recoverWith(GrpcExceptionHandler.from(eHandler(system))(system, writer))
+          .recoverWith(GrpcExceptionHandler.from(eHandler(system))(system, writer, format))
       ).getOrElse(unsupportedMediaType)
 
       Function.unlift((req: HttpRequest) => req.uri.path match {

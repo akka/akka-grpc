@@ -4,31 +4,23 @@
 
 package akka.grpc.internal
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
-import io.grpc.KnownLength
+import java.io.{ FilterInputStream, InputStream }
+
 import akka.annotation.InternalApi
 import akka.grpc.ProtobufSerializer
+import io.grpc.KnownLength
 
 /**
  * INTERNAL API
  */
 @InternalApi
-final class Marshaller[T <: scalapb.GeneratedMessage](u: ProtobufSerializer[T])
-    extends io.grpc.MethodDescriptor.Marshaller[T] {
-  override def parse(stream: InputStream): T = {
-    val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
-    val buffer = new Array[Byte](32 * 1024)
+final class Marshaller[T](u: ProtobufSerializer[T]) extends io.grpc.MethodDescriptor.Marshaller[T] {
+  override def parse(stream: InputStream): T = u.deserialize(stream)
 
-    // Blocking calls underneath...
-    // we can't avoid it for the moment because we are relying on the Netty's Channel API
-    var bytesRead = stream.read(buffer)
-    while (bytesRead >= 0) {
-      baos.write(buffer, 0, bytesRead)
-      bytesRead = stream.read(buffer)
+  override def stream(value: T): InputStream with KnownLength = {
+    val serialized = u.serialize(value)
+    new FilterInputStream(serialized.iterator.asInputStream) with KnownLength {
+      override def available(): Int = serialized.length
     }
-    u.deserialize(akka.util.ByteString(baos.toByteArray))
   }
-
-  override def stream(value: T): InputStream =
-    new ByteArrayInputStream(value.toByteArray) with KnownLength
 }

@@ -24,12 +24,13 @@ object GrpcMarshalling {
 
   def negotiated[T](
       req: HttpRequest,
-      f: (GrpcProtocolReader, GrpcProtocolWriter) => CompletionStage[T]): Optional[CompletionStage[T]] =
+      f: (GrpcProtocolReader, GrpcProtocolWriter, ProtobufSerialization) => CompletionStage[T])
+      : Optional[CompletionStage[T]] =
     GrpcProtocol
       .negotiate(req)
       .map {
-        case (maybeReader, writer) =>
-          maybeReader.map(reader => f(reader, writer)).fold[CompletionStage[T]](failure, identity)
+        case (maybeReader, writer, format) =>
+          maybeReader.map(reader => f(reader, writer, format)).fold[CompletionStage[T]](failure, identity)
       }
       .fold(Optional.empty[CompletionStage[T]])(Optional.of)
 

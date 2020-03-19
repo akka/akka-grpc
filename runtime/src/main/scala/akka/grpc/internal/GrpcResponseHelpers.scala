@@ -7,7 +7,7 @@ package akka.grpc.internal
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
-import akka.grpc.{ ProtobufSerializer, Trailers }
+import akka.grpc.{ ProtobufSerialization, ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
@@ -63,19 +63,23 @@ object GrpcResponseHelpers {
   def apply[T](
       e: Source[T, NotUsed],
       trail: Source[TrailerFrame, NotUsed],
-      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
+      eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper _)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ActorSystem): HttpResponse = {
+    implicit val format: ProtobufSerialization = m.format
     response(GrpcEntityHelpers(e, trail, eHandler))
   }
 
-  private def response[T](entity: Source[ChunkStreamPart, NotUsed])(implicit writer: GrpcProtocolWriter) = {
+  private def response[T](
+      entity: Source[ChunkStreamPart, NotUsed])(implicit writer: GrpcProtocolWriter, format: ProtobufSerialization) = {
     HttpResponse(
       headers = immutable.Seq(headers.`Message-Encoding`(writer.messageEncoding.name)),
-      entity = HttpEntity.Chunked(writer.contentType, entity))
+      entity = HttpEntity.Chunked(
+        AbstractGrpcProtocol.adjustCompressibility(writer.protocol.contentType(format), writer.messageEncoding),
+        entity))
   }
 
-  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter): HttpResponse =
+  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter, format: ProtobufSerialization): HttpResponse =
     response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(trailer.status, trailer.metadata))))
 }

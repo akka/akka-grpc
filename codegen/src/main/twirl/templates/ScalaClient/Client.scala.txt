@@ -13,6 +13,7 @@ import io.grpc.ManagedChannel
 import io.grpc.MethodDescriptor
 
 import akka.grpc.GrpcClientSettings
+import akka.grpc.ProtobufSerialization
 
 import akka.grpc.scaladsl.AkkaGrpcClient
 
@@ -56,15 +57,15 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
   @for(method <- service.methods) {
     private def @{method.name}RequestBuilder(channel:scala.concurrent.Future[ManagedChannel]) = {
       @if(method.methodType == akka.grpc.gen.Unary) {
-        new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+        new ScalaUnaryRequestBuilder(@{method.name}Descriptors(settings.protobufSerialization), channel, options, settings)
       } else {
         val fqName = "@{service.grpcName}.@{method.grpcName}"
         @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
+          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptors(settings.protobufSerialization), fqName, channel, options, settings)
         } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings, mat)
+          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptors(settings.protobufSerialization), fqName, channel, options, settings, mat)
         } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
+          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptors(settings.protobufSerialization), fqName, channel, options, settings)
         }
       }
     }
@@ -110,14 +111,20 @@ private object Default@{service.name}Client {
   import @{service.name}.Serializers._
 
   @for(method <- service.methods) {
-    private val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
-      MethodDescriptor.newBuilder()
+    private val @{method.name}Descriptors: ProtobufSerialization.Selector[MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed]] = {
+      val proto = MethodDescriptor.newBuilder()
         .setType(@mapMethodType(method.methodType))
         .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-        .setRequestMarshaller(new Marshaller(@method.deserializer.name))
-        .setResponseMarshaller(new Marshaller(@method.serializer.name))
+        .setRequestMarshaller(new Marshaller(@{method.deserializer.name}(ProtobufSerialization.Protobuf)))
+        .setResponseMarshaller(new Marshaller(@{method.serializer.name}(ProtobufSerialization.Protobuf)))
         .setSampledToLocalTracing(true)
         .build()
+
+      val json = proto.toBuilder(new Marshaller(@{method.deserializer.name}(ProtobufSerialization.Json)),
+                               new Marshaller(@{method.serializer.name}(ProtobufSerialization.Json)))
+        .build()
+      ProtobufSerialization.selector(proto, json)
+    }
   }
 }
 
