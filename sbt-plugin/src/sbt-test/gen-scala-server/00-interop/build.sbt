@@ -45,6 +45,10 @@ akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
 
 //#sources-both
 
+//#external
+Compile / PB.protoSources += (Compile / PB.externalIncludePath).value
+//#external
+
 /**
 //#sources-client
 // only client
