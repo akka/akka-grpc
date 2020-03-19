@@ -41,12 +41,8 @@ object Service {
     val packageName =
       if (fileDesc.getOptions.hasJavaPackage) fileDesc.getOptions.getJavaPackage
       else fileDesc.getPackage
-    val outerClassName =
-      if (fileDesc.getOptions.getJavaOuterClassname.isEmpty)
-        (if (packageName.isEmpty) "" else packageName + ".") + toCamelCase(basename(fileDesc.getName))
-      else fileDesc.getOptions.getJavaOuterClassname
     Service(
-      outerClassName + ".getDescriptor()",
+      outerClass(fileDesc) + ".getDescriptor()",
       packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
@@ -58,6 +54,22 @@ object Service {
 
   private[javadsl] def basename(name: String): String =
     name.replaceAll("^.*/", "").replaceAll("\\.[^\\.]*$", "")
+
+  private[javadsl] def outerClass(t: FileDescriptor) =
+    if (t.toProto.getOptions.hasJavaOuterClassname) t.toProto.getOptions.getJavaOuterClassname
+    else {
+      val className = Service.toCamelCase(protoName(t))
+      if (hasConflictingClassName(t, className)) className + "OuterClass"
+      else className
+    }
+
+  private def hasConflictingClassName(d: FileDescriptor, className: String): Boolean =
+    d.findServiceByName(className) != null ||
+    d.findMessageTypeByName(className) != null ||
+    d.findEnumTypeByName(className) != null
+
+  private[javadsl] def protoName(t: FileDescriptor) =
+    t.getName.replaceAll("\\.proto", "").split("/").last
 
   private[javadsl] def toCamelCase(name: String): String = {
     if (name.isEmpty) ""

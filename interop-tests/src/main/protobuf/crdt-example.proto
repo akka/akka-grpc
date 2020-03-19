@@ -45,7 +45,7 @@ message OnlineStatus {
     bool online = 1;
 }
 
-service CrdtExampleService {
+service CrdtExample {
     rpc IncrementGCounter(UpdateCounter) returns (CounterValue);
     rpc GetGCounter(Get) returns (CounterValue);
 
