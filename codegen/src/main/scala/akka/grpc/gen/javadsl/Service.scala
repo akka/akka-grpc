@@ -7,6 +7,7 @@ package akka.grpc.gen.javadsl
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 
@@ -60,6 +61,20 @@ object Service {
 
   private[javadsl] def toCamelCase(name: String): String = {
     if (name.isEmpty) ""
-    else name.head.toUpper + "_[a-z]".r.replaceAllIn(name.tail, s => s.group(0)(1).toUpper.toString)
+    else toCamelCaseRec(name.tail, new StringBuffer(name.head.toUpper.toString), false)
+  }
+
+  @tailrec
+  def toCamelCaseRec(in: String, out: StringBuffer, capNext: Boolean): String = {
+    if (in.isEmpty) out.toString
+    else {
+      val head = in.head
+      if (head.isLower) {
+        if (capNext) toCamelCaseRec(in.tail, out.append(head.toUpper), false)
+        else toCamelCaseRec(in.tail, out.append(head), false)
+      } else if (head.isUpper) toCamelCaseRec(in.tail, out.append(head), false)
+      else if (head.isDigit) toCamelCaseRec(in.tail, out.append(head), true)
+      else toCamelCaseRec(in.tail, out, true)
+    }
   }
 }

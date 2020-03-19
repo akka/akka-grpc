@@ -11,6 +11,7 @@ class ServiceSpec extends AnyWordSpec with Matchers {
   "The Service model" should {
     "correctly camelcase strings" in {
       Service.toCamelCase("foo_bar") should be("FooBar")
+      Service.toCamelCase("grpc-example") should be("GrpcExample")
     }
     "correctly determine basenames" in {
       Service.basename("helloworld.proto") should be("helloworld")

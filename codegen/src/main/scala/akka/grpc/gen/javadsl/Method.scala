@@ -92,7 +92,7 @@ object Method {
     else {
       val outerClassName = t.getFile.toProto.getOptions.getJavaOuterClassname
       if (outerClassName == "") {
-        protoName(t).head.toUpper + protoName(t).tail + "."
+        Service.toCamelCase(protoName(t)) + "."
       } else {
         outerClassName + "."
       }
