@@ -85,6 +85,20 @@ that contain proto definitions to your build:
 libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ```
 
+This by default assumes this artifact also contains the correct generated classes for this API.
+If you want to generate your own, either because the upstream artifact contains no generated
+files or they were generated in a way that is incompatible with your intended use, you can
+add add them with:
+
+```scala
+PB.protoSources += PB.externalIncludePath.value
+```
+
+For a discussion around a more fine-grained control over how artifacts with `.proto` definitions
+can be used see [this sbt-protoc issue](https://github.com/thesamet/sbt-protoc/issues/144).
+In the short term there is nothing wrong with duplicating the `.proto` files of the protoco
+you intend to speak in your project.
+
 ## Starting your Akka gRPC server from sbt
 
 On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
