@@ -7,6 +7,7 @@ package akka.grpc.gen.javadsl
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 
@@ -40,12 +41,8 @@ object Service {
     val packageName =
       if (fileDesc.getOptions.hasJavaPackage) fileDesc.getOptions.getJavaPackage
       else fileDesc.getPackage
-    val outerClassName =
-      if (fileDesc.getOptions.getJavaOuterClassname.isEmpty)
-        (if (packageName.isEmpty) "" else packageName + ".") + toCamelCase(basename(fileDesc.getName))
-      else fileDesc.getOptions.getJavaOuterClassname
     Service(
-      outerClassName + ".getDescriptor()",
+      outerClass(fileDesc) + ".getDescriptor()",
       packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
@@ -58,8 +55,38 @@ object Service {
   private[javadsl] def basename(name: String): String =
     name.replaceAll("^.*/", "").replaceAll("\\.[^\\.]*$", "")
 
+  private[javadsl] def outerClass(t: FileDescriptor) =
+    if (t.toProto.getOptions.hasJavaOuterClassname) t.toProto.getOptions.getJavaOuterClassname
+    else {
+      val className = Service.toCamelCase(protoName(t))
+      if (hasConflictingClassName(t, className)) className + "OuterClass"
+      else className
+    }
+
+  private def hasConflictingClassName(d: FileDescriptor, className: String): Boolean =
+    d.findServiceByName(className) != null ||
+    d.findMessageTypeByName(className) != null ||
+    d.findEnumTypeByName(className) != null
+
+  private[javadsl] def protoName(t: FileDescriptor) =
+    t.getName.replaceAll("\\.proto", "").split("/").last
+
   private[javadsl] def toCamelCase(name: String): String = {
     if (name.isEmpty) ""
-    else name.head.toUpper + "_[a-z]".r.replaceAllIn(name.tail, s => s.group(0)(1).toUpper.toString)
+    else toCamelCaseRec(name.tail, new StringBuffer(name.head.toUpper.toString), false)
+  }
+
+  @tailrec
+  def toCamelCaseRec(in: String, out: StringBuffer, capNext: Boolean): String = {
+    if (in.isEmpty) out.toString
+    else {
+      val head = in.head
+      if (head.isLower) {
+        if (capNext) toCamelCaseRec(in.tail, out.append(head.toUpper), false)
+        else toCamelCaseRec(in.tail, out.append(head), false)
+      } else if (head.isUpper) toCamelCaseRec(in.tail, out.append(head), false)
+      else if (head.isDigit) toCamelCaseRec(in.tail, out.append(head), true)
+      else toCamelCaseRec(in.tail, out, true)
+    }
   }
 }

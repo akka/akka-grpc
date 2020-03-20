@@ -77,27 +77,17 @@ object Method {
     name.head.toLower +: name.tail
 
   def messageType(t: Descriptor) =
-    "_root_." + t.getFile.getOptions.getJavaPackage + "." + protoName(t) + "." + t.getName
+    "_root_." + t.getFile.getOptions.getJavaPackage + "." + Service.protoName(t.getFile) + "." + t.getName
 
   /** Java API */
   def getMessageType(t: Descriptor) = {
     val packageName =
       if (t.getFile.getOptions.hasJavaPackage) t.getFile.getOptions.getJavaPackage
       else t.getFile.getPackage
-    (if (packageName.isEmpty) "" else packageName + ".") + outerClass(t) + t.getName
+    val name =
+      if (t.getFile.toProto.getOptions.getJavaMultipleFiles) t.getName
+      else Service.outerClass(t.getFile) + "." + t.getName
+    (if (packageName.isEmpty) "" else packageName + ".") + name
   }
 
-  private def outerClass(t: Descriptor) =
-    if (t.getFile.toProto.getOptions.getJavaMultipleFiles) ""
-    else {
-      val outerClassName = t.getFile.toProto.getOptions.getJavaOuterClassname
-      if (outerClassName == "") {
-        protoName(t).head.toUpper + protoName(t).tail + "."
-      } else {
-        outerClassName + "."
-      }
-    }
-
-  private def protoName(t: Descriptor) =
-    t.getFile.getName.replaceAll("\\.proto", "").split("/").last
 }
