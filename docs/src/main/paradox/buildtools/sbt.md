@@ -6,18 +6,21 @@ To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[
 
 It can be configured to just generate either server or client like so:
 
-@@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #sources-both #sources-client #sources-server }
+@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #sources-both #sources-client #sources-server }
 
 What language to generate stubs for is also configurable:
 
-@@snip[x](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
+@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
 ### Configurations
 
 By default, the plugin will run generators against `.proto` sources in the `Compile` directories (`src/main/protobuf`), as well as the `Test` ones (`src/test/protobuf`) if there are any.
 
 The settings documented above can have different values for each configuration, allowing you for example to generate in `Test`
-(and in `Test` only) client stubs for a service defined in `Compile`.
+(and in `Test` only) client stubs for a service defined in `Compile`. If you want to do this,
+you have to inherit the `.proto` definitions from `Compile` over to `Test`:
+
+@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/03-test-config/build.sbt) { #test }
 
 If you have other configurations with `.proto` sources (for example `IntegrationTest`), you can enable the plugin on them:
 
@@ -84,6 +87,18 @@ that contain proto definitions to your build:
 ```scala
 libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ```
+
+This by default assumes this artifact also contains the correct generated classes for this API.
+If you want to generate your own, either because the upstream artifact contains no generated
+files or they were generated in a way that is incompatible with your intended use, you can
+add add them with:
+
+@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #external }
+
+For a discussion around a more fine-grained control over how artifacts with `.proto` definitions
+can be used see [this sbt-protoc issue](https://github.com/thesamet/sbt-protoc/issues/144).
+In the short term there is nothing wrong with duplicating the `.proto` files of the protoco
+you intend to speak in your project.
 
 ## Starting your Akka gRPC server from sbt
 
