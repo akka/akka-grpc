@@ -77,7 +77,7 @@ object Service {
   }
 
   @tailrec
-  def toCamelCaseRec(in: String, out: StringBuffer, capNext: Boolean): String = {
+  private def toCamelCaseRec(in: String, out: StringBuffer, capNext: Boolean): String = {
     if (in.isEmpty) out.toString
     else {
       val head = in.head

@@ -12,6 +12,7 @@ class ServiceSpec extends AnyWordSpec with Matchers {
     "correctly camelcase strings" in {
       Service.toCamelCase("foo_bar") should be("FooBar")
       Service.toCamelCase("grpc-example") should be("GrpcExample")
+      Service.toCamelCase("grpc02example") should be("Grpc02Example")
     }
     "correctly determine basenames" in {
       Service.basename("helloworld.proto") should be("helloworld")
