@@ -63,6 +63,13 @@
           <editable>true</editable>
           <description>Where to look for proto files</description>
         </parameter>
+        <parameter>
+          <name>protocVersion</name>
+          <type>string</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>The proto compiler version</description>
+        </parameter>
       </parameters>
       <configuration>
         <project implementation="" default-value="${project}"/>
@@ -72,6 +79,7 @@
         <generatorSettings implementation="java.util.List" default-value=""/>
         <extraGenerators implementation="java.util.List" default-value=""/>
         <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
+        <protocVersion implementation="java.lang.String" default-value="-v3.11.4">${akka-grpc.protoc-version}</protocVersion>
       </configuration>
     </mojo>
   </mojos>

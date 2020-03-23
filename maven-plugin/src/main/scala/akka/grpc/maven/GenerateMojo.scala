@@ -20,8 +20,6 @@ import scala.beans.BeanProperty
 import scala.util.control.NoStackTrace
 
 object GenerateMojo {
-  val protocVersion = "-v351"
-
   case class ProtocError(file: String, line: Int, pos: Int, message: String)
   private val ProtocErrorRegex = """(\w+\.\w+):(\d+):(\d+):\s(.*)""".r
 
@@ -116,6 +114,9 @@ class GenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
 
   @BeanProperty
   var extraGenerators: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var protocVersion: String = _
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
