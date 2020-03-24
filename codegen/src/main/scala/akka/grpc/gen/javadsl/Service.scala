@@ -71,22 +71,19 @@ object Service {
   private[javadsl] def protoName(t: FileDescriptor) =
     t.getName.replaceAll("\\.proto", "").split("/").last
 
-  private[javadsl] def toCamelCase(name: String): String = {
+  private[javadsl] def toCamelCase(name: String): String =
     if (name.isEmpty) ""
-    else toCamelCaseRec(name.tail, new StringBuffer(name.head.toUpper.toString), false)
-  }
+    else toCamelCaseRec(name, 0, new StringBuilder(name.length), true)
 
   @tailrec
-  private def toCamelCaseRec(in: String, out: StringBuffer, capNext: Boolean): String = {
-    if (in.isEmpty) out.toString
+  private def toCamelCaseRec(in: String, idx: Int, out: StringBuilder, capNext: Boolean): String = {
+    if (idx >= in.length) out.toString
     else {
-      val head = in.head
-      if (head.isLower) {
-        if (capNext) toCamelCaseRec(in.tail, out.append(head.toUpper), false)
-        else toCamelCaseRec(in.tail, out.append(head), false)
-      } else if (head.isUpper) toCamelCaseRec(in.tail, out.append(head), false)
-      else if (head.isDigit) toCamelCaseRec(in.tail, out.append(head), true)
-      else toCamelCaseRec(in.tail, out, true)
+      val head = in.charAt(idx)
+      if (head.isLetter)
+        toCamelCaseRec(in, idx + 1, out.append(if (capNext) head.toUpper else head), false)
+      else
+        toCamelCaseRec(in, idx + 1, if (head.isDigit) out.append(head) else out, true)
     }
   }
 }
