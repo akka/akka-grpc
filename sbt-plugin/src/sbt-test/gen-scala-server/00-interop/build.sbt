@@ -6,12 +6,7 @@ resolvers += Resolver.bintrayRepo("akka", "maven")
 val grpcVersion = "1.28.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
-  // Excluding grpc-alts works around a complex resolution bug
-  // Details are in https://github.com/akka/akka-grpc/pull/469
-  ("io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf")
-    .exclude("io.grpc", "grpc-alts")
-    .exclude("io.grpc", "grpc-xds")
-,
+  "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
   "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
   )
@@ -44,10 +39,6 @@ excludeFilter in PB.generate := new SimpleFileFilter(
 akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
 
 //#sources-both
-
-//#external
-Compile / PB.protoSources += (Compile / PB.externalIncludePath).value
-//#external
 
 /**
 //#sources-client

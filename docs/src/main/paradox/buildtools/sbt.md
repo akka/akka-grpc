@@ -85,20 +85,22 @@ Instead of duplicating the `.proto` definitions between server and client projec
 that contain proto definitions to your build:
 
 ```scala
-libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
+libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf-src"
 ```
 
-This by default assumes this artifact also contains the correct generated classes for this API.
-If you want to generate your own, either because the upstream artifact contains no generated
-files or they were generated in a way that is incompatible with your intended use, you can
-add add them with:
+This adds just the `.proto` resources to the build, so code generation can
+happen locally in your project.
 
-@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #external }
+It is also possible to add the `.proto` resources as 'external' includes,
+assuming that the artifact also contains the correct generated classes for
+this API. This is not always possible, since the upstream artifact may not
+contain any generated classes or may contain classes that were were generated
+in a way that is incompatible with your intended use. To include an artifact
+as an external protobuf source, add it like:
 
-For a discussion around a more fine-grained control over how artifacts with `.proto` definitions
-can be used see [this sbt-protoc issue](https://github.com/thesamet/sbt-protoc/issues/144).
-In the short term there is nothing wrong with duplicating the `.proto` files of the protoco
-you intend to speak in your project.
+```scala
+libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
+```
 
 ## Starting your Akka gRPC server from sbt
 
