@@ -5,43 +5,27 @@
 package akka.grpc.scaladsl
 
 import java.net.InetSocketAddress
-import java.util.concurrent.atomic.AtomicInteger
+
+import io.grpc.Status.Code
+import io.grpc.StatusRuntimeException
 
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
-import akka.NotUsed
+
 import akka.actor.ActorSystem
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
 import akka.http.scaladsl.Http
-import akka.stream.scaladsl.Source
+
+import example.myapp.helloworld.grpc.helloworld._
+
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.BeforeAndAfterAll
-import example.myapp.helloworld.grpc.helloworld._
-import io.grpc.Status.Code
-import io.grpc.StatusRuntimeException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.Span
-
-class CountingGreeterServiceImpl extends GreeterService {
-  var greetings = new AtomicInteger(0);
-
-  def sayHello(in: HelloRequest): Future[HelloReply] = {
-    greetings.incrementAndGet()
-    Future.successful(HelloReply(s"Hi ${in.name}!"))
-  }
-
-  def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = ???
-  def itKeepsTalking(
-      in: akka.stream.scaladsl.Source[example.myapp.helloworld.grpc.helloworld.HelloRequest, akka.NotUsed])
-      : scala.concurrent.Future[example.myapp.helloworld.grpc.helloworld.HelloReply] = ???
-  def streamHellos(in: akka.stream.scaladsl.Source[example.myapp.helloworld.grpc.helloworld.HelloRequest, akka.NotUsed])
-      : akka.stream.scaladsl.Source[example.myapp.helloworld.grpc.helloworld.HelloReply, akka.NotUsed] = ???
-
-}
 
 final class MutableServiceDiscovery(targets: List[InetSocketAddress]) extends ServiceDiscovery {
   var services: Future[Resolved] = _
