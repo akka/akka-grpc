@@ -47,7 +47,7 @@ object CombinedServer {
       EchoServiceHandler.partial(new EchoServiceImpl)
     val reflectionService = ServerReflection.partial(List(GreeterService, EchoService))
     val serviceHandlers: HttpRequest => Future[HttpResponse] =
-      ServiceHandler.handler(greeterService, echoService, reflectionService)
+      ServiceHandler.concatOrNotFound(greeterService, echoService, reflectionService)
 
     Http()
       .bindAndHandleAsync(

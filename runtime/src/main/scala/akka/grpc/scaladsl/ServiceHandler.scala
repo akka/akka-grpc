@@ -15,9 +15,7 @@ import scala.concurrent.Future
 @ApiMayChange
 object ServiceHandler {
 
-  private[scaladsl] val handlerNotFound: PartialFunction[HttpRequest, Future[HttpResponse]] = {
-    case _ => Future.successful(HttpResponse(StatusCodes.NotFound))
-  }
+  private[scaladsl] val notFound: Future[HttpResponse] = Future.successful(HttpResponse(StatusCodes.NotFound))
 
   private[scaladsl] val unsupportedMediaType: Future[HttpResponse] =
     Future.successful(HttpResponse(StatusCodes.UnsupportedMediaType))
@@ -29,31 +27,13 @@ object ServiceHandler {
   private[grpc] val isGrpcWebRequest: jmodel.HttpRequest => Boolean = matchesVariant(
     Set(GrpcProtocolWeb, GrpcProtocolWebText))
 
-  /**
-   * This is an alias for handler
-   */
   def concatOrNotFound(
       handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*): HttpRequest => Future[HttpResponse] =
-    handler(handlers: _*)
-
-  /**
-   * Creates a `HttpRequest` to `HttpResponse` handler for gRPC services that can be used in
-   * for example `Http().bindAndHandleAsync` for the generated partial function handlers:
-   *  - The generated handler supports the `application/grpc` media type.
-   *  - If the request is for a handled service, but with an invalid media type, then a _415: Unsupported Media Type_ response is produced.
-   *  - Otherise if the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
-   */
-  def handler(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*): HttpRequest => Future[HttpResponse] = {
-    val servicesHandler: PartialFunction[HttpRequest, Future[HttpResponse]] = concat(handlers: _*)
-    ({
-      case r if servicesHandler.isDefinedAt(r) => if (isGrpcRequest(r)) servicesHandler(r) else unsupportedMediaType
-    }: PartialFunction[HttpRequest, Future[HttpResponse]]).orElse(handlerNotFound)
-  }
+    concat(handlers: _*).orElse { case _ => notFound }
 
   private[scaladsl] def concat(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*)
       : PartialFunction[HttpRequest, Future[HttpResponse]] =
     handlers.foldLeft(PartialFunction.empty[HttpRequest, Future[HttpResponse]]) {
       case (acc, pf) => acc.orElse(pf)
     }
-
 }

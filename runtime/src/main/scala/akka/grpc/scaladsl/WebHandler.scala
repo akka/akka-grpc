@@ -8,7 +8,6 @@ import scala.collection.immutable
 import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.annotation.ApiMayChange
-import akka.grpc.scaladsl.ServiceHandler.{ handlerNotFound, isGrpcWebRequest, unsupportedMediaType }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.headers._
@@ -54,16 +53,9 @@ object WebHandler {
       mat: Materializer,
       corsSettings: CorsSettings = defaultCorsSettings): HttpRequest => Future[HttpResponse] = {
     val servicesHandler = ServiceHandler.concat(handlers: _*)
-    // HACK: Cors is only exposed as a Directive, and Route.asyncHandler produces a sealed route
-    //       so make sure that handler is only entered if the underlying grpc-web services would serve the request
-    val grpcWebHandler = Route.asyncHandler(cors(corsSettings) {
+    Route.asyncHandler(cors(corsSettings) {
       handleWith(servicesHandler)
     })
-
-    ({
-      case r if servicesHandler.isDefinedAt(r) =>
-        if (isGrpcWebRequest(r) || isCorsPreflightRequest(r)) grpcWebHandler(r) else unsupportedMediaType
-    }: PartialFunction[HttpRequest, Future[HttpResponse]]).orElse(handlerNotFound)
   }
 
 }
