@@ -16,7 +16,6 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${version.value}")),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -66,6 +65,7 @@ object Common extends AutoPlugin {
         "-doc-canonical-base-url",
         "https://doc.akka.io/api/akka-grpc/current/"),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
+    apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
     libraryDependencies ++= Seq(
         compilerPlugin(("com.github.ghik" % "silencer-plugin" % silencerVersion).cross(CrossVersion.full)),
         ("com.github.ghik" % "silencer-lib" % silencerVersion % Provided).cross(CrossVersion.full)),
