@@ -91,7 +91,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
   }
 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
-  override def closed(): scala.concurrent.Future[akka.Done] = clientState.closed()
+  override def closed: scala.concurrent.Future[akka.Done] = clientState.closed()
 
 }
 
