@@ -4,11 +4,16 @@
 
 package akka.grpc.interop
 
+import scala.concurrent.{ ExecutionContext, Future }
+
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
-import akka.stream.Materializer
+import akka.stream.{ Materializer, SystemMaterializer }
 import akka.stream.scaladsl.{ Flow, Source }
+
 import com.google.protobuf.ByteString
+
 import io.grpc.Status
 import io.grpc.testing.integration.empty.Empty
 
@@ -33,8 +38,11 @@ object TestServiceImpl {
  * The same implementation is also be found as part of the 'scripted' tests at
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/main/scala/akka/grpc/TestServiceImpl.scala
  */
-class TestServiceImpl(implicit ec: ExecutionContext, mat: Materializer) extends TestService {
+class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
   import TestServiceImpl._
+
+  implicit val mat: Materializer = SystemMaterializer(sys).materializer
+  implicit val ec: ExecutionContext = sys.dispatcher
 
   override def emptyCall(req: Empty) =
     Future.successful(Empty())

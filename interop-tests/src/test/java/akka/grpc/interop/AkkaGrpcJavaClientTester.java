@@ -12,6 +12,7 @@ import akka.grpc.SSLContextUtils;
 import akka.grpc.javadsl.Metadata;
 import akka.japi.Pair;
 import akka.stream.Materializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -53,11 +54,11 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
   private static int AWAIT_TIME_SECONDS = 3;
 
-  public AkkaGrpcJavaClientTester(Settings settings, Materializer mat, ActorSystem as) {
+  public AkkaGrpcJavaClientTester(Settings settings, ActorSystem sys) {
     this.settings = settings;
-    this.mat = mat;
-    this.as = as;
-    this.ec =  as.dispatcher();
+    this.mat = SystemMaterializer.get(sys).materializer();
+    this.as = sys;
+    this.ec =  sys.dispatcher();
   }
 
   @Override

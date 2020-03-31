@@ -1,5 +1,6 @@
 package akka.grpc.interop
 
+import akka.stream.{ Materializer, SystemMaterializer }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.RouteResult.Complete
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
@@ -26,8 +27,8 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
   val label: String = "akka-grpc server scala"
   val pendingCases = Set()
 
-  val server = AkkaGrpcServerScala(implicit mat => implicit sys => {
-    implicit val ec = mat.executionContext
+  val server = AkkaGrpcServerScala(implicit sys => {
+    implicit val ec = sys.dispatcher
 
     val requestHandler = TestServiceHandler(new TestServiceImpl())
 
@@ -35,6 +36,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
       requestHandler(ctx.request).map(Complete)
     }
 
+    implicit val mat: Materializer = SystemMaterializer(sys).materializer
     Route.asyncHandler(Route.seal(route))
   })
 
@@ -69,12 +71,12 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
     )
 
   val server = new AkkaGrpcServerJava((mat, sys) => {
-    TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), mat, sys)
+    TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), sys)
   })
 }
 
 object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
   val label: String = "akka-grpc scala client tester"
 
-  def client = AkkaGrpcClientScala(settings => implicit mat => implicit ec => new AkkaGrpcClientTester(settings))
+  def client = AkkaGrpcClientScala(settings => implicit sys => new AkkaGrpcClientTester(settings))
 }

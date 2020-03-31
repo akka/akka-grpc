@@ -41,7 +41,7 @@ class PowerGreeterServer {
       GreeterServicePowerApi impl = new GreeterServicePowerApiImpl(mat);
 
       return Http.get(sys).bindAndHandleAsync(
-        GreeterServicePowerApiHandlerFactory.create(impl, mat, sys),
+        GreeterServicePowerApiHandlerFactory.create(impl, sys),
         ConnectHttp.toHost("127.0.0.1", 8081),
         mat);
   }
