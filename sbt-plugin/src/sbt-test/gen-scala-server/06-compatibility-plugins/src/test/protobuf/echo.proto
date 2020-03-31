@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "example.myapp.echo.grpc";
+
+package echo;
+
+// The greeting service definition.
+service EchoService {
+    rpc Echo (EchoMessage) returns (EchoMessage) {}
+}
+
+message EchoMessage {
+    string payload = 1;
+}

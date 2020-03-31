@@ -97,7 +97,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(
-      (if (config == Compile) Seq() // already supported by sbt-protoc by default
+      (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
         unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,

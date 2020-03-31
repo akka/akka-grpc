@@ -2,3 +2,7 @@
 
 $ exists target/scala-2.12/resource_managed/main/js/hellorequest.js
 $ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloRequest.scala
+
+> test:compile
+$ exists target/scala-2.12/resource_managed/test/js/echomessage.js
+$ exists target/scala-2.12/src_managed/test/example/myapp/echo/grpc/EchoMessage.scala

@@ -10,5 +10,5 @@ object ProtocJSPlugin extends AutoPlugin {
   override def requires: Plugins = ProtocPlugin
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    inConfig(Compile)(PB.targets += PB.gens.js -> resourceManaged.value / "js")
+    Seq(Compile, Test).flatMap(inConfig(_)(PB.targets += PB.gens.js -> resourceManaged.value / "js"))
 }
