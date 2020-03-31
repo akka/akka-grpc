@@ -22,11 +22,9 @@ you have to inherit the `.proto` definitions from `Compile` over to `Test`:
 
 @@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/03-test-config/build.sbt) { #test }
 
-If you have other configurations with `.proto` sources (for example `IntegrationTest`), you can enable the plugin on them:
+If you have other configurations with `.proto` sources (for example `IntegrationTest`), you must first declare them and enable the plugin on them:
 
-```
-.settings(AkkaGrpcPlugin.configSettings(IntegrationTest))
-```
+@@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/03-test-config/build.sbt) { #it }
 
 ### Generating server "power APIs"
 
