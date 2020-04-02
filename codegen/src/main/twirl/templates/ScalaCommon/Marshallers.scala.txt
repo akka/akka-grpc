@@ -9,7 +9,7 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.stream.Materializer
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.ProtobufSerializer
@@ -31,9 +31,9 @@ object @{service.name}Marshallers {
   implicit def toSourceUnmarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer): FromRequestUnmarshaller[akka.stream.scaladsl.Source[T, akka.NotUsed]] =
     Unmarshaller((_: ExecutionContext) => (req: HttpRequest) => GrpcMarshalling.unmarshalStream(req)(serializer, mat))
 
-  implicit def marshaller[T](implicit serializer: ProtobufSerializer[T], writer: GrpcProtocolWriter, system: ActorSystem): ToResponseMarshaller[T] =
+  implicit def marshaller[T](implicit serializer: ProtobufSerializer[T], writer: GrpcProtocolWriter, system: ClassicActorSystemProvider): ToResponseMarshaller[T] =
     Marshaller.opaque((response: T) => GrpcMarshalling.marshal(response)(serializer, writer, system))
 
-  implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], writer: GrpcProtocolWriter, system: ActorSystem): ToResponseMarshaller[akka.stream.scaladsl.Source[T, akka.NotUsed]] =
+  implicit def fromSourceMarshaller[T](implicit serializer: ProtobufSerializer[T], writer: GrpcProtocolWriter, system: ClassicActorSystemProvider): ToResponseMarshaller[akka.stream.scaladsl.Source[T, akka.NotUsed]] =
     Marshaller.opaque((response: akka.stream.scaladsl.Source[T, akka.NotUsed]) => GrpcMarshalling.marshalStream(response)(serializer, writer, system))
 }

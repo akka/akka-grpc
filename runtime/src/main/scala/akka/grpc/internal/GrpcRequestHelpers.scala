@@ -5,6 +5,7 @@
 package akka.grpc.internal
 
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
@@ -26,7 +27,7 @@ object GrpcRequestHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpRequest =
+      system: ClassicActorSystemProvider): HttpRequest =
     request(uri, GrpcEntityHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler))
 
   private def request[T](uri: Uri, entity: Source[ChunkStreamPart, NotUsed])(

@@ -10,6 +10,7 @@ import scala.concurrent.Future
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
@@ -74,7 +75,7 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
+      system: ClassicActorSystemProvider): HttpResponse =
     marshalStream(Source.single(e), eHandler)
 
   def marshalStream[T](
@@ -82,7 +83,7 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse = {
+      system: ClassicActorSystemProvider): HttpResponse = {
     GrpcResponseHelpers(e, eHandler)
   }
 
@@ -93,7 +94,7 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpRequest =
+      system: ClassicActorSystemProvider): HttpRequest =
     marshalStreamRequest(uri, Source.single(e), eHandler)
 
   @InternalApi
@@ -103,7 +104,7 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpRequest =
+      system: ClassicActorSystemProvider): HttpRequest =
     GrpcRequestHelpers(uri, e, eHandler)
 
 }

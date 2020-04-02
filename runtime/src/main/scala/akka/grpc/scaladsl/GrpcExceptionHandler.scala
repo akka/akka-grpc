@@ -5,6 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.{ ApiMayChange, InternalStableApi }
 import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
@@ -35,14 +36,14 @@ object GrpcExceptionHandler {
 
   @InternalStableApi
   def default(
-      implicit system: ActorSystem,
+      implicit system: ClassicActorSystemProvider,
       writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
-    from(defaultMapper(system))
+    from(defaultMapper(system.classicSystem))
 
   @InternalStableApi
   def from(mapper: PartialFunction[Throwable, Trailers])(
-      implicit system: ActorSystem,
+      implicit system: ClassicActorSystemProvider,
       writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
-    mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
+    mapper.orElse(defaultMapper(system.classicSystem)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
 
 }

@@ -6,6 +6,7 @@ package akka.grpc.internal
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
@@ -29,20 +30,20 @@ object GrpcResponseHelpers {
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
+      system: ClassicActorSystemProvider): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
+      system: ClassicActorSystemProvider): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
+      system: ClassicActorSystemProvider): HttpResponse =
     GrpcResponseHelpers(e, status, GrpcExceptionHandler.defaultMapper _)
 
   def apply[T](
@@ -52,7 +53,7 @@ object GrpcResponseHelpers {
       implicit m: ProtobufSerializer[T],
       mat: Materializer,
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse = {
+      system: ClassicActorSystemProvider): HttpResponse = {
     implicit val ec: ExecutionContext = mat.executionContext
     GrpcResponseHelpers(
       e,
@@ -66,7 +67,7 @@ object GrpcResponseHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse = {
+      system: ClassicActorSystemProvider): HttpResponse = {
     response(GrpcEntityHelpers(e, trail, eHandler))
   }
 

@@ -8,7 +8,7 @@ import java.util
 import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
 import akka.grpc.javadsl.ServiceHandler.{ concat, unsupportedMediaType }
 import akka.http.javadsl.marshalling.Marshaller
@@ -38,7 +38,7 @@ object WebHandler {
    */
   def grpcWebHandler(
       handlers: util.List[JFunction[HttpRequest, CompletionStage[HttpResponse]]],
-      as: ActorSystem,
+      as: ClassicActorSystemProvider,
       mat: Materializer): JFunction[HttpRequest, CompletionStage[HttpResponse]] =
     grpcWebHandler(handlers, as, mat, scaladsl.WebHandler.defaultCorsSettings)
 
@@ -62,7 +62,7 @@ object WebHandler {
    */
   def grpcWebHandler(
       handlers: util.List[JFunction[HttpRequest, CompletionStage[HttpResponse]]],
-      as: ActorSystem,
+      as: ClassicActorSystemProvider,
       mat: Materializer,
       corsSettings: CorsSettings): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.collection.JavaConverters._
@@ -77,10 +77,13 @@ object WebHandler {
   // Java version of Route.asyncHandler
   private def asyncHandler(
       route: Route,
-      as: ActorSystem,
+      as: ClassicActorSystemProvider,
       mat: Materializer): HttpRequest => CompletionStage[HttpResponse] = {
     val sealedFlow =
-      route.seal().flow(as, mat).toMat(Sink.head[HttpResponse], Keep.right[NotUsed, CompletionStage[HttpResponse]])
+      route
+        .seal()
+        .flow(as.classicSystem, mat)
+        .toMat(Sink.head[HttpResponse], Keep.right[NotUsed, CompletionStage[HttpResponse]])
     (req: HttpRequest) => Source.single(req).runWith(sealedFlow, mat)
   }
 }
