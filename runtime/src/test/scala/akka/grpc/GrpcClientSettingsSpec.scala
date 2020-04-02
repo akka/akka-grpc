@@ -127,7 +127,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
 
     "uses host for static service discovery" in {
       val parsed = GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")
-      parsed.serviceName should be("my-service")
+      parsed.serviceName should be("my-host")
       val Seq(discovered) = parsed.serviceDiscovery.lookup(parsed.serviceName, 1.second).futureValue.addresses
       discovered.host should be("my-host")
       discovered.port should be(Some(42))

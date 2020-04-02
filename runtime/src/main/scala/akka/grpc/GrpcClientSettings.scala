@@ -106,9 +106,8 @@ object GrpcClientSettings {
       case "static" | "grpc-dns" =>
         val host = clientConfiguration.getString("host")
         require(host.nonEmpty, "host can't be empty when service-discovery-mechanism is set to static or grpc-dns")
-        // Required by the Discovery infrastructure, even when we use static discovery.
-        if (serviceName.isEmpty)
-          serviceName = "static"
+        // Required by the Discovery infrastructure, set to host as we use static or grpc-dns discovery.
+        serviceName = host
         staticServiceDiscovery(host, port)
       case other =>
         require(serviceName.nonEmpty, "Configuration must contain a service-name")
