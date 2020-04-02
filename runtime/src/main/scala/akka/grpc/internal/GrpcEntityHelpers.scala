@@ -5,7 +5,7 @@
 package akka.grpc.internal
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.annotation.InternalApi
 import akka.grpc.{ GrpcServiceException, ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ DataFrame, Frame, GrpcProtocolWriter, TrailerFrame }
@@ -25,10 +25,10 @@ object GrpcEntityHelpers {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): Source[ChunkStreamPart, NotUsed] = {
+      system: ClassicActorSystemProvider): Source[ChunkStreamPart, NotUsed] = {
     chunks(e, trail).recover {
       case t =>
-        val e = eHandler(system).orElse[Throwable, Trailers] {
+        val e = eHandler(system.classicSystem).orElse[Throwable, Trailers] {
           case e: GrpcServiceException => Trailers(e.status, e.metadata)
           case e: Exception            => Trailers(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
         }(t)

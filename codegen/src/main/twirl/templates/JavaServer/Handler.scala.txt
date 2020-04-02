@@ -14,6 +14,7 @@ import java.util.concurrent.CompletionStage;
 import akka.japi.Function;
 import akka.http.javadsl.model.*;
 import akka.actor.ActorSystem;
+import akka.actor.ClassicActorSystemProvider;
 import akka.stream.Materializer;
 import akka.stream.SystemMaterializer;
 
@@ -42,7 +43,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, ClassicActorSystemProvider system) {
       return create(implementation, @{service.name}.name, system);
     }
 
@@ -53,7 +54,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return create(implementation, @{service.name}.name, eHandler, system);
     }
 
@@ -66,7 +67,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), GrpcExceptionHandler.defaultMapper(), system);
     }
 
@@ -79,7 +80,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), eHandler, system);
     }
 
@@ -89,7 +90,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      *
      * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), GrpcExceptionHandler.defaultMapper(), system);
     }
 
@@ -99,7 +100,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
      *
      * Use `akka.grpc.javadsl.ServiceHandler.concatOrNotFound` when combining several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
+    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return (req -> {
         Iterator<String> segments = req.getUri().pathSegments().iterator();
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
@@ -116,7 +117,7 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
       return @{service.name}.name;
     }
 
-    private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ActorSystem system) {
+    private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return GrpcMarshalling.negotiated(request, (reader, writer) -> {
         final CompletionStage<HttpResponse> response;
         @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}

@@ -9,6 +9,7 @@ import java.util.Optional
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.grpc._
 import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
@@ -63,7 +64,7 @@ object GrpcMarshalling {
       e: T,
       m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem,
+      system: ClassicActorSystemProvider,
       eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     marshalStream(Source.single(e), m, writer, system, eHandler)
@@ -72,7 +73,7 @@ object GrpcMarshalling {
       e: Source[T, NotUsed],
       m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ActorSystem,
+      system: ClassicActorSystemProvider,
       eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, writer, system)

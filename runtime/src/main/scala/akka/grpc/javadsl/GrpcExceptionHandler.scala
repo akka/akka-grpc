@@ -7,6 +7,7 @@ package akka.grpc.javadsl
 import java.util.concurrent.CompletionException
 
 import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
 import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
@@ -48,13 +49,13 @@ object GrpcExceptionHandler {
       }
     }
 
-  def standard(t: Throwable, writer: GrpcProtocolWriter, system: ActorSystem): HttpResponse =
+  def standard(t: Throwable, writer: GrpcProtocolWriter, system: ClassicActorSystemProvider): HttpResponse =
     standard(t, default, writer, system)
 
   def standard(
       t: Throwable,
       mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
       writer: GrpcProtocolWriter,
-      system: ActorSystem): HttpResponse =
-    GrpcResponseHelpers.status(mapper(system)(t))(writer)
+      system: ClassicActorSystemProvider): HttpResponse =
+    GrpcResponseHelpers.status(mapper(system.classicSystem)(t))(writer)
 }

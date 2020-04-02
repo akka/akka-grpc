@@ -1,0 +1,5 @@
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.*")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.*")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.scaladsl.*")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("grpc.reflection.v1alpha.reflection.*")
+
