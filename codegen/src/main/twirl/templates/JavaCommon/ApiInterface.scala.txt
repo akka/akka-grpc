@@ -8,6 +8,8 @@
 package @service.packageName;
 
 import akka.grpc.ProtobufSerializer;
+import akka.grpc.ProtobufSerialization;
+import akka.grpc.javadsl.GoogleJsonProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 
 @for(comment <- service.comment) {/**
@@ -24,7 +26,7 @@ public interface @{service.name} {
 
   public static class Serializers {
     @for(serializer <- service.serializers) {
-      public static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;
+      public static ProtobufSerialization.Selector<ProtobufSerializer<@{serializer.messageType}>> @serializer.name = ProtobufSerialization.selector(@serializer.init, @serializer.jsonInit);
     }
   }
 }

@@ -4,6 +4,7 @@
 
 package akka.grpc.javadsl;
 
+import akka.grpc.ProtobufSerialization;
 import akka.grpc.internal.GrpcProtocolNative;
 import akka.http.javadsl.model.*;
 import akka.util.ByteString;
@@ -19,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 public class ConcatOrNotFoundTest extends JUnitSuite {
 
   private final HttpRequest emptyGrpcRequest =
-      HttpRequest.create().withEntity(GrpcProtocolNative.contentType(), ByteString.emptyByteString());
+      HttpRequest.create().withEntity(GrpcProtocolNative.contentType(ProtobufSerialization.protobuf()), ByteString.emptyByteString());
 
   private final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
       HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));

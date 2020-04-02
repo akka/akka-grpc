@@ -9,6 +9,8 @@ package @service.packageName;
 
 import akka.grpc.internal.*;
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.ProtobufSerializer;
+import akka.grpc.ProtobufSerialization;
 import akka.grpc.javadsl.AkkaGrpcClient;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
@@ -55,24 +57,24 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
       private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
-        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
+        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptors.select(settings.protobufSerialization()), channel, options, settings, ec);
       }
     } else {
       @defining(service.grpcName + "." + method.grpcName){ fqName =>
         @if(method.methodType == akka.grpc.gen.ClientStreaming){
           private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaClientStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
+                                 @{method.name}Descriptors.select(settings.protobufSerialization()), "@fqName", channel, options, settings, mat, ec);
           }
         } else if(method.methodType == akka.grpc.gen.ServerStreaming){
           private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaServerStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
+                                 @{method.name}Descriptors.select(settings.protobufSerialization()), "@fqName", channel, options, settings, ec);
           }
         } else if(method.methodType == akka.grpc.gen.BidiStreaming){
           private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(scala.concurrent.Future<ManagedChannel> channel){
             return new JavaBidirectionalStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
+                                 @{method.name}Descriptors.select(settings.protobufSerialization()), "@fqName", channel, options, settings, ec);
           }
         }
       }
@@ -106,16 +108,26 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         }
       }
 
+      private static <I, O> ProtobufSerialization.Selector<MethodDescriptor<I,O>> makeMethodSelector(MethodDescriptor.MethodType methodType, String methodName, ProtobufSerialization.Selector<ProtobufSerializer<I>> inputs, ProtobufSerialization.Selector<ProtobufSerializer<O>> outputs) {
+          MethodDescriptor<I,O> proto = MethodDescriptor.<I,O>newBuilder()
+                  .setType(methodType)
+                  .setFullMethodName(methodName)
+                  .setRequestMarshaller(new Marshaller<>(inputs.select(ProtobufSerialization.protobuf())))
+                  .setResponseMarshaller(new Marshaller<>(outputs.select(ProtobufSerialization.protobuf())))
+                  .setSampledToLocalTracing(true)
+                  .build();
+
+
+          return ProtobufSerialization.selector(proto, proto.toBuilder(
+                  new Marshaller<>(inputs.select(ProtobufSerialization.json())),
+                  new Marshaller<>(outputs.select(ProtobufSerialization.json())))
+                  .build());
+      }
+
       @for(method <- service.methods) {
-        private static MethodDescriptor<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}Descriptor =
-          MethodDescriptor.<@method.inputTypeUnboxed, @method.outputTypeUnboxed>newBuilder()
-            .setType(@mapMethodType(method.methodType))
-            .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-            .setRequestMarshaller(new ProtoMarshaller<@method.inputTypeUnboxed>(@method.deserializer.name))
-            .setResponseMarshaller(new ProtoMarshaller<@method.outputTypeUnboxed>(@method.serializer.name))
-            .setSampledToLocalTracing(true)
-            .build();
-        }
+        private static final ProtobufSerialization.Selector<MethodDescriptor<@method.inputTypeUnboxed, @method.outputTypeUnboxed>> @{method.name}Descriptors =
+            makeMethodSelector( @mapMethodType(method.methodType), MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"), @{method.deserializer.name}, @{method.serializer.name});
+      }
 
       /**
        * Initiates a shutdown in which preexisting and new calls are cancelled.

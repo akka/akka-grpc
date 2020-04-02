@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
 import akka.grpc.scaladsl.headers.`Status`
+import akka.grpc.ProtobufSerialization
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.stream.ActorMaterializer
@@ -31,7 +32,8 @@ class GrpcExceptionHandlerSpec
 
   "The default ExceptionHandler" should {
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
-      implicit val serializer = TestService.Serializers.SimpleRequestSerializer
+      implicit val format = ProtobufSerialization.Protobuf
+      implicit val serializer = TestService.Serializers.SimpleRequestSerializers
       implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
       val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(GrpcProtocolNative.contentType))
 
@@ -107,7 +109,8 @@ class GrpcExceptionHandlerSpec
 
     "return the correct user-supplied status for a unary call" in {
       implicit val serializer =
-        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
+        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers
+          .HelloRequestSerializers(ProtobufSerialization.Protobuf)
       implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
       val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", Source.single(HelloRequest("")))
@@ -128,7 +131,8 @@ class GrpcExceptionHandlerSpec
 
     "return the correct user-supplied status for a streaming call" in {
       implicit val serializer =
-        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
+        example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers
+          .HelloRequestSerializers(ProtobufSerialization.Protobuf)
       implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
       val request = GrpcRequestHelpers(s"/${GreeterService.name}/ItKeepsReplying", Source.single(HelloRequest("")))

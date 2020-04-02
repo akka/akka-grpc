@@ -4,16 +4,20 @@
 
 package akka.grpc.scaladsl
 
+import java.io.InputStream
+
 import akka.annotation.ApiMayChange
-import akka.grpc.ProtobufSerializer
+import akka.grpc.{ ProtobufSerialization, ProtobufSerializer }
+import akka.grpc.ProtobufSerialization.Protobuf
 import akka.util.ByteString
-import scalapb.{ GeneratedMessage, GeneratedMessageCompanion, Message }
 import com.github.ghik.silencer.silent
+import scalapb.{ GeneratedMessage, GeneratedMessageCompanion }
 
 @silent("deprecated")
 @ApiMayChange
-class ScalapbProtobufSerializer[T <: GeneratedMessage with Message[T]](companion: GeneratedMessageCompanion[T])
+class ScalapbProtobufSerializer[T <: GeneratedMessage](companion: GeneratedMessageCompanion[T])
     extends ProtobufSerializer[T] {
-  override def serialize(t: T) = ByteString(companion.toByteArray(t))
-  override def deserialize(bytes: ByteString): T = companion.parseFrom(bytes.iterator.asInputStream)
+  override val format: ProtobufSerialization = Protobuf
+  override def serialize(t: T): ByteString = ByteString.fromArrayUnsafe(t.toByteArray)
+  override def deserialize(bytes: InputStream): T = companion.parseFrom(bytes)
 }

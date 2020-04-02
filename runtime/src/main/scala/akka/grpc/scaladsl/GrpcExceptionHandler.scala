@@ -6,7 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
 import akka.annotation.{ ApiMayChange, InternalStableApi }
-import akka.grpc.{ GrpcServiceException, Trailers }
+import akka.grpc.{ GrpcServiceException, ProtobufSerialization, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
@@ -36,13 +36,15 @@ object GrpcExceptionHandler {
   @InternalStableApi
   def default(
       implicit system: ActorSystem,
-      writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
+      writer: GrpcProtocolWriter,
+      format: ProtobufSerialization): PartialFunction[Throwable, Future[HttpResponse]] =
     from(defaultMapper(system))
 
   @InternalStableApi
   def from(mapper: PartialFunction[Throwable, Trailers])(
       implicit system: ActorSystem,
-      writer: GrpcProtocolWriter): PartialFunction[Throwable, Future[HttpResponse]] =
+      writer: GrpcProtocolWriter,
+      format: ProtobufSerialization): PartialFunction[Throwable, Future[HttpResponse]] =
     mapper.orElse(defaultMapper(system)).andThen(s => Future.successful(GrpcResponseHelpers.status(s)))
 
 }

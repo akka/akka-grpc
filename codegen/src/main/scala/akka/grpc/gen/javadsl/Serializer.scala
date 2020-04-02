@@ -6,12 +6,13 @@ package akka.grpc.gen.javadsl
 
 import com.google.protobuf.Descriptors.Descriptor
 
-final case class Serializer(name: String, init: String, messageType: String)
+final case class Serializer(name: String, init: String, jsonInit: String, messageType: String)
 
 object Serializer {
   def apply(messageType: Descriptor): Serializer =
     Serializer(
-      messageType.getName + "Serializer",
-      s"new GoogleProtobufSerializer<>(${Method.getMessageType(messageType)}.class)",
+      messageType.getName + "Serializers",
+      s"new GoogleProtobufSerializer<>(${Method.getMessageType(messageType)}.getDefaultInstance())",
+      s"new GoogleJsonProtobufSerializer<>(${Method.getMessageType(messageType)}.getDefaultInstance())",
       Method.getMessageType(messageType))
 }
