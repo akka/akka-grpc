@@ -9,6 +9,14 @@ object Dependencies {
     val scala212 = "2.12.10"
     val scala213 = "2.13.1"
 
+    // Libs and plugins must share a version. The root project must use that (and set the crossScalaVersions
+    // as empty list)so each sub-project can then decide which scalaVersion and crossCalaVersions they use.
+    val commonScalaVersion = scala212
+
+    // the order in the list is important because the head will be considered the default.
+    val CrossScalaForLib = Seq(scala212, scala213)
+    val CrossScalaForPlugin = Seq(scala212)
+
     val akka = "2.5.31"
     val akkaBinary = "2.5"
     val akkaHttp = "10.1.12"

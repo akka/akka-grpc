@@ -3,6 +3,7 @@ import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 import com.typesafe.tools.mima.core._
+import sbt.Keys.scalaVersion
 
 scalaVersion := scala212
 
@@ -34,7 +35,8 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     mainClass in assembly := Some("akka.grpc.gen.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
         Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
-    crossScalaVersions -= scala213)
+    crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
@@ -68,7 +70,7 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
         Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
-    crossScalaVersions := Seq(scala212))
+    crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin)
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
@@ -78,7 +80,7 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
   .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.mavenPlugin)
-  .settings(publishMavenStyle := true, crossPaths := false, crossScalaVersions := Seq(scala212))
+  .settings(publishMavenStyle := true, crossPaths := false, crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin)
   .dependsOn(codegen)
 
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
@@ -101,7 +103,8 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
     },
     scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"),
-    crossScalaVersions := Seq(scala212))
+    crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
@@ -175,7 +178,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     resolvers += Resolver.jcenterRepo,
     publishRsyncArtifacts += makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io",
-    crossScalaVersions := List(scala212, scala213))
+    crossScalaVersions := Dependencies.Versions.CrossScalaForLib)
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
   .disablePlugins(MimaPlugin)
@@ -218,4 +221,5 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
     // unidoc for the codegen projects:
     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(runtime),
     // https://github.com/sbt/sbt/issues/3465
-    crossScalaVersions := List())
+    crossScalaVersions := List(),
+    scalaVersion := Dependencies.Versions.commonScalaVersion)
