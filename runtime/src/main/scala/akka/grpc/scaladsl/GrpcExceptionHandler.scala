@@ -21,6 +21,13 @@ object GrpcExceptionHandler {
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
   private val UNIMPLEMENTED = Trailers(Status.UNIMPLEMENTED)
 
+  /**
+   * INTERNAL API. This method will be removed without further notice.
+   *
+   * Helper method to access an Akka internal method (Until Akka 2.6.5).
+   */
+  def toClassic(system: ClassicActorSystemProvider): ActorSystem = system.classicSystem
+
   def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Trailers] = {
     case e: ExecutionException =>
       if (e.getCause == null) INTERNAL
