@@ -171,7 +171,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
       ),
     apidocRootPackage := "akka",
     resolvers += Resolver.jcenterRepo,
-    publishRsyncArtifact := makeSite.value -> "www/",
+    publishRsyncArtifacts += makeSite.value -> "www/",
     publishRsyncHost := "akkarepo@gustav.akka.io",
     crossScalaVersions := List(scala212, scala213))
 
