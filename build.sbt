@@ -12,9 +12,9 @@ lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
+  .disablePlugins(MimaPlugin)
   .settings(Dependencies.codegen)
-  .settings(Seq(
-    mimaFailOnNoPrevious := false,
+  .settings(
     mkBatAssemblyTask := {
       val file = assembly.value
       Assemblies.mkBatAssembly(file)
@@ -32,7 +32,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     mainClass in assembly := Some("akka.grpc.gen.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
         Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
-    crossScalaVersions -= scala213))
+    crossScalaVersions -= scala213)
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
@@ -50,10 +50,10 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
 lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file("scalapb-protoc-plugin"))
-/** TODO we only really need to depend on scalapb */
+  .disablePlugins(MimaPlugin)
+  /** TODO we only really need to depend on scalapb */
   .dependsOn(codegen)
-  .settings(Seq(
-    mimaFailOnNoPrevious := false,
+  .settings(
     mkBatAssemblyTask := {
       val file = assembly.value
       Assemblies.mkBatAssembly(file)
@@ -65,26 +65,22 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
         Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
-    crossScalaVersions := Seq(scala212)))
+    crossScalaVersions := Seq(scala212))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
-  .settings(Dependencies.mavenPlugin)
   .enablePlugins(akka.grpc.SbtMavenPlugin)
-  .settings(
-    Seq(
-      mimaFailOnNoPrevious := false,
-      publishMavenStyle := true,
-      crossPaths := false,
-      crossScalaVersions := Seq(scala212)))
+  .disablePlugins(MimaPlugin)
+  .settings(Dependencies.mavenPlugin)
+  .settings(publishMavenStyle := true, crossPaths := false, crossScalaVersions := Seq(scala212))
   .dependsOn(codegen)
 
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
-  .settings(Dependencies.sbtPlugin)
   .enablePlugins(SbtPlugin)
+  .disablePlugins(MimaPlugin)
+  .settings(Dependencies.sbtPlugin)
   .settings(
-    mimaFailOnNoPrevious := false,
     publishMavenStyle := false,
     bintrayPackage := "sbt-akka-grpc",
     bintrayRepository := "sbt-plugin-releases",
@@ -103,10 +99,10 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
+  .disablePlugins(MimaPlugin)
   .settings(Dependencies.interopTests)
   .pluginTestingSettings
   .settings(
-    mimaFailOnNoPrevious := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     // setting 'skip in publish' would be more elegant, but we need
@@ -137,8 +133,8 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
   .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
+  .disablePlugins(MimaPlugin)
   .settings(
-    mimaFailOnNoPrevious := false,
     name := "Akka gRPC",
     publish / skip := true,
     whitesourceIgnore := true,
@@ -176,17 +172,17 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     crossScalaVersions := List(scala212, scala213))
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
+  .disablePlugins(MimaPlugin)
   .settings(Dependencies.pluginTester)
   .settings(
-    mimaFailOnNoPrevious := false,
     skip in publish := true,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
   .pluginTestingSettings
 
 lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = file("plugin-tester-java"))
+  .disablePlugins(MimaPlugin)
   .settings(Dependencies.pluginTester)
   .settings(
-    mimaFailOnNoPrevious := false,
     skip in publish := true,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"))
