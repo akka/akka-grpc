@@ -21,10 +21,11 @@ sbt
     enablePlugins(JavaAgent)
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
     ```
-    @@@
+​    @@@
 
 Gradle
 :   @@@vars
+
     ```gradle
     buildscript {
       repositories {
@@ -47,7 +48,7 @@ Gradle
       mavenCentral()
     }
     ```
-    @@@
+​    @@@
 
 Maven
 :   @@@vars
@@ -253,19 +254,4 @@ Java
 
 Now the actor mailbox is used to synchronize accesses to the mutable state.
 
-## Accessing request metadata
 
-By default the generated service interfaces don't provide access to the request metadata, only to the request
-body (via the RPC method input parameter). If your methods require access to the request @apidoc[Metadata], you can configure
-Akka gRPC to generate server "power APIs" that extend the base service interfaces to provide an additional
-request metadata parameter to each service method. See the detailed chapters on @ref[sbt](../buildtools/sbt.md), @ref[Gradle](../buildtools/gradle.md)
-and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
-generated client stubs.
-
-Here's an example implementation of these server power APIs:
-
-Scala
-:  @@snip [GreeterServicePowerApiImpl.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/PowerGreeterServiceImpl.scala) { #full-service-impl }
-
-Java
-:  @@snip [GreeterServicePowerApiImpl.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServicePowerApiImpl.java) { #full-service-impl }
