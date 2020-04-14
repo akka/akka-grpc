@@ -28,6 +28,8 @@ client API, each method of the service has an empty parameter list version (`.sa
 
 After adding the required metadata the request is done by calling `invoke` with the request parameters.
 
+Notice: method `addHeader` return a new object, you should use it like `String` or use it in the chain structure.
+
 Scala
 :  @@snip [GreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
 

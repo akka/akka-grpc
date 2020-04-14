@@ -21,10 +21,11 @@ sbt
     enablePlugins(JavaAgent)
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
     ```
-    @@@
+​    @@@
 
 Gradle
 :   @@@vars
+
     ```gradle
     buildscript {
       repositories {
@@ -47,7 +48,7 @@ Gradle
       mavenCentral()
     }
     ```
-    @@@
+​    @@@
 
 Maven
 :   @@@vars
@@ -265,6 +266,8 @@ Akka gRPC to generate server "power APIs" that extend the base service interface
 request metadata parameter to each service method. See the detailed chapters on @ref[sbt](../buildtools/sbt.md), @ref[Gradle](../buildtools/gradle.md)
 and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
 generated client stubs.
+
+Notice: you need change `GreeterServiceHandlerFactory` to `GreeterServiceHandlerFactoryPowerApiHandlerFactory`
 
 Here's an example implementation of these server power APIs:
 
