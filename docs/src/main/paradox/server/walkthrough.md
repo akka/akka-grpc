@@ -198,11 +198,7 @@ In the example this was done from the `main` method, but you could also do this 
 
 @@@
 
-The above example does not use TLS and is configured to only serve HTTP/2. 
-To allow HTTP and HTTP/2 and gRPC on the same port TLS must be used.
-That means that you need to configure your server with TLS information to provide certificates.
-
-TODO Document how to configure TLS ([#352](https://github.com/akka/akka-grpc/issues/352))
+The above example does not use TLS. Find more about how to @ref[Serve gRPC over TLS](../deploy.md) on the deployment section.
 
 ## Serving multiple services
 
