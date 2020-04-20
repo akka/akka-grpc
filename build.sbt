@@ -2,6 +2,7 @@ import akka.grpc.Dependencies
 import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
+import com.typesafe.tools.mima.core._
 
 scalaVersion := scala212
 
@@ -42,6 +43,9 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     // We don't actually promise binary compatibility before 1.0.0, but want to
     // introduce the tooling
     mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % previousStableVersion.value.get),
+    mimaBinaryIssueFilters ++= Seq(
+        ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.javadsl.GrpcExceptionHandler.default")))
+  .settings(
     AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))

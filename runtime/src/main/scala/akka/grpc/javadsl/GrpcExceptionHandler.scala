@@ -33,7 +33,7 @@ object GrpcExceptionHandler {
 
   /** INTERNAL API */
   @InternalApi
-  def default(system: ActorSystem): jFunction[Throwable, Trailers] =
+  private def default(system: ActorSystem): jFunction[Throwable, Trailers] =
     new jFunction[Throwable, Trailers] {
       override def apply(param: Throwable): Trailers = param match {
         case e: ExecutionException =>
