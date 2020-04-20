@@ -31,6 +31,7 @@ object GrpcExceptionHandler {
         default(system)
     }
 
+  /** INTERNAL API */
   @InternalApi
   def default(system: ActorSystem): jFunction[Throwable, Trailers] =
     new jFunction[Throwable, Trailers] {

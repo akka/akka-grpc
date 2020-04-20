@@ -25,14 +25,15 @@ trait GrpcProtocol {
    * INTERNAL API
    *
    * The canonical media type to use for this protocol variant
-   * */
+   */
   @InternalApi
   private[grpc] val contentType: ContentType.Binary
 
   /**
    * INTERNAL API
+   *
    * The set of media types that can identify this protocol variant (e.g. including an implicit +proto)
-   * */
+   */
   @InternalApi
   private[grpc] val mediaTypes: Set[jmodel.MediaType]
 
