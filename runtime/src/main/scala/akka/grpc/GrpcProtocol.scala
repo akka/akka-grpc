@@ -34,7 +34,7 @@ trait GrpcProtocol {
    * @param codec the compression codec to encode data frame bodies with.
    */
   @InternalApi
-  def newWriter(codec: Codec): GrpcProtocolWriter
+  private[grpc] def newWriter(codec: Codec): GrpcProtocolWriter
 
   /**
    * INTERNAL API
@@ -43,7 +43,7 @@ trait GrpcProtocol {
    * @param codec the compression codec to decode data frame bodies with.
    */
   @InternalApi
-  def newReader(codec: Codec): GrpcProtocolReader
+  private[grpc] def newReader(codec: Codec): GrpcProtocolReader
 }
 
 /**
