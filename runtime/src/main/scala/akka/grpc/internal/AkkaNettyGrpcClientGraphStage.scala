@@ -28,8 +28,8 @@ private object AkkaNettyGrpcClientGraphStage {
  * Interaction is done through two parts, the ClientCall object and a listener registered
  * to the same which gets callbacks from the client:
  *
- *                                  _________________
- *  Flow in       ------ I------>  |                | ------- O ------->  Flow out
+ *                                 ------------------
+ *  Flow in       ------ I ----->  |                | ------- O ------->  Flow out
  *                                 |  Netty client  |
  *  upstream pull <-- onReady ---  |      call      | <-- request(1) ---  downstream pull
  *                                 ------------------
