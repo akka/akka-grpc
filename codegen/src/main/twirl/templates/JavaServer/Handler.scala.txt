@@ -21,7 +21,6 @@ import akka.stream.SystemMaterializer;
 import akka.grpc.Trailers;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
-import akka.grpc.javadsl.package$;
 
 @{if (powerApis) "import akka.grpc.javadsl.Metadata;\nimport akka.grpc.javadsl.MetadataBuilder;" else ""}
 
