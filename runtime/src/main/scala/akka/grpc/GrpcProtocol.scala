@@ -57,6 +57,8 @@ trait GrpcProtocol {
 }
 
 /**
+ * INTERNAL API
+ *
  * Core definitions for gRPC protocols.
  */
 @InternalApi
