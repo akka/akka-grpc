@@ -6,6 +6,7 @@ package akka.grpc
 
 import akka.NotUsed
 import akka.annotation.InternalApi
+import akka.annotation.InternalStableApi
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal.{ Codec, Codecs, GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
@@ -33,8 +34,8 @@ trait GrpcProtocol {
    * Constructs a protocol writer for writing gRPC protocol frames for this variant
    * @param codec the compression codec to encode data frame bodies with.
    */
-  @InternalApi
-  private[grpc] def newWriter(codec: Codec): GrpcProtocolWriter
+  @InternalStableApi
+  def newWriter(codec: Codec): GrpcProtocolWriter
 
   /**
    * INTERNAL API
@@ -42,8 +43,8 @@ trait GrpcProtocol {
    * Constructs a protocol reader for reading gRPC protocol frames for this variant.
    * @param codec the compression codec to decode data frame bodies with.
    */
-  @InternalApi
-  private[grpc] def newReader(codec: Codec): GrpcProtocolReader
+  @InternalStableApi
+  def newReader(codec: Codec): GrpcProtocolReader
 }
 
 /**
