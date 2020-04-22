@@ -7,6 +7,7 @@ package akka.grpc.javadsl
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.annotation.ApiMayChange
+import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 // using japi because bindAndHandleAsync expects that
@@ -17,9 +18,17 @@ import scala.annotation.varargs
 @ApiMayChange
 object ServiceHandler {
 
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
   private[javadsl] val notFound: CompletionStage[HttpResponse] =
     CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND))
 
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
   private[javadsl] val unsupportedMediaType: CompletionStage[HttpResponse] =
     CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE))
 
