@@ -11,12 +11,11 @@ import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
 import akka.grpc.javadsl.{ Metadata => jMetadata }
 
 @ApiMayChange
-case class Trailers(status: Status, metadata: Metadata) {
+class Trailers(val status: Status, val metadata: Metadata) {
   def this(status: Status) {
     this(status, MetadataBuilder.empty)
   }
 
-  @ApiMayChange
   def this(status: Status, metadata: jMetadata) {
     this(status, metadata.asScala)
   }
@@ -30,11 +29,11 @@ case class Trailers(status: Status, metadata: Metadata) {
   /**
    * Java API: Returns the trailing metadata.
    */
-  @ApiMayChange
   def getMetadata: jMetadata =
     new JavaMetadataImpl(metadata)
 }
 
 object Trailers {
   def apply(status: Status): Trailers = new Trailers(status)
+  def apply(status: Status, metadata: Metadata): Trailers = new Trailers(status, metadata)
 }
