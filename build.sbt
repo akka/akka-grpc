@@ -2,6 +2,7 @@ import akka.grpc.Dependencies
 import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
+import com.typesafe.tools.mima.core._
 
 scalaVersion := scala212
 
