@@ -3,7 +3,7 @@ organization := "com.lightbend.akka.grpc"
 // For the akka-http snapshot
 resolvers += Resolver.bintrayRepo("akka", "maven")
 
-val grpcVersion = "1.28.1" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.29.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
