@@ -29,7 +29,7 @@ If you have other configurations with `.proto` sources (for example `Integration
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metata, as described
-@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `server_power_apis` option:
+@ref[here](../server/details.md#accessing-request-metadata), set the `server_power_apis` option:
 
 ```
 akkaGrpcCodeGeneratorSettings += "server_power_apis"
