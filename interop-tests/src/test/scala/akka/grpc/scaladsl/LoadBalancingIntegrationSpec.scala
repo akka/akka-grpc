@@ -138,22 +138,22 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       service.greetings.get should be(100)
     }
 
-    "eventually fail when no valid endpoints are provided" in {
-      val discovery =
-        new MutableServiceDiscovery(
-          List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
-      val client = GreeterServiceClient(
-        GrpcClientSettings
-          .usingServiceDiscovery("greeter", discovery)
-          .withTls(false)
-          .withGrpcLoadBalancingType("round_robin")
-          // Low value to speed up the test
-          .withConnectionAttempts(2))
-
-      val failure =
-        client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
-      failure.getStatus.getCode should be(Code.UNAVAILABLE)
-    }
+//    "eventually fail when no valid endpoints are provided" in {
+//      val discovery =
+//        new MutableServiceDiscovery(
+//          List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
+//      val client = GreeterServiceClient(
+//        GrpcClientSettings
+//          .usingServiceDiscovery("greeter", discovery)
+//          .withTls(false)
+//          .withGrpcLoadBalancingType("round_robin")
+//          // Low value to speed up the test
+//          .withConnectionAttempts(2))
+//
+//      val failure =
+//        client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
+//      failure.getStatus.getCode should be(Code.UNAVAILABLE)
+//    }
 
   }
 
