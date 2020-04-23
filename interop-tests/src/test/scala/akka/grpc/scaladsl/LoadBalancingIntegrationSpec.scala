@@ -16,7 +16,6 @@ import akka.actor.ActorSystem
 import akka.discovery.{ Lookup, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.GrpcClientSettings
-import akka.grpc.internal.ClientConnectionException
 import akka.http.scaladsl.Http
 
 import example.myapp.helloworld.grpc.helloworld._
@@ -154,8 +153,8 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val failure =
         client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
       failure.getStatus.getCode should be(Code.UNAVAILABLE)
-      client.closed.failed.futureValue shouldBe a[ClientConnectionException]
     }
+
   }
 
   override def afterAll(): Unit = {
