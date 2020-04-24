@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
 import example.myapp.helloworld.grpc.helloworld._
@@ -23,15 +24,15 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
+class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
   implicit val system = ActorSystem("NonBalancingIntegrationSpec")
   implicit val mat = akka.stream.ActorMaterializer.create(system)
   implicit val ec = system.dispatcher
 
   override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
-  "Client-side loadbalancing" should {
-    "send requests to multiple endpoints" in {
+  "Using pick-first (non load balanced clients)" should {
+    "send requests to a single endpoint" in {
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
 
@@ -39,18 +40,14 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
 
       val discovery = MutableServiceDiscovery(List(server1, server2))
-      val client = GreeterServiceClient(
-        GrpcClientSettings
-          .usingServiceDiscovery("greeter", discovery)
-          .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+      val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
       for (i <- 1 to 100) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
 
       service1.greetings.get + service2.greetings.get should be(100)
-      service1.greetings.get should be > (0)
-      service2.greetings.get should be > (0)
+      service1.greetings.get should be(100)
+      service2.greetings.get should be(0)
     }
 
     "re-discover endpoints on failure" in {
@@ -63,11 +60,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
 
       val discovery = MutableServiceDiscovery(List(server1))
-      val client = GreeterServiceClient(
-        GrpcClientSettings
-          .usingServiceDiscovery("greeter", discovery)
-          .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+      val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       val requestsPerServer = 2
 
@@ -102,11 +95,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
             new InetSocketAddress("example.invalid", 80),
             server.localAddress,
             new InetSocketAddress("example.invalid", 80)))
-      val client = GreeterServiceClient(
-        GrpcClientSettings
-          .usingServiceDiscovery("greeter", discovery)
-          .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+      val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       for (i <- 1 to 100) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
@@ -115,7 +104,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       service.greetings.get should be(100)
     }
 
-    "not fail when no valid endpoints are provided (retry indefinitely) even if max attempts is set" in {
+    "eventually fail when no valid endpoints are provided" in {
       val discovery =
         new MutableServiceDiscovery(
           List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
@@ -123,13 +112,20 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin")
           // Low value to speed up the test
           .withConnectionAttempts(2))
 
       val failure =
         client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
       failure.getStatus.getCode should be(Code.UNAVAILABLE)
+      client.closed.failed.futureValue shouldBe a[ClientConnectionException]
+    }
+
+    "not fail when no valid endpoints are provided but no limit on attempts is set" in {
+      val discovery =
+        new MutableServiceDiscovery(
+          List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
+      val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       try {
         client.closed.failed.futureValue
@@ -138,7 +134,6 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       } catch {
         case _: TestFailedException => // that's what we're hoping for.
       }
-
     }
 
   }

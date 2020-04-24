@@ -12,12 +12,15 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import io.grpc.CallOptions
-import io.grpc.netty.shaded.io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl._
 import javax.net.ssl.SSLContext
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Promise }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Promise
 
 /**
  * INTERNAL API
