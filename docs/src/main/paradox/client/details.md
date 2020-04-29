@@ -18,22 +18,6 @@ be re-resolved between connection attempts and infinite is a sensible default va
 if you setup another service discovery mechanism (e.g. a service discovery based on DNS-SRV in Kubernetes) then the reconnection attempts should be set to
 a small value (i.e. 5) so the client can recreate the connection to a different server instance when the connection is dropped and can't be restablished. 
 
-## Request Metadata
-
-Default request metadata, for example for authentication, can be provided through the
-@apidoc[GrpcClientSettings] passed to the client when it is created, it will be the base metadata used for each request.
-
-In some cases you will want to provide specific metadata to a single request, this can be done through the "lifted"
-client API, each method of the service has an empty parameter list version (`.sayHello()`) on the client returning a @apidoc[SingleResponseRequestBuilder] or @apidoc[StreamResponseRequestBuilder].
-
-After adding the required metadata the request is done by calling `invoke` with the request parameters.
-
-Scala
-:  @@snip [GreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
-
-Java
-:  @@snip [GreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
-
 ## Load balancing
 
 When multiple endpoints are discovered for a gRPC client, currently one is
@@ -53,3 +37,24 @@ the round-robin client-side load balancing strategy provided by grpc-java.
 
 Client-side load balancing for other discovery mechanisms is
 [not yet supported](https://github.com/akka/akka-grpc/issues/809).
+
+## Request Metadata
+
+Default request metadata, for example for authentication, can be provided through the
+@apidoc[GrpcClientSettings] passed to the client when it is created, it will be the base metadata used for each request.
+
+In some cases you will want to provide specific metadata to a single request, this can be done through the "lifted"
+client API, each method of the service has an empty parameter list version (`.sayHello()`) on the client returning a @apidoc[SingleResponseRequestBuilder] or @apidoc[StreamResponseRequestBuilder].
+
+After adding the required metadata the request is done by calling `invoke` with the request parameters.
+
+Notice: method `addHeader` return a new object, you should use it like `String` or use it in the chain structure.
+
+Scala
+:  @@snip [GreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LiftedGreeterClient.scala) { #with-metadata }
+
+Java
+:  @@snip [GreeterClient.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/LiftedGreeterClient.java) { #with-metadata }
+
+
+

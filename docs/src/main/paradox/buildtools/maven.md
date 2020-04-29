@@ -38,7 +38,7 @@ Scala
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metata, as described
-@ref[here](../server/walkthrough.md#accessing-request-metadata), set the `serverPowerApis` tag as true:
+@ref[here](../server/details.md#accessing-request-metadata), set the `serverPowerApis` tag as true:
 
 `pom.xml`
 :   ```xml
