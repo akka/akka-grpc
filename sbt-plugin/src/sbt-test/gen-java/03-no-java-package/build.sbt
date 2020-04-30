@@ -1,3 +1,4 @@
+resolvers += Resolver.sonatypeRepo("staging")
 
 enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
