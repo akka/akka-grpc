@@ -1,0 +1,2 @@
+# Because they already come in via scalapb-runtime
+ProblemFilters.exclude[MissingClassProblem]("com.google.protobuf.descriptor.*")
