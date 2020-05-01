@@ -100,7 +100,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
-        unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
         watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
         akkaGrpcGenerators := {
           generatorsFor(
