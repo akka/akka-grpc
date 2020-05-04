@@ -58,7 +58,9 @@ object Method {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
       implicit val ops =
-        new DescriptorImplicits(GeneratorParams(), descriptor.getFile.getDependencies.asScala :+ descriptor.getFile)
+        new DescriptorImplicits(
+          GeneratorParams(),
+          descriptor.getFile.getDependencies.asScala.toList :+ descriptor.getFile)
       import ops._
       descriptor.comment
     }

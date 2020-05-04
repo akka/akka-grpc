@@ -34,7 +34,7 @@ object Service {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
       implicit val ops =
-        new DescriptorImplicits(GeneratorParams(), fileDesc.getDependencies.asScala :+ fileDesc.getFile)
+        new DescriptorImplicits(GeneratorParams(), fileDesc.getDependencies.asScala.toList :+ fileDesc.getFile)
       import ops._
       serviceDescriptor.comment
     }
@@ -46,7 +46,7 @@ object Service {
       packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],
+      serviceDescriptor.getMethods.asScala.toList.map(method => Method(method)),
       serverPowerApi,
       usePlayActions,
       comment)

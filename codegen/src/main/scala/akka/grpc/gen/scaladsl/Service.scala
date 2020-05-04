@@ -30,7 +30,7 @@ object Service {
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
       usePlayActions: Boolean): Service = {
-    implicit val ops = new DescriptorImplicits(generatorParams, fileDesc.getDependencies.asScala :+ fileDesc)
+    implicit val ops = new DescriptorImplicits(generatorParams, fileDesc.getDependencies.asScala.toList :+ fileDesc)
     import ops._
 
     val serviceClassName = serviceDescriptor.getName
@@ -40,7 +40,7 @@ object Service {
       fileDesc.scalaPackage.fullName,
       serviceClassName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.map(method => Method(method)).to[immutable.Seq],
+      serviceDescriptor.getMethods.asScala.map(method => Method(method)).toList,
       serverPowerApi,
       usePlayActions,
       serviceDescriptor.comment)
