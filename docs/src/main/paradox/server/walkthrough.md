@@ -19,7 +19,7 @@ sbt
     enablePlugins(AkkaGrpcPlugin)
     // ALPN agent, only required on JVM 8
     enablePlugins(JavaAgent)
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "runtime;test"
+    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
     ```
 ​    @@@
 

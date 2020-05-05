@@ -15,7 +15,7 @@ object ProjectExtensions {
         .settings(
           // #alpn
           // ALPN agent, only required on JVM 8
-          javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9"
+          javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"
             // #alpn
             % "test")
         .dependsOn(ProjectRef(file("."), "akka-grpc-runtime"))
