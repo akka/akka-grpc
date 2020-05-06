@@ -122,7 +122,7 @@ Doing this from inside of Gradle requires a little bit of configuration in the `
     }
     dependencies {
       // Configuration for modules that use Jetty ALPN agent
-      alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.9'
+      alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.10'
     }
     task runServer(type: JavaExec) {
       classpath = sourceSets.main.runtimeClasspath

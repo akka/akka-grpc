@@ -19,7 +19,7 @@ scalacOptions ++= List(
 )
 
 javaAgents ++= Seq(
-  "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.9" % "test"
+  "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "test"
 )
 
 enablePlugins(JavaAgent)

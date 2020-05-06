@@ -42,7 +42,7 @@ The agent is included in all required configurations when running tests inside `
 If you want to run tests outside `sbt` setup your launcher to include the following JVM arguments:
 
 ```
--javaagent:/home/username/.ivy2/cache/org.mortbay.jetty.alpn/jetty-alpn-agent/jars/jetty-alpn-agent-2.0.9.jar
+-javaagent:/home/username/.ivy2/cache/org.mortbay.jetty.alpn/jetty-alpn-agent/jars/jetty-alpn-agent-2.0.10.jar
 ``` 
 
 You will have to review the value of the path and replace `/home/username/.ivy2/cache/` with the actual location of your `.ivy2` cache repository (usually that's located on your `$HOME` folder) 

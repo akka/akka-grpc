@@ -96,7 +96,7 @@ Doing this from inside of Maven requires a little bit of configuration:
       <dependency>
         <groupId>org.mortbay.jetty.alpn</groupId>
         <artifactId>jetty-alpn-agent</artifactId>
-        <version>2.0.9</version>
+        <version>2.0.10</version>
         <scope>runtime</scope>
       </dependency>
     <dependencies>
