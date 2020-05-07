@@ -9,7 +9,6 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import io.grpc.ManagedChannel
 import io.grpc.MethodDescriptor
 
 import akka.grpc.GrpcClientSettings
@@ -54,7 +53,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
   private val clientState = new ClientState(settings, akka.event.Logging(mat.asInstanceOf[ActorMaterializer].system, this.getClass))
 
   @for(method <- service.methods) {
-    private def @{method.name}RequestBuilder(channel:scala.concurrent.Future[ManagedChannel]) = {
+    private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) = {
       @if(method.methodType == akka.grpc.gen.Unary) {
         new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
       } else {
@@ -77,10 +76,10 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
       override def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        clientState.withChannel(@{method.name}RequestBuilder _)
+        @{method.name}RequestBuilder(clientState.internalChannel)
     } else {
       override def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        clientState.withChannel(@{method.name}RequestBuilder _)
+        @{method.name}RequestBuilder(clientState.internalChannel)
     }
 
     /**

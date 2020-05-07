@@ -5,14 +5,12 @@
 package akka.grpc.internal
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.Promise
 
 import io.grpc.ConnectivityState._
-import io.grpc.ManagedChannel
 
 import akka.Done
 import akka.actor.ActorSystem
-import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
@@ -26,16 +24,10 @@ class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with E
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 10.seconds, interval = 150.milliseconds)
 
-  private val mockSettings: GrpcClientSettings = GrpcClientSettings.connectToServiceAt("somehost.com", 3434)
-
   private def clientState(channelCompletion: Promise[Done] = Promise[Done]()) = {
     val channel =
       new InternalChannel(new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)), channelCompletion.future)
-    new ClientState(mockSettings, sys.log, channel)
-  }
-
-  def userCodeToLiftChannel: Future[ManagedChannel] => ManagedChannel = { eventualChannel =>
-    Await.result(eventualChannel, 1.second)
+    new ClientState(channel)
   }
 
   "Client State" should {
@@ -43,15 +35,14 @@ class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with E
       // given a state
       val state = clientState()
       // it provides a channel when needed
-      val channel = state.withChannel(userCodeToLiftChannel)
-      channel should not be null
+      state.internalChannel should not be null
     }
     "reuse a valid channel" in {
       // given a state
       val state = clientState()
       // it provides a channel when needed
-      val c1 = state.withChannel(userCodeToLiftChannel)
-      val c2 = state.withChannel(userCodeToLiftChannel)
+      val c1 = state.internalChannel.managedChannel
+      val c2 = state.internalChannel.managedChannel
       c1 should be(c2)
     }
   }
