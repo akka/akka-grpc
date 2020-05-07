@@ -21,6 +21,7 @@ import javax.net.ssl.SSLContext
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Promise
+import scala.util.{ Failure, Success }
 
 /**
  * INTERNAL API
@@ -61,12 +62,34 @@ object NettyClientUtils {
     builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
     builder = settings.channelBuilderOverrides(builder)
 
+    val connectionAttempts = settings.grpcLoadBalancingType match {
+      case None | Some("pick_first") => settings.connectionAttempts
+      case _                         =>
+        // When loadbalancing we cannot count the individual attempts, so
+        // the only options are '1' ('don't retry') or 'retry indefinitely'
+        settings.connectionAttempts.flatMap {
+          case 1 => Some(1)
+          case _ => None
+        }
+    }
+
     val channel = builder.build()
 
-    val promise = Promise[Done]()
-    ChannelUtils.monitorChannel(promise, channel, settings.connectionAttempts, log)
+    val channelReadyPromise = Promise[Unit]()
+    val channelClosedPromise = Promise[Done]()
 
-    InternalChannel(channel, promise.future)
+    ChannelUtils.monitorChannel(channelReadyPromise, channelClosedPromise, channel, connectionAttempts, log)
+
+    channelReadyPromise.future.onComplete {
+      case Success(()) =>
+      // OK!
+      case Failure(e) =>
+        // shutdown is idempotent in ManagedChannelImpl
+        channel.shutdown()
+        channelClosedPromise.tryFailure(e)
+    }
+
+    InternalChannel(channel, channelClosedPromise.future)
   }
 
   /**

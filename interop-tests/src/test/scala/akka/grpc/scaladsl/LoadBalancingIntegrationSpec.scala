@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
 import example.myapp.helloworld.grpc.helloworld._
@@ -115,7 +116,26 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       service.greetings.get should be(100)
     }
 
-    "not fail when no valid endpoints are provided (retry indefinitely) even if max attempts is set" in {
+    "fail when no valid endpoints are provided (don't retry) when max attempts is set to '1'" in {
+      val discovery =
+        new MutableServiceDiscovery(
+          List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
+      val client = GreeterServiceClient(
+        GrpcClientSettings
+          .usingServiceDiscovery("greeter", discovery)
+          .withTls(false)
+          .withGrpcLoadBalancingType("round_robin")
+          // Low value to speed up the test
+          .withConnectionAttempts(1))
+
+      val failure =
+        client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
+      failure.getStatus.getCode should be(Code.UNAVAILABLE)
+
+      client.closed.failed.futureValue shouldBe a[ClientConnectionException]
+    }
+
+    "not fail when no valid endpoints are provided (retry indefinitely) when max attempts is set to another positive value" in {
       val discovery =
         new MutableServiceDiscovery(
           List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
