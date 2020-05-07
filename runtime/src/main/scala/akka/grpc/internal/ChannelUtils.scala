@@ -60,8 +60,8 @@ object ChannelUtils {
       val newAttemptOpt = currentState match {
         case ConnectivityState.TRANSIENT_FAILURE =>
           if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
-            ready.tryFailure(
-              new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]"))
+            val ex = new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]")
+            ready.tryFailure(ex) || done.tryFailure(ex)
             None
           } else Some(connectionAttempts + 1)
 

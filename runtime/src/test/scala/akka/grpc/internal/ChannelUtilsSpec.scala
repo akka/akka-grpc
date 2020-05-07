@@ -16,6 +16,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.Promise
+import scala.util.Failure
 
 object ChannelUtilsSpec {
   class FakeChannel(stateResponses: Stream[ConnectivityState]) extends ManagedChannel {
@@ -57,29 +58,34 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
     val log: LoggingAdapter = NoLogging
 
     "should fail if enter into failure configured number of times" in {
-      val promise = Promise[Done]
+      val promiseReady = Promise[Unit]
+      val promiseDone = Promise[Done]
       val fakeChannel = new FakeChannel(
         Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
 
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => FAILURE
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // FAILURE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => FAILURE
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual true
-      promise.future.failed.futureValue.getMessage should startWith("Unable to establish connection")
-      fakeChannel.closed shouldEqual true
+      promiseReady.isCompleted shouldEqual true
+      promiseReady.future.value.get shouldBe a[Failure[_]]
+      promiseReady.future.failed.value.get.get.getMessage should startWith("Unable to establish connection")
     }
 
     "should reset counter if enters into ready" in {
-      val promise = Promise[Done]
+      val promiseReady = Promise[Unit]
+      val promiseDone = Promise[Done]
       val fakeChannel =
         new FakeChannel(
           Stream(
@@ -91,51 +97,61 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
             TRANSIENT_FAILURE,
             CONNECTING,
             TRANSIENT_FAILURE))
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => FAILURE
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // FAILURE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => READY
       fakeChannel.runCallBack()
+      promiseReady.isCompleted shouldEqual true
       // going into ready should have reset counter
-      promise.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
 
       // READY => FAILURE
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual true
+      promiseDone.isCompleted shouldEqual false
       // FAILURE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual true
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => FAILURE
       fakeChannel.runCallBack()
       // 2 in a row now with max failures = 1
-      promise.isCompleted shouldEqual true
+      promiseReady.isCompleted shouldEqual true
+      promiseDone.isCompleted shouldEqual true
 
-      val failure = promise.future.failed.futureValue
-      failure shouldBe an[ClientConnectionException]
-      failure.getMessage should startWith("Unable to establish connection")
+      promiseDone.future.value.get shouldBe a[Failure[_]]
+      promiseDone.future.failed.value.get.get.getMessage should startWith("Unable to establish connection")
     }
 
     "should stop monitoring if SHUTDOWN" in {
-      val promise = Promise[Done]
+      val promiseReady = Promise[Unit]
+      val promiseDone = Promise[Done]
       val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, READY) ++ Stream.continually(SHUTDOWN))
-      ChannelUtils.monitorChannel(promise, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual false
+      promiseDone.isCompleted shouldEqual false
       // CONNECTING => READY
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual false
+      promiseReady.isCompleted shouldEqual true
+      promiseDone.isCompleted shouldEqual false
       // READY => SHUTDOWN as its checked after the call back
       fakeChannel.runCallBack()
-      promise.isCompleted shouldEqual true
-      promise.future.futureValue shouldEqual Done
+      promiseReady.isCompleted shouldEqual true
+      promiseDone.isCompleted shouldEqual true
+      promiseDone.future.futureValue shouldEqual Done
     }
   }
 }
