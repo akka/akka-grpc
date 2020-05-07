@@ -20,14 +20,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Promise }
 
 /**
- * Used to indicate that the service discovery returned no target.
- *
- * Can be caught to re-try lookup if it is likely that
- * your service discovery mechanism will resolve to different instances.
- */
-final class NoTargetException(msg: String) extends RuntimeException(msg)
-
-/**
  * INTERNAL API
  */
 @InternalApi

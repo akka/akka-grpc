@@ -132,8 +132,6 @@ object GrpcClientSettings {
       resolveTimeout,
       getOptionalString(clientConfiguration, "service-discovery.port-name"),
       getOptionalString(clientConfiguration, "service-discovery.protocol"),
-      clientConfiguration.getInt("creation.attempts"),
-      clientConfiguration.getDuration("creation.delay").asScala,
       getOptionalInt(clientConfiguration, "connection-attempts"),
       None,
       getOptionalString(clientConfiguration, "override-authority"),
@@ -202,8 +200,6 @@ final class GrpcClientSettings private (
     val resolveTimeout: FiniteDuration,
     val servicePortName: Option[String],
     val serviceProtocol: Option[String],
-    val creationAttempts: Integer,
-    val creationDelay: FiniteDuration,
     val connectionAttempts: Option[Int],
     val callCredentials: Option[CallCredentials],
     val overrideAuthority: Option[String],
@@ -255,11 +251,6 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
-  def withCreationAttempts(value: Int): GrpcClientSettings =
-    copy(creationAttempts = value)
-  def withCreationDelay(delay: FiniteDuration): GrpcClientSettings =
-    copy(creationDelay = delay)
-
   def withGrpcLoadBalancingType(loadBalancingType: String): GrpcClientSettings =
     copy(grpcLoadBalancingType = Some(loadBalancingType))
 
@@ -283,8 +274,6 @@ final class GrpcClientSettings private (
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
       serviceProtocol: Option[String] = serviceProtocol,
-      creationAttempts: Int = creationAttempts,
-      creationDelay: FiniteDuration = creationDelay,
       defaultPort: Int = defaultPort,
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,
@@ -302,8 +291,6 @@ final class GrpcClientSettings private (
       serviceDiscovery = serviceDiscovery,
       servicePortName = servicePortName,
       serviceProtocol = serviceProtocol,
-      creationAttempts = creationAttempts,
-      creationDelay = creationDelay,
       deadline = deadline,
       serviceName = serviceName,
       overrideAuthority = overrideAuthority,
