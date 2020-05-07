@@ -241,7 +241,7 @@ final class GrpcClientSettings private (
    * Provides a custom `User-Agent` for the application.
    *
    * It's an optional parameter. The library will provide a user agent independent of this
-   * option. If provided, the given agent will prepend the library's user agusingServiceDiscoveryent information.
+   * option. If provided, the given agent will prepend the library's user agent information.
    */
   def withUserAgent(value: String): GrpcClientSettings = copy(userAgent = Option(value))
 
