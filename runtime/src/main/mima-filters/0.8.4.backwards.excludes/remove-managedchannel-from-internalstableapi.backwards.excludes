@@ -1,0 +1,12 @@
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.JavaUnaryRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.JavaClientStreamingRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.JavaServerStreamingRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.JavaBidirectionalStreamingRequestBuilder.this")
+
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.ScalaUnaryRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.ScalaClientStreamingRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.ScalaServerStreamingRequestBuilder.this")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder.this")
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ClientState.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ClientState.withChannel")
