@@ -1,0 +1,2 @@
+# internal
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ChannelUtils.monitorChannel")
