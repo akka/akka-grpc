@@ -12,7 +12,6 @@ import akka.annotation.InternalStableApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import akka.stream.{ ActorMaterializer, Materializer }
-import io.grpc.ManagedChannel
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ ExecutionContext, Future }
@@ -23,13 +22,13 @@ import scala.concurrent.{ ExecutionContext, Future }
  * Client utilities taking care of Channel reconnection and Channel lifecycle in general.
  */
 @InternalApi
-final class ClientState(settings: GrpcClientSettings, log: LoggingAdapter, channel: InternalChannel)(
+final class ClientState(@InternalStableApi val internalChannel: InternalChannel)(
     implicit mat: Materializer,
     ex: ExecutionContext) {
 
   @InternalStableApi
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
-    this(settings, log, NettyClientUtils.createChannel(settings, log))
+    this(NettyClientUtils.createChannel(settings, log))
 
   mat match {
     case m: ActorMaterializer =>
@@ -37,17 +36,12 @@ final class ClientState(settings: GrpcClientSettings, log: LoggingAdapter, chann
     case _ =>
   }
 
-  // TODO #761 consider not leaking ManagedChannel to the generated code?
-  @InternalStableApi
-  def withChannel[A](f: Future[ManagedChannel] => A): A =
-    f { Future.successful(channel.managedChannel) }
-
   def closedCS(): CompletionStage[Done] = closed().toJava
   def closeCS(): CompletionStage[Done] = close().toJava
 
-  def closed(): Future[Done] = channel.done
+  def closed(): Future[Done] = internalChannel.done
 
-  def close(): Future[Done] = ChannelUtils.close(channel)
+  def close(): Future[Done] = ChannelUtils.close(internalChannel)
 }
 
 /**

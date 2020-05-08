@@ -7,7 +7,7 @@ package akka.grpc.internal
 import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
-import akka.annotation.InternalApi
+import akka.annotation.{ InternalApi, InternalStableApi }
 import akka.dispatch.ExecutionContexts
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.Materializer
@@ -22,28 +22,22 @@ import scala.concurrent.duration.FiniteDuration
 import akka.grpc.GrpcClientSettings
 import akka.util.OptionVal
 
-import scala.util.{ Failure, Success }
-
-// request builder implementations for the generated clients
-// note that these are created in generated code in arbitrary user packages
-// so must remain public even though internal
-
 /**
  * INTERNAL API
  */
 @InternalApi
 final class ScalaUnaryRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[I, O]
     with MetadataOperations[ScalaUnaryRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
@@ -52,12 +46,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
 
   override def invoke(request: I): Future[O] =
-    channel.value match {
-      case Some(Success(c)) => invoke(request, c)
-      case Some(Failure(t)) => Future.failed(t)
-      case None =>
-        channel.flatMap { c => invoke(request, c) }
-    }
+    invoke(request, channel.managedChannel)
 
   private def invoke(request: I, c: Channel) = {
     val listener = new UnaryCallAdapter[O]
@@ -70,12 +59,7 @@ final class ScalaUnaryRequestBuilder[I, O](
   }
 
   override def invokeWithMetadata(request: I): Future[GrpcSingleResponse[O]] =
-    channel.value match {
-      case Some(Success(c)) => invokeWithMetadata(request, c)
-      case Some(Failure(t)) => Future.failed(t)
-      case None =>
-        channel.flatMap { c => invokeWithMetadata(request, c) }
-    }
+    invokeWithMetadata(request, channel.managedChannel)
 
   private def invokeWithMetadata(request: I, c: Channel): Future[GrpcSingleResponse[O]] = {
     val listener = new UnaryCallWithMetadataAdapter[O]
@@ -97,7 +81,7 @@ final class ScalaUnaryRequestBuilder[I, O](
 @InternalApi
 final class JavaUnaryRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ex: ExecutionContext)
@@ -105,10 +89,10 @@ final class JavaUnaryRequestBuilder[I, O](
     with MetadataOperations[JavaUnaryRequestBuilder[I, O]] {
   private val delegate = new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
@@ -130,29 +114,27 @@ final class JavaUnaryRequestBuilder[I, O](
 final class ScalaClientStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl,
     materializer: Materializer)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings,
       materializer: Materializer)(implicit ec: ExecutionContext) =
     this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty, materializer)
 
-  private val defaultFlow: Future[OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]]] =
-    channel.map { c =>
-      settings.deadline match {
-        case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-        case _                 => OptionVal.Some(createflow(defaultOptions, c))
-      }
+  private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
+    settings.deadline match {
+      case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
+      case _                 => OptionVal.Some(createflow(defaultOptions, channel.managedChannel))
     }
 
   private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
@@ -164,38 +146,30 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   override def invoke(request: Source[I, NotUsed]): Future[O] =
     invokeWithMetadata(request).map(_.value)(ExecutionContexts.sameThreadExecutionContext)
 
-  override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] =
-    channel.value match {
-      case Some(Success(c)) => invokeWithMetadata(source, c)
-      case Some(Failure(t)) => Future.failed(t)
-      case None             => channel.flatMap(c => invokeWithMetadata(source, c))
-    }
-
-  private def invokeWithMetadata(source: Source[I, NotUsed], c: Channel) =
+  override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
     // a bit much overhead here because we are using the flow to represent a single response
-    defaultFlow.flatMap { df =>
-      val flow = df match {
-        case OptionVal.Some(f) => f
-        case OptionVal.None    => createflow(callOptionsWithDeadline(), c)
-      }
-
-      val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
-        source.viaMat(flow)(Keep.right).toMat(Sink.head)(Keep.both).run()(materializer)
-
-      metadataFuture
-        .zip(resultFuture)
-        .map {
-          case (metadata, result) =>
-            new GrpcSingleResponse[O] {
-              def value: O = result
-              def getValue(): O = result
-              def headers = metadata.headers
-              def getHeaders() = metadata.getHeaders()
-              def trailers = metadata.trailers
-              def getTrailers = metadata.getTrailers()
-            }
-        }(ExecutionContexts.sameThreadExecutionContext)
+    val flow = defaultFlow match {
+      case OptionVal.Some(f) => f
+      case OptionVal.None    => createflow(callOptionsWithDeadline(), channel.managedChannel)
     }
+
+    val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
+      source.viaMat(flow)(Keep.right).toMat(Sink.head)(Keep.both).run()(materializer)
+
+    metadataFuture
+      .zip(resultFuture)
+      .map {
+        case (metadata, result) =>
+          new GrpcSingleResponse[O] {
+            def value: O = result
+            def getValue(): O = result
+            def headers = metadata.headers
+            def getHeaders() = metadata.getHeaders()
+            def trailers = metadata.trailers
+            def getTrailers = metadata.getTrailers()
+          }
+      }(ExecutionContexts.sameThreadExecutionContext)
+  }
 
   override def withHeaders(headers: MetadataImpl): ScalaClientStreamingRequestBuilder[I, O] =
     new ScalaClientStreamingRequestBuilder[I, O](
@@ -215,18 +189,18 @@ final class ScalaClientStreamingRequestBuilder[I, O](
 final class JavaClientStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl,
     materializer: Materializer)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaClientStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings,
       materializer: Materializer)(implicit ec: ExecutionContext) =
@@ -265,27 +239,25 @@ final class JavaClientStreamingRequestBuilder[I, O](
 final class ScalaServerStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.StreamResponseRequestBuilder[I, O]
     with MetadataOperations[ScalaServerStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
 
-  private val defaultFlow: Future[OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]]] =
-    channel.map { c =>
-      settings.deadline match {
-        case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-        case _                 => OptionVal.Some(createflow(defaultOptions, c))
-      }
+  private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
+    settings.deadline match {
+      case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
+      case _                 => OptionVal.Some(createflow(defaultOptions, channel.managedChannel))
     }
 
   private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
@@ -298,22 +270,15 @@ final class ScalaServerStreamingRequestBuilder[I, O](
     invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
 
   override def invokeWithMetadata(source: I): Source[O, Future[GrpcResponseMetadata]] =
-    Source
-      .fromFutureSource(channel.value match {
-        case Some(Success(c)) => invokeWithMetadata(source, c)
-        case Some(Failure(t)) => Future.failed(t)
-        case None             => channel.flatMap(c => invokeWithMetadata(source, c))
-      })
-      .mapMaterializedValue(_.flatMap(identity))
+    invokeWithMetadata(source, channel.managedChannel)
 
-  private def invokeWithMetadata(source: I, c: Channel) =
-    defaultFlow.map { df =>
-      val flow = df match {
-        case OptionVal.Some(f) => f
-        case OptionVal.None    => createflow(callOptionsWithDeadline(), c)
-      }
-      Source.single(source).viaMat(flow)(Keep.right)
+  private def invokeWithMetadata(source: I, c: Channel) = {
+    val flow = defaultFlow match {
+      case OptionVal.Some(f) => f
+      case OptionVal.None    => createflow(callOptionsWithDeadline(), c)
     }
+    Source.single(source).viaMat(flow)(Keep.right)
+  }
 
   override def withHeaders(headers: MetadataImpl): ScalaServerStreamingRequestBuilder[I, O] =
     new ScalaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
@@ -326,17 +291,17 @@ final class ScalaServerStreamingRequestBuilder[I, O](
 final class JavaServerStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.StreamResponseRequestBuilder[I, O]
     with MetadataOperations[JavaServerStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
@@ -361,27 +326,25 @@ final class JavaServerStreamingRequestBuilder[I, O](
 final class ScalaBidirectionalStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.StreamResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaBidirectionalStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
 
-  private val defaultFlow: Future[OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]]] =
-    channel.map { c =>
-      settings.deadline match {
-        case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-        case _                 => OptionVal.Some(createFlow(defaultOptions, c))
-      }
+  private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
+    settings.deadline match {
+      case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
+      case _                 => OptionVal.Some(createFlow(defaultOptions, channel.managedChannel))
     }
 
   private def createFlow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
@@ -393,23 +356,13 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
   override def invoke(request: Source[I, NotUsed]): Source[O, NotUsed] =
     invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
 
-  override def invokeWithMetadata(source: Source[I, NotUsed]): Source[O, Future[GrpcResponseMetadata]] =
-    Source
-      .fromFutureSource(channel.value match {
-        case Some(Success(c)) => invokeWithMetadata(source, c)
-        case Some(Failure(t)) => Future.failed(t)
-        case None             => channel.flatMap(c => invokeWithMetadata(source, c))
-      })
-      .mapMaterializedValue(_.flatMap(identity))
-
-  private def invokeWithMetadata(source: Source[I, NotUsed], c: Channel) =
-    defaultFlow.map { df =>
-      val flow = df match {
-        case OptionVal.Some(f) => f
-        case OptionVal.None    => createFlow(callOptionsWithDeadline(), c)
-      }
-      source.viaMat(flow)(Keep.right)
+  override def invokeWithMetadata(source: Source[I, NotUsed]): Source[O, Future[GrpcResponseMetadata]] = {
+    val flow = defaultFlow match {
+      case OptionVal.Some(f) => f
+      case OptionVal.None    => createFlow(callOptionsWithDeadline(), channel.managedChannel)
     }
+    source.viaMat(flow)(Keep.right)
+  }
 
   override def withHeaders(headers: MetadataImpl): ScalaBidirectionalStreamingRequestBuilder[I, O] =
     new ScalaBidirectionalStreamingRequestBuilder[I, O](
@@ -428,17 +381,17 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
 final class JavaBidirectionalStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
     fqMethodName: String,
-    channel: Future[ManagedChannel],
+    channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.javadsl.StreamResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaBidirectionalStreamingRequestBuilder[I, O]] {
-  // aux constructor for defaults
+  @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       fqMethodName: String,
-      channel: Future[ManagedChannel],
+      channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
     this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
