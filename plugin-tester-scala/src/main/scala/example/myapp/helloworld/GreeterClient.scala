@@ -23,8 +23,12 @@ object GreeterClient {
     implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
-    // Take details how to connect to the service from the config.
-    val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
+    // Configure the client by code:
+    val clientSettings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080);
+
+    // Or via application.conf:
+    // val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
+
     // Create a client-side stub for the service
     val client: GreeterService = GreeterServiceClient(clientSettings)
 
