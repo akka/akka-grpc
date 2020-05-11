@@ -50,6 +50,7 @@ object ChannelUtils {
    */
   @InternalApi
   private[akka] def monitorChannel(
+      ready: Promise[Unit],
       done: Promise[Done],
       channel: ManagedChannel,
       maxConnectionAttempts: Option[Int],
@@ -59,14 +60,13 @@ object ChannelUtils {
       val newAttemptOpt = currentState match {
         case ConnectivityState.TRANSIENT_FAILURE =>
           if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
-            // shutdown is idempotent in ManagedChannelImpl
-            channel.shutdown()
-            done.tryFailure(
-              new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]"))
+            val ex = new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]")
+            ready.tryFailure(ex) || done.tryFailure(ex)
             None
           } else Some(connectionAttempts + 1)
 
         case ConnectivityState.READY =>
+          ready.trySuccess(())
           Some(0)
 
         case ConnectivityState.SHUTDOWN =>
