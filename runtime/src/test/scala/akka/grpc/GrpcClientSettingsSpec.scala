@@ -132,7 +132,8 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
       discovered.host should be("my-host")
       discovered.port should be(Some(42))
       parsed.overrideAuthority should be(Some("google.fr"))
-      parsed.sslContext shouldBe defined
+      // This feature is not currently available
+      //      parsed.sslContext shouldBe defined
       parsed.deadline should be(10.minutes)
       parsed.userAgent should be(Some("Akka-gRPC"))
       parsed.useTls should be(true)

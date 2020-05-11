@@ -12,17 +12,9 @@ import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
 import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
-import com.typesafe.sslconfig.akka.util.AkkaLoggerFactory
-import com.typesafe.sslconfig.ssl.{
-  ConfigSSLContextBuilder,
-  DefaultKeyManagerFactoryWrapper,
-  DefaultTrustManagerFactoryWrapper,
-  SSLConfigFactory,
-  SSLConfigSettings
-}
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
@@ -124,7 +116,7 @@ object GrpcClientSettings {
       serviceDiscovery: ServiceDiscovery,
       defaultPort: Int,
       resolveTimeout: FiniteDuration,
-      clientConfiguration: Config)(implicit actorSystem: ActorSystem): GrpcClientSettings =
+      clientConfiguration: Config): GrpcClientSettings =
     new GrpcClientSettings(
       serviceName,
       serviceDiscovery,
@@ -135,7 +127,8 @@ object GrpcClientSettings {
       getOptionalInt(clientConfiguration, "connection-attempts"),
       None,
       getOptionalString(clientConfiguration, "override-authority"),
-      getOptionalSSLContext(clientConfiguration, "ssl-config"),
+      // For now don't support configuring TLS from the configuration
+      None,
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
@@ -164,32 +157,6 @@ object GrpcClientSettings {
   private[grpc] def staticServiceDiscovery(host: String, port: Int) =
     new HardcodedServiceDiscovery(Resolved(host, immutable.Seq(ResolvedTarget(host, Some(port), None))))
 
-  /**
-   * INTERNAL API
-   *
-   * @param config The config to parse, assumes already at the right path.
-   */
-  @InternalApi
-  private def getSSLContext(config: Config)(implicit actorSystem: ActorSystem): SSLContext = {
-    val sslConfigSettings: SSLConfigSettings = SSLConfigFactory.parse(config)
-    val sslContext: SSLContext = new ConfigSSLContextBuilder(
-      new AkkaLoggerFactory(actorSystem),
-      sslConfigSettings,
-      new DefaultKeyManagerFactoryWrapper(sslConfigSettings.keyManagerConfig.algorithm),
-      new DefaultTrustManagerFactoryWrapper(sslConfigSettings.trustManagerConfig.algorithm)).build()
-    sslContext
-  }
-
-  /**
-   * INTERNAL API
-   */
-  @InternalApi
-  private def getOptionalSSLContext(config: Config, path: String)(
-      implicit actorSystem: ActorSystem): Option[SSLContext] =
-    if (config.hasPath(path))
-      Some(getSSLContext(config.getConfig(path)))
-    else
-      None
 }
 
 @ApiMayChange
@@ -203,7 +170,7 @@ final class GrpcClientSettings private (
     val connectionAttempts: Option[Int],
     val callCredentials: Option[CallCredentials],
     val overrideAuthority: Option[String],
-    val sslContext: Option[SSLContext],
+    val trustManager: Option[TrustManager],
     val deadline: Duration,
     val userAgent: Option[String],
     val useTls: Boolean,
@@ -216,7 +183,7 @@ final class GrpcClientSettings private (
   def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
-  def withSSLContext(context: SSLContext) = copy(sslContext = Option(context))
+  def withTrustManager(trustManager: TrustManager) = copy(trustManager = Option(trustManager))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
   /**
@@ -277,7 +244,7 @@ final class GrpcClientSettings private (
       defaultPort: Int = defaultPort,
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,
-      sslContext: Option[SSLContext] = sslContext,
+      trustManager: Option[TrustManager] = trustManager,
       deadline: Duration = deadline,
       userAgent: Option[String] = userAgent,
       useTls: Boolean = useTls,
@@ -295,7 +262,7 @@ final class GrpcClientSettings private (
       serviceName = serviceName,
       overrideAuthority = overrideAuthority,
       defaultPort = defaultPort,
-      sslContext = sslContext,
+      trustManager = trustManager,
       userAgent = userAgent,
       useTls = useTls,
       resolveTimeout = resolveTimeout,
