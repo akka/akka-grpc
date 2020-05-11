@@ -20,6 +20,7 @@ object Common extends AutoPlugin {
       resolvers += Resolver.bintrayRepo("akka", "snapshots"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
+      resolvers += Resolver.bintrayRepo("akka", "snapshots"),
       developers += Developer(
           "contributors",
           "Contributors",
