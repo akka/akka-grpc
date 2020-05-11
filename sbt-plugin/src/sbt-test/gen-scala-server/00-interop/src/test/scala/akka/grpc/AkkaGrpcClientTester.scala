@@ -42,7 +42,7 @@ class AkkaGrpcClientTester(val settings: Settings)(implicit system: ActorSystem)
     val grpcSettings = GrpcClientSettings.connectToServiceAt(settings.serverHost, settings.serverPort)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
-      .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"))
+      .withTrustManager(SSLContextUtils.trustManagerFromResource("/certs/ca.pem"))
 
     client = TestServiceClient(grpcSettings)
     clientUnimplementedService = UnimplementedServiceClient(grpcSettings)
