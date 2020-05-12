@@ -8,7 +8,6 @@ import java.io.{ BufferedInputStream, IOException, InputStream }
 import java.security.KeyStore
 import java.security.cert.{ CertificateFactory, X509Certificate }
 
-import akka.annotation.InternalApi
 import javax.net.ssl.{ TrustManager, TrustManagerFactory }
 
 object SSLContextUtils {

@@ -127,8 +127,7 @@ object GrpcClientSettings {
       getOptionalInt(clientConfiguration, "connection-attempts"),
       None,
       getOptionalString(clientConfiguration, "override-authority"),
-      // For now don't support configuring TLS from the configuration
-      None,
+      getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),

@@ -101,14 +101,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
             host = "my-host"
             port = 42
             override-authority = "google.fr"
-            ssl-config {
-              disabledKeyAlgorithms = [] // Allow weak certificates
-              trustManager {
-                stores = [
-                  {path = certs/$certFileName, classpath = true, type = PEM}
-                ]
-              }
-            }
+            trusted = certs/$certFileName
             deadline = 10m
             user-agent = "Akka-gRPC"
           }
@@ -132,8 +125,6 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
       discovered.host should be("my-host")
       discovered.port should be(Some(42))
       parsed.overrideAuthority should be(Some("google.fr"))
-      // This feature is not currently available
-      //      parsed.sslContext shouldBe defined
       parsed.deadline should be(10.minutes)
       parsed.userAgent should be(Some("Akka-gRPC"))
       parsed.useTls should be(true)
@@ -157,8 +148,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
       settings.serviceProtocol should be(Some("tcp"))
     }
 
-    // TODO
-    "fail to parse configuration with non-existent certificate" ignore {
+    "fail to parse configuration with non-existent certificate" in {
       val system = sysWithCert("no-such-cert.pem")
       try {
         val thrown = the[IllegalArgumentException] thrownBy
