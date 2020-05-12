@@ -151,7 +151,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
     "fail to parse configuration with non-existent certificate" in {
       val system = sysWithCert("no-such-cert.pem")
       try {
-        val thrown = the[IllegalArgumentException] thrownBy
+        val thrown = the[Exception] thrownBy
           GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(system)
         // We want a good message since missing classpath resources are difficult to debug
         thrown.getMessage should include("certs/no-such-cert.pem")
