@@ -1,0 +1,2 @@
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.SSLContextUtils.*")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcClientSettings.*")
