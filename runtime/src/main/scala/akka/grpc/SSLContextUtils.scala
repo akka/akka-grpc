@@ -11,9 +11,8 @@ import java.security.cert.{ CertificateFactory, X509Certificate }
 import akka.annotation.InternalApi
 import javax.net.ssl.{ TrustManager, TrustManagerFactory }
 
-@InternalApi
 object SSLContextUtils {
-  def fromStream(certStream: InputStream): TrustManager = {
+  def trustManagerFromStream(certStream: InputStream): TrustManager = {
     try {
       import scala.collection.JavaConverters._
       val cf = CertificateFactory.getInstance("X.509")
@@ -35,6 +34,6 @@ object SSLContextUtils {
   def trustManagerFromResource(certificateResourcePath: String): TrustManager = {
     val certStream: InputStream = getClass.getResourceAsStream(certificateResourcePath)
     if (certStream == null) throw new IOException(s"Couldn't find '$certificateResourcePath' on the classpath")
-    fromStream(certStream)
+    trustManagerFromStream(certStream)
   }
 }

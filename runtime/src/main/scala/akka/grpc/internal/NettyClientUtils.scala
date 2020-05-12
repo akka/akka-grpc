@@ -49,12 +49,10 @@ object NettyClientUtils {
     if (!settings.useTls)
       builder = builder.usePlaintext()
     else {
+      builder = builder.negotiationType(NegotiationType.TLS)
       builder = settings.trustManager
-        .map(trustManager => {
-          val nettySslContext = GrpcSslContexts.forClient().trustManager(trustManager).build()
-          builder.negotiationType(NegotiationType.TLS).sslContext(nettySslContext)
-        })
-        .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+        .map(trustManager => builder.sslContext(GrpcSslContexts.forClient().trustManager(trustManager).build()))
+        .getOrElse(builder)
     }
 
     builder = settings.grpcLoadBalancingType.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)
