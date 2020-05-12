@@ -192,7 +192,7 @@ public final class Utils {
       // Note: In this sample we are using a dummy TLS cert so we need to fake the authority
       return settings
           .withOverrideAuthority(TestUtils.TEST_SERVER_HOST)
-          .withSSLContext(SSLContextUtils.sslContextFromResource("/certs/ca.pem"));
+          .withTrustManager(SSLContextUtils.trustManagerFromResource("/certs/ca.pem"));
     else
       return settings.withTls(false);
 
