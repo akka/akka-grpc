@@ -1,6 +1,7 @@
 package akka.grpc
 
 import sbt._
+import sbt.Keys._
 import com.lightbend.sbt.javaagent.JavaAgent
 import com.lightbend.sbt.javaagent.JavaAgent.JavaAgentKeys.javaAgents
 
@@ -13,6 +14,7 @@ object ProjectExtensions {
       project
         .enablePlugins(JavaAgent)
         .settings(
+          //javaOptions ++= Seq("-Xdebug", "-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y"),
           // #alpn
           // ALPN agent, only required on JVM 8
           javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10"

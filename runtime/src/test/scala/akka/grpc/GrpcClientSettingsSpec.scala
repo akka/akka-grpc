@@ -101,14 +101,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
             host = "my-host"
             port = 42
             override-authority = "google.fr"
-            ssl-config {
-              disabledKeyAlgorithms = [] // Allow weak certificates
-              trustManager {
-                stores = [
-                  {path = certs/$certFileName, classpath = true, type = PEM}
-                ]
-              }
-            }
+            trusted = certs/$certFileName
             deadline = 10m
             user-agent = "Akka-gRPC"
           }
@@ -132,7 +125,6 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
       discovered.host should be("my-host")
       discovered.port should be(Some(42))
       parsed.overrideAuthority should be(Some("google.fr"))
-      parsed.sslContext shouldBe defined
       parsed.deadline should be(10.minutes)
       parsed.userAgent should be(Some("Akka-gRPC"))
       parsed.useTls should be(true)
@@ -159,7 +151,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
     "fail to parse configuration with non-existent certificate" in {
       val system = sysWithCert("no-such-cert.pem")
       try {
-        val thrown = the[IllegalArgumentException] thrownBy
+        val thrown = the[Exception] thrownBy
           GrpcClientSettings.fromConfig("project.WithSpecificConfiguration")(system)
         // We want a good message since missing classpath resources are difficult to debug
         thrown.getMessage should include("certs/no-such-cert.pem")

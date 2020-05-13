@@ -4,7 +4,6 @@
 
 package akka.grpc.internal
 
-import java.lang.reflect.Field
 import java.util.concurrent.TimeUnit
 
 import akka.Done
@@ -15,8 +14,6 @@ import io.grpc.CallOptions
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl._
-import javax.net.ssl.SSLContext
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
@@ -52,9 +49,10 @@ object NettyClientUtils {
     if (!settings.useTls)
       builder = builder.usePlaintext()
     else {
-      builder = settings.sslContext
-        .map(javaCtx => builder.negotiationType(NegotiationType.TLS).sslContext(nettyHttp2SslContext(javaCtx)))
-        .getOrElse(builder.negotiationType(NegotiationType.PLAINTEXT))
+      builder = builder.negotiationType(NegotiationType.TLS)
+      builder = settings.trustManager
+        .map(trustManager => builder.sslContext(GrpcSslContexts.forClient().trustManager(trustManager).build()))
+        .getOrElse(builder)
     }
 
     builder = settings.grpcLoadBalancingType.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)
@@ -90,30 +88,6 @@ object NettyClientUtils {
     }
 
     InternalChannel(channel, channelClosedPromise.future)
-  }
-
-  /**
-   * INTERNAL API
-   *
-   * Given a Java [[SSLContext]], create a Netty [[SslContext]] that can be used to build
-   * a Netty HTTP/2 channel.
-   */
-  @InternalApi
-  private def nettyHttp2SslContext(javaSslContext: SSLContext): SslContext = {
-    // FIXME: Create a JdkSslContext using a normal constructor. Need to work out sensible values for all args first.
-    // In the meantime, use a Netty SslContextBuild to create a JdkSslContext, then use reflection to patch the
-    // object's internal SSLContext. It's not pretty, but it gets something working for now.
-
-    // Create a Netty JdkSslContext object with all the correct ciphers, protocol settings, etc initialized.
-    val nettySslContext: JdkSslContext =
-      GrpcSslContexts.configure(GrpcSslContexts.forClient, SslProvider.JDK).build.asInstanceOf[JdkSslContext]
-
-    // Patch the SSLContext value inside the JdkSslContext object
-    val nettySslContextField: Field = classOf[JdkSslContext].getDeclaredField("sslContext")
-    nettySslContextField.setAccessible(true)
-    nettySslContextField.set(nettySslContext, javaSslContext)
-
-    nettySslContext
   }
 
   /**

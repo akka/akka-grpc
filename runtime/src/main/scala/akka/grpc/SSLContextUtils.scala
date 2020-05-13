@@ -4,28 +4,35 @@
 
 package akka.grpc
 
-import java.io.{ File, FileInputStream, IOException, InputStream }
+import java.io.{ BufferedInputStream, IOException, InputStream }
+import java.security.KeyStore
+import java.security.cert.{ CertificateFactory, X509Certificate }
 
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
-import io.grpc.netty.shaded.io.netty.handler.ssl.{ JdkSslContext, SslProvider }
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{ TrustManager, TrustManagerFactory }
 
 object SSLContextUtils {
-  def fromStream(certStream: InputStream): SSLContext = {
-    val sslBuilder =
-      try {
-        GrpcSslContexts.forClient.trustManager(certStream)
-      } finally certStream.close()
-    GrpcSslContexts.configure(sslBuilder, SslProvider.JDK).build.asInstanceOf[JdkSslContext].context
+  def trustManagerFromStream(certStream: InputStream): TrustManager = {
+    try {
+      import scala.collection.JavaConverters._
+      val cf = CertificateFactory.getInstance("X.509")
+      val bis = new BufferedInputStream(certStream)
+
+      val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
+      keystore.load(null)
+      cf.generateCertificates(bis).asScala.foreach { cert =>
+        val alias = cert.asInstanceOf[X509Certificate].getSubjectX500Principal.getName
+        keystore.setCertificateEntry(alias, cert)
+      }
+
+      val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+      tmf.init(keystore)
+      tmf.getTrustManagers()(0)
+    } finally certStream.close()
   }
 
-  def sslContextFromResource(certificateResourcePath: String): SSLContext = {
-    // Use Netty's SslContextBuilder internally to help us construct a SSLContext
+  def trustManagerFromResource(certificateResourcePath: String): TrustManager = {
     val certStream: InputStream = getClass.getResourceAsStream(certificateResourcePath)
     if (certStream == null) throw new IOException(s"Couldn't find '$certificateResourcePath' on the classpath")
-    fromStream(certStream)
+    trustManagerFromStream(certStream)
   }
-
-  def sslContextFromFile(certPath: File): SSLContext =
-    fromStream(new FileInputStream(certPath))
 }
