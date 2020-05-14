@@ -27,7 +27,7 @@ val root = project.in(file("."))
     "org.hdrhistogram" % "HdrHistogram" % "2.1.10",
     "org.apache.commons" % "commons-math3" % "3.6",
     "org.scalatest" %% "scalatest" % "3.1.2" % "test",
-    "org.scalatestplus" %% "junit-4-12" % "3.1.1.0" % "test"
+    "org.scalatestplus" %% "junit-4-12" % "3.1.2.0" % "test"
   ))
 
 
