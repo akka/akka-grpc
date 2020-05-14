@@ -14,6 +14,7 @@ import io.grpc.CallOptions
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
@@ -50,9 +51,21 @@ object NettyClientUtils {
       builder = builder.usePlaintext()
     else {
       builder = builder.negotiationType(NegotiationType.TLS)
-      builder = settings.trustManager
-        .map(trustManager => builder.sslContext(GrpcSslContexts.forClient().trustManager(trustManager).build()))
-        .getOrElse(builder)
+      builder = (settings.trustManager, settings.sslProvider) match {
+        case (None, None) =>
+          builder
+        case (tm, provider) =>
+          val context = provider match {
+            case None =>
+              GrpcSslContexts.configure(SslContextBuilder.forClient())
+            case Some(sslProvider) =>
+              GrpcSslContexts.configure(SslContextBuilder.forClient(), sslProvider)
+          }
+          builder.sslContext((tm match {
+            case None               => context
+            case Some(trustManager) => context.trustManager(trustManager)
+          }).build())
+      }
     }
 
     builder = settings.grpcLoadBalancingType.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)

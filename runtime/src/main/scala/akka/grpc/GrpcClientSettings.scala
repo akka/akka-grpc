@@ -14,6 +14,7 @@ import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 import javax.net.ssl.TrustManager
 
 import scala.collection.immutable
@@ -127,6 +128,14 @@ object GrpcClientSettings {
       getOptionalInt(clientConfiguration, "connection-attempts"),
       None,
       getOptionalString(clientConfiguration, "override-authority"),
+      getOptionalString(clientConfiguration, "ssl-provider").map({
+        case "jdk"            => SslProvider.JDK
+        case "openssl"        => SslProvider.OPENSSL
+        case "openssl_refcnt" => SslProvider.OPENSSL_REFCNT
+        case other =>
+          throw new IllegalArgumentException(
+            s"ssl-provider: expected empty, 'jdk', 'openssl' or 'openssl_refcnt', but got [$other]")
+      }),
       getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
@@ -169,6 +178,7 @@ final class GrpcClientSettings private (
     val connectionAttempts: Option[Int],
     val callCredentials: Option[CallCredentials],
     val overrideAuthority: Option[String],
+    val sslProvider: Option[SslProvider],
     val trustManager: Option[TrustManager],
     val deadline: Duration,
     val userAgent: Option[String],
@@ -182,6 +192,7 @@ final class GrpcClientSettings private (
   def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
+  def withSslProvider(sslProvider: SslProvider): GrpcClientSettings = copy(sslProvider = Option(sslProvider))
   def withTrustManager(trustManager: TrustManager) = copy(trustManager = Option(trustManager))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
@@ -243,6 +254,7 @@ final class GrpcClientSettings private (
       defaultPort: Int = defaultPort,
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,
+      sslProvider: Option[SslProvider] = sslProvider,
       trustManager: Option[TrustManager] = trustManager,
       deadline: Duration = deadline,
       userAgent: Option[String] = userAgent,
@@ -261,6 +273,7 @@ final class GrpcClientSettings private (
       serviceName = serviceName,
       overrideAuthority = overrideAuthority,
       defaultPort = defaultPort,
+      sslProvider = sslProvider,
       trustManager = trustManager,
       userAgent = userAgent,
       useTls = useTls,
