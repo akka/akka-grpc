@@ -6,14 +6,13 @@ package akka.grpc.scaladsl
 
 import scala.collection.immutable
 import scala.concurrent.Future
-import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MarshallingDirectives.handleWith
-import akka.stream.Materializer
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import ch.megard.akka.http.cors.scaladsl.model.HttpHeaderRange
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
@@ -49,9 +48,9 @@ object WebHandler {
    *  - Otherise if the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
    */
   def grpcWebHandler(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*)(
-      implicit as: ActorSystem,
-      mat: Materializer,
+      implicit as: ClassicActorSystemProvider,
       corsSettings: CorsSettings = defaultCorsSettings): HttpRequest => Future[HttpResponse] = {
+    implicit val system = as.classicSystem
     val servicesHandler = ServiceHandler.concat(handlers: _*)
     Route.asyncHandler(cors(corsSettings) {
       handleWith(servicesHandler)

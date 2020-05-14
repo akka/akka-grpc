@@ -58,7 +58,7 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
     this.settings = settings;
     this.mat = SystemMaterializer.get(sys).materializer();
     this.as = sys;
-    this.ec =  sys.dispatcher();
+    this.ec = sys.dispatcher();
   }
 
   @Override
@@ -67,8 +67,8 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
         GrpcClientSettings.connectToServiceAt(settings.serverHost(), settings.serverPort(), as)
           .withOverrideAuthority(settings.serverHostOverride())
           .withTrustManager(SSLContextUtils.trustManagerFromResource("/certs/ca.pem"));
-    client = TestServiceClient.create(grpcSettings, mat, ec);
-    clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, mat, ec);
+    client = TestServiceClient.create(grpcSettings, as);
+    clientUnimplementedService = UnimplementedServiceClient.create(grpcSettings, as);
   }
 
   @Override

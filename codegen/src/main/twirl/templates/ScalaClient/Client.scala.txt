@@ -11,6 +11,8 @@ import scala.concurrent.ExecutionContext
 
 import io.grpc.MethodDescriptor
 
+import akka.actor.ClassicActorSystemProvider
+
 import akka.grpc.GrpcClientSettings
 
 import akka.grpc.scaladsl.AkkaGrpcClient
@@ -18,9 +20,6 @@ import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.grpc.internal.Marshaller
 import akka.grpc.internal.NettyClientUtils
 import akka.grpc.internal.ClientState
-
-import akka.stream.ActorMaterializer
-import akka.stream.Materializer
 
 @{
   def withSingleResponse(stmt: String) = Set("import akka.grpc.scaladsl.SingleResponseRequestBuilder", stmt)
@@ -42,15 +41,16 @@ import akka.stream.Materializer
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 object @{service.name}Client {
-  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
     new Default@{service.name}Client(settings)
 }
 
-final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext) extends @{service.name}Client {
+final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
   import Default@{service.name}Client._
 
+  private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
   private val options = NettyClientUtils.callOptions(settings)
-  private val clientState = new ClientState(settings, akka.event.Logging(mat.asInstanceOf[ActorMaterializer].system, this.getClass))
+  private val clientState = new ClientState(settings, akka.event.Logging(sys.classicSystem, this.getClass))
 
   @for(method <- service.methods) {
     private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) = {
@@ -61,7 +61,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
         @if(method.methodType == akka.grpc.gen.ServerStreaming) {
           new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
         } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings, mat)
+          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
         } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
           new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
         }
@@ -103,7 +103,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
 private object Default@{service.name}Client {
 
-  def apply(settings: GrpcClientSettings)(implicit mat: Materializer, ex: ExecutionContext): @{service.name}Client =
+  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
     new Default@{service.name}Client(settings)
 
   import @{service.name}.Serializers._

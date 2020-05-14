@@ -35,7 +35,7 @@ class LiftedGreeterClient {
     GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
     GreeterServiceClient client = null;
     try {
-      client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
+      client = GreeterServiceClient.create(settings, system);
 
       singleRequestReply(client);
       streamingRequest(client);
