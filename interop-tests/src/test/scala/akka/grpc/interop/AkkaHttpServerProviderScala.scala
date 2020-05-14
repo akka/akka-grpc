@@ -9,7 +9,7 @@ import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcResponseHelpers, Identity }
 import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
-import akka.stream.{ Materializer, SystemMaterializer }
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import io.grpc.Status
 import io.grpc.testing.integration.messages.{ SimpleRequest, StreamingOutputCallRequest }
@@ -24,8 +24,6 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
     Set()
 
   val server = AkkaGrpcServerScala(implicit sys => {
-    implicit val ec = sys.dispatcher
-
     val testServiceImpl = new TestServiceImpl()
     val testServiceHandler = TestServiceHandler(testServiceImpl)
 
@@ -37,8 +35,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
       //  customStatusRoute(testServiceImpl) ~ handleWith(testServiceHandler)
     }
 
-    implicit val mat: Materializer = SystemMaterializer(sys).materializer
-    Route.asyncHandler(Route.seal(route))
+    Route.toFunction(Route.seal(route))
   })
 
   // Directive to implement the 'custom_metadata' test

@@ -37,7 +37,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
     }
 
     implicit val mat: Materializer = SystemMaterializer(sys).materializer
-    Route.asyncHandler(Route.seal(route))
+    Route.toFunction(Route.seal(route))
   })
 
   val echoHeaders: Directive0 = extractRequest.flatMap(request => {
