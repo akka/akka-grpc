@@ -78,7 +78,7 @@ public class LoadWorkerTest extends JUnitSuite {
     worker = new LoadWorker(system, port, 0);
     worker.start().toCompletableFuture().get(10, TimeUnit.SECONDS);
     GrpcClientSettings settings = Utils.createGrpcClientSettings(new InetSocketAddress("127.0.0.1", port), true, system);
-    workerServiceStub = WorkerServiceClient.create(settings, mat, system.dispatcher());
+    workerServiceStub = WorkerServiceClient.create(settings, system);
   }
 
   @After
