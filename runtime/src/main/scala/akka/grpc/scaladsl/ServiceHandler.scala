@@ -31,7 +31,7 @@ object ServiceHandler {
       handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*): HttpRequest => Future[HttpResponse] =
     concat(handlers: _*).orElse { case _ => notFound }
 
-  private[scaladsl] def concat(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*)
+  def concat(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*)
       : PartialFunction[HttpRequest, Future[HttpResponse]] =
     handlers.foldLeft(PartialFunction.empty[HttpRequest, Future[HttpResponse]]) {
       case (acc, pf) => acc.orElse(pf)
