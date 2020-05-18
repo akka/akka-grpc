@@ -12,11 +12,11 @@ import akka.grpc.javadsl.{ Metadata => jMetadata }
 
 @ApiMayChange
 class Trailers(val status: Status, val metadata: Metadata) {
-  def this(status: Status) {
+  def this(status: Status) = {
     this(status, MetadataBuilder.empty)
   }
 
-  def this(status: Status, metadata: jMetadata) {
+  def this(status: Status, metadata: jMetadata) = {
     this(status, metadata.asScala)
   }
 
