@@ -15,7 +15,7 @@ import com.typesafe.config.{ Config, ConfigValueFactory }
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
-import javax.net.ssl.TrustManager
+import javax.net.ssl.{ SSLContext, TrustManager }
 
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
@@ -136,6 +136,7 @@ object GrpcClientSettings {
           throw new IllegalArgumentException(
             s"ssl-provider: expected empty, 'jdk', 'openssl' or 'openssl_refcnt', but got [$other]")
       }),
+      None,
       getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
@@ -179,6 +180,7 @@ final class GrpcClientSettings private (
     val callCredentials: Option[CallCredentials],
     val overrideAuthority: Option[String],
     val sslProvider: Option[SslProvider],
+    val sslContext: Option[SSLContext],
     val trustManager: Option[TrustManager],
     val deadline: Duration,
     val userAgent: Option[String],
@@ -193,6 +195,12 @@ final class GrpcClientSettings private (
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withSslProvider(sslProvider: SslProvider): GrpcClientSettings = copy(sslProvider = Option(sslProvider))
+
+  /**
+   * Prefer using `withContextManager`: withSslContext forces the ssl-provider 'jdk', which is known
+   * not to work on JDK 1.8.0_252.
+   */
+  def withSslContext(sslContext: SSLContext): GrpcClientSettings = copy(sslContext = Option(sslContext))
   def withTrustManager(trustManager: TrustManager) = copy(trustManager = Option(trustManager))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
@@ -255,6 +263,7 @@ final class GrpcClientSettings private (
       callCredentials: Option[CallCredentials] = callCredentials,
       overrideAuthority: Option[String] = overrideAuthority,
       sslProvider: Option[SslProvider] = sslProvider,
+      sslContext: Option[SSLContext] = sslContext,
       trustManager: Option[TrustManager] = trustManager,
       deadline: Duration = deadline,
       userAgent: Option[String] = userAgent,
@@ -274,6 +283,7 @@ final class GrpcClientSettings private (
       overrideAuthority = overrideAuthority,
       defaultPort = defaultPort,
       sslProvider = sslProvider,
+      sslContext = sslContext,
       trustManager = trustManager,
       userAgent = userAgent,
       useTls = useTls,
