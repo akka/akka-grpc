@@ -13,6 +13,7 @@ lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
+  .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.codegen)
   .settings(
@@ -47,6 +48,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
+  .enablePlugins(ReproducibleBuildsPlugin)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
@@ -69,9 +71,11 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     crossScalaVersions := Seq(scala212))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
+  .enablePlugins(ReproducibleBuildsPlugin)
 
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
   .enablePlugins(akka.grpc.SbtMavenPlugin)
+  .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.mavenPlugin)
   .settings(publishMavenStyle := true, crossPaths := false, crossScalaVersions := Seq(scala212))
@@ -79,6 +83,7 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
 
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .enablePlugins(SbtPlugin)
+  .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.sbtPlugin)
   .settings(
