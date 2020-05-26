@@ -21,11 +21,10 @@ sbt
     enablePlugins(JavaAgent)
     javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
     ```
-​    @@@
+    @@@
 
 Gradle
 :   @@@vars
-
     ```gradle
     buildscript {
       repositories {
@@ -48,7 +47,7 @@ Gradle
       mavenCentral()
     }
     ```
-​    @@@
+    @@@
 
 Maven
 :   @@@vars
