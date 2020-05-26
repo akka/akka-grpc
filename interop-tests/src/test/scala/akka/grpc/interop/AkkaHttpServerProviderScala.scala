@@ -101,11 +101,13 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
     mapResponse(response =>
       response.withEntity(response.entity match {
         case HttpEntity.Chunked(contentType, data) => {
-          HttpEntity.Chunked(contentType, data.map {
-            case chunk: HttpEntity.Chunk => chunk
-            case last: HttpEntity.LastChunk =>
-              HttpEntity.LastChunk(last.extension, f(last.trailer))
-          })
+          HttpEntity.Chunked(
+            contentType,
+            data.map {
+              case chunk: HttpEntity.Chunk => chunk
+              case last: HttpEntity.LastChunk =>
+                HttpEntity.LastChunk(last.extension, f(last.trailer))
+            })
         }
         case _ =>
           throw new IllegalArgumentException("Trailing response headers are only supported on Chunked responses")

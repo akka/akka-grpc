@@ -38,7 +38,11 @@ final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescr
           val list = findFileDescForExtension(container, number, fileDescriptors).map(_.toProto.toByteString).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
         case In.AllExtensionNumbersOfType(container) =>
-          val list = findExtensionNumbersForContainingType(container, fileDescriptors) // TODO should we throw a NOT_FOUND if we don't know the container type at all?
+          val list =
+            findExtensionNumbersForContainingType(
+              container,
+              fileDescriptors
+            ) // TODO should we throw a NOT_FOUND if we don't know the container type at all?
           Out.AllExtensionNumbersResponse(ExtensionNumberResponse(container, list))
         case In.ListServices(_) =>
           val list = services.map(s => ServiceResponse(s))

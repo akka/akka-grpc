@@ -21,9 +21,11 @@ class CancellationBarrierGraphStage[T] extends GraphStage[FlowShape[T, T]] {
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) {
-      setHandler(in, new InHandler {
-        override def onPush(): Unit = emit(out, grab(in))
-      })
+      setHandler(
+        in,
+        new InHandler {
+          override def onPush(): Unit = emit(out, grab(in))
+        })
 
       setHandler(
         out,
@@ -34,12 +36,14 @@ class CancellationBarrierGraphStage[T] extends GraphStage[FlowShape[T, T]] {
             if (!hasBeenPulled(in))
               pull(in)
 
-            setHandler(in, new InHandler {
-              override def onPush(): Unit = {
-                grab(in)
-                pull(in)
-              }
-            })
+            setHandler(
+              in,
+              new InHandler {
+                override def onPush(): Unit = {
+                  grab(in)
+                  pull(in)
+                }
+              })
           }
         })
     }

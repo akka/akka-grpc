@@ -45,12 +45,13 @@ case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest 
     (sys, binding)
   }
 
-  override def stop(binding: (ActorSystem, ServerBinding)) = binding match {
-    case (sys, binding) =>
-      sys.log.info("Exception thrown, unbinding")
-      Await.result(binding.unbind(), 10.seconds)
-      Await.result(sys.terminate(), 10.seconds)
-  }
+  override def stop(binding: (ActorSystem, ServerBinding)) =
+    binding match {
+      case (sys, binding) =>
+        sys.log.info("Exception thrown, unbinding")
+        Await.result(binding.unbind(), 10.seconds)
+        Await.result(sys.terminate(), 10.seconds)
+    }
 
   private def serverHttpContext() = {
     val keyEncoded =

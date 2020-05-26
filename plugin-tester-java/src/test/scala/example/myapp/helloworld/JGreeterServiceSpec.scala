@@ -57,16 +57,17 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
   }
 
   "GreeterServicePowerApi" should {
-    Seq(("Authorization", "Hello, Alice (authenticated)"), ("WrongHeaderName", "Hello, Alice (not authenticated)")).zipWithIndex
-      .foreach {
-        case ((mdName, expResp), ix) =>
-          s"use metadata in replying to single request ($ix)" in {
-            val reply = clients.last
-              .sayHello()
-              .addHeader(mdName, "<some auth token>")
-              .invoke(HelloRequest.newBuilder.setName("Alice").build())
-            reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage(expResp).build())
-          }
-      }
+    Seq(
+      ("Authorization", "Hello, Alice (authenticated)"),
+      ("WrongHeaderName", "Hello, Alice (not authenticated)")).zipWithIndex.foreach {
+      case ((mdName, expResp), ix) =>
+        s"use metadata in replying to single request ($ix)" in {
+          val reply = clients.last
+            .sayHello()
+            .addHeader(mdName, "<some auth token>")
+            .invoke(HelloRequest.newBuilder.setName("Alice").build())
+          reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage(expResp).build())
+        }
+    }
   }
 }
