@@ -187,6 +187,12 @@ final class GrpcClientSettings private (
     val useTls: Boolean,
     val grpcLoadBalancingType: Option[String],
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
+  require(
+    sslContext.isEmpty || trustManager.isEmpty,
+    "Configuring the sslContext or the trustManager is mutually exclusive")
+  require(
+    if (sslContext.isDefined) sslProvider.forall(_ == SslProvider.JDK) else true,
+    "When sslContext is configured, sslProvider must not set to something different than JDK")
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
