@@ -54,7 +54,12 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
         file <- request.getFileToGenerateList.asScala
         fileDesc = fileDescByName(file)
         serviceDesc <- fileDesc.getServices.asScala
-      } yield Service(parseParameters(request.getParameter), fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toSeq
+      } yield Service(
+        parseParameters(request.getParameter),
+        fileDesc,
+        serviceDesc,
+        serverPowerApi,
+        usePlayActions)).toSeq
 
     for {
       service <- services

@@ -74,8 +74,9 @@ object MetadataBuilder {
    * @param header A Java HTTP header.
    * @return An equivalent Scala HTTP header.
    */
-  private def asScala(header: HttpHeader): sHttpHeader = header match {
-    case s: sHttpHeader => s
-    case _              => RawHeader(header.name, header.value)
-  }
+  private def asScala(header: HttpHeader): sHttpHeader =
+    header match {
+      case s: sHttpHeader => s
+      case _              => RawHeader(header.name, header.value)
+    }
 }

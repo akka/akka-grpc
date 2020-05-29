@@ -35,21 +35,22 @@ object GrpcExceptionHandler {
   @InternalApi
   private def default(system: ActorSystem): jFunction[Throwable, Trailers] =
     new jFunction[Throwable, Trailers] {
-      override def apply(param: Throwable): Trailers = param match {
-        case e: ExecutionException =>
-          if (e.getCause == null) INTERNAL
-          else default(system)(e.getCause)
-        case e: CompletionException =>
-          if (e.getCause == null) INTERNAL
-          else default(system)(e.getCause)
-        case grpcException: GrpcServiceException => Trailers(grpcException.status, grpcException.metadata)
-        case _: MissingParameterException        => INVALID_ARGUMENT
-        case _: NotImplementedError              => UNIMPLEMENTED
-        case _: UnsupportedOperationException    => UNIMPLEMENTED
-        case other =>
-          system.log.error(other, "Unhandled error: [" + other.getMessage + "]")
-          INTERNAL
-      }
+      override def apply(param: Throwable): Trailers =
+        param match {
+          case e: ExecutionException =>
+            if (e.getCause == null) INTERNAL
+            else default(system)(e.getCause)
+          case e: CompletionException =>
+            if (e.getCause == null) INTERNAL
+            else default(system)(e.getCause)
+          case grpcException: GrpcServiceException => Trailers(grpcException.status, grpcException.metadata)
+          case _: MissingParameterException        => INVALID_ARGUMENT
+          case _: NotImplementedError              => UNIMPLEMENTED
+          case _: UnsupportedOperationException    => UNIMPLEMENTED
+          case other =>
+            system.log.error(other, "Unhandled error: [" + other.getMessage + "]")
+            INTERNAL
+        }
     }
 
   def standard(t: Throwable, writer: GrpcProtocolWriter, system: ClassicActorSystemProvider): HttpResponse =

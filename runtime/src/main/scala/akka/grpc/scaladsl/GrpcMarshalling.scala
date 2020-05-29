@@ -24,19 +24,23 @@ import com.github.ghik.silencer.silent
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
-    negotiated(req, (r, _) => {
-      implicit val reader: GrpcProtocolReader = r
-      unmarshal(req.entity.dataBytes)
-    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+    negotiated(
+      req,
+      (r, _) => {
+        implicit val reader: GrpcProtocolReader = r
+        unmarshal(req.entity.dataBytes)
+      }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def unmarshalStream[T](req: HttpRequest)(
       implicit u: ProtobufSerializer[T],
       @silent("never used") mat: Materializer): Future[Source[T, NotUsed]] = {
-    negotiated(req, (r, _) => {
-      implicit val reader: GrpcProtocolReader = r
-      unmarshalStream(req.entity.dataBytes)
-    }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
+    negotiated(
+      req,
+      (r, _) => {
+        implicit val reader: GrpcProtocolReader = r
+        unmarshalStream(req.entity.dataBytes)
+      }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =

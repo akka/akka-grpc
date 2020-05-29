@@ -143,15 +143,17 @@ object GrpcClientSettings {
       clientConfiguration.getBoolean("use-tls"),
       getOptionalString(clientConfiguration, "grpc-load-balancing"))
 
-  private def getOptionalString(config: Config, path: String): Option[String] = config.getString(path) match {
-    case ""    => None
-    case other => Some(other)
-  }
+  private def getOptionalString(config: Config, path: String): Option[String] =
+    config.getString(path) match {
+      case ""    => None
+      case other => Some(other)
+    }
 
-  private def getOptionalInt(config: Config, path: String): Option[Int] = config.getInt(path) match {
-    case -1    => None // retry forever
-    case other => Some(other)
-  }
+  private def getOptionalInt(config: Config, path: String): Option[Int] =
+    config.getInt(path) match {
+      case -1    => None // retry forever
+      case other => Some(other)
+    }
 
   private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration =
     Helpers.toRootLowerCase(underlying.getString(path)) match {

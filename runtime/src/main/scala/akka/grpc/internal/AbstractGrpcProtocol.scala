@@ -91,45 +91,46 @@ object AbstractGrpcProtocol {
     GrpcProtocolReader(codec, flowAdapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
 
   class GrpcFramingDecoderStage(codec: Codec, deframe: (Int, ByteString) => Frame) extends ByteStringParser[Frame] {
-    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new ParsingLogic {
-      startWith(ReadFrameHeader)
+    override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
+      new ParsingLogic {
+        startWith(ReadFrameHeader)
 
-      trait Step extends ParseStep[Frame]
+        trait Step extends ParseStep[Frame]
 
-      object ReadFrameHeader extends Step {
-        override def parse(reader: ByteReader): ParseResult[Frame] = {
-          val frameType = reader.readByte()
-          // If we want to support > 2GB frames, this should be unsigned
-          val length = reader.readIntBE()
+        object ReadFrameHeader extends Step {
+          override def parse(reader: ByteReader): ParseResult[Frame] = {
+            val frameType = reader.readByte()
+            // If we want to support > 2GB frames, this should be unsigned
+            val length = reader.readIntBE()
 
-          if (length == 0) ParseResult(Some(deframe(frameType, ByteString.empty)), ReadFrameHeader)
-          else ParseResult(None, ReadFrame(frameType, length), acceptUpstreamFinish = false)
-        }
-      }
-
-      sealed case class ReadFrame(frameType: Int, length: Int) extends Step {
-        private val compression = (frameType & 0x01) == 1
-
-        override def parse(reader: ByteReader): ParseResult[Frame] = {
-          if (compression) codec match {
-            case Identity =>
-              failStage(
-                new StatusException(
-                  Status.INTERNAL.withDescription(
-                    "Compressed-Flag bit is set, but a compression encoding is not specified")))
-              ParseResult(None, Failed)
-            case _ =>
-              ParseResult(Some(deframe(frameType, codec.uncompress(reader.take(length)))), ReadFrameHeader)
-          }
-          else {
-            ParseResult(Some(deframe(frameType, reader.take(length))), ReadFrameHeader)
+            if (length == 0) ParseResult(Some(deframe(frameType, ByteString.empty)), ReadFrameHeader)
+            else ParseResult(None, ReadFrame(frameType, length), acceptUpstreamFinish = false)
           }
         }
-      }
 
-      final case object Failed extends Step {
-        override def parse(reader: ByteReader): ParseResult[Frame] = ParseResult(None, Failed)
+        sealed case class ReadFrame(frameType: Int, length: Int) extends Step {
+          private val compression = (frameType & 0x01) == 1
+
+          override def parse(reader: ByteReader): ParseResult[Frame] = {
+            if (compression) codec match {
+              case Identity =>
+                failStage(
+                  new StatusException(
+                    Status.INTERNAL.withDescription(
+                      "Compressed-Flag bit is set, but a compression encoding is not specified")))
+                ParseResult(None, Failed)
+              case _ =>
+                ParseResult(Some(deframe(frameType, codec.uncompress(reader.take(length)))), ReadFrameHeader)
+            }
+            else {
+              ParseResult(Some(deframe(frameType, reader.take(length))), ReadFrameHeader)
+            }
+          }
+        }
+
+        final case object Failed extends Step {
+          override def parse(reader: ByteReader): ParseResult[Frame] = ParseResult(None, Failed)
+        }
       }
-    }
   }
 }

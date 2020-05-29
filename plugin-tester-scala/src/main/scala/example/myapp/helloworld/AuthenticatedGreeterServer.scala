@@ -57,9 +57,11 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
         else reject
       }
 
-    val route = concat(authenticationRoute, authorizationDirective {
-      handlerRoute
-    })
+    val route = concat(
+      authenticationRoute,
+      authorizationDirective {
+        handlerRoute
+      })
 
     // Bind service handler servers to localhost:8082
     val binding = Http2().bindAndHandleAsync(

@@ -128,13 +128,15 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
  */
 @InternalApi
 class EntryMetadataImpl(entries: List[(String, MetadataEntry)] = Nil) extends Metadata {
-  override def getText(key: String): Option[String] = entries.reverseIterator.collectFirst {
-    case (name, StringEntry(value)) if name == key => value
-  }
+  override def getText(key: String): Option[String] =
+    entries.reverseIterator.collectFirst {
+      case (name, StringEntry(value)) if name == key => value
+    }
 
-  override def getBinary(key: String): Option[ByteString] = entries.reverseIterator.collectFirst {
-    case (name, BytesEntry(value)) if name == key => value
-  }
+  override def getBinary(key: String): Option[ByteString] =
+    entries.reverseIterator.collectFirst {
+      case (name, BytesEntry(value)) if name == key => value
+    }
 
   override def asMap: Map[String, List[MetadataEntry]] =
     MetadataImpl.toMap(entries)
@@ -155,9 +157,10 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
   private lazy val map: Map[String, List[MetadataEntry]] =
     MetadataImpl.toMap(asList)
 
-  override def getText(key: String): Option[String] = headers.reverseIterator.collectFirst {
-    case header if header.name == key => header.value
-  }
+  override def getText(key: String): Option[String] =
+    headers.reverseIterator.collectFirst {
+      case header if header.name == key => header.value
+    }
 
   override def getBinary(key: String): Option[ByteString] =
     headers.reverseIterator.collectFirst {
