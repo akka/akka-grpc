@@ -92,6 +92,14 @@ Maven
 
 For a complete overview of the configuration options see the chapter for your build tool, @ref[sbt](../buildtools/sbt.md), @ref[Gradle](../buildtools/gradle.md) or @ref[Maven](../buildtools/maven.md).
 
+### Dependencies
+
+The Akka gRPC plugin makes your code depend on the `akka-grpc-runtime` library.
+
+The table below shows direct dependencies of it and the second tab shows all libraries it depends on transitively. Be aware that the `io.grpc.grpc-api` library depends on Guava.
+
+@@dependencies { projectId="akka-grpc-runtime" }
+
 ## Generating Service Stubs
 
 To use a service, such as the Hello World service described in the @ref:[server documentation](../server/index.md),
