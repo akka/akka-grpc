@@ -84,7 +84,7 @@ public class AsyncClient {
 
     List<BenchmarkServiceClient> clients = new ArrayList<BenchmarkServiceClient>(config.channels);
     for (int i = 0; i < config.channels; i++) {
-      BenchmarkServiceClient client = BenchmarkServiceClient.create(settings, mat, system.dispatcher());
+      BenchmarkServiceClient client = BenchmarkServiceClient.create(settings, system);
       clients.add(client);
     }
 

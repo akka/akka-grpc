@@ -87,7 +87,7 @@ class LoadClient {
 
       GrpcClientSettings settings = Utils.createGrpcClientSettings(socketAddress, config.hasSecurityParams(), system);
 
-      BenchmarkServiceClient client = BenchmarkServiceClient.create(settings, mat, system.dispatcher());
+      BenchmarkServiceClient client = BenchmarkServiceClient.create(settings, system);
 
       clients[i] = client;
     }

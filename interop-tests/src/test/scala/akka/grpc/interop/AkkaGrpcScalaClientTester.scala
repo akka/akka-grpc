@@ -33,7 +33,6 @@ import scala.util.control.NoStackTrace
 class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSystem) extends ClientTester {
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
-  private implicit val ec = system.dispatcher
   private implicit val mat = SystemMaterializer(system).materializer
 
   private val awaitTimeout = 15.seconds

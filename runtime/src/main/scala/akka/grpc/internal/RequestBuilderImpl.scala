@@ -117,8 +117,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl,
-    materializer: Materializer)(implicit ec: ExecutionContext)
+    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
   @InternalStableApi
@@ -127,9 +126,8 @@ final class ScalaClientStreamingRequestBuilder[I, O](
       fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
-      settings: GrpcClientSettings,
-      materializer: Materializer)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty, materializer)
+      settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
@@ -154,7 +152,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     }
 
     val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
-      source.viaMat(flow)(Keep.right).toMat(Sink.head)(Keep.both).run()(materializer)
+      source.viaMat(flow)(Keep.right).toMat(Sink.head)(Keep.both).run()
 
     metadataFuture
       .zip(resultFuture)
@@ -172,14 +170,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaClientStreamingRequestBuilder[I, O] =
-    new ScalaClientStreamingRequestBuilder[I, O](
-      descriptor,
-      fqMethodName,
-      channel,
-      defaultOptions,
-      settings,
-      headers,
-      materializer)
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -192,8 +183,7 @@ final class JavaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl,
-    materializer: Materializer)(implicit ec: ExecutionContext)
+    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaClientStreamingRequestBuilder[I, O]] {
   @InternalStableApi
@@ -202,18 +192,11 @@ final class JavaClientStreamingRequestBuilder[I, O](
       fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
-      settings: GrpcClientSettings,
-      materializer: Materializer)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty, materializer)
+      settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
 
-  private val delegate = new ScalaClientStreamingRequestBuilder[I, O](
-    descriptor,
-    fqMethodName,
-    channel,
-    defaultOptions,
-    settings,
-    headers,
-    materializer)
+  private val delegate =
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
 
   override def invoke(request: JavaSource[I, NotUsed]): CompletionStage[O] =
     delegate.invoke(request.asScala).toJava
@@ -222,14 +205,7 @@ final class JavaClientStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(request.asScala).toJava
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingRequestBuilder[I, O] =
-    new JavaClientStreamingRequestBuilder[I, O](
-      descriptor,
-      fqMethodName,
-      channel,
-      defaultOptions,
-      settings,
-      headers,
-      materializer)
+    new JavaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
 }
 
 /**

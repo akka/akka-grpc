@@ -1,0 +1,6 @@
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.ServerReflectionClient.apply")
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient.apply")
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient.this")
+
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.WebHandler.grpcWebHandler$default$4")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.WebHandler.grpcWebHandler")
