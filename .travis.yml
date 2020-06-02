@@ -19,7 +19,8 @@ env:
     # encrypt with: travis encrypt TECH_HUB_TOKEN=...
     - secure: "sFbpTppagGo56idzNXn3qOYwtRb8q/+Zjcen7KV3uNno3U1asfKVNoEj6UMxwCnmPn8BnrRtq2aVHIjDmItDwMHEPQ51Wm+0hxAw15o9yh15/MIoc+yu+VfOSXAYb9pEcMVbIyYzyR/qi2vsBTIJuloUDK/KPmmrUldx1hgFd567WmwHiXwiu/4BePWqsXGiCEjq5nQuO5XS+4uFDdpXlfX6wcQsU6o2ztD60wNAQwdDL751d8TNZNajWi5R9fD7xWV2wsewhGhl5E43o/HiY+Z/h1Kt/f3UGbhj7vZNTHAd901ZEG9QacFxQXaQWYOutlrO+eDBgRKd+27PLNpTLymF1Ht47xcERjpH0lgps02pDoSoFGzRYoHNQYAjA2BXK3GZHcLYmnPCB+5pbw1D4lsX8xQ8y5yO29gE4uCTx7P15bVt7/KbgUTdWfLtOQGyOd/jS9RTplHNAG2fBW2pa5nS4KNmON1UO3vNcsWv/zEHv48ASSLxpC3NxWkwS+zOkt0uORyXlxi0teOajWA7dmalC+9VpKf5kuAZvKM0xYxN5Yqt+6UELtTQnle3fTLnKcE584+eo/RdCgvGD6N0RJHN/UKl7sP7hvTF7w/SbcAaI/jv31N+oVV79UyMLqm1U8HRGg2HLMSHiRbYFSOYmsQ5/sYWn7RsJIroDKpFd+I="
   matrix:
-    - TRAVIS_JDK=adopt@1.8-0
+    ## See https://github.com/playframework/play-grpc/issues/253
+    - TRAVIS_JDK=adopt@1.8.0-242
     - TRAVIS_JDK=adopt@1.11-0
 
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
