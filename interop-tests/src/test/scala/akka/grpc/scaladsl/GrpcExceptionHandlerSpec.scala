@@ -25,7 +25,6 @@ class GrpcExceptionHandlerSpec
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
-  implicit val mat = ActorMaterializer()
   implicit val ec = system.dispatcher
 
   "The default ExceptionHandler" should {

@@ -22,7 +22,6 @@ import scala.concurrent.{ ExecutionException, Future }
 
 class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem("Test")
-  implicit val materializer = ActorMaterializer()
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
   implicit val writer = GrpcProtocolNative.newWriter(Identity)

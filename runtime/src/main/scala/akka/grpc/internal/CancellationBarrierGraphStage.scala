@@ -32,7 +32,7 @@ class CancellationBarrierGraphStage[T] extends GraphStage[FlowShape[T, T]] {
         new OutHandler {
           override def onPull(): Unit = pull(in)
 
-          override def onDownstreamFinish(): Unit = {
+          override def onDownstreamFinish(cause: Throwable): Unit = {
             if (!hasBeenPulled(in))
               pull(in)
 

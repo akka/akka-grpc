@@ -17,12 +17,11 @@ class PowerGreeterServer(system: ActorSystem) {
   def run(): Future[Http.ServerBinding] = {
     // Akka boot up code
     implicit val sys: ActorSystem = system
-    implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
     // Create service handlers
     val service: HttpRequest => Future[HttpResponse] =
-      GreeterServicePowerApiHandler(new PowerGreeterServiceImpl(mat))
+      GreeterServicePowerApiHandler(new PowerGreeterServiceImpl())
 
     // Bind service handler servers to localhost:8080/8081
     val binding = Http().newServerAt("127.0.0.1", 8081).bind(service)

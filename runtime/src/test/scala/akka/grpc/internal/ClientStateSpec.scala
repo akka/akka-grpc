@@ -20,7 +20,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
   implicit val sys = ActorSystem()
-  implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 10.seconds, interval = 150.milliseconds)
 

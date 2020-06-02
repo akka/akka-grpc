@@ -77,7 +77,7 @@ class LoadClient {
     this.config = config;
 
     this.system = ActorSystem.create("AsyncClient");
-    this.mat = ActorMaterializer.create(system);
+    this.mat = Materializer.create(system);
 
     // Create the clients
     clients = new BenchmarkServiceClient[config.getClientChannels()];

@@ -149,9 +149,9 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           call.request(1)
           requested += 1
         }
-      override def onDownstreamFinish(): Unit =
+      override def onDownstreamFinish(cause: Throwable): Unit =
         if (isClosed(out)) {
-          call.cancel("Downstream cancelled", null)
+          call.cancel("Downstream cancelled", cause)
           call = null
           completeStage()
         }

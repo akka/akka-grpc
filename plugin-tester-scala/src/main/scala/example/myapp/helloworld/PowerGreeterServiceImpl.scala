@@ -13,9 +13,8 @@ import example.myapp.helloworld.grpc._
 
 import scala.concurrent.Future
 
-class PowerGreeterServiceImpl(materializer: Materializer) extends GreeterServicePowerApi {
+class PowerGreeterServiceImpl(implicit materializer: Materializer) extends GreeterServicePowerApi {
   import materializer.executionContext
-  private implicit val mat: Materializer = materializer
 
   override def sayHello(in: HelloRequest, metadata: Metadata): Future[HelloReply] = {
     val greetee = authTaggedName(in, metadata)

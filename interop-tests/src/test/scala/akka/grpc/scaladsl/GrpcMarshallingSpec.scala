@@ -29,7 +29,6 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     val message = SimpleRequest(responseCompressed = Some(BoolValue(true)))
     implicit val serializer = TestService.Serializers.SimpleRequestSerializer
     implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
     val awaitTimeout = 10.seconds
     val zippedBytes =
       AbstractGrpcProtocol.encodeFrameData(

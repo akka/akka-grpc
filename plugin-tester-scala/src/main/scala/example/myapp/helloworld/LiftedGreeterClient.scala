@@ -21,7 +21,6 @@ import example.myapp.helloworld.grpc._
 object LiftedGreeterClient {
   def main(args: Array[String]): Unit = {
     implicit val sys = ActorSystem("HelloWorldClient")
-    implicit val mat = ActorMaterializer()
     implicit val ec = sys.dispatcher
 
     val clientSettings = GrpcClientSettings.fromConfig(GreeterService.name)
@@ -32,9 +31,7 @@ object LiftedGreeterClient {
     streamingReply()
     streamingRequestReply()
 
-    sys.scheduler.schedule(1.second, 1.second) {
-      Try(singleRequestReply())
-    }
+    sys.scheduler.scheduleWithFixedDelay(1.second, 1.second) { () => Try(singleRequestReply()) }
 
     //#with-metadata
     def singleRequestReply(): Unit = {

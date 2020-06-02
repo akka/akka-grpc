@@ -36,7 +36,6 @@ object CombinedServer {
       .parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     implicit val sys: ActorSystem = ActorSystem("HelloWorld", conf)
-    implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
     //#concatOrNotFound

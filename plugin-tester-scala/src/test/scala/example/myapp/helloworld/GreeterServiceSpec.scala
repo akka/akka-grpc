@@ -40,7 +40,6 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  implicit val mat = ActorMaterializer.create(clientSystem)
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>
