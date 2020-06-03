@@ -24,7 +24,7 @@ import akka.grpc.internal.ClientState
 @{
   def withSingleResponse(stmt: String) = Set("import akka.grpc.scaladsl.SingleResponseRequestBuilder", stmt)
   def withStreamResponse(stmt: String) = Set("import akka.grpc.scaladsl.StreamResponseRequestBuilder", stmt)
-  service.methods.toSet.flatMap { method: akka.grpc.gen.scaladsl.Method =>
+  service.methods.distinct.flatMap { method: akka.grpc.gen.scaladsl.Method =>
 
     val statements = method.methodType match {
       case akka.grpc.gen.Unary => withSingleResponse("import akka.grpc.internal.ScalaUnaryRequestBuilder")

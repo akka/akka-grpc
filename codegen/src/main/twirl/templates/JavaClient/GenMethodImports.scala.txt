@@ -12,5 +12,5 @@
       case akka.grpc.gen.ClientStreaming => singleResponse
       case akka.grpc.gen.ServerStreaming => streamResponse
       case akka.grpc.gen.BidiStreaming => streamResponse
-  }.toSet.mkString("\n")
+  }.distinct.mkString("\n")
 }
