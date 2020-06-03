@@ -19,7 +19,7 @@ case class Service(
     serverPowerApi: Boolean,
     usePlayActions: Boolean,
     comment: Option[String] = None) {
-  def serializers: Set[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).toSet
+  def serializers: Seq[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).distinct
   def packageDir = packageName.replace('.', '/')
 }
 
