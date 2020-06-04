@@ -9,6 +9,7 @@ Get our Quickstart project (available for [Scala](https://developer.lightbend.co
  * [Walkthrough](walkthrough.md)
  * [gRPC-Web](grpc-web.md)
  * [Server Reflection](reflection.md)
+ * [Akka HTTP interop](akka-http.md)
  * [Details](details.md)
 
 @@@
