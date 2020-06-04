@@ -1,1 +1,5 @@
 > compile
+
+# This will for example detect when we publish generated code that is
+# already in scalapb-runtime
+> assembly
