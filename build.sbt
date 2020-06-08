@@ -234,5 +234,8 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
     // unidoc for the codegen projects:
     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(runtime),
     // https://github.com/sbt/sbt/issues/3465
+    // Libs and plugins must share a version. The root project must use that
+    // version (and set the crossScalaVersions as empty list) so each sub-project
+    // can then decide which scalaVersion and crossCalaVersions they use.
     crossScalaVersions := Nil,
     scalaVersion := scala212)
