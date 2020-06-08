@@ -6,8 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.10"
-    val scala213 = "2.13.1"
+    val scala212 = "2.12.11"
+    val scala213 = "2.13.2"
 
     // Libs and plugins must share a version. The root project must use that (and set the crossScalaVersions
     // as empty list)so each sub-project can then decide which scalaVersion and crossCalaVersions they use.

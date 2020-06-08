@@ -34,7 +34,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
         Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
+    scalaVersion := scala212)
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
