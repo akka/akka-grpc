@@ -13,13 +13,9 @@ sbt
     ```scala
     // in project/plugins.sbt:
     addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
-    addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.4") // ALPN agent, only required on JVM 8 
     //
     // in build.sbt:
     enablePlugins(AkkaGrpcPlugin)
-    // ALPN agent, only required on JVM 8
-    enablePlugins(JavaAgent)
-    javaAgents += "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "runtime;test"
     ```
     @@@
 
@@ -225,8 +221,8 @@ methods to create partial functions that are combined by `concatOrNotFound`.]
 
 ## Running the server
 
-To run the server with HTTP/2 enabled on a **JVM version 8**, you will likely have to configure the Jetty ALPN
-agent as described @extref[in the Akka HTTP documentation](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-). Later JVM versions have this support built-in.
+To run the server with HTTP/2 using HTTPS on a JVM prior to version 1.8.0_251, you will likely have to configure the Jetty ALPN
+agent as described [in the Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-). Later JVM versions have this support built-in.
 
 See the detailed chapters on @ref[sbt](../buildtools/sbt.md#starting-your-akka-grpc-server-from-sbt), @ref[Gradle](../buildtools/gradle.md#starting-your-akka-grpc-server-from-gradle)
 and @ref[Maven](../buildtools/maven.md#starting-your-akka-grpc-server-from-maven) for details on adding the agent.

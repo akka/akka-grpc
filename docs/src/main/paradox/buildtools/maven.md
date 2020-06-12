@@ -84,11 +84,11 @@ it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
 
 ## Starting your Akka gRPC server from Maven
 
-On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
-you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
+If you want to use TLS-based negotiation on JDK 8 versions prior to
+[1.8.0_251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html),
+the server requires a special Java agent for ALPN.
 
-Doing this from inside of Maven requires a little bit of configuration:
-
+Doing this from inside of Maven requires some configuration:
 
 `pom.xml` for JVM 8
 :   ```xml

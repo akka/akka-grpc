@@ -37,15 +37,9 @@ Pull Request validation states:
 
 ## Running the tests
 
-gRPC runs on HTTP/2 and all connections use HTTPS. Tests in this repo use the ALPN agent to create the ALPN/NPN connection. 
-The agent is included in all required configurations when running tests inside `sbt` but that's not the case when running tests inside your IDE. 
-If you want to run tests outside `sbt` setup your launcher to include the following JVM arguments:
+gRPC runs on HTTP/2 and connections commonly use HTTPS.
 
-```
--javaagent:/home/username/.ivy2/cache/org.mortbay.jetty.alpn/jetty-alpn-agent/jars/jetty-alpn-agent-2.0.10.jar
-``` 
-
-You will have to review the value of the path and replace `/home/username/.ivy2/cache/` with the actual location of your `.ivy2` cache repository (usually that's located on your `$HOME` folder) 
+If you are running on JDK 8, you will need to use at least version 1.8.0u251 to make sure ALPN protocol negotiation is available.  
 
 # Akka gRPC contributing guidelines
 

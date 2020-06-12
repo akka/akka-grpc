@@ -51,13 +51,6 @@
       <artifactId>grpc-stub</artifactId>
       <version>${grpc.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.mortbay.jetty.alpn</groupId>
-      <artifactId>jetty-alpn-agent</artifactId>
-      <version>2.0.10</version>
-      <scope>runtime</scope>
-    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
@@ -113,7 +106,6 @@
           <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
           <junitxml>.</junitxml>
           <filereports>TestSuite.txt</filereports>
-          <argLine>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argLine>
         </configuration>
         <executions>
           <execution>
@@ -146,7 +138,6 @@
         <configuration>
           <executable>java</executable>
           <arguments>
-            <argument>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argument>
             <argument>-classpath</argument>
             <classpath />
             <argument>example.myapp.helloworld.GreeterServer</argument>

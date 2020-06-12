@@ -108,15 +108,15 @@ it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
 
 ## Starting your Akka gRPC server from Gradle
 
-On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
-you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
+If you want to use TLS-based negotiation on JDK 8 versions prior to
+[1.8.0_251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html),
+the server requires a special Java agent for ALPN.
 
-Doing this from inside of Gradle requires a little bit of configuration in the `build.gradle`:
+Doing this from inside of Gradle requires some configuration in the `build.gradle`:
 
-`build.gradle` for JVM 8
+`build.gradle` for JVM 8 prior to update 251
 :   @@@vars
     ```gradle
-    // Define a separate configuration for managing the dependency on Jetty ALPN agent.
     configurations {
       alpnagent
     }
@@ -131,6 +131,8 @@ Doing this from inside of Gradle requires a little bit of configuration in the `
     }
     ```
     @@@
+
+## Starting your Akka gRPC server from gradle
 
 The server can then be started from the command line with:
 

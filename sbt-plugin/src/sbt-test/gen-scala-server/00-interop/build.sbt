@@ -21,11 +21,6 @@ scalacOptions ++= List(
   "-encoding", "UTF-8"
 )
 
-javaAgents ++= Seq(
-  "org.mortbay.jetty.alpn" % "jetty-alpn-agent" % "2.0.10" % "test"
-)
-
-enablePlugins(JavaAgent)
 enablePlugins(AkkaGrpcPlugin)
 
 // proto files from "io.grpc" % "grpc-interop-testing" contain duplicate Empty definitions;
