@@ -39,30 +39,17 @@ repositories {
   mavenCentral()
 }
 
-// Define a separate configuration for managing the dependency on Jetty ALPN agent.
-configurations {
-  alpnagent
-}
-
 dependencies {
   testImplementation 'com.typesafe.akka:akka-stream-testkit_2.12:2.5.13'
   testImplementation 'org.scalatest:scalatest_2.12:3.0.5'
   testRuntime 'org.pegdown:pegdown:1.1.0'
 
-  // Configuration for modules that use Jetty ALPN agent
-  alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.10'
-
   compile group: 'ch.megard', name: 'akka-http-cors_2.12', version: '0.4.2'
-}
-
-test {
-  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
 }
 
 task runServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = 'example.myapp.helloworld.GreeterServer'
-  jvmArgs "-javaagent:" + configurations.alpnagent.asPath
 }
 
 
@@ -70,5 +57,3 @@ task runClient(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = 'example.myapp.helloworld.GreeterClient'
 }
-
-

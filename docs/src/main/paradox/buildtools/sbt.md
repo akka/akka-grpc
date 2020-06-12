@@ -100,22 +100,18 @@ as an external protobuf source, add it like:
 libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ```
 
+## JDK 8 support
+
+If you want to use TLS-based negotiation on JDK 8 versions prior to
+[1.8.0_251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html),
+the server requires a special Java agent for ALPN.
+ 
+See the [Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+for more information.
+
 ## Starting your Akka gRPC server from sbt
 
-On a JVM of version 8 the server requires a special Java agent for ALPN ([see Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/current/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
-you need to pass this agent with a `-javaagent` flag to the JVM when running the server.
-
-This can be done automatically using the [`sbt-javaagent`](https://github.com/sbt/sbt-javaagent) plugin.
-
-Add the plugin to `project/plugins.sbt`
-
-@@snip [plugin.sbt](/project/plugins.sbt) { #java-agent-plugin }
-
-and then tell it to use the ALPN agent:
-
-@@snip [build.sbt](/project/ProjectExtensions.scala) { #alpn }
-
-After that you can run it as usual:
+You can start your gRPC application as usual with:
 
 ```
 runMain io.grpc.examples.helloworld.GreeterServer
