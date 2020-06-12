@@ -1,0 +1,2 @@
+# pre 1.0.0 change
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcClientSettings.grpcLoadBalancingType")

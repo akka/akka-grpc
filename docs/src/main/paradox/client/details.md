@@ -9,7 +9,7 @@ avoid leaking in the latter case, you should call `.close()` on the client.
 When the connection breaks, the client will try reconnecting to the server automatically.  On each reconnection 
 attempt, If a connection the `ServiceDiscovery` will be used and a new host may be found.
 
-When using client-side [load balancing](#load-balancing) the reconnection loop will run indefinitely.
+When using client-side @ref[load balancing](details.md#load-balancing) the reconnection loop will run indefinitely.
 
 When using a direct client (not load balanced) when the connection breaks you can set up a maximum number 
 of reconnection attempts.  If that limit is reached, the client will shutdown.  The default number of attempts to 
