@@ -63,7 +63,7 @@ class CombinedServer {
 
       Http.get(sys).bindAndHandleAsync(
           grpcWebServiceHandlers,
-          ConnectHttp.toHost("127.0.0.1", 8081),
+          ConnectHttp.toHost("127.0.0.1", 8091),
           mat)
       //#grpc-web
       .thenAccept(binding -> {
