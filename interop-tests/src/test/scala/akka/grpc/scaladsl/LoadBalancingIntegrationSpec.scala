@@ -44,7 +44,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+          .withLoadBalancingPolicy("round_robin"))
       for (i <- 1 to 100) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
@@ -68,7 +68,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+          .withLoadBalancingPolicy("round_robin"))
 
       val requestsPerServer = 2
 
@@ -107,7 +107,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin"))
+          .withLoadBalancingPolicy("round_robin"))
 
       for (i <- 1 to 100) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
@@ -124,7 +124,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin")
+          .withLoadBalancingPolicy("round_robin")
           // Low value to speed up the test
           .withConnectionAttempts(1))
 
@@ -143,7 +143,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
         GrpcClientSettings
           .usingServiceDiscovery("greeter", discovery)
           .withTls(false)
-          .withGrpcLoadBalancingType("round_robin")
+          .withLoadBalancingPolicy("round_robin")
           // Low value to speed up the test
           .withConnectionAttempts(2))
 
