@@ -74,12 +74,12 @@ object NettyClientUtils {
       }
     }
 
-    builder = settings.grpcLoadBalancingType.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)
+    builder = settings.loadBalancingPolicy.map(builder.defaultLoadBalancingPolicy(_)).getOrElse(builder)
     builder = settings.overrideAuthority.map(builder.overrideAuthority(_)).getOrElse(builder)
     builder = settings.userAgent.map(builder.userAgent(_)).getOrElse(builder)
     builder = settings.channelBuilderOverrides(builder)
 
-    val connectionAttempts = settings.grpcLoadBalancingType match {
+    val connectionAttempts = settings.loadBalancingPolicy match {
       case None | Some("pick_first") => settings.connectionAttempts
       case _                         =>
         // When loadbalancing we cannot count the individual attempts, so

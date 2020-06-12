@@ -9,7 +9,7 @@ avoid leaking in the latter case, you should call `.close()` on the client.
 When the connection breaks, the client will try reconnecting to the server automatically.  On each reconnection 
 attempt, If a connection the `ServiceDiscovery` will be used and a new host may be found.
 
-When using client-side [load balancing](details#load-balancing) the reconnection loop will run indefinitely.
+When using client-side @ref[load balancing](details.md#load-balancing) the reconnection loop will run indefinitely.
 
 When using a direct client (not load balanced) when the connection breaks you can set up a maximum number 
 of reconnection attempts.  If that limit is reached, the client will shutdown.  The default number of attempts to 
@@ -31,10 +31,12 @@ take into account information from multiple clients, and sometimes even
 lifecycle information (e.g. not forward requests to nodes that are scheduled
 to shut down).
 
-When client-side load balancing is desirable, when you are using the default
-`static` or the `grpc-dns` discovery mechanism, you can set the
-`grpc-load-balancing` client configuration option to `round-robin` to enable
+Client-side load balancing is desirable when you are using the default
+`static` or the `grpc-dns` discovery mechanism. You can set the
+`load-balancing-policy` client configuration option to `round-robin` to enable
 the round-robin client-side load balancing strategy provided by grpc-java.
+
+Note that load balancing is marked as [experimental](https://github.com/grpc/grpc-java/issues/1771) in grpc-java.
 
 Client-side load balancing for other discovery mechanisms is
 [not yet supported](https://github.com/akka/akka-grpc/issues/809).

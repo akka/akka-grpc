@@ -141,7 +141,7 @@ object GrpcClientSettings {
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
-      getOptionalString(clientConfiguration, "grpc-load-balancing"))
+      getOptionalString(clientConfiguration, "load-balancing-policy"))
 
   private def getOptionalString(config: Config, path: String): Option[String] =
     config.getString(path) match {
@@ -187,7 +187,7 @@ final class GrpcClientSettings private (
     val deadline: Duration,
     val userAgent: Option[String],
     val useTls: Boolean,
-    val grpcLoadBalancingType: Option[String],
+    val loadBalancingPolicy: Option[String],
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
   require(
     sslContext.isEmpty || trustManager.isEmpty,
@@ -209,7 +209,7 @@ final class GrpcClientSettings private (
    * not to work on JDK 1.8.0_252.
    */
   def withSslContext(sslContext: SSLContext): GrpcClientSettings = copy(sslContext = Option(sslContext))
-  def withTrustManager(trustManager: TrustManager) = copy(trustManager = Option(trustManager))
+  def withTrustManager(trustManager: TrustManager): GrpcClientSettings = copy(trustManager = Option(trustManager))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
   /**
@@ -244,8 +244,12 @@ final class GrpcClientSettings private (
   def withTls(enabled: Boolean): GrpcClientSettings =
     copy(useTls = enabled)
 
+  def withLoadBalancingPolicy(loadBalancingPolicy: String): GrpcClientSettings =
+    copy(loadBalancingPolicy = Some(loadBalancingPolicy))
+
+  @deprecated("use withLoadBalancingPolicy", since = "1.0.0")
   def withGrpcLoadBalancingType(loadBalancingType: String): GrpcClientSettings =
-    copy(grpcLoadBalancingType = Some(loadBalancingType))
+    withLoadBalancingPolicy(loadBalancingType)
 
   /**
    * How many times to retry establishing a connection before failing the client
@@ -278,7 +282,7 @@ final class GrpcClientSettings private (
       useTls: Boolean = useTls,
       resolveTimeout: FiniteDuration = resolveTimeout,
       connectionAttempts: Option[Int] = connectionAttempts,
-      grpcLoadBalancingType: Option[String] = grpcLoadBalancingType,
+      loadBalancingPolicy: Option[String] = loadBalancingPolicy,
       channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
       : GrpcClientSettings =
     new GrpcClientSettings(
@@ -297,6 +301,6 @@ final class GrpcClientSettings private (
       useTls = useTls,
       resolveTimeout = resolveTimeout,
       connectionAttempts = connectionAttempts,
-      grpcLoadBalancingType = grpcLoadBalancingType,
+      loadBalancingPolicy = loadBalancingPolicy,
       channelBuilderOverrides = channelBuilderOverrides)
 }
