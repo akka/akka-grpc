@@ -40,7 +40,7 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
   implicit val mat = ActorMaterializer.create(clientSystem)
   implicit val ec = clientSystem.dispatcher
 
-  val clients = Seq(8080, 8081).map { port =>
+  val clients = Seq(8090, 8091).map { port =>
     GreeterServiceClient.create(GrpcClientSettings.connectToServiceAt("127.0.0.1", port).withTls(false), clientSystem)
   }
 

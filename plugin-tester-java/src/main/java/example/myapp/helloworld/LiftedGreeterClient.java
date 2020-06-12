@@ -27,7 +27,7 @@ class LiftedGreeterClient {
   public static void main(String[] args) throws Exception {
 
     String serverHost = "127.0.0.1";
-    int serverPort = 8080;
+    int serverPort = 8090;
 
     ActorSystem system = ActorSystem.create("HelloWorldClient");
     Materializer materializer = ActorMaterializer.create(system);

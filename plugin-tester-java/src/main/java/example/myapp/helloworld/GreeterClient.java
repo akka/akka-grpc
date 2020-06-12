@@ -28,13 +28,13 @@ class GreeterClient {
   public static void main(String[] args) throws Exception {
 
     String serverHost = "127.0.0.1";
-    int serverPort = 8080;
+    int serverPort = 8090;
 
     ActorSystem system = ActorSystem.create("HelloWorldClient");
     Materializer materializer = ActorMaterializer.create(system);
 
     // Configure the client by code:
-    GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080, system);
+    GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8090, system);
 
     // Or via application.conf:
     // GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
