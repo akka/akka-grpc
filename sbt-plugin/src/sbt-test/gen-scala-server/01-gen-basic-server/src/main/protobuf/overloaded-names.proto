@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "example.myapp.names.grpc";
+option java_outer_classname = "OverloadedNamesProto";
+
+package names;
+
+// Use a couple of common names that might lead to illegal imports
+service NamesService {
+    rpc VerifyPath (Path) returns (Chunk) {}
+    rpc VerifySegment (Segment) returns (Status) {}
+    rpc VerifyIdentity (Identity) returns (Codec) {}
+}
+
+message Path {
+    string name = 1;
+}
+
+message Chunk {
+    string name = 1;
+}
+
+message Segment {
+    string name = 1;
+}
+
+message Status {
+    string message = 1;
+}
+
+message Identity {
+    string name = 1;
+}
+
+message Codec {
+    string message = 1;
+}

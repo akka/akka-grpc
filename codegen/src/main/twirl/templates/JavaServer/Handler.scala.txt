@@ -12,7 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import akka.japi.Function;
-import akka.http.javadsl.model.*;
 import akka.actor.ActorSystem;
 import akka.actor.ClassicActorSystemProvider;
 import akka.stream.Materializer;
@@ -32,11 +31,11 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
  */
 public class @{serviceName}HandlerFactory {
 
-    private static final CompletionStage<HttpResponse> notFound = CompletableFuture.completedFuture(
-      HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+    private static final CompletionStage<akka.http.javadsl.model.HttpResponse> notFound = CompletableFuture.completedFuture(
+      akka.http.javadsl.model.HttpResponse.create().withStatus(akka.http.javadsl.model.StatusCodes.NOT_FOUND));
 
-    private static final CompletionStage<HttpResponse> unsupportedMediaType = CompletableFuture.completedFuture(
-      HttpResponse.create().withStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE));
+    private static final CompletionStage<akka.http.javadsl.model.HttpResponse> unsupportedMediaType = CompletableFuture.completedFuture(
+      akka.http.javadsl.model.HttpResponse.create().withStatus(akka.http.javadsl.model.StatusCodes.UNSUPPORTED_MEDIA_TYPE));
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -45,7 +44,7 @@ public class @{serviceName}HandlerFactory {
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
      * several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, ClassicActorSystemProvider system) {
       return create(implementation, @{service.name}.name, system);
     }
 
@@ -56,7 +55,7 @@ public class @{serviceName}HandlerFactory {
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
      * several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return create(implementation, @{service.name}.name, eHandler, system);
     }
 
@@ -69,7 +68,7 @@ public class @{serviceName}HandlerFactory {
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), GrpcExceptionHandler.defaultMapper(), system);
     }
 
@@ -82,7 +81,7 @@ public class @{serviceName}HandlerFactory {
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> create(@serviceName implementation, String prefix, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, String prefix, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), eHandler, system);
     }
 
@@ -92,7 +91,7 @@ public class @{serviceName}HandlerFactory {
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> partial(@serviceName implementation, String prefix, ClassicActorSystemProvider system) {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), GrpcExceptionHandler.defaultMapper(), system);
     }
 
@@ -102,7 +101,7 @@ public class @{serviceName}HandlerFactory {
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */
-    public static Function<HttpRequest, CompletionStage<HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return (req -> {
         Iterator<String> segments = req.getUri().pathSegments().iterator();
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
@@ -119,9 +118,9 @@ public class @{serviceName}HandlerFactory {
       return @{service.name}.name;
     }
 
-    private static CompletionStage<HttpResponse> handle(HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
+    private static CompletionStage<akka.http.javadsl.model.HttpResponse> handle(akka.http.javadsl.model.HttpRequest request, String method, @serviceName implementation, Materializer mat, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return GrpcMarshalling.negotiated(request, (reader, writer) -> {
-        final CompletionStage<HttpResponse> response;
+        final CompletionStage<akka.http.javadsl.model.HttpResponse> response;
         @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}
         switch(method) {
           @for(method <- service.methods) {
@@ -132,7 +131,7 @@ public class @{serviceName}HandlerFactory {
             break;
           }
           default:
-            CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+            CompletableFuture<akka.http.javadsl.model.HttpResponse> result = new CompletableFuture<>();
             result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
             response = result;
         }
