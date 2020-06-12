@@ -47,7 +47,10 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
         "-P:silencer:globalFilters=Use LazyList instead of Stream",
         // ignore imports in templates
-        "-P:silencer:pathFilters=.*.txt"),
+        "-P:silencer:pathFilters=.*.txt",
+        // imports in generated code
+        // https://github.com/akka/akka-grpc/issues/1009
+        "-P:silencer:src_managed.*Unused import akka.grpc.scaladsl.*RequestBuilder"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",
