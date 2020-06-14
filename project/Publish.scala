@@ -1,6 +1,7 @@
 package akka.grpc
 
-import sbt._, Keys._
+import sbt._
+import Keys._
 
 object Publish extends AutoPlugin {
   import bintray.BintrayPlugin
@@ -9,5 +10,9 @@ object Publish extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = BintrayPlugin
 
-  override def projectSettings = Seq(bintrayOrganization := Some("akka"), bintrayPackage := "akka-grpc")
+  override def projectSettings =
+    Seq(
+      bintrayOrganization := Some("akka"),
+      bintrayPackage := "akka-grpc",
+      bintrayRepository := (if (isSnapshot.value) "snapshots" else "maven"))
 }
