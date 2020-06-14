@@ -4,7 +4,7 @@
 
 package akka.grpc
 
-import akka.actor.ActorSystem
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.{ ApiMayChange, InternalApi }
 import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
@@ -26,9 +26,11 @@ object GrpcClientSettings {
    * Create a client that uses a static host and port. Default configuration
    * is loaded from reference.conf
    */
-  def connectToServiceAt(host: String, port: Int)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
+  def connectToServiceAt(host: String, port: Int)(
+      implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
+    val system = actorSystem.classicSystem
     // default is static
-    val defaultServiceConfig = actorSystem.settings.config
+    val defaultServiceConfig = system.settings.config
       .getConfig("akka.grpc.client")
       .getConfig("\"*\"")
       .withValue("host", ConfigValueFactory.fromAnyRef(host))
@@ -43,8 +45,9 @@ object GrpcClientSettings {
    *
    * @param clientName of the client configuration to lookup config from the ActorSystem's config
    */
-  def fromConfig(clientName: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
-    val akkaGrpcClientConfig = actorSystem.settings.config.getConfig("akka.grpc.client")
+  def fromConfig(clientName: String)(implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
+    val system = actorSystem.classicSystem
+    val akkaGrpcClientConfig = system.settings.config.getConfig("akka.grpc.client")
     val clientConfig = {
       // Use config named "*" by default
       val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
@@ -65,8 +68,10 @@ object GrpcClientSettings {
    *
    * @param serviceName name of the remote service to lookup.
    */
-  def usingServiceDiscovery(serviceName: String)(implicit actorSystem: ActorSystem): GrpcClientSettings = {
-    val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+  def usingServiceDiscovery(serviceName: String)(
+      implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
+    val clientConfiguration: Config =
+      actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     val discovery = Discovery.get(actorSystem).discovery
     withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
@@ -81,8 +86,9 @@ object GrpcClientSettings {
    * @param serviceName name of the remote service to lookup.
    */
   def usingServiceDiscovery(serviceName: String, discovery: ServiceDiscovery)(
-      implicit actorSystem: ActorSystem): GrpcClientSettings = {
-    val clientConfiguration: Config = actorSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
+      implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
+    val clientConfiguration: Config =
+      actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
     val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
     withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
   }
@@ -90,7 +96,7 @@ object GrpcClientSettings {
   /**
    * Configure client via the provided Config. See reference.conf for configuration properties.
    */
-  def fromConfig(clientConfiguration: Config)(implicit sys: ActorSystem): GrpcClientSettings = {
+  def fromConfig(clientConfiguration: Config)(implicit sys: ClassicActorSystemProvider): GrpcClientSettings = {
     val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery.mechanism")
     var serviceName = clientConfiguration.getString("service-discovery.service-name")
     val port = clientConfiguration.getInt("port")
