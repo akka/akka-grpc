@@ -50,7 +50,11 @@ object Common extends AutoPlugin {
         "-P:silencer:pathFilters=.*.txt",
         // imports in generated code
         // https://github.com/akka/akka-grpc/issues/1009
-        "-P:silencer:globalFilters=Unused import"),
+      "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder",
+      "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.SingleResponseRequestBuilder",
+      "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaUnaryRequestBuilder",
+      "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaServerStreamingRequestBuilder",
+      "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.StreamResponseRequestBuilder"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",

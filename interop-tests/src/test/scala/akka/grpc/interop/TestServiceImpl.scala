@@ -4,8 +4,6 @@
 
 package akka.grpc.interop
 
-import scala.concurrent.{ ExecutionContext, Future }
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.GrpcServiceException
