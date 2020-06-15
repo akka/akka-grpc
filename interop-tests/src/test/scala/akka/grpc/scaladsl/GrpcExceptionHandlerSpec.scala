@@ -4,7 +4,6 @@
 
 package akka.grpc.scaladsl
 
-import scala.concurrent.Future
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
 import akka.grpc.scaladsl.headers.`Status`

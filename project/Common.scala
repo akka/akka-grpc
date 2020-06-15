@@ -27,7 +27,7 @@ object Common extends AutoPlugin {
       licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
       description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams.")
 
-  val silencerVersion = "1.6.0"
+  val silencerVersion = "1.7.0"
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     scalacOptions ++= List(
@@ -47,7 +47,14 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
         "-P:silencer:globalFilters=Use LazyList instead of Stream",
         // ignore imports in templates
-        "-P:silencer:pathFilters=.*.txt"),
+        "-P:silencer:pathFilters=.*.txt",
+        // imports in generated code
+        // https://github.com/akka/akka-grpc/issues/1009
+        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder",
+        "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.SingleResponseRequestBuilder",
+        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaUnaryRequestBuilder",
+        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaServerStreamingRequestBuilder",
+        "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.StreamResponseRequestBuilder"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",

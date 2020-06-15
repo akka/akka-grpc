@@ -14,14 +14,14 @@ class GrpcServiceException(val status: Status, val metadata: Metadata) extends R
 
   require(!status.isOk, "Use GrpcServiceException in case of failure, not as a flow control mechanism.")
 
-  def this(status: Status) {
+  def this(status: Status) = {
     this(status, MetadataBuilder.empty)
   }
 
   /**
    * Java API: Constructs a service exception which includes response metadata.
    */
-  def this(status: Status, metadata: javadsl.Metadata) {
+  def this(status: Status, metadata: javadsl.Metadata) = {
     this(status, metadata.asScala)
   }
 
