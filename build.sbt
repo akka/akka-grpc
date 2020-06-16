@@ -9,6 +9,9 @@ val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
 lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 
+// gradle plugin infrast
+dynverSeparator in ThisBuild := "-"
+
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
