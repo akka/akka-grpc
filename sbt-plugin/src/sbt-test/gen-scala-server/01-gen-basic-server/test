@@ -1,9 +1,9 @@
 > compile
 
-$ exists target/scala-2.12/src_managed
-$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloRequest.scala
-$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/HelloworldProto.scala
-$ exists target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala
+$ exists target/scala-2.12/akka-grpc
+$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloRequest.scala
+$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloworldProto.scala
+$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.scala
 
 # This will for example detect when we publish generated code that is
 # already in scalapb-runtime

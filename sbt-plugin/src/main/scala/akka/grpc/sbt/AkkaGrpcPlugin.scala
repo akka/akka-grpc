@@ -100,6 +100,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
+        target in akkaGrpcCodeGeneratorSettings := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
+            configuration.value.name),
+        managedSourceDirectories += (target in akkaGrpcCodeGeneratorSettings).value,
         unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
         watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
         akkaGrpcGenerators := {
@@ -112,9 +115,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
         },
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
-          targetsFor(sourceManaged.value, akkaGrpcCodeGeneratorSettings.value, akkaGrpcGenerators.value),
+          targetsFor(
+            (target in akkaGrpcCodeGeneratorSettings).value,
+            akkaGrpcCodeGeneratorSettings.value,
+            akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto") ++
-
       inTask(PB.recompile)(Seq(
         includeFilter := GlobFilter("*.proto"),
         managedSourceDirectories := Nil,
