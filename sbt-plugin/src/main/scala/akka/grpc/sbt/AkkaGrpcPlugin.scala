@@ -93,16 +93,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
         (PB.recompile in Test).value
-      },
-      target in akkaGrpcCodeGeneratorSettings := crossTarget.value / "akka-grpc")
+      })
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
-        target in akkaGrpcCodeGeneratorSettings := (target in akkaGrpcCodeGeneratorSettings).value / Defaults
-            .nameForSrc(configuration.value.name),
+        target in akkaGrpcCodeGeneratorSettings := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
+            configuration.value.name),
         managedSourceDirectories += (target in akkaGrpcCodeGeneratorSettings).value,
         unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
         watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
