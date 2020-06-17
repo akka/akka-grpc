@@ -31,7 +31,8 @@ It features:
 
 ## Project Status
 
-We are polishing a few things before releasing Akka gRPC 1.0.0 (expected Q2 2020).
+Akka gRPC is [Supported](https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html)
+as part of a [Lightbend Subscription](https://www.lightbend.com/lightbend-subscription).
 
 Both client- and server-side APIs are based on Akka Streams.
 
