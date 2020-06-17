@@ -31,9 +31,9 @@ jobs:
       name: checks
     - script: sbt scripted
       name: Test scripted
-    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
+    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-java && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate compile
       name: Test Maven Java
-    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1+\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate scala:compile
+    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-scala && mvn -Dakka.grpc.project.version=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` akka-grpc:generate scala:compile
       name: Test Maven Scala
     - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
       name: Test Gradle Java
