@@ -140,7 +140,7 @@ class AkkaGrpcPlugin implements Plugin<Project>, DependencyResolutionListener {
     @Override
     void beforeResolve(ResolvableDependencies resolvableDependencies) {
         def compileDeps = project.getConfigurations().getByName("compile").getDependencies()
-        compileDeps.add(project.getDependencies().create("com.lightbend.akka.grpc:akka-grpc-runtime_2.12:${pluginVersion}"))
+//        compileDeps.add(project.getDependencies().create("com.lightbend.akka.grpc:akka-grpc-runtime_2.13:${pluginVersion}"))
         // TODO #115 grpc-stub is only needed for the client. Can we use the 'suggestedDependencies' somehow?
         compileDeps.add(project.getDependencies().create("io.grpc:grpc-stub:${grpcVersion}"))
         project.gradle.removeListener(this)
