@@ -45,7 +45,7 @@ Scala
 Java
 :  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java) { #grpc-protected }
 
- ### Tying it all together
+### Tying it all together
 
 Finally we can combine the routes and serve them. Remember we need to use `bindAndHandleAsync` to enable HTTP/2 support:
 
