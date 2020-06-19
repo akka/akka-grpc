@@ -15,7 +15,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.18")
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.6")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0")
-addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.24")
+addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.25")
 
 // docs
 addSbtPlugin("com.lightbend.akka" % "sbt-paradox-akka" % "0.33")
