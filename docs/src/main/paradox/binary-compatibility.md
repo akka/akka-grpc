@@ -36,9 +36,9 @@ Internal API's (designated by the `akka.grpc.internal` package or with the `@Int
 
 Libraries that use such methods may not work in applications that depend on a newer version of Akka gRPC.
 
-## Downstream libraries
+## Upstream libraries
 
-We depend on a number of downstream libraries that don't formally maintain
+We depend on a number of upstream libraries that don't formally maintain
 binary compatibility, such as [ScalaPB](https://scalapb.github.io/) (when
 generating Scala code) and [grpc-java](https://github.com/grpc/grpc-java/).
 When updates to those libraries introduce incompatibilities it will be decided
