@@ -61,11 +61,10 @@ class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
   override def fullDuplexCall(
       in: Source[StreamingOutputCallRequest, NotUsed]): Source[StreamingOutputCallResponse, NotUsed] =
     in.map(req => {
-        req.responseStatus.foreach(reqStatus =>
-          throw new GrpcServiceException(Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
-        req
-      })
-      .mapConcat(_.responseParameters.toList)
+      req.responseStatus.foreach(reqStatus =>
+        throw new GrpcServiceException(Status.fromCodeValue(reqStatus.code).withDescription(reqStatus.message)))
+      req
+    }).mapConcat(_.responseParameters.toList)
       .via(parametersToResponseFlow)
 
   override def halfDuplexCall(
