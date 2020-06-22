@@ -7,7 +7,7 @@ package akka.grpc.sbt
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.{ Logger => GenLogger, ProtocSettings }
+import akka.grpc.gen.{ Logger => GenLogger, BuildInfo, ProtocSettings }
 import protocbridge.Generator
 import sbt.Keys._
 import sbt.{ GlobFilter, _ }
@@ -148,7 +148,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         generator match {
           case PB.gens.java =>
             settings.filter(ProtocSettings.protocJava.contains)
-          case protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator) =>
+          case protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator) | scalapb.gen.SandboxedGenerator =>
             settings.filter(ProtocSettings.scalapb.contains)
           case _ =>
             settings
@@ -164,7 +164,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
     import AkkaGrpc._
     def toGen(codeGenerator: akka.grpc.gen.CodeGenerator) = toGenerator(codeGenerator, scalaBinaryVersion, logger)
     // these two are the model/message (protoc) generators
-    def ScalaGenerator: protocbridge.Generator = protocbridge.JvmGenerator("scala", ScalaPbCodeGenerator)
+    def ScalaGenerator: protocbridge.Generator = scalapb.gen.SandboxedGenerator
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
     def JavaGenerator: protocbridge.Generator = PB.gens.java
 
@@ -195,21 +195,37 @@ object AkkaGrpcPlugin extends AutoPlugin {
       codeGenerator: akka.grpc.gen.CodeGenerator,
       scalaBinaryVersion: ScalaBinaryVersion,
       logger: GenLogger): protocbridge.Generator = {
-    val adapter = new ProtocBridgeSbtPluginCodeGenerator(codeGenerator, scalaBinaryVersion, logger)
-    protocbridge.JvmGenerator(codeGenerator.name, adapter)
+    // This matches the sbt binary version (2.12)
+    val codegenScalaBinaryVersion = CrossVersion.binaryScalaVersion(BuildInfo.scalaVersion)
+    protocbridge.SandboxedJvmGenerator(
+      codeGenerator.name,
+      protocbridge.Artifact(BuildInfo.organization, s"${BuildInfo.name}_$codegenScalaBinaryVersion", BuildInfo.version),
+      codeGenerator.suggestedDependencies(scalaBinaryVersion),
+      new ProtocBridgeSbtPluginCodeGenerator(_, codeGenerator.getClass.getName, logger))
   }
 
   /**
-   * Adapts existing [[akka.grpc.gen.CodeGenerator]] into the protocbridge required type
+   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type.
    */
-  private[akka] class ProtocBridgeSbtPluginCodeGenerator(
-      impl: akka.grpc.gen.CodeGenerator,
-      scalaBinaryVersion: ScalaBinaryVersion,
-      logger: GenLogger)
+  private[akka] class ProtocBridgeSbtPluginCodeGenerator(classLoader: ClassLoader, className: String, logger: GenLogger)
       extends protocbridge.ProtocCodeGenerator {
-    override def run(request: Array[Byte]): Array[Byte] = impl.run(request, logger)
-    override def suggestedDependencies: Seq[protocbridge.Artifact] = impl.suggestedDependencies(scalaBinaryVersion)
-    override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${impl.name}: $impl)"
+    val genClass = classLoader.loadClass(className)
+    val module = genClass.getField("MODULE$").get(null)
+    private val reflectiveLogger: Object =
+      classLoader
+        .loadClass("akka.grpc.gen.ReflectiveLogger")
+        .asInstanceOf[Class[Object]]
+        .getConstructor(classOf[Object])
+        .newInstance(logger)
+
+    private val runMethods =
+      module.getClass.getMethods
+        .find(m => m.getName == "run" && m.getParameterTypes()(0) == classOf[Array[Byte]])
+        .getOrElse(throw new RuntimeException("Could not find 'run' method that takes an Array[Byte]"))
+
+    override def run(request: Array[Byte]): Array[Byte] =
+      runMethods.invoke(module, request, reflectiveLogger).asInstanceOf[Array[Byte]]
+    override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${className})"
   }
 
 }

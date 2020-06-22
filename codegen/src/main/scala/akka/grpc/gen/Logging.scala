@@ -50,3 +50,20 @@ class FileLogger(path: String) extends Logger {
     printer.flush()
   }
 }
+
+/** Logger that forwards calls to another Logger via reflection.
+ *
+ *  This enables a code generator that is loaded inside a sandboxed class loader to
+ *  use a logger that lives in a different class loader.
+ */
+class ReflectiveLogger(logger: Object) extends Logger {
+  private val debugMethod = logger.getClass.getMethod("debug", classOf[String])
+  private val infoMethod = logger.getClass.getMethod("info", classOf[String])
+  private val warnMethod = logger.getClass.getMethod("warn", classOf[String])
+  private val errorMethod = logger.getClass.getMethod("error", classOf[String])
+
+  def debug(text: String): Unit = debugMethod.invoke(logger, text)
+  def info(text: String): Unit = infoMethod.invoke(logger, text)
+  def warn(text: String): Unit = warnMethod.invoke(logger, text)
+  def error(text: String): Unit = errorMethod.invoke(logger, text)
+}

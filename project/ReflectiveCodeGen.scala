@@ -12,6 +12,7 @@ import sbt.file
 import sbt.internal.inc.classpath.ClasspathUtilities
 
 import scala.collection.mutable.ListBuffer
+import protocbridge.{ Artifact => BridgeArtifact }
 
 /** A plugin that allows to use a code generator compiled in one subproject to be used in a test project */
 object ReflectiveCodeGen extends AutoPlugin {
@@ -48,6 +49,21 @@ object ReflectiveCodeGen extends AutoPlugin {
           }.value,
         // HACK: make the targets mutable, so we can fill them while running the above PB.generate
         PB.targets := scala.collection.mutable.ListBuffer.empty,
+        // Put an artifact resolver that returns the project's classpath for our generators
+        PB.artifactResolver := Def.taskDyn {
+            val cp = (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-codegen")).value.map(_.data)
+            val oldResolver = PB.artifactResolver.value
+            Def.task { (artifact: BridgeArtifact) =>
+              artifact.groupId match {
+                case "com.lightbend.akka.grpc" =>
+                  cp
+                case _ =>
+                  oldResolver(artifact)
+              }
+            }
+          }.value,
+        // Reload generators on each invocation
+        PB.cacheClassLoaders := false,
         setCodeGenerator := loadAndSetGenerator(
             // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
             (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
