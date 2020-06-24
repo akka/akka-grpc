@@ -6,8 +6,9 @@ class AkkaGrpcPluginExtension {
 
     static final String DEFAULT_SCALA_VERSION = "2.12"
 
-    // hack for tests, since manifest is not accesible during tests run
     final String pluginVersion = System.getProperty("akkaGrpc.version", AkkaGrpcPlugin.class.package.implementationVersion)
+
+    String scalaVersion = DEFAULT_SCALA_VERSION
 
     String language
     boolean generateClient = true

@@ -71,6 +71,32 @@ class AkkaGrpcPluginScalaTest extends BaseUnitTest {
         }
     }
 
+    def "should override scalaVersion of protobuf plugins via extension"() {
+        given:
+        def myVer = "qwe"
+        when:
+        project.akkaGrpc { scalaVersion = myVer }
+        and:
+        project.evaluate()
+        then:
+        akkaGrpcExt.scalaVersion == myVer
+        and:
+        Map<String, Dependency> plugins = project.protobuf.tools.plugins.collectEntries { [(it.name): project.dependencies.create(it.artifact)] }
+        plugins.keySet().sort() == ["akkaGrpc", "scalapb"]
+
+        with(plugins.akkaGrpc) {
+            group == "com.lightbend.akka.grpc"
+            name == "akka-grpc-codegen_$myVer"
+            version == akkaGrpcExt.pluginVersion
+        }
+
+        with(plugins.scalapb) {
+            group == "com.lightbend.akka.grpc"
+            name == "akka-grpc-scalapb-protoc-plugin_$myVer"
+            version == akkaGrpcExt.pluginVersion
+        }
+    }
+
     @Override
     String pluginLanguage() {
         "scala"

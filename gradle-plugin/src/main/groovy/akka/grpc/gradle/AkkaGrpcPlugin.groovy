@@ -1,5 +1,6 @@
 package akka.grpc.gradle
 
+import com.google.protobuf.gradle.ProtobufPlugin
 import org.apache.commons.lang.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -37,7 +38,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
         boolean isScala = "${extension.language}".toLowerCase() == "scala"
         boolean isJava = "${extension.language}".toLowerCase() == "java"
 
-        project.pluginManager.apply 'com.google.protobuf'
+        project.pluginManager.apply ProtobufPlugin
 
         project.sourceSets {
             main {
@@ -74,18 +75,6 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                 // using the installed version:
                 artifact = "com.google.protobuf:protoc:${protocVersion}"
             }
-
-            plugins {
-                akkaGrpc {
-                    artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_2.12:${extension.pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
-                }
-                if (isScala) {
-                    scalapb {
-                        artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_2.12:${extension.pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
-                    }
-                }
-            }
-
 
             generateProtoTasks {
                 all().each { task ->
@@ -134,11 +123,25 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.getTasks().getByName("compileJava").dependsOn("printProtocLogs")
 
-        project.dependencies {
-            implementation "com.lightbend.akka.grpc:akka-grpc-runtime_2.12:${extension.pluginVersion}"
+        project.afterEvaluate { Project p ->
+            p.dependencies {
+                implementation "com.lightbend.akka.grpc:akka-grpc-runtime_${extension.scalaVersion}:${extension.pluginVersion}"
 
-            // TODO #115 grpc-stub is only needed for the client. Can we use the 'suggestedDependencies' somehow?
-            implementation "io.grpc:grpc-stub:${grpcVersion}"
+                // TODO #115 grpc-stub is only needed for the client. Can we use the 'suggestedDependencies' somehow?
+                implementation "io.grpc:grpc-stub:${grpcVersion}"
+            }
+            p.protobuf {
+                plugins {
+                    akkaGrpc {
+                        artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_${extension.scalaVersion}:${extension.pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
+                    }
+                    if (isScala) {
+                        scalapb {
+                            artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_${extension.scalaVersion}:${extension.pluginVersion}:${assemblyClassifier}@${assemblySuffix}"
+                        }
+                    }
+                }
+            }
         }
     }
 }

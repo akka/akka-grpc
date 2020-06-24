@@ -5,7 +5,6 @@ import helper.BaseUnitTest
 import org.gradle.api.artifacts.Dependency
 
 import static akka.grpc.gradle.AkkaGrpcPluginExtension.getDEFAULT_SCALA_VERSION
-import static akka.grpc.gradle.AkkaGrpcPluginExtension.getDEFAULT_SCALA_VERSION
 
 class AkkaGrpcPluginJavaTest extends BaseUnitTest {
 
@@ -29,6 +28,26 @@ class AkkaGrpcPluginJavaTest extends BaseUnitTest {
         with(plugins.akkaGrpc) {
             group == "com.lightbend.akka.grpc"
             name == "akka-grpc-codegen_$DEFAULT_SCALA_VERSION"
+            version == akkaGrpcExt.pluginVersion
+        }
+    }
+
+    def "should override scalaVersion of protobuf plugins via extension"() {
+        given:
+        def myVer = "qwe"
+        when:
+        project.akkaGrpc { scalaVersion = myVer }
+        and:
+        project.evaluate()
+        then:
+        akkaGrpcExt.scalaVersion == myVer
+        and:
+        Map<String, Dependency> plugins = project.protobuf.tools.plugins.collectEntries { [(it.name): project.dependencies.create(it.artifact)] }
+        plugins.keySet().sort() == ["akkaGrpc"]
+
+        with(plugins.akkaGrpc) {
+            group == "com.lightbend.akka.grpc"
+            name == "akka-grpc-codegen_$myVer"
             version == akkaGrpcExt.pluginVersion
         }
     }
