@@ -51,7 +51,8 @@ class FileLogger(path: String) extends Logger {
   }
 }
 
-/** Logger that forwards calls to another Logger via reflection.
+/**
+ * Logger that forwards calls to another Logger via reflection.
  *
  *  This enables a code generator that is loaded inside a sandboxed class loader to
  *  use a logger that lives in a different class loader.

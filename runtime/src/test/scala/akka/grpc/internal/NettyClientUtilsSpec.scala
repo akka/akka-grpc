@@ -14,11 +14,13 @@ import org.scalatest.wordspec.AnyWordSpec
 class NettyClientUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   implicit val system = ActorSystem(
     "test",
-    ConfigFactory.parseString("""
+    ConfigFactory
+      .parseString("""
       akka.discovery.method = alwaystimingout
 
       akka.discovery.alwaystimingout.class = akka.grpc.internal.AlwaysTimingOutDiscovery
-      """).withFallback(ConfigFactory.load()))
+      """)
+      .withFallback(ConfigFactory.load()))
 
   "The Netty client-utilities" should {
 //    The channel can now retry service discovery as needed itself,

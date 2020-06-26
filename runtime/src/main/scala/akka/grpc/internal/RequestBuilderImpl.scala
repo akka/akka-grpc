@@ -117,7 +117,9 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
+    val headers: MetadataImpl)(
+    implicit mat: Materializer,
+    ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
   @InternalStableApi
@@ -183,7 +185,9 @@ final class JavaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
+    val headers: MetadataImpl)(
+    implicit mat: Materializer,
+    ec: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaClientStreamingRequestBuilder[I, O]] {
   @InternalStableApi
