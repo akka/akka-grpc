@@ -24,11 +24,11 @@ repositories {
   mavenCentral()
 }
 
-def scalaBase = "2.12"
+def scalaBinaryVersion = "2.12"
 
 dependencies {
-  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBase}", version: '0.4.2'
-  testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBase}:2.5.31"
-  testImplementation "org.scalatest:scalatest_${scalaBase}:3.1.2"
-  testImplementation "org.scalatestplus:junit-4-12_${scalaBase}:3.1.2.0"
+  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '0.4.2'
+  testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:2.5.31"
+  testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.1.2"
+  testImplementation "org.scalatestplus:junit-4-12_${scalaBinaryVersion}:3.1.2.0"
 }
