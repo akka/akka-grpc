@@ -19,7 +19,7 @@ trait CodeGenerator {
 
   def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse
 
-  /** Takes Scala binary version and returns suggested dependency Seq **/
+  /** Takes Scala binary version and returns suggested dependency Seq */
   def suggestedDependencies: ScalaBinaryVersion => Seq[Artifact]
 
   final def run(request: Array[Byte], logger: Logger): Array[Byte] =
@@ -28,6 +28,6 @@ trait CodeGenerator {
 
 object CodeGenerator {
 
-  /** Holds the prefix of a given Scala binary version **/
+  /** Holds the prefix of a given Scala binary version */
   case class ScalaBinaryVersion(prefix: String)
 }

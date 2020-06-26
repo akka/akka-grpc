@@ -34,7 +34,6 @@ private object AkkaNettyGrpcClientGraphStage {
  *  upstream pull <-- onReady ---  |      call      | <-- request(1) ---  downstream pull
  *                                 ------------------
  *
- *
  * @param streamingResponse Do we expect a stream of responses or does more than 1 response mean a faulty server?
  */
 @InternalApi
