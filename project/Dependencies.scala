@@ -123,5 +123,6 @@ object Dependencies {
         // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
         Compile.grpcStub,
         Compile.akkaHttpCors,
-        Test.scalaTest)
+        Test.scalaTest,
+        Test.scalaTestPlusJunit)
 }
