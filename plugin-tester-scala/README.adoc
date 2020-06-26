@@ -1,0 +1,22 @@
+= Sample repository for Gradle plugin functional testing
+
+== Run project tests
+
+[source,sh]
+----
+$ ./gradlew clean test
+----
+
+== Configure plugin version
+
+Version of the `akkaGrpc` plugin is stored in file `gradle.properties` in property named `akkaGrpcTest.pluginVersion`.
+
+This version can also be overriden from command line:
+
+[source,sh]
+----
+$ ./gradlew clean test -PakkaGrpcTest.pluginVersion=0.0.1
+----
+
+This override can be used for testing SNAPSHOT versions published to Maven local.
+So, this allow to use this sample project for local testing of published plugin and libraries.
