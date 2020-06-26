@@ -4,15 +4,15 @@
 
 package example.myapp.helloworld
 
-import akka.actor.{ActorSystem, ClassicActorSystemProvider}
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.internal.GrpcProtocolNative
-import akka.http.scaladsl.model.HttpEntity.{Chunked, LastChunk}
+import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.{Http, HttpConnectionContext}
+import akka.http.scaladsl.{ Http, HttpConnectionContext }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import example.myapp.helloworld.grpc.{GreeterService, GreeterServiceHandler}
+import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandler }
 import io.grpc.Status
 import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
@@ -33,7 +33,6 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
   implicit val system: ActorSystem = ActorSystem()
 
   implicit val mat = ActorMaterializer()
-
 
   "A gRPC server" should {
 
@@ -72,7 +71,7 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
         case Chunked(_, chunks) =>
           chunks.runWith(Sink.last).futureValue match {
             case LastChunk(_, trailingHeaders) => response.headers ++ trailingHeaders
-            case _ => response.headers
+            case _                             => response.headers
           }
         case _ =>
           response.headers

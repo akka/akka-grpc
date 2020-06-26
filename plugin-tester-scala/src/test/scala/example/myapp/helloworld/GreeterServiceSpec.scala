@@ -4,7 +4,7 @@
 
 package example.myapp.helloworld
 
-import akka.actor.{ActorSystem, ClassicActorSystemProvider}
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
@@ -43,7 +43,10 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>
-    GreeterServiceClient(GrpcClientSettings.connectToServiceAt("127.0.0.1", port)(clientSystem.asInstanceOf[ClassicActorSystemProvider]).withTls(false))(clientSystem.asInstanceOf[ClassicActorSystemProvider])
+    GreeterServiceClient(
+      GrpcClientSettings
+        .connectToServiceAt("127.0.0.1", port)(clientSystem.asInstanceOf[ClassicActorSystemProvider])
+        .withTls(false))(clientSystem.asInstanceOf[ClassicActorSystemProvider])
   }
 
   override def afterAll: Unit = {
