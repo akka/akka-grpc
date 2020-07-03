@@ -27,7 +27,7 @@ Java
 
 ### Akka gRPC route
 
-We create the Akka gRPC service implementation, and convert it to a @apidoc[Route] as well:
+We create the Akka gRPC service implementation, and convert it to a @apidoc[Route$] as well:
 
 Scala
 :  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala) { #grpc-route }
@@ -37,7 +37,7 @@ Java
 
 ### Securing the Akka gRPC route
 
-We can wrap the gRPC route just like any @apidoc[Route], applying the authorization:
+We can wrap the gRPC route just like any @apidoc[Route$], applying the authorization:
 
 Scala
 :  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala) { #grpc-protected }
