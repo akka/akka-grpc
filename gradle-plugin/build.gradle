@@ -1,20 +1,9 @@
-buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "com.gradle.publish:plugin-publish-plugin:0.11.0"
-  }
-}
-
 plugins {
-    id 'groovy'
-    id 'java-gradle-plugin'
-    id 'maven-publish'
-    id 'com.palantir.git-version' version '0.10.1'
-    id 'com.gradle.plugin-publish' version '0.11.0'
+  id 'groovy'
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+  id 'com.palantir.git-version' version '0.10.1'
+  id 'com.gradle.plugin-publish' version '0.11.0'
 }
 
 group = "com.lightbend.akka.grpc"
@@ -26,41 +15,48 @@ def finalVersion = (tag == versionDetails().lastTag.substring(1)) ? tag : tag.re
 version = finalVersion
 
 gradlePlugin {
-    plugins {
-        akkaGrpcPlugin {
-            id = 'com.lightbend.akka.grpc.gradle'
-            implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
-        }
+  plugins {
+    akkaGrpcPlugin {
+      id = 'com.lightbend.akka.grpc.gradle'
+      implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
     }
+  }
 }
 
 pluginBundle {
-    website = 'https://developer.lightbend.com/docs/akka-grpc/current/'
-    vcsUrl = 'https://github.com/akka/akka-grpc'
-    description = 'Building streaming gRPC servers and clients on top of Akka Streams'
-    tags = ['akka', 'streams', 'reactive']
+  website = 'https://developer.lightbend.com/docs/akka-grpc/current/'
+  vcsUrl = 'https://github.com/akka/akka-grpc'
+  description = 'Building streaming gRPC servers and clients on top of Akka Streams'
+  tags = ['akka', 'streams', 'reactive']
 
-    plugins {
-        akkaGrpcPlugin {
-            id = 'com.lightbend.akka.grpc.gradle'
-            displayName = 'Akka gRPC'
-        }
+  plugins {
+    akkaGrpcPlugin {
+      id = 'com.lightbend.akka.grpc.gradle'
+      displayName = 'Akka gRPC'
     }
+  }
 }
 
 jar {
-    manifest {
-        attributes 'Implementation-Version': project.version
-    }
-}
-
-dependencies {
-    compile localGroovy()
-    compile gradleApi()
-
-    implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.11'
+  manifest {
+    attributes 'Implementation-Version': project.version
+  }
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.11'
+  testImplementation('org.spockframework:spock-core:1.3-groovy-2.5')
+}
+
+test {
+  systemProperty 'akkaGrpcTest.pluginVersion', project.version
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat "full"
+    showStandardStreams = false
+  }
 }
