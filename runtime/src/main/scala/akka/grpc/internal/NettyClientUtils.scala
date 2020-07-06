@@ -36,8 +36,8 @@ object NettyClientUtils {
       implicit ec: ExecutionContext): InternalChannel = {
     var builder =
       NettyChannelBuilder
-      // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
-      // we follow their lead and encode the service name as the 'authority' of the URI.
+        // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
+        // we follow their lead and encode the service name as the 'authority' of the URI.
         .forTarget("//" + settings.serviceName)
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
         .nameResolverFactory(
