@@ -1,5 +1,15 @@
 # Releasing
 
+## When to release
+
+Akka gRPC is released when there is a need for it.
+
+If you want to test an improvement that is not yet released, you can use a
+snapshot version: we release all commits to master to the snapshot repository
+on [Bintray](https://bintray.com/akka/snapshots/akka-grpc).
+
+## How to release
+
 Create a new issue from the [Release Train Issue Template](docs/release-train-issue-template.md):
 
 ```
