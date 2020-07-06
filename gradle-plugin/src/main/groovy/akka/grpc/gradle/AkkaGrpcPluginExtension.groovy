@@ -1,6 +1,6 @@
 package akka.grpc.gradle
 
-import org.gradle.api.GradleException
+
 import org.gradle.api.Project
 
 class AkkaGrpcPluginExtension {
@@ -16,7 +16,6 @@ class AkkaGrpcPluginExtension {
     // workaround for tests, where there's no jar and MANIFES.MF can't be read
     final String pluginVersion = System.getProperty("akkaGrpcTest.pluginVersion", AkkaGrpcPlugin.class.package.implementationVersion)
 
-    String language
     boolean generateClient = true
     boolean generateServer = true
     boolean generatePlay = false
@@ -24,13 +23,19 @@ class AkkaGrpcPluginExtension {
     boolean usePlayActions = false
     List<String> extraGenerators = []
 
+    private final Project project
+
+    final boolean scala
+
     AkkaGrpcPluginExtension(Project project) {
-        if (project.pluginManager.hasPlugin("scala")) {
-            language = "Scala"
-        } else if (project.pluginManager.hasPlugin("java")) {
-            language = "Java"
+        this.project = project
+        def scalaFiles = project.fileTree("src/main").matching { include "**/*.scala" }
+        if (!scalaFiles.isEmpty()) {
+            project.logger.info("Detected ${scalaFiles.size()} Scala source files. Plugin works in `scala` mode.")
+            project.logger.debug("Scala files ${scalaFiles.files}")
         } else {
-            throw new GradleException("$PLUGIN_CODE requires either `java` or `scala` plugin to be applied before the plugin.")
+            project.logger.info("No Scala source files detected. Plugin works in `java` mode.")
         }
+        this.scala = !scalaFiles.isEmpty()
     }
 }

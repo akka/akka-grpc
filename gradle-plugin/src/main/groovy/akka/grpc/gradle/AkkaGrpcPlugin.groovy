@@ -5,6 +5,8 @@ import org.apache.commons.lang.SystemUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 
@@ -25,18 +27,20 @@ class AkkaGrpcPlugin implements Plugin<Project> {
         }
 
         this.project = project
-
         def akkaGrpcExt = project.extensions.create('akkaGrpc', AkkaGrpcPluginExtension, project)
+
+        if (akkaGrpcExt.scala) {
+            project.pluginManager.apply ScalaPlugin
+        } else {
+            project.pluginManager.apply JavaPlugin
+        }
+
+        project.pluginManager.apply ProtobufPlugin
 
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
         String assemblyClassifier = SystemUtils.IS_OS_WINDOWS ? "bat" : "assembly"
 
         Path logFile = project.buildDir.toPath().resolve("akka-grpc-gradle-plugin.log")
-
-        boolean isScala = "${akkaGrpcExt.language}".toLowerCase() == "scala"
-        boolean isJava = "${akkaGrpcExt.language}".toLowerCase() == "java"
-
-        project.pluginManager.apply ProtobufPlugin
 
         project.sourceSets {
             main {
@@ -52,13 +56,12 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.sourceSets {
             main {
-                if (isScala) {
+                if (akkaGrpcExt.scala) {
                     scala {
                         srcDir 'build/generated/source/proto/main/akkaGrpc'
                         srcDir 'build/generated/source/proto/main/scalapb'
                     }
-                }
-                if (isJava) {
+                } else {
                     java {
                         srcDir 'build/generated/source/proto/main/akkaGrpc'
                         srcDir 'build/generated/source/proto/main/java'
@@ -81,7 +84,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                 akkaGrpc {
                     artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_$PROTOC_PLUGIN_SCALA_VERSION:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                 }
-                if (isScala) {
+                if (akkaGrpcExt.scala) {
                     scalapb {
                         artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_$PROTOC_PLUGIN_SCALA_VERSION:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                     }
@@ -89,7 +92,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             }
             generateProtoTasks {
                 all().each { task ->
-                    if (isScala) {
+                    if (akkaGrpcExt.scala) {
                         task.builtins {
                             remove java
                         }
@@ -97,7 +100,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
                     task.plugins {
                         akkaGrpc {
-                            option "language=${akkaGrpcExt.language}"
+                            option "language=${akkaGrpcExt.scala ? "Scala" : "Java"}"
                             option "generate_client=${akkaGrpcExt.generateClient}"
                             option "generate_server=${akkaGrpcExt.generateServer}"
                             option "server_power_apis=${akkaGrpcExt.serverPowerApis}"
@@ -107,11 +110,11 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             if (akkaGrpcExt.generatePlay) {
                                 option "generate_play=true"
                             }
-                            if (isScala) {
+                            if (akkaGrpcExt.scala) {
                                 option "flat_package"
                             }
                         }
-                        if (isScala) {
+                        if (akkaGrpcExt.scala) {
                             scalapb {
                                 option "flat_package"
                             }

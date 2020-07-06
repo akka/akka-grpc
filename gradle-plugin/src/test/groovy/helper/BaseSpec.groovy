@@ -27,10 +27,12 @@ abstract class BaseSpec extends Specification {
         buildFile = projectDir.newFile("build.gradle")
         buildFile.text = """
 plugins {
-  id 'scala'
   id '$PLUGIN_CODE'
 }
 repositories { jcenter() }
+project.dependencies {
+    implementation "com.typesafe.scala-logging:scala-logging_2.12:3.9.2"
+}
 """
     }
 
@@ -39,7 +41,11 @@ repositories { jcenter() }
     }
 
     AkkaGrpcPluginExtension sampleSetup(def plugin = "scala", String scala = "2.12") {
-        project.pluginManager.apply plugin
+        if (plugin == "scala" || plugin == ScalaWrapperPlugin) {
+            def scalaDir = projectDir.newFolder('src', 'main', 'scala')
+            new File(scalaDir, "test.scala").text = "object AkkaGrpc"
+        }
+
         project.pluginManager.apply PLUGIN_CODE
         project.repositories { mavenCentral() }
         project.dependencies {
