@@ -8,8 +8,7 @@ import example.myapp.statefulhelloworld.grpc.*;
 
 import akka.actor.ActorSystem;
 import akka.actor.ActorRef;
-import akka.util.Timeout;
-import static akka.pattern.PatternsCS.ask;
+import static akka.pattern.Patterns.ask;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +19,6 @@ public final class GreeterServiceImpl implements GreeterService {
 
   private final ActorSystem system;
   private final ActorRef greeterActor;
-  private final Timeout timeout = Timeout.create(Duration.ofSeconds(5));
 
   public GreeterServiceImpl(ActorSystem system) {
     this.system = system;
@@ -28,7 +26,7 @@ public final class GreeterServiceImpl implements GreeterService {
   }
 
   public CompletionStage<HelloReply> sayHello(HelloRequest in) {
-    return ask(greeterActor, GreeterActor.GET_GREETING, timeout)
+    return ask(greeterActor, GreeterActor.GET_GREETING, Duration.ofSeconds(5))
         .thenApply(message ->
           HelloReply.newBuilder()
             .setMessage(((GreeterActor.Greeting) message).greeting)
