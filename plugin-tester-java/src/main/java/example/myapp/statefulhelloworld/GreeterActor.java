@@ -27,7 +27,7 @@ public class GreeterActor extends AbstractActor {
   }
 
   public static Props props(final String initialGreeting) {
-    return Props.create(() -> new GreeterActor(initialGreeting));
+    return Props.create(GreeterActor.class, () -> new GreeterActor(initialGreeting));
   }
 
   private Greeting greeting;
