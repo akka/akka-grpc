@@ -8,6 +8,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Unroll
 
 import static akka.grpc.gradle.AkkaGrpcPluginExtension.PLUGIN_CODE
 
@@ -20,7 +21,8 @@ class ApplySpec extends BaseSpec {
         project = ProjectBuilder.builder().withProjectDir(projectDir.root).build()
     }
 
-    def "should success if scala or java plugins are applied and a single scala-library declared"() {
+    @Unroll
+    def "should detect language for #plugin"() {
         given:
         def akkaGrpcExt = sampleSetup(plugin, scala)
         when:
@@ -28,45 +30,16 @@ class ApplySpec extends BaseSpec {
         then:
         with(akkaGrpcExt) {
             it.pluginVersion == System.getProperty("akkaGrpcTest.pluginVersion")
-            it.language == lang
+            it.scala == isScala
         }
         where:
-        plugin            || scala || lang
-        "java"             | "2.12" | "Java"
-        "java"             | "2.13" | "Java"
-        "scala"            | "2.12" | "Scala"
-        "scala"            | "2.13" | "Scala"
-        ScalaWrapperPlugin | "2.12" | "Scala"
-        ScalaWrapperPlugin | "2.13" | "Scala"
-    }
-
-    def "should fail if neither scala nor java plugins are applied"() {
-        when:
-        project.pluginManager.apply PLUGIN_CODE
-        then:
-        def ex = thrown(PluginApplicationException)
-        ex.message.contains PLUGIN_CODE
-        and:
-        ex.cause instanceof ObjectInstantiationException
-        ex.cause.message.contains(AkkaGrpcPluginExtension.name)
-        and:
-        ex.cause.cause.message == "$PLUGIN_CODE requires either `java` or `scala` plugin to be applied before the plugin."
-    }
-
-    def "should fail if scala or java plugins are applied before the plugin"() {
-        when:
-        project.pluginManager.apply PLUGIN_CODE
-        project.pluginManager.apply plugin
-        then:
-        def ex = thrown(PluginApplicationException)
-        ex.message.contains PLUGIN_CODE
-        and:
-        ex.cause instanceof ObjectInstantiationException
-        ex.cause.message.contains(AkkaGrpcPluginExtension.name)
-        and:
-        ex.cause.cause.message == "$PLUGIN_CODE requires either `java` or `scala` plugin to be applied before the plugin."
-        where:
-        plugin << ["java", "scala", ScalaWrapperPlugin]
+        plugin            || scala || isScala
+        "java"             | "2.12" | false
+        "java"             | "2.13" | false
+        "scala"            | "2.12" | true
+        "scala"            | "2.13" | true
+        ScalaWrapperPlugin | "2.12" | true
+        ScalaWrapperPlugin | "2.13" | true
     }
 
     def "should fail if no scala-library declared"() {
