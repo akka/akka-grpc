@@ -41,9 +41,9 @@ object RouteUtils {
   def toFunction(
       route: Route,
       system: ClassicActorSystemProvider): Function[HttpRequest, CompletionStage[HttpResponse]] = {
-    implicit val sys = system.classicSystem
-    implicit val ec: ExecutionContext = sys.dispatcher
-    val handler = scaladsl.server.Route.asyncHandler(route.asScala)
+    implicit val sys = system
+    implicit val ec: ExecutionContext = system.classicSystem.dispatcher
+    val handler = scaladsl.server.Route.toFunction(route.asScala)
 
     (request: HttpRequest) => {
       import FutureConverters._
