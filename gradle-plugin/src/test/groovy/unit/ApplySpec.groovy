@@ -55,7 +55,6 @@ class ApplySpec extends BaseSpec {
 
     def "should fail if multiple scala-library declared"() {
         given:
-        project.pluginManager.apply "scala"
         project.pluginManager.apply PLUGIN_CODE
         and:
         project.repositories { mavenCentral() }
@@ -68,5 +67,25 @@ class ApplySpec extends BaseSpec {
         then:
         def ex = thrown(ProjectConfigurationException)
         ex.cause.message.startsWith "$PLUGIN_CODE requires a single major.minor version of all scala libraries in compileClasspath."
+    }
+
+    def "should disable compileJava if no java source files found"() {
+        given:
+        sampleSetup()
+        when:
+        project.evaluate()
+        then:
+        !project.tasks.getByName("compileJava").enabled
+    }
+    def "should enable compileJava if java source files found"() {
+        given:
+        sampleSetup()
+        when:
+        def javaDir = projectDir.newFolder('src', 'main', 'java')
+        new File(javaDir, "Empty.java").text = "final class Empty {}"
+        and:
+        project.evaluate()
+        then: "compileJava is enabled"
+        project.tasks.getByName("compileJava").enabled
     }
 }
