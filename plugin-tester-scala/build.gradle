@@ -9,11 +9,6 @@ buildscript {
   }
 }
 
-plugins {
-  id 'scala'
-  id 'application'
-}
-
 apply plugin: 'com.lightbend.akka.grpc.gradle'
 
 akkaGrpc {
@@ -21,7 +16,11 @@ akkaGrpc {
 }
 
 repositories {
+  mavenLocal()
   mavenCentral()
+  maven {
+    url "https://dl.bintray.com/akka/snapshots" 
+  }
 }
 
 def scalaBinaryVersion = "2.12"

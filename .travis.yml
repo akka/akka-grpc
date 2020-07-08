@@ -37,7 +37,7 @@ jobs:
       name: Test Maven Scala
     - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
       name: Test Gradle Java
-    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd plugin-tester-scala && ./gradlew clean test -DakkaGrpcTest.pluginVersion=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`
+    - script: sbt -jvm-opts .jvmopts-travis publishM2 && cd gradle-plugin && ./gradlew clean publishToMavenLocal --info --stacktrace && cd ../plugin-tester-scala && ./gradlew clean test --info --stacktrace -PakkaGrpcTest.pluginVersion=`git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`
       name: Test Gradle Scala
     - script: cd benchmark-java && sbt -jvm-opts .jvmopts-travis test:compile
       name: Compile benchmarks

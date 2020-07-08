@@ -125,6 +125,11 @@ class AkkaGrpcPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate { Project p ->
+
+            if (p.sourceSets.main.allJava.isEmpty()) {
+                p.tasks.getByName("compileJava").enabled = false
+            }
+
             def scalaVersion = autodetectScala()
             p.dependencies {
                 implementation "com.lightbend.akka.grpc:akka-grpc-runtime_${scalaVersion}:${baselineVersion}"
