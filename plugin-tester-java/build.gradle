@@ -1,27 +1,8 @@
-buildscript {
-  repositories {
-    mavenLocal()
-    gradlePluginPortal()
-  }
-
-  dependencies {
-    // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
-    // for the currently latest version.
-    //classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:0.1'
-
-    // For testing on travis, we use another group id:
-    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:SNAPSHOT'
-
-  }
-}
-
 plugins {
-  id 'application'
+  id 'scala'
+  id 'com.lightbend.akka.grpc.gradle'
 }
 
-apply plugin: 'com.lightbend.akka.grpc.gradle'
-
-// These are the default options for a Java project (not necessary to define)
 akkaGrpc {
   generateClient = true
   generateServer = true
@@ -31,20 +12,19 @@ akkaGrpc {
 
 repositories {
   mavenLocal()
+  maven {
+    url "https://dl.bintray.com/akka/snapshots"
+  }
   mavenCentral()
 }
 
+def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.12")
+def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
+
 dependencies {
-  compile group: 'ch.megard', name: 'akka-http-cors_2.12', version: '0.4.2'
+  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '0.4.2'
+  testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:2.5.31"
+  testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.1.2"
+  testImplementation "org.scalatestplus:junit-4-12_${scalaBinaryVersion}:3.1.2.0"
 }
 
-task runServer(type: JavaExec) {
-  classpath = sourceSets.main.runtimeClasspath
-  main = 'example.myapp.helloworld.GreeterServer'
-}
-
-
-task runClient(type: JavaExec) {
-  classpath = sourceSets.main.runtimeClasspath
-  main = 'example.myapp.helloworld.GreeterClient'
-}
