@@ -47,14 +47,7 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
         "-P:silencer:globalFilters=Use LazyList instead of Stream",
         // ignore imports in templates
-        "-P:silencer:pathFilters=.*.txt",
-        // imports in generated code
-        // https://github.com/akka/akka-grpc/issues/1009
-        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder",
-        "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.SingleResponseRequestBuilder",
-        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaUnaryRequestBuilder",
-        "-P:silencer:lineContentFilters=import akka.grpc.internal.ScalaServerStreamingRequestBuilder",
-        "-P:silencer:lineContentFilters=import akka.grpc.scaladsl.StreamResponseRequestBuilder"),
+        "-P:silencer:pathFilters=.*.txt"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",
