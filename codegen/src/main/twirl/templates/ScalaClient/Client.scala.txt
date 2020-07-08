@@ -24,7 +24,7 @@ import akka.grpc.internal.ClientState
 @{
   def withSingleResponse(stmt: String) = Set("import akka.grpc.scaladsl.SingleResponseRequestBuilder", stmt)
   def withStreamResponse(stmt: String) = Set("import akka.grpc.scaladsl.StreamResponseRequestBuilder", stmt)
-  service.methods.distinct.flatMap { method: akka.grpc.gen.scaladsl.Method =>
+  service.methods.flatMap { method: akka.grpc.gen.scaladsl.Method =>
 
     val statements = method.methodType match {
       case akka.grpc.gen.Unary => withSingleResponse("import akka.grpc.internal.ScalaUnaryRequestBuilder")
@@ -34,7 +34,7 @@ import akka.grpc.internal.ClientState
     }
 
     statements
-  }.mkString("\n")
+  }.distinct.mkString("\n")
 }
 
 // Not sealed so users can extend to write their stubs
