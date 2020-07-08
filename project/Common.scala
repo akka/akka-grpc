@@ -47,8 +47,7 @@ object Common extends AutoPlugin {
         "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
         "-P:silencer:globalFilters=Use LazyList instead of Stream",
         // ignore imports in templates
-        "-P:silencer:pathFilters=.*.txt",
-    ),
+        "-P:silencer:pathFilters=.*.txt"),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
         "-doc-title",
