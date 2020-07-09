@@ -16,6 +16,12 @@ Create a new issue from the [Release Train Issue Template](docs/release-train-is
 $ sh ./scripts/create-release-issue.sh 0.x.y
 ```
 
+or:
+
+```
+$ sh ./scripts/create-release-issue.sh 0.x.y -patch
+```
+
 ## Gradle plugin release details
 
 The Gradle plugin goes directly to the Gradle Plugin Portal. An encrypted `gradle.properties` that includes a
