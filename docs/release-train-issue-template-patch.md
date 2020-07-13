@@ -15,8 +15,6 @@ Variables to be expanded in this template:
 ### Before the release
 
 - [ ] Make sure all important / big PRs have been merged by now
-- [ ] Rename the 'akka-grpc-x.x-stable' and 'akka-grpc-supported-x.x-stable' reporting projects in [WhiteSource](https://saas.whitesourcesoftware.com/Wss/WSS.html) accordingly (unfortunately this requires permissions that cannot be shared outside of Lightbend)
-- [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the milestone
 
 ### Cutting the release
 
@@ -46,12 +44,9 @@ Variables to be expanded in this template:
 
 ### Announcements
 
-- [ ] Merge draft news item for [akka.io](https://github.com/akka/akka.github.com)
 - [ ] Edit the [release draft](https://github.com/akka/akka-grpc/releases) with the next tag version `v$VERSION$`, title and release description.
-- [ ] Send a release notification to [Lightbend discuss](https://discuss.akka.io)
 - [ ] Tweet using the akkateam account (or ask someone to) about the new release
 - [ ] Announce on [Gitter akka/akka](https://gitter.im/akka/akka)
-- [ ] Announce internally
 
 ### Afterwards
 
