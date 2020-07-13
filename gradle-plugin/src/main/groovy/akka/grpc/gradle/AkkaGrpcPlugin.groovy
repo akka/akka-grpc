@@ -71,8 +71,8 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             //TODO add test sources
         }
 
-        // workaround for func tests, when only need to tests a plugin without rebuilding dependencies
-        def baselineVersion = System.getProperty("akkaGrpcTest.baselineVersion", akkaGrpcExt.pluginVersion)
+        // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
+        def baselineVersion = System.getProperty("akka.grpc.baseline.version", akkaGrpcExt.pluginVersion)
 
         project.protobuf {
             protoc {

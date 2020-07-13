@@ -13,7 +13,7 @@ class AkkaGrpcPluginExtension {
 
     static final String GRPC_VERSION = "1.30.0"
 
-    // workaround for tests, where there's no jar and MANIFES.MF can't be read
+    // workaround for tests, where there's no jar and MANIFEST.MF can't be read
     final String pluginVersion = System.getProperty("akkaGrpcTest.pluginVersion", AkkaGrpcPlugin.class.package.implementationVersion)
 
     boolean generateClient = true

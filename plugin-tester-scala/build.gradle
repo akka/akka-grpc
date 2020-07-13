@@ -1,15 +1,6 @@
-buildscript {
-  repositories {
-    mavenLocal()
-    gradlePluginPortal()
-  }
-
-  dependencies {
-    classpath "com.lightbend.akka.grpc:akka-grpc-gradle-plugin:${project.getProperty("akkaGrpcTest.pluginVersion")}"
-  }
+plugins {
+  id 'com.lightbend.akka.grpc.gradle'
 }
-
-apply plugin: 'com.lightbend.akka.grpc.gradle'
 
 akkaGrpc {
   serverPowerApis = true // This isn't default
@@ -17,13 +8,14 @@ akkaGrpc {
 
 repositories {
   mavenLocal()
-  mavenCentral()
   maven {
-    url "https://dl.bintray.com/akka/snapshots" 
+    url "https://dl.bintray.com/akka/snapshots"
   }
+  mavenCentral()
 }
 
-def scalaBinaryVersion = "2.12"
+def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.12")
+def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 
 dependencies {
   implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '0.4.2'
@@ -31,3 +23,4 @@ dependencies {
   testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.1.2"
   testImplementation "org.scalatestplus:junit-4-12_${scalaBinaryVersion}:3.1.2.0"
 }
+
