@@ -1,0 +1,4 @@
+## PR #1065
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.internal.AkkaGrpcClientFactory$Configured")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.internal.AkkaGrpcClientFactory$")
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.internal.AkkaGrpcClientFactory")
