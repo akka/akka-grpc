@@ -1,12 +1,10 @@
 package unit
 
-import akka.grpc.gradle.AkkaGrpcPluginExtension
+
 import helper.BaseSpec
 import helper.ScalaWrapperPlugin
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
-import org.gradle.api.internal.plugins.PluginApplicationException
-import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
@@ -51,6 +49,7 @@ class ApplySpec extends BaseSpec {
         then:
         def ex = thrown(ProjectConfigurationException)
         ex.cause.message.startsWith "$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath."
+        ex.cause.message.endsWith "Found []"
     }
 
     def "should fail if multiple scala-library declared"() {
@@ -66,7 +65,21 @@ class ApplySpec extends BaseSpec {
         project.evaluate()
         then:
         def ex = thrown(ProjectConfigurationException)
-        ex.cause.message.startsWith "$PLUGIN_CODE requires a single major.minor version of all scala libraries in compileClasspath."
+        ex.cause.message.startsWith "$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath."
+        ex.cause.message.endsWith "Found [2.11, 2.13]"
+    }
+
+    def "should not fail scala autodetect if dependencies contain underscore"() {
+        given:
+        def akkaGrpcExt = sampleSetup()
+        and:
+        project.dependencies {
+            implementation "com.google.errorprone:error_prone_annotations:2.3.4"
+        }
+        when:
+        project.evaluate()
+        then: 'plugin is applied'
+        akkaGrpcExt.scala
     }
 
     def "should disable compileJava if no java source files found"() {
@@ -77,6 +90,7 @@ class ApplySpec extends BaseSpec {
         then:
         !project.tasks.getByName("compileJava").enabled
     }
+
     def "should enable compileJava if java source files found"() {
         given:
         sampleSetup()
