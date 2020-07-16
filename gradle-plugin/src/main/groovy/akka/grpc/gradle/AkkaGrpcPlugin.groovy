@@ -152,21 +152,17 @@ class AkkaGrpcPlugin implements Plugin<Project> {
     }
 
     String autodetectScala() {
-        def deps = project.configurations.compileClasspath.copyRecursive().resolvedConfiguration
-            .resolvedArtifacts.collect { it.moduleVersion.id }
+        def cfg = project.configurations.compileClasspath.copyRecursive()
 
-        def scalaLibs = deps.findAll { it.group == "org.scala-lang" && it.name == "scala-library" }
-            .collect { it.version.split('\\.').init().join(".") }.unique()
-        if (scalaLibs.size() != 1) {
-            throw new GradleException("$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath.\nFound $scalaLibs")
+        def scalaVersions = cfg.incoming.resolutionResult.allDependencies
+            .findAll { it.requested.moduleIdentifier.name == 'scala-library' }
+            .collect { it.requested.versionConstraint.toString() }.collect { it.split("\\.").init().join(".") }.unique()
+
+        if (scalaVersions.size() != 1) {
+            throw new GradleException("$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath.\nFound $scalaVersions")
         }
 
-        def scalaLibs2 = deps.findAll { it.name.contains("_") }.collect { it.name.split("_").last() }.unique()
-        if (scalaLibs2.size() != 1) {
-            throw new GradleException("$PLUGIN_CODE requires a single major.minor version of all scala libraries in compileClasspath.\nFound $scalaLibs2")
-        }
-
-        scalaLibs2.first()
+        scalaVersions.first()
     }
 }
 
