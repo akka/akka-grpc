@@ -157,9 +157,7 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(runtime)
   .enablePlugins(JmhPlugin)
   .disablePlugins(MimaPlugin)
-  .settings(
-    skip in publish := true,
-  )
+  .settings(skip in publish := true)
 
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
