@@ -153,6 +153,14 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
         .evaluated
     })))
 
+lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
+  .dependsOn(runtime)
+  .enablePlugins(JmhPlugin)
+  .disablePlugins(MimaPlugin)
+  .settings(
+    skip in publish := true,
+  )
+
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
