@@ -4,37 +4,29 @@ To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[
 
 ## Configuring what to generate
 
-The plugin can be configured to generate either Java or Scala classes, and then server and or client for the chosen language.
-By default both client and server are generated and Java or Scala is selected depending on if the build
-has the `java` or `scala` plugin.
+This plugin is a wrapper for [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugin) and uses it for `.proto` files processing and code generation.
+Most of the settings could be configured using related setting of `protobuf-gradle-plugin` itself.
+Consult [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugin#protobuf-plugin-for-gradle-) documentation for details.
+
+The plugin can generate either Java or Scala classes, and then server and or client for the corresponding language.
+By default both client and server are generated and Java or Scala is autodetected depending on the presence of source files with language extension in `src/main`.
 
 Java
 :   @@@vars
     ```gradle
-    buildscript {
-      repositories {
-        mavenLocal()
-        gradlePluginPortal()
-      }
-      dependencies {
-        // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
-        // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
-      }
-    }
     plugins {
-      id 'java'
-      id 'application'
+      id "com.lightbend.akka.grpc.gradle" version "$project.version$"
     }
-    apply plugin: 'com.lightbend.akka.grpc.gradle'
     // These are the default options for a Java project (not necessary to define)
     akkaGrpc {
-      language = "Java"
       generateClient = true
       generateServer = true
     }
     repositories {
-      mavenLocal()
+      // this repository is required only if SNAPSHOT version is used
+      maven {
+        url "https://dl.bintray.com/akka/snapshots"
+      }
       mavenCentral()
     }
     ```
@@ -43,30 +35,19 @@ Java
 Scala
 :   @@@vars
     ```gradle
-    buildscript {
-      repositories {
-        mavenLocal()
-        gradlePluginPortal()
-      }
-      dependencies {
-        // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
-        // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
-      }
-    }
     plugins {
-      id 'scala'
-      id 'application'
+      id "com.lightbend.akka.grpc.gradle" version "$project.version$"
     }
-    apply plugin: 'com.lightbend.akka.grpc.gradle'
     // These are the default options for a Scala project (not necessary to define)
     akkaGrpc {
-      language = "Scala"
       generateClient = true
       generateServer = true
     }
     repositories {
-      mavenLocal()
+      // this repository is required only if SNAPSHOT version is used
+      maven {
+        url "https://dl.bintray.com/akka/snapshots"
+      }
       mavenCentral()
     }
     ```
@@ -87,23 +68,49 @@ To additionally generate server "power APIs" that have access to request metata,
     ```
     @@@
 
+## Protoc version
+
+Default version of `protoc` compiler is 3.4.0. 
+The version and the location of `protoc` can be changed using `protobuf-gradle-plugin` [settings](https://github.com/google/protobuf-gradle-plugin#locate-external-executables).
+
 ## Proto source directory
 
-The plugin looks for `.proto` files under `src/main/protobuf`.
+By default the plugin looks for `.proto` files under 
 
-Loading `.proto` files from other directories is currently not supported.
-If you are interested in this feature you can find more background in issue
-[#288](https://github.com/akka/akka-grpc/issues/288).
+* `src/main/protobuf`
+* `src/main/proto`
+* `app/protobuf`
+* `app/proto`
+
+Loading `.proto` files from other directories could be configured [using settings](https://github.com/google/protobuf-gradle-plugin#customizing-source-directories)
+of `protobuf-gradle-plugin`.
 
 ## Loading proto files from artifacts
 
 In gRPC it is common to make the version of the protocol you are supporting
 explicit by duplicating the proto definitions in your project.
 
-When using @ref[sbt](sbt.md) as a build system, we also support loading your
-proto definitions from a dependency classpath. This is not yet supported
-for @ref[Maven](maven.md) and Gradle. If you are interested in this feature
-it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
+This is supported by `protobuf-gradle-plugin` and explained [here](https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies).
+
+## Starting your Akka gRPC server from gradle
+
+Build script needs a custom task 
+
+`build.gradle`
+:   @@@vars
+    ```build.gradle
+    task runServer(type: JavaExec) {
+      classpath = sourceSets.main.runtimeClasspath
+      main = 'com.example.helloworld.GreeterServer'
+    }
+    ```
+    @@@
+
+Then, the server can then be started from the command line with:
+
+```
+./gradlew runServer
+```
 
 ## JDK 8 support
 
@@ -131,14 +138,6 @@ Doing this from inside of Gradle requires some configuration in the `build.gradl
     ```
     @@@
 
-## Starting your Akka gRPC server from gradle
-
-The server can then be started from the command line with:
-
-```
-./gradlew runServer
-```
-
 ## Play Framework support
 
-See the [Play gRPC documentation](https://github.com/playframework/play-grpc/blob/master/docs/src/main/paradox/play-framework.md) for details.
+See the [Play gRPC documentation](https://developer.lightbend.com/docs/play-grpc/current/play/gradle-support.html) for details.
