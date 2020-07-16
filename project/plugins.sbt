@@ -25,7 +25,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.3")
 addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.4.0")
 
 // For RawText
-libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.8.0.202006091008-r"
+libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.8.1.202007141445-r"
 
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
