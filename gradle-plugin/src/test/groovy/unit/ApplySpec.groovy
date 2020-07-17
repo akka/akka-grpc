@@ -56,7 +56,6 @@ class ApplySpec extends BaseSpec {
         given:
         project.pluginManager.apply PLUGIN_CODE
         and:
-        project.repositories { mavenCentral() }
         project.dependencies {
             implementation group: 'org.mockito', name: 'mockito-scala_2.11', version: '1.6.1'
             implementation group: 'org.mockito', name: 'mockito-scala_2.13', version: '1.14.8'

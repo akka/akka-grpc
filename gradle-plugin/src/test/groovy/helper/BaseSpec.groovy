@@ -29,7 +29,6 @@ abstract class BaseSpec extends Specification {
 plugins {
   id '$PLUGIN_CODE'
 }
-repositories { jcenter() }
 project.dependencies {
     implementation "com.typesafe.scala-logging:scala-logging_2.12:3.9.2"
 }
@@ -47,7 +46,6 @@ project.dependencies {
         }
 
         project.pluginManager.apply PLUGIN_CODE
-        project.repositories { mavenCentral() }
         project.dependencies {
             implementation "com.typesafe.scala-logging:scala-logging_$scala:3.9.2"
         }
