@@ -37,6 +37,18 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.pluginManager.apply ProtobufPlugin
 
+        // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
+        def baselineVersion = System.getProperty("akka.grpc.baseline.version", akkaGrpcExt.pluginVersion)
+
+        project.repositories {
+            mavenCentral()
+            if (VersionNumber.parse(baselineVersion).qualifier) {
+                maven {
+                    url "https://dl.bintray.com/akka/snapshots"
+                }
+            }
+        }
+
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
         String assemblyClassifier = SystemUtils.IS_OS_WINDOWS ? "bat" : "assembly"
 
@@ -70,9 +82,6 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             }
             //TODO add test sources
         }
-
-        // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
-        def baselineVersion = System.getProperty("akka.grpc.baseline.version", akkaGrpcExt.pluginVersion)
 
         project.protobuf {
             protoc {

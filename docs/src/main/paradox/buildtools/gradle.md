@@ -2,7 +2,7 @@
 
 To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
-## Configuring what to generate
+## Configuring plugin
 
 This plugin is a wrapper for [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugin) and uses it for `.proto` files processing and code generation.
 Most of the settings could be configured using related setting of `protobuf-gradle-plugin` itself.
@@ -11,44 +11,25 @@ Consult [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugi
 The plugin can generate either Java or Scala classes, and then server and or client for the corresponding language.
 By default both client and server are generated and Java or Scala is autodetected depending on the presence of source files with language extension in `src/main`.
 
-Java
-:   @@@vars
-    ```gradle
-    plugins {
-      id "com.lightbend.akka.grpc.gradle" version "$project.version$"
-    }
-    // These are the default options for a Java project (not necessary to define)
-    akkaGrpc {
-      generateClient = true
-      generateServer = true
-    }
-    repositories {
-      // this repository is required only if SNAPSHOT version is used
-      maven {
-        url "https://dl.bintray.com/akka/snapshots"
-      }
-      mavenCentral()
-    }
-    ```
-    @@@
+### Installation
 
-Scala
+Follow instructions at [Gradle plugin portal](https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle) to apply plugin.
+
+### Available plugin options
+
+Following options are available for configuring the plugin code generation.
+Names and default values are provided.
+
+`build.gradle`
 :   @@@vars
     ```gradle
-    plugins {
-      id "com.lightbend.akka.grpc.gradle" version "$project.version$"
-    }
-    // These are the default options for a Scala project (not necessary to define)
     akkaGrpc {
-      generateClient = true
-      generateServer = true
-    }
-    repositories {
-      // this repository is required only if SNAPSHOT version is used
-      maven {
-        url "https://dl.bintray.com/akka/snapshots"
-      }
-      mavenCentral()
+        generateClient = true
+        generateServer = true
+        generatePlay = false
+        usePlayActions = false
+        serverPowerApis = false
+        extraGenerators = []       
     }
     ```
     @@@

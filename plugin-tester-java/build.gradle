@@ -12,10 +12,6 @@ akkaGrpc {
 
 repositories {
   mavenLocal()
-  maven {
-    url "https://dl.bintray.com/akka/snapshots"
-  }
-  mavenCentral()
 }
 
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.12")
