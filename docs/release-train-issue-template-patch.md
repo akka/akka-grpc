@@ -27,7 +27,7 @@ Variables to be expanded in this template:
 ### Check availability
 
 - [ ] Check [reference](https://doc.akka.io/docs/akka-grpc/$VERSION$/) documentation
-- [ ] Check the release on [Maven central](http://central.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-scalapb-protoc-plugin_2.12/$VERSION$/)
+- [ ] Check the release on [Maven central](https://repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-scalapb-protoc-plugin_2.12/$VERSION$/)
 
 ### When everything is on maven central
   - [ ] `ssh akkarepo@gustav.akka.io`
