@@ -165,7 +165,8 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         def scalaVersions = cfg.incoming.resolutionResult.allDependencies
             .findAll { it.requested.moduleIdentifier.name == 'scala-library' }
-            .collect { it.requested.versionConstraint.toString() }.collect { it.split("\\.").init().join(".") }.unique()
+            .collect { it.requested.versionConstraint.toString() }.collect { it.split("\\.").init().join(".") }
+            .findAll { it }.unique().sort()
 
         if (scalaVersions.size() != 1) {
             throw new GradleException("$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath.\nFound $scalaVersions")
