@@ -1,6 +1,6 @@
 package unit
 
-
+import akka.grpc.gradle.AkkaGrpcPluginExtension
 import helper.BaseSpec
 import helper.ScalaWrapperPlugin
 import org.gradle.api.Project
@@ -100,5 +100,37 @@ class ApplySpec extends BaseSpec {
         project.evaluate()
         then: "compileJava is enabled"
         project.tasks.getByName("compileJava").enabled
+    }
+
+    def "should allow implicit declarations of scala-library version"() {
+        given:
+        project.pluginManager.apply PLUGIN_CODE
+        project.dependencies {
+            constraints {
+                implementation "org.scala-lang:scala-library:2.13.1"
+            }
+            implementation "org.scala-lang:scala-library"
+        }
+        when:
+        project.evaluate()
+        then:
+        project.extensions.getByType(AkkaGrpcPluginExtension)
+    }
+
+    def "should fail if scala-version implicitly declared and mismatches with other scala-library version"() {
+        given:
+        project.pluginManager.apply PLUGIN_CODE
+        project.dependencies {
+            constraints {
+                implementation "org.scala-lang:scala-library:2.12.0"
+            }
+            implementation "com.typesafe.scala-logging:scala-logging_2.13:3.9.2"
+        }
+        when:
+        project.evaluate()
+        then:
+        def ex = thrown(ProjectConfigurationException)
+        ex.cause.message.startsWith "$PLUGIN_CODE requires a single major.minor version of `org.scala-lang:scala-library` in compileClasspath."
+        ex.cause.message.endsWith "Found [2.12, 2.13]"
     }
 }
