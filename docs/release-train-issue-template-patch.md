@@ -34,11 +34,13 @@ Variables to be expanded in this template:
     - [ ] update the `current` links on `repo.akka.io` to point to the latest version with
          ```
          ln -nsf $VERSION$ www/docs/akka-grpc/current
+         ln -nsf $VERSION$ www/api/akka-grpc/current
          ```
     - [ ] check changes and commit the new version to the local git repository
          ```
          cd ~/www
          git add docs/akka-grpc/current docs/akka-grpc/$VERSION$
+         git add api/akka-grpc/current api/akka-grpc/$VERSION$
          git commit -m "Akka gRPC $VERSION$"
          ```
 
