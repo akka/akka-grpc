@@ -7,6 +7,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 
@@ -164,7 +165,10 @@ class AkkaGrpcPlugin implements Plugin<Project> {
         def cfg = project.configurations.compileClasspath.copyRecursive()
 
         def scalaVersions = cfg.incoming.resolutionResult.allDependencies
-            .findAll { it.requested.moduleIdentifier.name == 'scala-library' }
+            .findAll { it.requested.class != DefaultProjectComponentSelector }
+            .findAll {
+                it.requested.moduleIdentifier.name == 'scala-library'
+            }
             .collect { it.requested.versionConstraint.toString() }.collect { it.split("\\.").init().join(".") }
             .findAll { it }.unique().sort()
 
