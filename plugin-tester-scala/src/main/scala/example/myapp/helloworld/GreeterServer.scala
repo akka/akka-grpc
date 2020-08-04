@@ -7,7 +7,7 @@ package example.myapp.helloworld
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.{ Http, HttpConnectionContext }
+import akka.http.scaladsl.Http
 import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._

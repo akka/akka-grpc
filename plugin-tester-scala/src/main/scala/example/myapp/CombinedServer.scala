@@ -7,7 +7,7 @@ package example.myapp
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ Http, HttpConnectionContext }
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.grpc.scaladsl.ServerReflection
