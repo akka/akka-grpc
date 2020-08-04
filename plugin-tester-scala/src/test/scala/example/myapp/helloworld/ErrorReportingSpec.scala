@@ -37,11 +37,8 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
   "A gRPC server" should {
 
     val binding = Http()
-      .bindAndHandleAsync(
-        GreeterServiceHandler(new GreeterServiceImpl())(system.asInstanceOf[ClassicActorSystemProvider]),
-        interface = "127.0.0.1",
-        port = 0,
-        connectionContext = HttpConnectionContext())
+      .newServerAt("127.0.0.1", 0)
+      .bind(GreeterServiceHandler(new GreeterServiceImpl())(system.asInstanceOf[ClassicActorSystemProvider]))
       .futureValue
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {

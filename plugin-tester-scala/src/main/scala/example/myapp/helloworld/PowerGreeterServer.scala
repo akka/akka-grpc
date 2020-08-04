@@ -25,11 +25,7 @@ class PowerGreeterServer(system: ActorSystem) {
       GreeterServicePowerApiHandler(new PowerGreeterServiceImpl(mat))
 
     // Bind service handler servers to localhost:8080/8081
-    val binding = Http().bindAndHandleAsync(
-      service,
-      interface = "127.0.0.1",
-      port = 8081,
-      connectionContext = HttpConnectionContext())
+    val binding = Http().newServerAt("127.0.0.1", 8081).bind(service)
 
     // report successful binding
     binding.foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }

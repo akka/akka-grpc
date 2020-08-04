@@ -50,11 +50,8 @@ object CombinedServer {
       ServiceHandler.concatOrNotFound(greeterService, echoService, reflectionService)
 
     Http()
-      .bindAndHandleAsync(
-        serviceHandlers,
-        interface = "127.0.0.1",
-        port = 8080,
-        connectionContext = HttpConnectionContext())
+      .newServerAt("127.0.0.1", 8080)
+      .bind(serviceHandlers)
       //#concatOrNotFound
       .foreach { binding => println(s"gRPC server bound to: ${binding.localAddress}") }
 
@@ -62,11 +59,8 @@ object CombinedServer {
     val grpcWebServiceHandlers = WebHandler.grpcWebHandler(greeterService, echoService)
 
     Http()
-      .bindAndHandleAsync(
-        grpcWebServiceHandlers,
-        interface = "127.0.0.1",
-        port = 8081,
-        connectionContext = HttpConnectionContext())
+      .newServerAt("127.0.0.1", 8081)
+      .bind(grpcWebServiceHandlers)
       //#grpc-web
       .foreach { binding => println(s"gRPC-Web server bound to: ${binding.localAddress}") }
   }
