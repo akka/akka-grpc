@@ -36,7 +36,7 @@ Names and default values are provided.
 
 ### Generating server "power APIs"
 
-To additionally generate server "power APIs" that have access to request metata, as described
+To additionally generate server "power APIs" that have access to request metadata, as described
 @ref[here](../server/details.md#accessing-request-metadata), set the `serverPowerApis` option:
 
 `build.gradle`
