@@ -28,7 +28,7 @@ If you have other configurations with `.proto` sources (for example `Integration
 
 ### Generating server "power APIs"
 
-To additionally generate server "power APIs" that have access to request metata, as described
+To additionally generate server "power APIs" that have access to request metadata, as described
 @ref[here](../server/details.md#accessing-request-metadata), set the `server_power_apis` option:
 
 ```
