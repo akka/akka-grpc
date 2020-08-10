@@ -4,13 +4,17 @@
 
 package io.grpc.testing.integration2
 
-import io.grpc.ManagedChannel
+import io.grpc.ManagedChannelBuilder
 import io.grpc.internal.testing.TestUtils
 import io.grpc.netty.{ GrpcSslContexts, NegotiationType, NettyChannelBuilder }
 import io.netty.handler.ssl.SslContext
 
 object ChannelBuilder {
-  def buildChannel(settings: Settings): ManagedChannel =
+
+  /**
+   *  Reimplementation of the private io.grpc.testing.integration.TestServiceClient$Tester#createChannelBuilder
+   */
+  def create(settings: Settings): ManagedChannelBuilder[NettyChannelBuilder] =
     if (settings.useAkkaHttp) {
       // TODO: here comes the akka-http based channel (when ready)
       throw new RuntimeException("Not implemented")
@@ -34,6 +38,6 @@ object ChannelBuilder {
       if (settings.serverHostOverride != null)
         builder.overrideAuthority(settings.serverHostOverride)
 
-      builder.build
+      builder
     }
 }
