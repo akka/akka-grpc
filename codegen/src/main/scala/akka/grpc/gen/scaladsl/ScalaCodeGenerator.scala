@@ -85,6 +85,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
       case (p, "ascii_format_to_string")      => p.copy(asciiFormatToString = true)
       case (p, "no_lenses")                   => p.copy(lenses = false)
       case (p, "retain_source_code_info")     => p.copy(retainSourceCodeInfo = true)
+      case (p, "grpc")                        => p.copy(grpc = true)
       case (x, _)                             => x
     }
 }
