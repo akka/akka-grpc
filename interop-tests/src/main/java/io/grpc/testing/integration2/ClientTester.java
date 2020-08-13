@@ -9,6 +9,9 @@ import io.grpc.ManagedChannel;
 import java.io.InputStream;
 
 /**
+ *  This class has all the methods of the grpc-java AbstractInteropTest, but none of the implementations,
+ *  so it can implemented either by calling AbstractInteropTest or with an Akka gRPC implementation.
+ *
  * Test requirements documentation: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
  */
 public interface ClientTester {
