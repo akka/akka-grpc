@@ -72,7 +72,8 @@ jobs:
         use: mavenLocal
       script:
         - cd gradle-plugin 
-        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
+        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
+        - find ~/.m2 | grep gradle
         - cd ../plugin-tester-java
         - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Java Scala 2.13
@@ -81,7 +82,8 @@ jobs:
         use: mavenLocal
       script:
         - cd gradle-plugin 
-        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
+        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
+        - find ~/.m2 | grep gradle
         - cd ../plugin-tester-java
         - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Scala 2.12
