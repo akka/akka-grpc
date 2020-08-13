@@ -5,10 +5,15 @@
 package io.grpc.testing.integration2;
 
 import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.testing.integration.AbstractInteropTest;
 
 import java.io.InputStream;
 
+/**
+ * Implementation of ClientTester that forwards all calls to the
+ * grpc-java AbstractInteropTest.
+ */
 public class GrpcJavaClientTester implements ClientTester {
 
     final private Settings settings;
@@ -148,8 +153,8 @@ public class GrpcJavaClientTester implements ClientTester {
 
     private class UnderlyingTester extends AbstractInteropTest {
         @Override
-        protected ManagedChannel createChannel() {
-            return ChannelBuilder.buildChannel(settings);
+        protected ManagedChannelBuilder<?> createChannelBuilder() {
+            return ChannelBuilder.create(settings);
         }
 
         @Override
