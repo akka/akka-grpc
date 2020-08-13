@@ -24,7 +24,7 @@ gradlePlugin {
 }
 
 pluginBundle {
-  website = 'https://developer.lightbend.com/docs/akka-grpc/current/'
+  website = 'https://doc.akka.io/docs/akka-grpc/current/'
   vcsUrl = 'https://github.com/akka/akka-grpc'
   description = 'Building streaming gRPC servers and clients on top of Akka Streams'
   tags = ['akka', 'streams', 'reactive']
