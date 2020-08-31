@@ -16,5 +16,6 @@ object ProtocSettings {
     "single_line_to_proto_string",
     "ascii_format_to_string",
     "no_lenses",
-    "retain_source_code_info")
+    "retain_source_code_info",
+    "grpc")
 }
