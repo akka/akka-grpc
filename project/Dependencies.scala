@@ -23,7 +23,7 @@ object Dependencies {
 
     val grpc = "1.31.1" // checked synced by GrpcVersionSyncCheckPlugin
 
-    val scalaTest = "3.1.3"
+    val scalaTest = "3.1.4"
 
     val maven = "3.6.3"
   }
@@ -66,6 +66,7 @@ object Dependencies {
     val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
+    val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
   }
 
   object Runtime {
@@ -117,7 +118,8 @@ object Dependencies {
     Runtime.logback,
     Test.scalaTest.withConfigurations(Some("compile")),
     Test.scalaTestPlusJunit.withConfigurations(Some("compile")),
-    Test.akkaTestkit)
+    Test.akkaTestkit,
+    Test.akkaStreamTestkit)
 
   val pluginTester = l ++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen

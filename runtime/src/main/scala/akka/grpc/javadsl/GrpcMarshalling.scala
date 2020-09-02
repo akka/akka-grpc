@@ -11,12 +11,12 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.grpc._
-import akka.grpc.internal.{ CancellationBarrierGraphStage, GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.japi.Function
 import akka.stream.Materializer
-import akka.stream.javadsl.{ Sink, Source }
+import akka.stream.javadsl.Source
 import akka.util.ByteString
 
 import com.github.ghik.silencer.silent
@@ -39,10 +39,7 @@ object GrpcMarshalling {
       u: ProtobufSerializer[T],
       mat: Materializer,
       reader: GrpcProtocolReader): CompletionStage[T] =
-    data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption[T], mat).thenCompose[T] { opt =>
-      if (opt.isPresent) CompletableFuture.completedFuture(opt.get)
-      else failure(new MissingParameterException())
-    }
+    data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(SingleParameterSink.create[T](), mat)
 
   def unmarshalStream[T](
       data: Source[ByteString, AnyRef],
