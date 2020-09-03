@@ -8,3 +8,6 @@ $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterS
 # This will for example detect when we publish generated code that is
 # already in scalapb-runtime
 > assembly
+
+# catch scaladoc errors
+> doc

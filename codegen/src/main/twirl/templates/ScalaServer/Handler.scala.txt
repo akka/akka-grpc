@@ -36,7 +36,7 @@ object @{serviceName}Handler {
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
-     * Use [[akka.grpc.scaladsl.ServiceHandler.concatOrNotFound]] with [[@{service.name}Handler.partial]] when combining
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
      * several services.
      */
     def apply(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
