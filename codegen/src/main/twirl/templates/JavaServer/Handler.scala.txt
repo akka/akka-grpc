@@ -46,7 +46,7 @@ public class @{serviceName}HandlerFactory {
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
-     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
      * several services.
      */
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, ClassicActorSystemProvider system) {
@@ -57,7 +57,7 @@ public class @{serviceName}HandlerFactory {
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
-     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
      * several services.
      */
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> create(@serviceName implementation, Function<ActorSystem, Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
@@ -68,7 +68,7 @@ public class @{serviceName}HandlerFactory {
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
-     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
      * several services.
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
@@ -81,7 +81,7 @@ public class @{serviceName}HandlerFactory {
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
-     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}Handler#partial} when combining
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
      * several services.
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.

@@ -5,3 +5,5 @@ $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloReq
 $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloReply.java
 $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.java
 $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClient.java
+
+> doc
