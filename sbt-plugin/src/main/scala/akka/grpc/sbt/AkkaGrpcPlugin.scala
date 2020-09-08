@@ -111,7 +111,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
             akkaGrpcGeneratedLanguages.value,
             ScalaBinaryVersion(scalaBinaryVersion.value),
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
-            GeneratorBridge.sandboxedGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
+            GeneratorBridge.plainGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
         },
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
@@ -191,13 +191,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
     else generators
   }
 
+  /** Sandbox a CodeGenerator, to prepare it to be added to akkaGrpcGenerators */
   def sandboxedGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
       GeneratorBridge.sandboxedGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
     }
 
-  def jvmGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
+  /** Convert a CodeGenerator, to prepare it to be added to akkaGrpcGenerators without sandboxing */
+  def plainGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
-      GeneratorBridge.jvmGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
+      GeneratorBridge.plainGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
     }
 }

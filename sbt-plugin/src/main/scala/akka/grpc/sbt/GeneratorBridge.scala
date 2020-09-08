@@ -22,7 +22,7 @@ object GeneratorBridge {
       codeGenerator.suggestedDependencies(scalaBinaryVersion),
       new SandboxedProtocBridgeSbtPluginCodeGenerator(_, codeGenerator.getClass.getName, logger))
   }
-  def jvmGenerator(
+  def plainGenerator(
       codeGenerator: akka.grpc.gen.CodeGenerator,
       scalaBinaryVersion: ScalaBinaryVersion,
       logger: akka.grpc.gen.Logger): protocbridge.Generator = {
@@ -30,8 +30,10 @@ object GeneratorBridge {
     protocbridge.JvmGenerator(codeGenerator.name, adapter)
   }
 
-  /** INTERNAL API */
-  class PlainProtocBridgeSbtPluginCodeGenerator(
+  /**
+   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type without sandboxing.
+   */
+  private class PlainProtocBridgeSbtPluginCodeGenerator(
       impl: akka.grpc.gen.CodeGenerator,
       scalaBinaryVersion: ScalaBinaryVersion,
       logger: akka.grpc.gen.Logger)
@@ -42,11 +44,9 @@ object GeneratorBridge {
   }
 
   /**
-   * INTERNAL API
-   *
-   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type.
+   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type with sandboxing..
    */
-  class SandboxedProtocBridgeSbtPluginCodeGenerator(classLoader: ClassLoader, className: String, logger: Logger)
+  private class SandboxedProtocBridgeSbtPluginCodeGenerator(classLoader: ClassLoader, className: String, logger: Logger)
       extends protocbridge.ProtocCodeGenerator {
     val genClass = classLoader.loadClass(className)
     val module = genClass.getField("MODULE$").get(null)
