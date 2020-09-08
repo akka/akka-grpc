@@ -31,7 +31,7 @@ object GeneratorBridge {
   }
 
   /**
-   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type without sandboxing.
+   * Convert a [[akka.grpc.gen.CodeGenerator]] into the protocbridge-required type (without sandboxing).
    */
   private class PlainProtocBridgeSbtPluginCodeGenerator(
       impl: akka.grpc.gen.CodeGenerator,
@@ -44,7 +44,7 @@ object GeneratorBridge {
   }
 
   /**
-   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type with sandboxing..
+   * Convert a [[akka.grpc.gen.CodeGenerator]] into the protocbridge-required type, with sandboxing.
    */
   private class SandboxedProtocBridgeSbtPluginCodeGenerator(classLoader: ClassLoader, className: String, logger: Logger)
       extends protocbridge.ProtocCodeGenerator {
