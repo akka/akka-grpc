@@ -16,12 +16,21 @@ import io.grpc.CallOptions
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext, SslContextBuilder }
-
+import io.grpc.netty.shaded.io.netty.handler.ssl.{SslContext, SslContextBuilder}
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Promise
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
+
+import akka.pattern.CircuitBreaker
+import io.grpc.Channel
+import io.grpc.ClientCall
+import io.grpc.ClientInterceptor
+import io.grpc.ClientInterceptors
+import io.grpc.ForwardingClientCallListener
+import io.grpc.Metadata
+import io.grpc.MethodDescriptor
+import io.grpc.Status
 
 /**
  * INTERNAL API
@@ -157,3 +166,5 @@ object NettyClientUtils {
       case _                 => defaultOptions
     }
 }
+
+
