@@ -35,7 +35,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     },
     mainClass in assembly := Some("akka.grpc.gen.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
-        Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
+      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := scala212)
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
@@ -73,7 +73,7 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     },
     mainClass in assembly := Some("akka.grpc.scalapb.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
-        Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
+      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
@@ -178,24 +178,24 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala"), "Buildtool" -> Seq("sbt", "Gradle", "Maven")),
     Compile / paradoxProperties ++= Map(
-        "akka.version" -> Dependencies.Versions.akka,
-        "akka-http.version" -> Dependencies.Versions.akkaHttp,
-        "grpc.version" -> Dependencies.Versions.grpc,
-        "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
-        "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
-        "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
-        // Akka
-        "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akkaBinary}/%s",
-        "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akkaBinary}",
-        "javadoc.akka.base_url" -> s"https://doc.akka.io/japi/akka/${Dependencies.Versions.akkaBinary}/",
-        // Akka HTTP
-        "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
-        "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
-        "javadoc.akka.http.base_url" -> s"https://doc.akka.io/japi/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
-        // Akka gRPC
-        "scaladoc.akka.grpc.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
-        "javadoc.akka.grpc.base_url" -> "" // @apidoc links to Scaladoc
-      ),
+      "akka.version" -> Dependencies.Versions.akka,
+      "akka-http.version" -> Dependencies.Versions.akkaHttp,
+      "grpc.version" -> Dependencies.Versions.grpc,
+      "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
+      "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
+      "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
+      // Akka
+      "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akkaBinary}/%s",
+      "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akkaBinary}",
+      "javadoc.akka.base_url" -> s"https://doc.akka.io/japi/akka/${Dependencies.Versions.akkaBinary}/",
+      // Akka HTTP
+      "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
+      "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
+      "javadoc.akka.http.base_url" -> s"https://doc.akka.io/japi/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
+      // Akka gRPC
+      "scaladoc.akka.grpc.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
+      "javadoc.akka.grpc.base_url" -> "" // @apidoc links to Scaladoc
+    ),
     apidocRootPackage := "akka",
     resolvers += Resolver.jcenterRepo,
     publishRsyncArtifacts += makeSite.value -> "www/",

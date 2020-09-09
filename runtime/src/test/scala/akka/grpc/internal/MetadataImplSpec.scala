@@ -34,12 +34,12 @@ class MetadataImplSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   "EntryMetadataImpl" should {
     val entries = TEXT_ENTRIES.collect {
-        case (k, v) => (k, StringEntry(v))
-      } ++ BINARY_ENTRIES.collect {
-        case (k, v) => (k, BytesEntry(v))
-      } ++ DUPE_TEXT_VALUES.map { v => (DUPE_TEXT_KEY, StringEntry(v)) } ++ DUPE_BINARY_VALUES.map { v =>
-        (DUPE_BINARY_KEY, BytesEntry(v))
-      }
+      case (k, v) => (k, StringEntry(v))
+    } ++ BINARY_ENTRIES.collect {
+      case (k, v) => (k, BytesEntry(v))
+    } ++ DUPE_TEXT_VALUES.map { v => (DUPE_TEXT_KEY, StringEntry(v)) } ++ DUPE_BINARY_VALUES.map { v =>
+      (DUPE_BINARY_KEY, BytesEntry(v))
+    }
 
     testMetadata(new EntryMetadataImpl(entries))
   }
@@ -63,11 +63,11 @@ class MetadataImplSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   "HeaderMetadataImpl" should {
     val headers = TEXT_ENTRIES.collect {
-        case (k, v) => RawHeader(k, v)
-      } ++ BINARY_ENTRIES.collect {
-        case (k, v) => RawHeader(k, MetadataImpl.encodeBinaryHeader(v))
-      } ++ DUPE_TEXT_VALUES.map(v => RawHeader(DUPE_TEXT_KEY, v)) ++ DUPE_BINARY_VALUES.map(v =>
-        RawHeader(DUPE_BINARY_KEY, MetadataImpl.encodeBinaryHeader(v)))
+      case (k, v) => RawHeader(k, v)
+    } ++ BINARY_ENTRIES.collect {
+      case (k, v) => RawHeader(k, MetadataImpl.encodeBinaryHeader(v))
+    } ++ DUPE_TEXT_VALUES.map(v => RawHeader(DUPE_TEXT_KEY, v)) ++ DUPE_BINARY_VALUES.map(v =>
+      RawHeader(DUPE_BINARY_KEY, MetadataImpl.encodeBinaryHeader(v)))
 
     testMetadata(new HeaderMetadataImpl(headers))
   }

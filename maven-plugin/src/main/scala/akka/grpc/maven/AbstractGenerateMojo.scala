@@ -158,9 +158,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
       val targets = language match {
         case Java =>
           val glueGenerators = loadedExtraGenerators ++ Seq(
-              if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
-              if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
-              else Seq.empty).flatten.distinct
+            if (generateServer) Seq(JavaInterfaceCodeGenerator, JavaServerCodeGenerator) else Seq.empty,
+            if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
+            else Seq.empty).flatten.distinct
 
           val settings = parseGeneratorSettings(generatorSettings)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)

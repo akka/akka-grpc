@@ -101,7 +101,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
         target in akkaGrpcCodeGeneratorSettings := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
-            configuration.value.name),
+          configuration.value.name),
         managedSourceDirectories += (target in akkaGrpcCodeGeneratorSettings).value,
         unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
         watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
