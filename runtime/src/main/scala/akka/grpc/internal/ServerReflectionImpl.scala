@@ -89,7 +89,7 @@ object ServerReflectionImpl {
       case (typeOrService, "") =>
         //fileDesc.findEnumTypeByName(typeOrService) != null || // TODO investigate if this is expected
         fileDesc.findMessageTypeByName(typeOrService) != null ||
-        fileDesc.findServiceByName(typeOrService) != null
+          fileDesc.findServiceByName(typeOrService) != null
       case (service, method) =>
         Option(fileDesc.findServiceByName(service)).exists(_.findMethodByName(method) != null)
     })

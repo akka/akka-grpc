@@ -19,9 +19,9 @@ object CopyrightHeader extends AutoPlugin {
         Seq(
           headerLicense := Some(HeaderLicense.Custom(headerFor(CurrentYear))),
           headerMappings := headerMappings.value ++ Map(
-              HeaderFileType.scala -> cStyleComment,
-              HeaderFileType.java -> cStyleComment,
-              HeaderFileType("txt") -> twirlStyleBlockComment),
+            HeaderFileType.scala -> cStyleComment,
+            HeaderFileType.java -> cStyleComment,
+            HeaderFileType("txt") -> twirlStyleBlockComment),
           unmanagedResourceDirectories in headerCreate += baseDirectory.value / "src" / "main" / "twirl"))
     })
 

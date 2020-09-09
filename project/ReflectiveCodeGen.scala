@@ -51,33 +51,33 @@ object ReflectiveCodeGen extends AutoPlugin {
         PB.targets := scala.collection.mutable.ListBuffer.empty,
         // Put an artifact resolver that returns the project's classpath for our generators
         PB.artifactResolver := Def.taskDyn {
-            val cp = (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-codegen")).value.map(_.data)
-            val oldResolver = PB.artifactResolver.value
-            Def.task { (artifact: BridgeArtifact) =>
-              artifact.groupId match {
-                case "com.lightbend.akka.grpc" =>
-                  cp
-                case _ =>
-                  oldResolver(artifact)
-              }
+          val cp = (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-codegen")).value.map(_.data)
+          val oldResolver = PB.artifactResolver.value
+          Def.task { (artifact: BridgeArtifact) =>
+            artifact.groupId match {
+              case "com.lightbend.akka.grpc" =>
+                cp
+              case _ =>
+                oldResolver(artifact)
             }
-          }.value,
+          }
+        }.value,
         // Reload generators on each invocation
         PB.cacheClassLoaders := false,
         setCodeGenerator := loadAndSetGenerator(
-            // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
-            (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
-            generatedLanguages.value,
-            generatedSources.value,
-            extraGenerators.value,
-            sourceManaged.value,
-            codeGeneratorSettings.value,
-            PB.targets.value.asInstanceOf[ListBuffer[Target]],
-            scalaBinaryVersion.value),
+          // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
+          (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
+          generatedLanguages.value,
+          generatedSources.value,
+          extraGenerators.value,
+          sourceManaged.value,
+          codeGeneratorSettings.value,
+          PB.targets.value.asInstanceOf[ListBuffer[Target]],
+          scalaBinaryVersion.value),
         PB.recompile ~= (_ => true),
         PB.protoSources in Compile := PB.protoSources.value ++ Seq(
-            PB.externalIncludePath.value,
-            sourceDirectory.value / "proto"))) ++ Seq(
+          PB.externalIncludePath.value,
+          sourceDirectory.value / "proto"))) ++ Seq(
       codeGeneratorSettings in Global := Nil,
       generatedLanguages in Global := Seq("Scala"),
       generatedSources in Global := Seq("Client", "Server"),
