@@ -64,10 +64,9 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
           case None =>
             complete(simpleResponse)
           case Some(responseStatus) =>
-            mapTrailingResponseHeaders(
-              _ =>
-                GrpcEntityHelpers.statusHeaders(
-                  Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
+            mapTrailingResponseHeaders(_ =>
+              GrpcEntityHelpers.statusHeaders(
+                Status.fromCodeValue(responseStatus.code).withDescription(responseStatus.message))) {
               complete(simpleResponse)
             }
         }
