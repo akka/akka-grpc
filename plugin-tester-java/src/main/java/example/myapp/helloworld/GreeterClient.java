@@ -34,7 +34,7 @@ class GreeterClient {
     Materializer materializer = ActorMaterializer.create(system);
 
     // Configure the client by code:
-    GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8090, system);
+    GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8090, system).withTls(false);
 
     // Or via application.conf:
     // GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
