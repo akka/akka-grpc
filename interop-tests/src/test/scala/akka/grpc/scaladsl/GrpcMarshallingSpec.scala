@@ -4,12 +4,16 @@
 
 package akka.grpc.scaladsl
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ AbstractGrpcProtocol, GrpcProtocolNative, Gzip }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import akka.stream.testkit.TestPublisher
+import akka.stream.testkit.scaladsl.TestSource
 import io.grpc.{ Status, StatusException }
 import io.grpc.testing.integration.messages.{ BoolValue, SimpleRequest }
 import io.grpc.testing.integration.test.TestService
@@ -17,7 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.collection.immutable
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, Future, Promise }
 import scala.concurrent.duration._
 
 class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
@@ -38,6 +42,33 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
         entity = HttpEntity.Strict(GrpcProtocolNative.contentType, zippedBytes))
 
       val marshalled = Await.result(GrpcMarshalling.unmarshal(request), 10.seconds)
+      marshalled.responseCompressed should be(Some(BoolValue(true)))
+    }
+
+    // https://github.com/akka/akka-grpc/issues/1081
+    "not cancel the input stream after reading the first parameter for a non-streaming request" in {
+      val sourceProbe = Promise[TestPublisher.Probe[ChunkStreamPart]]()
+      val request = HttpRequest(
+        headers = immutable.Seq(`Message-Encoding`("gzip")),
+        entity = HttpEntity.Chunked(
+          GrpcProtocolNative.contentType,
+          TestSource
+            .probe[ChunkStreamPart]
+            .mapMaterializedValue((p: TestPublisher.Probe[ChunkStreamPart]) => {
+              sourceProbe.success(p)
+              NotUsed
+            })))
+
+      val marshalledRequest = GrpcMarshalling.unmarshal(request)
+
+      val probe = Await.result(sourceProbe.future, 10.seconds)
+      probe.ensureSubscription()
+      probe.sendNext(ChunkStreamPart(zippedBytes))
+      assertThrows[AssertionError] {
+        probe.expectCancellation()
+      }
+
+      val marshalled = Await.result(marshalledRequest, 10.seconds)
       marshalled.responseCompressed should be(Some(BoolValue(true)))
     }
 

@@ -17,7 +17,7 @@ import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal._
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
 import com.github.ghik.silencer.silent
@@ -53,11 +53,7 @@ object GrpcMarshalling {
       implicit u: ProtobufSerializer[T],
       mat: Materializer,
       reader: GrpcProtocolReader): Future[T] = {
-    import mat.executionContext
-    data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(Sink.headOption).flatMap {
-      case Some(element) => Future.successful(element)
-      case None          => Future.failed(new MissingParameterException())
-    }
+    data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(SingleParameterSink())
   }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
