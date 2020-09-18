@@ -111,6 +111,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     val tb = universe.runtimeMirror(loader).mkToolBox()
     val source =
       s"""import akka.grpc.sbt.AkkaGrpcPlugin
+          |import akka.grpc.sbt.GeneratorBridge
           |import AkkaGrpcPlugin.autoImport._
           |import AkkaGrpc._
           |import akka.grpc.gen.scaladsl._
@@ -126,7 +127,7 @@ object ReflectiveCodeGen extends AutoPlugin {
           |(targetPath: java.io.File, settings: Seq[String]) => {
           |  val generators =
           |    AkkaGrpcPlugin.generatorsFor(sources, languages, scalaBinaryVersion, logger) ++
-          |    Seq($extraGenerators).map(gen => AkkaGrpcPlugin.toGenerator(gen, scalaBinaryVersion, akka.grpc.gen.StdoutLogger))
+          |    Seq($extraGenerators).map(gen => GeneratorBridge.sandboxedGenerator(gen, scalaBinaryVersion, akka.grpc.gen.StdoutLogger))
           |  AkkaGrpcPlugin.targetsFor(targetPath, settings, generators)
           |}
         """.stripMargin

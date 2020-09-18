@@ -7,7 +7,7 @@ package akka.grpc.sbt
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.{ Logger => GenLogger, BuildInfo, ProtocSettings }
+import akka.grpc.gen.{ ProtocSettings, Logger => GenLogger }
 import protocbridge.Generator
 import sbt.Keys._
 import sbt.{ GlobFilter, _ }
@@ -111,7 +111,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
             akkaGrpcGeneratedLanguages.value,
             ScalaBinaryVersion(scalaBinaryVersion.value),
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
-            toGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
+            GeneratorBridge.plainGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
         },
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
@@ -162,7 +162,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
       scalaBinaryVersion: ScalaBinaryVersion,
       logger: GenLogger): Seq[protocbridge.Generator] = {
     import AkkaGrpc._
-    def toGen(codeGenerator: akka.grpc.gen.CodeGenerator) = toGenerator(codeGenerator, scalaBinaryVersion, logger)
+    def toGen(codeGenerator: akka.grpc.gen.CodeGenerator) =
+      GeneratorBridge.sandboxedGenerator(codeGenerator, scalaBinaryVersion, logger)
     // these two are the model/message (protoc) generators
     def ScalaGenerator: protocbridge.Generator = scalapb.gen.SandboxedGenerator
     // we have a default flat_package, but that doesn't play with the java generator (it fails)
@@ -190,42 +191,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
     else generators
   }
 
-  // this transforms the Akka gRPC API generators to the right protocbridge type
-  def toGenerator(
-      codeGenerator: akka.grpc.gen.CodeGenerator,
-      scalaBinaryVersion: ScalaBinaryVersion,
-      logger: GenLogger): protocbridge.Generator = {
-    // This matches the sbt binary version (2.12)
-    val codegenScalaBinaryVersion = CrossVersion.binaryScalaVersion(BuildInfo.scalaVersion)
-    protocbridge.SandboxedJvmGenerator(
-      codeGenerator.name,
-      protocbridge.Artifact(BuildInfo.organization, s"${BuildInfo.name}_$codegenScalaBinaryVersion", BuildInfo.version),
-      codeGenerator.suggestedDependencies(scalaBinaryVersion),
-      new ProtocBridgeSbtPluginCodeGenerator(_, codeGenerator.getClass.getName, logger))
-  }
+  /** Sandbox a CodeGenerator, to prepare it to be added to akkaGrpcGenerators */
+  def sandboxedGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
+    Def.setting {
+      GeneratorBridge.sandboxedGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
+    }
 
-  /**
-   * Uses reflection to load a [[akka.grpc.gen.CodeGenerator]] and turns it into protocbridge required type.
-   */
-  private[akka] class ProtocBridgeSbtPluginCodeGenerator(classLoader: ClassLoader, className: String, logger: GenLogger)
-      extends protocbridge.ProtocCodeGenerator {
-    val genClass = classLoader.loadClass(className)
-    val module = genClass.getField("MODULE$").get(null)
-    private val reflectiveLogger: Object =
-      classLoader
-        .loadClass("akka.grpc.gen.ReflectiveLogger")
-        .asInstanceOf[Class[Object]]
-        .getConstructor(classOf[Object])
-        .newInstance(logger)
-
-    private val runMethods =
-      module.getClass.getMethods
-        .find(m => m.getName == "run" && m.getParameterTypes()(0) == classOf[Array[Byte]])
-        .getOrElse(throw new RuntimeException("Could not find 'run' method that takes an Array[Byte]"))
-
-    override def run(request: Array[Byte]): Array[Byte] =
-      runMethods.invoke(module, request, reflectiveLogger).asInstanceOf[Array[Byte]]
-    override def toString = s"ProtocBridgeSbtPluginCodeGenerator(${className})"
-  }
-
+  /** Convert a CodeGenerator, to prepare it to be added to akkaGrpcGenerators without sandboxing */
+  def plainGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
+    Def.setting {
+      GeneratorBridge.plainGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
+    }
 }
