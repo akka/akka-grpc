@@ -50,8 +50,8 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       }
 
       service1.greetings.get + service2.greetings.get should be(100)
-      service1.greetings.get should be > (0)
-      service2.greetings.get should be > (0)
+      service1.greetings.get should be > 0
+      service2.greetings.get should be > 0
     }
 
     "re-discover endpoints on failure" in {
