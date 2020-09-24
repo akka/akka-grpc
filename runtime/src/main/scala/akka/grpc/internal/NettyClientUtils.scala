@@ -53,7 +53,7 @@ object NettyClientUtils {
             settings.resolveTimeout))
 
     if (!settings.useTls)
-      builder = builder.usePlaintext()
+      builder = builder.negotiationType(NegotiationType.PLAINTEXT_UPGRADE)
     else {
       builder = builder.negotiationType(NegotiationType.TLS)
       builder = settings.sslContext match {

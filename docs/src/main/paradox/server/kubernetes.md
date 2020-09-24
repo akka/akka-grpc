@@ -61,3 +61,11 @@ a self-signed certificate.
 The GCE load balancer only routes to pods that pass the health check. The default health check
 is a request to '/' that expects a `200 OK` return value, so it might be helpful to add this to your
 route.
+
+## Google Cloud Endpoints
+
+The Google cloud has a [Cloud Endpoints](https://cloud.google.com/endpoints) feature that
+allows exposing a gRPC API in a more 'controlled' way: you can configure API key management,
+authentication, monitoring quote/rate limiting, generate a 'developer portal' for your API's users
+and much more. You need to provide your `.proto` definitions when creating the endpoint, and
+still need to configure your own loadbalancer to expose this proxy to the outside.   
