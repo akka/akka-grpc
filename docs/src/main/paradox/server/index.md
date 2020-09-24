@@ -11,5 +11,6 @@ Get our Quickstart project (available for [Scala](https://developer.lightbend.co
  * [Server Reflection](reflection.md)
  * [Akka HTTP interop](akka-http.md)
  * [Details](details.md)
+ * [Kubernetes](kubernetes.md)
 
 @@@
