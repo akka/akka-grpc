@@ -5,28 +5,31 @@ but if you want to make sure HTTP/2 is used across the board there are some thin
 
 There are 3 ways to use HTTP/2:
 
-* With TLS
-* Without TLS ('h2c'), using the `Upgrade` mechanism to negotiate between using HTTP/1 and HTTP/2
-* Without TLS ('h2c'), without negotiation (which assumes the client has prior knowledge that the server supports HTTP/2)
+* HTTP/2 over TLS, using ALPN to detect support for HTTP/2 in the TLS handshake.
+* HTTP/2 over plaintext TCP ('h2c'), starting with HTTP/1 and using the `Upgrade` mechanism to negotiate moving to HTTP/2.
+* HTTP/2 over plaintext TCP ('h2c'), without negotiation. This assumes the client has prior knowledge that the server supports HTTP/2.
 
-Kubternetes supports many types of [Ingress Controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/),
-but [GCE](https://git.k8s.io/ingress-gce/README.md) and [nginx](https://git.k8s.io/ingress-nginx/README.md)
-seem to be the most widely known.
+A straightforward way to expose a TCP endpoint outside the cluster is to create a Kubernetes `Service` of type `LoadBalancer`. Beyond that, Kubernetes supports many types of [Ingress Controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
+[GCE](https://git.k8s.io/ingress-gce/README.md) and [NGINX](https://git.k8s.io/ingress-nginx/README.md)
+are the most widely known.
 
 ## LoadBalancer Service
 
 By creating a service of type `LoadBalancer` you can expose your services using a direct TCP loadbalancer.
 This means all features supported by the underlying implementation are available.
 
-Limitations of this approach are that you are restricted to 1 service per IP, and
-more advanced features such as TLS termination and path-based routing are not available.
+Using a `LoadBalancer` as the Ingress has some limitations, for example:
 
-## Nginx Ingress
+* you are restricted to 1 service per IP
+* more advanced features such as TLS termination and path-based routing are not available
 
-Nginx, by default, will only support h2c via the `Upgrade` mechanism. Because this mechanism is more
-complicated than the other 2 approaches, client support for this mechanism is not ubiquitous. Also, the
-loadbalancer will use HTTP/1 rather than HTTP/2 to the service. While this may happen to work it is
-not optimal.
+## NGINX Ingress
+
+Of the three ways to use HTTP/2 presented at the beginning of this page, NGINX by default only supports 
+`h2c` with negotiation via the `Upgrade` mechanism. Because the `Upgrade` mechanism is more
+complicated than the other 2 approaches ("TLS", and h2c with "prior knowledge"), gRPC client support 
+for h2c with the `Upgrade` mechanism is not ubiquitous. Also, the loadbalancer will use HTTP/1 rather 
+than HTTP/2 for the connection from the loadbalancer to the service. While this may happen to work it is not optimal.
 
 ## GCE Ingress
 
