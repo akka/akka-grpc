@@ -36,7 +36,6 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
       requestHandler(ctx.request).map(Complete)
     }
 
-    implicit val mat: Materializer = SystemMaterializer(sys).materializer
     Route.toFunction(Route.seal(route))
   })
 
