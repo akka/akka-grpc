@@ -34,7 +34,7 @@ than HTTP/2 for the connection from the loadbalancer to the service. While this 
 ## GCE Ingress
 
 GCE only supports HTTP/2 over TLS. This means you must configure GCE to use HTTPS both on the
-'outside' and on this 'inside', and you will have to make sure your service is exposed over HTTPS
+'outside' and on the 'inside', and you will have to make sure your service is exposed over HTTPS
 internally as well.
 
 To make sure the GCE loadbalancer uses HTTP/2 to connect to your service you must
