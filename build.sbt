@@ -23,7 +23,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
       val file = assembly.value
       Assemblies.mkBatAssembly(file)
     },
-    buildInfoKeys ++= BuildInfoKey.ofN(organization, name, version, scalaVersion, sbtVersion),
+    buildInfoKeys ++= Seq[BuildInfoKey](organization, name, version, scalaVersion, sbtVersion),
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
     buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
@@ -43,6 +43,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
 
 lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(Dependencies.runtime)
+  .settings(VersionGenerator.settings)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
