@@ -42,13 +42,11 @@ public class Main {
 
         // Bind service handler servers to localhost:8080
         return Http.get(sys)
-	  .newServerAt("127.0.0.1", 8080)
-	  .bind(
-            ServiceHandler.concatOrNotFound(
+            .newServerAt("127.0.0.1", 8080)
+            .bind(ServiceHandler.concatOrNotFound(
                 GreeterServiceHandlerFactory.create(impl, sys),
                 ServerReflection.create(Arrays.asList(GreeterService.description), sys)
-            )
-	  );
+            ));
         //#server-reflection
     }
 

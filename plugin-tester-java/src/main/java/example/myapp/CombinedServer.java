@@ -62,7 +62,7 @@ class CombinedServer {
           WebHandler.grpcWebHandler(Arrays.asList(greeterService, echoService), sys, mat);
 
       Http.get(sys)
-        .newServerAt("127.0.0.1", 8090)
+        .newServerAt("127.0.0.1", 8091)
         .bind(grpcWebServiceHandlers)
       //#grpc-web
       .thenAccept(binding -> {

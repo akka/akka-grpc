@@ -14,7 +14,7 @@ import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
-import akka.japi.{ Function => jFunction }
+import akka.japi.{ Function => JFunction }
 import io.grpc.Status
 
 import scala.concurrent.ExecutionException
@@ -25,16 +25,18 @@ object GrpcExceptionHandler {
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
   private val UNIMPLEMENTED = Trailers(Status.UNIMPLEMENTED)
 
-  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] =
-    new jFunction[ActorSystem, jFunction[Throwable, Trailers]] {
-      override def apply(system: ActorSystem): jFunction[Throwable, Trailers] =
+  // TODO this method is called from generated code, so can we 'just' change the type here?
+  // This would cause problems, but this is likely fine because we announced the *HandlerFactory as ApiMayChange
+  def defaultMapper: JFunction[ActorSystem, JFunction[Throwable, Trailers]] =
+    new JFunction[ActorSystem, JFunction[Throwable, Trailers]] {
+      override def apply(system: ActorSystem): JFunction[Throwable, Trailers] =
         default(system)
     }
 
   /** INTERNAL API */
   @InternalApi
-  private def default(system: ActorSystem): jFunction[Throwable, Trailers] =
-    new jFunction[Throwable, Trailers] {
+  private def default(system: ActorSystem): JFunction[Throwable, Trailers] =
+    new JFunction[Throwable, Trailers] {
       override def apply(param: Throwable): Trailers =
         param match {
           case e: ExecutionException =>
@@ -58,7 +60,7 @@ object GrpcExceptionHandler {
 
   def standard(
       t: Throwable,
-      mapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]],
+      mapper: JFunction[ActorSystem, JFunction[Throwable, Trailers]],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
     GrpcResponseHelpers.status(mapper(system.classicSystem)(t))(writer)

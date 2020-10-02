@@ -30,7 +30,7 @@ object WebHandler {
 
   /**
    * Creates a `HttpRequest` to `HttpResponse` handler for gRPC services that can be used in
-   * for example `Http().bindAndHandleAsync` for the generated partial function handlers:
+   * for example `Http.get(system).newServerAt(...).bind(...)` for the generated partial function handlers:
    *  - The generated handler supports the `application/grpc-web` and `application/grpc-web-text` media types.
    *  - CORS is implemented for handled servives, including pre-flight requests and request enforcement.
    *  - If the request s not a CORS pre-flight request, and has an invalid media type, then a _415: Unsupported Media Type_ response is produced.
@@ -54,7 +54,7 @@ object WebHandler {
 
   /**
    * Creates a `HttpRequest` to `HttpResponse` handler for gRPC services that can be used in
-   * for example `Http().bind` for the generated partial function handlers:
+   * for example `Http.get(system).newServerAt(...).bind(...)` for the generated partial function handlers:
    *  - The generated handler supports the `application/grpc-web` and `application/grpc-web-text` media types.
    *  - CORS is implemented for handled servives, including pre-flight requests and request enforcement.
    *  - If the request s not a CORS pre-flight request, and has an invalid media type, then a _415: Unsupported Media Type_ response is produced.

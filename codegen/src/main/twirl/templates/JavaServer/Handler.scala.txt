@@ -43,7 +43,7 @@ public class @{serviceName}HandlerFactory {
       akka.http.javadsl.model.HttpResponse.create().withStatus(akka.http.javadsl.model.StatusCodes.UNSUPPORTED_MEDIA_TYPE));
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
@@ -54,7 +54,7 @@ public class @{serviceName}HandlerFactory {
     }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
@@ -65,7 +65,7 @@ public class @{serviceName}HandlerFactory {
     }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
@@ -78,7 +78,7 @@ public class @{serviceName}HandlerFactory {
     }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
@@ -92,7 +92,7 @@ public class @{serviceName}HandlerFactory {
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
-     * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
+     * `Http.get(system).newServerAt(...).bind(...)`. It ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */
@@ -102,7 +102,7 @@ public class @{serviceName}HandlerFactory {
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
-     * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
+     * `Http.get(system).newServerAt(...).bind(...)`. It ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */

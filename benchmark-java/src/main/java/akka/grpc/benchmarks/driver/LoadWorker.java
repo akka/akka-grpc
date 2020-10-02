@@ -71,11 +71,11 @@ public class LoadWorker {
             .enableHttps(Utils.serverHttpContext())
             .bind(WorkerServiceHandlerFactory.create(impl, system));
 
-        bound.thenAccept(binding -> {
-          System.out.println("gRPC server bound to: " + binding.localAddress());
-        });
+    bound.thenAccept(binding -> {
+      System.out.println("gRPC server bound to: " + binding.localAddress());
+    });
 
-        return bound;
+    return bound;
   }
 
 

@@ -47,7 +47,7 @@ Java
 
 ### Tying it all together
 
-Finally we can combine the routes and serve them. Remember we need to use `bindAndHandleAsync` to enable HTTP/2 support:
+Finally we can combine the routes and serve them:
 
 Scala
 :  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala) { #combined }

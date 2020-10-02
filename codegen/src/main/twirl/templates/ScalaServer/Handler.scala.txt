@@ -33,7 +33,7 @@ object @{serviceName}Handler {
     private val unsupportedMediaType = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.UnsupportedMediaType))
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http.get(system).newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
@@ -43,7 +43,7 @@ object @{serviceName}Handler {
       partial(implementation).orElse { case _ => notFound }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http.get(system).newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
@@ -53,7 +53,7 @@ object @{serviceName}Handler {
       partial(implementation, @{service.name}.name, eHandler).orElse { case _ => notFound }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http.get(system).newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
@@ -65,7 +65,7 @@ object @{serviceName}Handler {
       partial(implementation, prefix).orElse { case _ => notFound }
 
     /**
-     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http.get(system).newServerAt(...).bind(...)`
      * for the generated partial function handler and ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
@@ -79,7 +79,7 @@ object @{serviceName}Handler {
     /**
      * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
      * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example
-     * `Http().bindAndHandleAsync`.
+     * `Http.get(system).newServerAt(...).bind(...)`.
      *
      * Use `@{service.name}Handler.apply` if the server is only handling one service.
      *

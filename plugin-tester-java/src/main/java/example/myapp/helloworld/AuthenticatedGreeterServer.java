@@ -7,6 +7,8 @@ package example.myapp.helloworld;
 import java.util.concurrent.CompletionStage;
 
 import akka.http.javadsl.model.StatusCodes;
+import akka.http.javadsl.server.AllDirectives;
+import akka.http.javadsl.server.directives.RouteDirectives;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
