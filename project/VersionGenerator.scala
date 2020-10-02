@@ -9,7 +9,8 @@ import sbt._
 object VersionGenerator {
 
   val settings: Seq[Setting[_]] = inConfig(Compile)(
-    Seq(resourceGenerators += generateVersion(resourceManaged, _ / "version.conf", """|akka.grpc.version = "%s"
+    Seq(
+      resourceGenerators += generateVersion(resourceManaged, _ / "akka-grpc-version.conf", """|akka.grpc.version = "%s"
          |""")))
 
   def generateVersion(dir: SettingKey[File], locate: File => File, template: String) =
