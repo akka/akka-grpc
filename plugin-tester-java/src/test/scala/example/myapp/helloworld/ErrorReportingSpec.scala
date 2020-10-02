@@ -4,6 +4,8 @@
 
 package example.myapp.helloworld
 
+import java.util.concurrent.CompletionStage
+
 import akka.actor.ActorSystem
 import akka.grpc.internal.GrpcProtocolNative
 import akka.http.scaladsl.Http
@@ -32,9 +34,14 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
 
     val handler = GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), sys)
     val binding = {
-      import akka.http.javadsl.{ ConnectHttp, Http }
+      import akka.http.javadsl.Http
+      import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 
-      Http(sys).bindAndHandleAsync(handler, ConnectHttp.toHost("127.0.0.1", 0), mat).toCompletableFuture.get
+      Http(sys)
+        .newServerAt("127.0.0.1", 0)
+        .bind((req => handler(req)): akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]])
+        .toCompletableFuture
+        .get
     }
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {

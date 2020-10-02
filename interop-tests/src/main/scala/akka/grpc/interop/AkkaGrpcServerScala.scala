@@ -11,12 +11,11 @@ import java.security.spec.PKCS8EncodedKeySpec
 import java.security.{ KeyFactory, KeyStore, SecureRandom }
 
 import scala.concurrent.duration._
-
 import akka.actor.ActorSystem
 import akka.util.ByteString
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.{ Http2, HttpsConnectionContext }
+import akka.http.scaladsl.{ ConnectionContext, Http2 }
 import akka.stream.SystemMaterializer
 import io.grpc.internal.testing.TestUtils
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
@@ -81,7 +80,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest 
     val context = SSLContext.getInstance("TLS")
     context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
 
-    new HttpsConnectionContext(context)
+    ConnectionContext.httpsServer(context)
   }
 
   override def getPort(binding: (ActorSystem, ServerBinding)): Int = binding._2.localAddress.getPort

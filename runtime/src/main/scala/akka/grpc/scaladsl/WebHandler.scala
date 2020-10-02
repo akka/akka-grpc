@@ -52,7 +52,7 @@ object WebHandler {
       corsSettings: CorsSettings = defaultCorsSettings): HttpRequest => Future[HttpResponse] = {
     implicit val system = as.classicSystem
     val servicesHandler = ServiceHandler.concat(handlers: _*)
-    Route.asyncHandler(cors(corsSettings) {
+    Route.toFunction(cors(corsSettings) {
       handleWith(servicesHandler)
     })
   }

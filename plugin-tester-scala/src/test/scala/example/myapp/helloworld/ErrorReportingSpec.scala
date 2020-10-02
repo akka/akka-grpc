@@ -9,7 +9,7 @@ import akka.grpc.internal.GrpcProtocolNative
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.{ Http, HttpConnectionContext }
+import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandler }
@@ -37,11 +37,8 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
   "A gRPC server" should {
 
     val binding = Http()
-      .bindAndHandleAsync(
-        GreeterServiceHandler(new GreeterServiceImpl())(system.asInstanceOf[ClassicActorSystemProvider]),
-        interface = "127.0.0.1",
-        port = 0,
-        connectionContext = HttpConnectionContext())
+      .newServerAt("127.0.0.1", 0)
+      .bind(GreeterServiceHandler(new GreeterServiceImpl())(system.asInstanceOf[ClassicActorSystemProvider]))
       .futureValue
 
     "respond with an 'unimplemented' gRPC error status when calling an unknown method" in {

@@ -36,8 +36,8 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
 
-      val server1 = Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0).futureValue
-      val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
+      val server1 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service1)).futureValue
+      val server2 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service2)).futureValue
 
       val discovery = MutableServiceDiscovery(List(server1, server2))
       val client = GreeterServiceClient(
@@ -60,8 +60,12 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
       val service2 = new CountingGreeterServiceImpl()
 
       val server1 =
-        Http().bindAndHandleAsync(GreeterServiceHandler(service1), "127.0.0.1", 0)(service1materializer).futureValue
-      val server2 = Http().bindAndHandleAsync(GreeterServiceHandler(service2), "127.0.0.1", 0).futureValue
+        Http()
+          .newServerAt("127.0.0.1", 0)
+          .withMaterializer(service1materializer)
+          .bind(GreeterServiceHandler(service1))
+          .futureValue
+      val server2 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service2)).futureValue
 
       val discovery = MutableServiceDiscovery(List(server1))
       val client = GreeterServiceClient(
@@ -96,7 +100,7 @@ class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with Before
 
     "select the right endpoint among invalid ones" in {
       val service = new CountingGreeterServiceImpl()
-      val server = Http().bindAndHandleAsync(GreeterServiceHandler(service), "127.0.0.1", 0).futureValue
+      val server = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service)).futureValue
       val discovery =
         new MutableServiceDiscovery(
           List(
