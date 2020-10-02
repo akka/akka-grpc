@@ -63,9 +63,9 @@ jobs:
     
     - stage: test
       name: Scripted gen-scala-server
-      script: sbt "; project sbt-akka-grpc; scripted gen-scala-server/*"
+      script: sbt -jvm-opts .jvmopts-travis "; project sbt-akka-grpc; scripted gen-scala-server/*"
     - name: Scripted gen-java
-      script: sbt "; project sbt-akka-grpc; scripted gen-java/*"
+      script: sbt -jvm-opts .jvmopts-travis "; project sbt-akka-grpc; scripted gen-java/*"
     - name: Gradle Java Scala 2.12 
       scala: 2.12.11
       workspaces:
@@ -124,7 +124,7 @@ jobs:
     
     - stage: publish
       script: sbt -jvm-opts .jvmopts-travis ++2.12.11 publish && git status && sbt -jvm-opts .jvmopts-travis ++2.13.1 akka-grpc-runtime/publish ++2.13.1! akka-grpc-codegen/publish
-      name: sbt publish
+      name: sbt -jvm-opts .jvmopts-travis publish
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
       name: Gradle plugin
     - script: eval "$(ssh-agent -s)" && echo $SCP_SECRET | base64 -d > /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt -jvm-opts .jvmopts-travis akka-grpc-docs/publishRsync
