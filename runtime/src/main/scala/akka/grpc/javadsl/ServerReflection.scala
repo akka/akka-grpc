@@ -20,7 +20,7 @@ object ServerReflection {
   @ApiMayChange(issue = "https://github.com/akka/akka-grpc/issues/850")
   def create(
       objects: Collection[ServiceDescription],
-      sys: ClassicActorSystemProvider): akka.japi.Function[HttpRequest, CompletionStage[HttpResponse]] = {
+      sys: ClassicActorSystemProvider): akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.collection.JavaConverters._
     val delegate = ServerReflectionHandler.apply(
       ServerReflectionImpl(objects.asScala.map(_.descriptor).toSeq, objects.asScala.map(_.name).toList))(sys)

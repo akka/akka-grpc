@@ -40,10 +40,10 @@ class PowerGreeterServer {
       // Instantiate implementation
       GreeterServicePowerApi impl = new GreeterServicePowerApiImpl(mat);
 
-      return Http.get(sys).bindAndHandleAsync(
-        GreeterServicePowerApiHandlerFactory.create(impl, sys),
-        ConnectHttp.toHost("127.0.0.1", 8091),
-        mat);
+      return Http
+        .get(sys)
+        .newServerAt("127.0.0.1", 8091)
+        .bind(GreeterServicePowerApiHandlerFactory.create(impl,sys));
   }
 }
 //#full-server

@@ -38,10 +38,10 @@ class GreeterServer {
     // Instantiate implementation
     GreeterService impl = new GreeterServiceImpl(mat);
 
-    return Http.get(sys).bindAndHandleAsync(
-      GreeterServiceHandlerFactory.create(impl, sys),
-      ConnectHttp.toHost("127.0.0.1", 8090),
-      mat);
+    return Http
+      .get(sys)
+      .newServerAt("127.0.0.1", 8090)
+      .bind(GreeterServiceHandlerFactory.create(impl, sys));
   }
 }
 //#full-server

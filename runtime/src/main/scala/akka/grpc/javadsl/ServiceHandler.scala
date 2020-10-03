@@ -10,7 +10,8 @@ import akka.annotation.ApiMayChange
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
-// using japi because bindAndHandleAsync expects that
+
+// using japi because bind expects that.
 import akka.japi.{ Function => JFunction }
 
 import scala.annotation.varargs
@@ -50,11 +51,27 @@ object ServiceHandler {
   @varargs
   def handler(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
-    val servicesHandler = concat(handlers: _*)
+    val servicesHandler = _concat(handlers: _*)
     (req: HttpRequest) => if (sServiceHandler.isGrpcRequest(req)) servicesHandler(req) else unsupportedMediaType
   }
 
-  private[javadsl] def concat(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
+  @varargs
+  def concat(handlers: akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]]*)
+      : akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]] = {
+    val servicesHandler = new akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]]() {
+      override def apply(httpRequest: HttpRequest): CompletionStage[HttpResponse] = {
+        handler(handlers.map(h =>
+          new JFunction[HttpRequest, CompletionStage[HttpResponse]] {
+            override def apply(param: HttpRequest): CompletionStage[HttpResponse] = {
+              h.apply(param)
+            }
+          }): _*).apply(httpRequest)
+      }
+    }
+    (req: HttpRequest) => if (sServiceHandler.isGrpcRequest(req)) servicesHandler(req) else unsupportedMediaType
+  }
+
+  private[javadsl] def _concat(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] =
     (req: HttpRequest) =>
       handlers.foldLeft(notFound) { (comp, next) =>

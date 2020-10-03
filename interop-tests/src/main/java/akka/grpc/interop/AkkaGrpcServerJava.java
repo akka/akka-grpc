@@ -24,7 +24,7 @@ import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.*;
 import akka.http.javadsl.*;
 import akka.http.javadsl.settings.ServerSettings;
-import akka.japi.Function;
+import akka.japi.function.Function;
 import akka.stream.*;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.internal.testing.TestUtils;

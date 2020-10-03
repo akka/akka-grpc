@@ -5,7 +5,7 @@
 package example.myapp;
 
 import akka.actor.ActorSystem;
-import akka.http.javadsl.*;
+import akka.http.javadsl.Http;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
@@ -18,7 +18,7 @@ import java.util.concurrent.CompletionStage;
 import akka.grpc.javadsl.ServiceHandler;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
-import akka.japi.Function;
+import akka.japi.function.Function;
 
 //#import
 
@@ -33,7 +33,7 @@ import example.myapp.echo.*;
 import example.myapp.echo.grpc.*;
 
 class CombinedServer {
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
       // important to enable HTTP/2 in ActorSystem's config
       Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
@@ -45,13 +45,13 @@ class CombinedServer {
           GreeterServiceHandlerFactory.create(new GreeterServiceImpl(mat), sys);
       Function<HttpRequest, CompletionStage<HttpResponse>> echoService =
         EchoServiceHandlerFactory.create(new EchoServiceImpl(), sys);
+      @SuppressWarnings("unchecked")
       Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
-        ServiceHandler.concatOrNotFound(greeterService, echoService);
+        ServiceHandler.concat(greeterService, echoService);
 
-      Http.get(sys).bindAndHandleAsync(
-          serviceHandlers,
-          ConnectHttp.toHost("127.0.0.1", 8090),
-          mat)
+      Http.get(sys)
+          .newServerAt("127.0.0.1", 8090)
+          .bind(serviceHandlers)
       //#concatOrNotFound
       .thenAccept(binding -> {
         System.out.println("gRPC server bound to: " + binding.localAddress());
@@ -61,10 +61,9 @@ class CombinedServer {
       Function<HttpRequest, CompletionStage<HttpResponse>> grpcWebServiceHandlers =
           WebHandler.grpcWebHandler(Arrays.asList(greeterService, echoService), sys, mat);
 
-      Http.get(sys).bindAndHandleAsync(
-          grpcWebServiceHandlers,
-          ConnectHttp.toHost("127.0.0.1", 8091),
-          mat)
+      Http.get(sys)
+        .newServerAt("127.0.0.1", 8090)
+        .bind(grpcWebServiceHandlers)
       //#grpc-web
       .thenAccept(binding -> {
           System.out.println("gRPC-Web server bound to: " + binding.localAddress());

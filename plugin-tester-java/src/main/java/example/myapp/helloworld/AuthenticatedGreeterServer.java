@@ -11,14 +11,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
-import akka.grpc.javadsl.RouteUtils;
-import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.Route;
-import akka.japi.Function;
+import akka.japi.function.Function;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 
@@ -61,7 +59,7 @@ class AuthenticatedGreeterServer {
     Function<HttpRequest, CompletionStage<HttpResponse>> handler = GreeterServiceHandlerFactory.create(impl, sys);
 
     // As a Route
-    Route handlerRoute = RouteUtils.fromFunction(handler, sys);
+    Route handlerRoute = handle(handler);
     //#grpc-route
 
     //#grpc-protected
@@ -82,10 +80,9 @@ class AuthenticatedGreeterServer {
       protectedHandler
     );
 
-    return Http.get(sys).bindAndHandleAsync(
-      RouteUtils.toFunction(finalRoute, sys),
-      ConnectHttp.toHost("127.0.0.1", 8090),
-      mat);
+    return Http.get(sys)
+      .newServerAt("127.0.0.1", 8090)
+      .bind(finalRoute);
     //#combined
   }
 }
