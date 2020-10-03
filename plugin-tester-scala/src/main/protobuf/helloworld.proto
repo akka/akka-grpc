@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-//#options
+import "google/protobuf/timestamp.proto";
+
 option java_multiple_files = true;
 option java_package = "example.myapp.helloworld.grpc";
 option java_outer_classname = "HelloWorldProto";
@@ -43,5 +44,6 @@ message HelloRequest {
 // The response message containing the greetings
 message HelloReply {
     string message = 1;
+    google.protobuf.Timestamp timestamp = 2;
 }
 //#messages

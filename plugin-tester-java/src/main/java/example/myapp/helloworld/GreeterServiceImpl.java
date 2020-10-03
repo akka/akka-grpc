@@ -15,6 +15,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 
+import com.google.protobuf.Timestamp;
 import example.myapp.helloworld.grpc.*;
 
 public class GreeterServiceImpl implements GreeterService {
@@ -27,7 +28,10 @@ public class GreeterServiceImpl implements GreeterService {
   @Override
   public CompletionStage<HelloReply> sayHello(HelloRequest in) {
     System.out.println("sayHello to " + in.getName());
-    HelloReply reply = HelloReply.newBuilder().setMessage("Hello, " + in.getName()).build();
+    HelloReply reply = HelloReply.newBuilder()
+      .setMessage("Hello, " + in.getName())
+      .setTimestamp(Timestamp.newBuilder().setSeconds(1234567890).setNanos(12345).build())
+      .build();
     return CompletableFuture.completedFuture(reply);
   }
 

@@ -7,12 +7,6 @@ class AkkaGrpcPluginExtension {
 
     static final String PLUGIN_CODE = 'com.lightbend.akka.grpc.gradle'
 
-    static final String PROTOC_VERSION = "3.4.0"
-
-    static final String PROTOC_PLUGIN_SCALA_VERSION = "2.12"
-
-    static final String GRPC_VERSION = "1.30.0"
-
     // workaround for tests, where there's no jar and MANIFEST.MF can't be read
     final String pluginVersion = System.getProperty("akkaGrpcTest.pluginVersion", AkkaGrpcPlugin.class.package.implementationVersion)
 
@@ -21,6 +15,11 @@ class AkkaGrpcPluginExtension {
     boolean generatePlay = false
     boolean serverPowerApis = false
     boolean usePlayActions = false
+    boolean includeStdTypes = false
+    String protocVersion = "3.11.4"
+    String grpcVersion = "1.32.1"
+    String protocPluginScalaVersion = "2.12"
+
     List<String> extraGenerators = []
 
     private final Project project

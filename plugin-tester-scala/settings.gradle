@@ -11,3 +11,4 @@ pluginManagement {
 if (!System.getProperty('akka.grpc.project.version')) {
   throw new GradleException("System property `akka.grpc.project.version` is not provided. Use -Dakka.grpc.project.version=\$VERSION.")
 }
+

@@ -118,6 +118,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var includeStdTypes: Boolean = _
+
+  @BeanProperty
   var protocVersion: String = _
 
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
@@ -186,7 +189,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
       val runProtoc: Seq[String] => Int = args =>
         com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-      val protocOptions = Seq.empty
+      val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }

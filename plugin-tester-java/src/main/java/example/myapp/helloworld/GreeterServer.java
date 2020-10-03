@@ -6,13 +6,15 @@
 package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
-import akka.http.javadsl.*;
+import akka.http.javadsl.ConnectHttp;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import example.myapp.helloworld.grpc.*;
+import example.myapp.helloworld.grpc.GreeterService;
+import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory;
 
 import java.util.concurrent.CompletionStage;
 

@@ -7,26 +7,23 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Unroll
 
-import static akka.grpc.gradle.AkkaGrpcPluginExtension.GRPC_VERSION
-import static akka.grpc.gradle.AkkaGrpcPluginExtension.PROTOC_PLUGIN_SCALA_VERSION
-
 class DependenciesSpec extends BaseSpec {
 
     static final String PROTOC_PLUGIN_CODEGEN = "akkaGrpc"
 
-    def checkCodegen(Dependency d, AkkaGrpcPluginExtension ext) {
+    def checkCodegen(Dependency d, AkkaGrpcPluginExtension extension) {
         assert d.group == "com.lightbend.akka.grpc"
-        assert d.name == "akka-grpc-codegen_$PROTOC_PLUGIN_SCALA_VERSION"
-        assert d.version == ext.pluginVersion
+        assert d.name == "akka-grpc-codegen_${extension.protocPluginScalaVersion}"
+        assert d.version == extension.pluginVersion
         true
     }
 
     static final String PROTOC_PLUGIN_SCALAPB = "scalapb"
 
-    def checkScalapb(Dependency d, AkkaGrpcPluginExtension ext) {
+    def checkScalapb(Dependency d, AkkaGrpcPluginExtension extension) {
         assert d.group == "com.lightbend.akka.grpc"
-        assert d.name == "akka-grpc-scalapb-protoc-plugin_$PROTOC_PLUGIN_SCALA_VERSION"
-        assert d.version == ext.pluginVersion
+        assert d.name == "akka-grpc-scalapb-protoc-plugin_${extension.protocPluginScalaVersion}"
+        assert d.version == extension.pluginVersion
         true
     }
 
@@ -83,7 +80,7 @@ class DependenciesSpec extends BaseSpec {
         then: "added to configuration"
         def deps = project.configurations.implementation.dependencies
         deps.any { it.name == "akka-grpc-runtime_$scala" && it.version == akkaGrpcExt.pluginVersion }
-        deps.any { it.name == "grpc-stub" && it.version == GRPC_VERSION }
+        deps.any { it.name == "grpc-stub" && it.version == akkaGrpcExt.grpcVersion }
         where:
         plugin || scala
         "java"  | "2.12"

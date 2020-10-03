@@ -13,7 +13,9 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.http.cors.version>0.4.2</akka.http.cors.version>
+    <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
+    <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
+    <akka.http.cors.version>1.1.0</akka.http.cors.version>
     <grpc.version>1.32.1</grpc.version> <!-- checked synced by GrpcVersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
   </properties>
@@ -54,12 +56,13 @@
           <generatorSettings>
             <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
+          <includeStdTypes>true</includeStdTypes>
         </configuration>
       </plugin>
 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.5.1</version>
+        <version>${maven-dependency-plugin.version}</version>
         <executions>
           <execution>
             <id>getClasspathFilenames</id>
@@ -74,7 +77,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <version>${maven-exec-plugin.version}</version>
         <configuration>
           <executable>java</executable>
           <arguments>

@@ -58,6 +58,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       case object Java extends Language
     }
 
+    val akkaGrpcProtocOptions = settingKey[Seq[String]]("Additional options to be passed to protoc")
     val akkaGrpcGeneratedLanguages = settingKey[Seq[AkkaGrpc.Language]](
       "Which languages to generate service and model classes for (AkkaGrpc.Scala, AkkaGrpc.Java)")
     val akkaGrpcGeneratedSources = settingKey[Seq[AkkaGrpc.GeneratedSource]](
@@ -84,6 +85,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
       akkaGrpcExtraGenerators := Seq.empty,
+      akkaGrpcProtocOptions := Seq.empty,
       PB.recompile in Compile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
@@ -113,6 +115,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
             GeneratorBridge.plainGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
         },
+        PB.protocOptions ++= akkaGrpcProtocOptions.value,
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
           targetsFor(
