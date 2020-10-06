@@ -84,6 +84,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       generatedLanguages in Global := Seq("Scala"),
       generatedSources in Global := Seq("Client", "Server"),
       extraGenerators in Global := Seq.empty,
+      protocOptions in Global := Seq.empty,
       watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
       watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value)
 
