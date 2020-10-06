@@ -22,7 +22,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll with ScalaFutures {
-  implicit val patience: PatienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
+  implicit val patience: PatienceConfig =
+    PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   implicit val serverSystem: ActorSystem = {
     // important to enable HTTP/2 in server ActorSystem's config
@@ -53,10 +54,9 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
   "GreeterService" should {
     "reply to single request" in {
       val reply = clients.head.sayHello(HelloRequest.newBuilder.setName("Alice").build())
-      val expectedResponse = HelloReply.newBuilder
-        .setMessage("Hello, Alice")
-        .setTimestamp(Timestamp.newBuilder.setSeconds(1234567890).setNanos(12345).build())
-        .build()
+      val timestamp = Timestamp.newBuilder.setSeconds(1234567890).setNanos(12345).build()
+      val expectedResponse =
+        HelloReply.newBuilder.setMessage("Hello, Alice").setTimestamp(timestamp).build()
       reply.toCompletableFuture.get should ===(expectedResponse)
     }
   }

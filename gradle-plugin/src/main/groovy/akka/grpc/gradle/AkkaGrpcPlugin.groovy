@@ -88,15 +88,15 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             protoc {
                 // Get protobuf from maven central instead of
                 // using the installed version:
-                artifact = "com.google.protobuf:protoc:${akkaGrpcExt.protocVersion}"
+                artifact = "com.google.protobuf:protoc:${PROTOC_VERSION}"
             }
             plugins {
                 akkaGrpc {
-                    artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_${akkaGrpcExt.protocPluginScalaVersion}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
+                    artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_${PROTOC_PLUGIN_SCALA_VERSION}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                 }
                 if (akkaGrpcExt.scala) {
                     scalapb {
-                        artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_${akkaGrpcExt.protocPluginScalaVersion}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
+                        artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_${PROTOC_PLUGIN_SCALA_VERSION}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                     }
                 }
             }
@@ -146,7 +146,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             def scalaVersion = autodetectScala()
             p.dependencies {
                 implementation "com.lightbend.akka.grpc:akka-grpc-runtime_${scalaVersion}:${baselineVersion}"
-                implementation "io.grpc:grpc-stub:${akkaGrpcExt.grpcVersion}"
+                implementation "io.grpc:grpc-stub:${GRPC_VERSION}"
             }
         }
 
