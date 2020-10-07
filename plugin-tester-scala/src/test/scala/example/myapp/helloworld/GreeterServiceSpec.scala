@@ -4,7 +4,7 @@
 
 package example.myapp.helloworld
 
-import akka.actor.{ActorSystem, ClassicActorSystemProvider}
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
 import com.google.protobuf.timestamp.Timestamp
