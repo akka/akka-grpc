@@ -68,7 +68,7 @@ public class LoadWorker {
 
     CompletionStage<ServerBinding> bound = Http.get(system)
             .newServerAt("127.0.0.1", driverPort)
-            .enableHttps(Utils.serverHttpContext()))
+            .enableHttps(Utils.serverHttpContext())
             .bind(WorkerServiceHandlerFactory.create(impl, system));
 
         bound.thenAccept(binding -> {
