@@ -41,13 +41,14 @@ public class Main {
         GreeterService impl = new GreeterServiceImpl();
 
         // Bind service handler servers to localhost:8080
-        return Http.get(sys).bindAndHandleAsync(
+        return Http.get(sys)
+	  .newServerAt("127.0.0.1", 8080)
+	  .bind(
             ServiceHandler.concatOrNotFound(
                 GreeterServiceHandlerFactory.create(impl, sys),
                 ServerReflection.create(Arrays.asList(GreeterService.description), sys)
-            ),
-            ConnectHttp.toHost("127.0.0.1", 8080),
-            mat);
+            )
+	  );
         //#server-reflection
     }
 

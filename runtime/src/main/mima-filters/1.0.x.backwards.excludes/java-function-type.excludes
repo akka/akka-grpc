@@ -1,8 +1,16 @@
 # Changes to methods that were marked ApiMayChange:
 
 ## Mostly used in server projects, not in libraries:
-ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.WebHandler.grpcWebHandler")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.ServiceHandler.concatOrNotFound")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.ServiceHandler.handler")
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.ServiceHandler.concat")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.ServiceHandler.concatOrNotFound")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.ServiceHandler.handler")
+
+
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.WebHandler.grpcWebHandler")
+
 ProblemFilters.exclude[MissingClassProblem]("akka.grpc.javadsl.RouteUtils")
 ProblemFilters.exclude[MissingClassProblem]("akka.grpc.javadsl.RouteUtils$")
+
 ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.javadsl.ServerReflection.create")

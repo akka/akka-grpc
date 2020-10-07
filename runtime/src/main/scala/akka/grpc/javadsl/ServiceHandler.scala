@@ -10,9 +10,7 @@ import akka.annotation.ApiMayChange
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
-
-// using japi because bind expects that.
-import akka.japi.{ Function => JFunction }
+import akka.japi.function.{ Function => JFunction }
 
 import scala.annotation.varargs
 
