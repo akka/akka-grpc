@@ -67,7 +67,7 @@ object WebHandler {
       corsSettings: CorsSettings): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.collection.JavaConverters._
 
-    val servicesHandler = concat(handlers.asScala: _*)
+    val servicesHandler = concat(handlers.asScala.toList: _*)
     val servicesRoute = RouteAdapter(MarshallingDirectives.handleWith(servicesHandler.apply(_)))
     val handler = asyncHandler(CorsDirectives.cors(corsSettings, () => servicesRoute), as, mat)
     (req: HttpRequest) =>
