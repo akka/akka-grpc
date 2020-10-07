@@ -6,4 +6,4 @@ javacOptions  += "-Xdoclint:all"
 
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-PB.recompile / PB.protocOptions ++= "include_std_types"
+Compile / PB.protocOptions += "--include_std_types"
