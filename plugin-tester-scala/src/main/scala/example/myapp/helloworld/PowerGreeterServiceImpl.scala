@@ -6,15 +6,15 @@
 package example.myapp.helloworld
 
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.grpc.scaladsl.Metadata
-import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import example.myapp.helloworld.grpc._
 
 import scala.concurrent.Future
 
-class PowerGreeterServiceImpl(implicit materializer: Materializer) extends GreeterServicePowerApi {
-  import materializer.executionContext
+class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServicePowerApi {
+  import system.dispatcher
 
   override def sayHello(in: HelloRequest, metadata: Metadata): Future[HelloReply] = {
     val greetee = authTaggedName(in, metadata)
