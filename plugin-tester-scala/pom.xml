@@ -78,6 +78,7 @@
           <generatorSettings>
             <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
+          <includeStdTypes>true</includeStdTypes>
         </configuration>
         <executions>
           <execution>

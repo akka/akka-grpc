@@ -7,6 +7,7 @@ package example.myapp.helloworld
 import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.GrpcClientSettings
 import akka.stream.ActorMaterializer
+import com.google.protobuf.timestamp.Timestamp
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
 import org.junit.runner.RunWith
@@ -57,7 +58,7 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
   "GreeterService" should {
     "reply to single request" in {
       val reply = clients.head.sayHello(HelloRequest("Alice"))
-      reply.futureValue should ===(HelloReply("Hello, Alice"))
+      reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
     }
   }
 

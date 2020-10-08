@@ -14,7 +14,7 @@ def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCA
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 
 dependencies {
-  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '0.4.2'
+  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '1.1.0'
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:2.5.31"
   testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.1.2"
   testImplementation "org.scalatestplus:junit-4-12_${scalaBinaryVersion}:3.1.2.0"

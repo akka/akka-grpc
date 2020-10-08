@@ -77,6 +77,13 @@
           <editable>true</editable>
           <description>The proto compiler version</description>
         </parameter>
+        <parameter>
+          <name>includeStdTypes</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If "true", extract the included google.protobuf standard types and add them to protoc import path.</description>
+        </parameter>
       </parameters>
       <configuration>
         <project implementation="" default-value="${project}"/>
@@ -88,6 +95,7 @@
         <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="target/generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v3.11.4">${akka-grpc.protoc-version}</protocVersion>
+        <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
     <mojo>
@@ -160,6 +168,13 @@
           <editable>true</editable>
           <description>The proto compiler version</description>
         </parameter>
+        <parameter>
+          <name>includeStdTypes</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If "true", extract the included google.protobuf standard types and add them to protoc import path.</description>
+        </parameter>
       </parameters>
       <configuration>
         <project implementation="" default-value="${project}"/>
@@ -171,6 +186,7 @@
         <protoPaths default-value="src/test/proto,src/test/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="target/generated-test-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v3.11.4">${akka-grpc.protoc-version}</protocVersion>
+        <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
   </mojos>

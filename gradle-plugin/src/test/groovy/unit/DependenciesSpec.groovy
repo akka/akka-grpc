@@ -16,7 +16,7 @@ class DependenciesSpec extends BaseSpec {
 
     def checkCodegen(Dependency d, AkkaGrpcPluginExtension ext) {
         assert d.group == "com.lightbend.akka.grpc"
-        assert d.name == "akka-grpc-codegen_$PROTOC_PLUGIN_SCALA_VERSION"
+        assert d.name == "akka-grpc-codegen_${PROTOC_PLUGIN_SCALA_VERSION}"
         assert d.version == ext.pluginVersion
         true
     }
@@ -25,7 +25,7 @@ class DependenciesSpec extends BaseSpec {
 
     def checkScalapb(Dependency d, AkkaGrpcPluginExtension ext) {
         assert d.group == "com.lightbend.akka.grpc"
-        assert d.name == "akka-grpc-scalapb-protoc-plugin_$PROTOC_PLUGIN_SCALA_VERSION"
+        assert d.name == "akka-grpc-scalapb-protoc-plugin_${PROTOC_PLUGIN_SCALA_VERSION}"
         assert d.version == ext.pluginVersion
         true
     }

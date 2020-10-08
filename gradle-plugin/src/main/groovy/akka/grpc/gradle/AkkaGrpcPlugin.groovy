@@ -92,11 +92,11 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             }
             plugins {
                 akkaGrpc {
-                    artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_$PROTOC_PLUGIN_SCALA_VERSION:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
+                    artifact = "com.lightbend.akka.grpc:akka-grpc-codegen_${PROTOC_PLUGIN_SCALA_VERSION}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                 }
                 if (akkaGrpcExt.scala) {
                     scalapb {
-                        artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_$PROTOC_PLUGIN_SCALA_VERSION:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
+                        artifact = "com.lightbend.akka.grpc:akka-grpc-scalapb-protoc-plugin_${PROTOC_PLUGIN_SCALA_VERSION}:${baselineVersion}:${assemblyClassifier}@${assemblySuffix}"
                     }
                 }
             }
@@ -117,6 +117,9 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             option "use_play_actions=${akkaGrpcExt.usePlayActions}"
                             option "extra_generators=${akkaGrpcExt.extraGenerators.join(';')}"
                             option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
+                            if (akkaGrpcExt.includeStdTypes) {
+                                option "include_std_types=true"
+                            }
                             if (akkaGrpcExt.generatePlay) {
                                 option "generate_play=true"
                             }

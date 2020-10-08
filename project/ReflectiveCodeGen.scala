@@ -20,6 +20,7 @@ object ReflectiveCodeGen extends AutoPlugin {
   val generatedSources = SettingKey[Seq[String]]("reflectiveGrpcGeneratedSources")
   val extraGenerators = SettingKey[Seq[String]]("reflectiveGrpcExtraGenerators")
   val codeGeneratorSettings = settingKey[Seq[String]]("Code generator settings")
+  val protocOptions = settingKey[Seq[String]]("Protoc Options.")
 
   // needed to be able to override the PB.generate task reliably
   override def requires = ProtocPlugin
@@ -27,6 +28,7 @@ object ReflectiveCodeGen extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     inConfig(Compile)(
       Seq(
+        PB.protocOptions := protocOptions.value,
         PB.generate :=
           // almost the same as `Def.sequential` but will return the "middle" value, ie. the result of the generation
           // Defines three steps:
@@ -82,6 +84,7 @@ object ReflectiveCodeGen extends AutoPlugin {
       generatedLanguages in Global := Seq("Scala"),
       generatedSources in Global := Seq("Client", "Server"),
       extraGenerators in Global := Seq.empty,
+      protocOptions in Global := Seq.empty,
       watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
       watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value)
 
