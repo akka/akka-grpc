@@ -14,11 +14,10 @@ import akka.grpc._
 import akka.grpc.internal._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
-import akka.japi.Function
+import akka.japi.{ Function => JFunction }
 import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
 
 object GrpcMarshalling {
@@ -62,7 +61,7 @@ object GrpcMarshalling {
       m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider,
-      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      eHandler: JFunction[ActorSystem, JFunction[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     marshalStream(Source.single(e), m, writer, system, eHandler)
 
@@ -71,7 +70,7 @@ object GrpcMarshalling {
       m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider,
-      eHandler: Function[ActorSystem, Function[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
+      eHandler: JFunction[ActorSystem, JFunction[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
     GrpcResponseHelpers(e.asScala, scalaAnonymousPartialFunction(eHandler))(m, writer, system)
 

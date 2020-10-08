@@ -25,7 +25,7 @@ package object javadsl {
     }
 
   /**
-   * Helper for creating Scala partial functions from  akka.japi.Function
+   * Helper for creating Scala partial functions from [[akka.japi.Function]]
    * instances as Scala 2.11 does not know about SAMs.
    */
   def scalaPartialFunction[A, B](f: akka.japi.Function[A, B]): PartialFunction[A, B] = {
@@ -33,7 +33,7 @@ package object javadsl {
   }
 
   /**
-   * Helper for creating Scala anonymous partial functions from  akka.japi.Function
+   * Helper for creating Scala anonymous partial functions from [[akka.japi.Function]]
    * instances as Scala 2.11 does not know about SAMs.
    */
   def scalaAnonymousPartialFunction[A, B, C](

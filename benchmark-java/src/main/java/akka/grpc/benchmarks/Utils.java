@@ -20,7 +20,6 @@ package akka.grpc.benchmarks;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.SSLContextUtils;
-import akka.grpc.benchmarks.proto.Control;
 import akka.grpc.benchmarks.proto.Messages;
 import akka.grpc.benchmarks.proto.Messages.Payload;
 import akka.grpc.benchmarks.proto.Messages.SimpleRequest;
@@ -183,7 +182,7 @@ public final class Utils {
     SSLContext context = SSLContext.getInstance("TLS");
     context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
 
-    return ConnectionContext.https(context);
+    return ConnectionContext.httpsServer(context);
   }
 
   public static GrpcClientSettings createGrpcClientSettings(InetSocketAddress socketAddress, boolean useTls, ActorSystem system) {

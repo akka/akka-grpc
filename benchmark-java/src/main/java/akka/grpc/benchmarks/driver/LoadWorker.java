@@ -26,7 +26,6 @@ import akka.grpc.benchmarks.proto.Control.ServerArgs;
 import akka.grpc.benchmarks.proto.Control.ServerArgs.ArgtypeCase;
 import akka.grpc.benchmarks.proto.WorkerService;
 import akka.grpc.benchmarks.proto.WorkerServiceHandlerFactory;
-import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.stream.ActorMaterializer;
@@ -56,7 +55,7 @@ public class LoadWorker {
   private final int driverPort;
   private final int serverPort;
 
-  LoadWorker(ActorSystem system, int driverPort, int serverPort) throws Exception {
+  LoadWorker(ActorSystem system, int driverPort, int serverPort) {
     this.system = system;
     this.driverPort = driverPort;
     this.serverPort = serverPort;
@@ -67,11 +66,10 @@ public class LoadWorker {
 
     WorkerServiceImpl impl = new WorkerServiceImpl(mat);
 
-    CompletionStage<ServerBinding> bound = Http.get(system).bindAndHandleAsync(
-        WorkerServiceHandlerFactory.create(impl, system),
-        ConnectWithHttps.toHostHttps("0.0.0.0", driverPort).withCustomHttpsContext(Utils.serverHttpContext()),
-        mat);
-
+    CompletionStage<ServerBinding> bound = Http.get(system)
+            .newServerAt("127.0.0.1", driverPort)
+            .enableHttps(Utils.serverHttpContext())
+            .bind(WorkerServiceHandlerFactory.create(impl, system));
 
         bound.thenAccept(binding -> {
           System.out.println("gRPC server bound to: " + binding.localAddress());
@@ -108,9 +106,9 @@ public class LoadWorker {
       }
       String value = parts[1];
       if ("server_port".equals(key)) {
-        serverPort = Integer.valueOf(value);
+        serverPort = Integer.parseInt(value);
       } else if ("driver_port".equals(key)) {
-        driverPort = Integer.valueOf(value);
+        driverPort = Integer.parseInt(value);
       } else {
         System.err.println("Unknown argument: " + key);
         usage = true;

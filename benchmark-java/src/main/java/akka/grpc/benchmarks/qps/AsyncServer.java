@@ -23,9 +23,8 @@ import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.BenchmarkService;
 import akka.grpc.benchmarks.proto.BenchmarkServiceHandlerFactory;
 import akka.grpc.benchmarks.proto.Messages;
-import akka.http.javadsl.ConnectHttp;
-import akka.http.javadsl.ConnectWithHttps;
 import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBuilder;
 import akka.stream.ActorMaterializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
@@ -77,22 +76,21 @@ public class AsyncServer {
 
     benchmarkService = new BenchmarkServiceImpl(mat);
 
+    final ServerBuilder serverBuilder = Http
+        .get(system)
+        .newServerAt(address.getHostName(), address.getPort());
+
     if (useTls) {
-      Http.get(system).bindAndHandleAsync(
-        BenchmarkServiceHandlerFactory.create(benchmarkService, system),
-        ConnectWithHttps.toHostHttps(address.getHostName(), address.getPort()).withCustomHttpsContext(Utils.serverHttpContext()),
-        mat)
+      serverBuilder
+        .enableHttps(Utils.serverHttpContext())
+        .bind(BenchmarkServiceHandlerFactory.create(benchmarkService, system))
         .thenAccept(binding -> {
           System.out.println("gRPC server bound to: https://" + address);
         });
     } else {
-      Http.get(system).bindAndHandleAsync(
-        BenchmarkServiceHandlerFactory.create(benchmarkService, system),
-        ConnectHttp.toHost(address.getHostName(), address.getPort()),
-        mat
-        ).thenAccept(binding -> {
-        System.out.println("gRPC server bound to: http://" + address);
-      });
+      serverBuilder
+        .bind(BenchmarkServiceHandlerFactory.create(benchmarkService, system))
+        .thenAccept(binding -> System.out.println("gRPC server bound to: http://" + address));
     }
   }
 
