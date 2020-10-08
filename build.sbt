@@ -129,7 +129,6 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
   .settings(
     // All io.grpc servers want to bind to port :8080
     parallelExecution := false,
-    ReflectiveCodeGen.protocOptions := Seq("include_std_types"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     // setting 'skip in publish' would be more elegant, but we need
