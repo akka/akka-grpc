@@ -142,7 +142,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
 
   override def invoke(request: Source[I, NotUsed]): Future[O] =
-    invokeWithMetadata(request).map(_.value)(ExecutionContexts.sameThreadExecutionContext)
+    invokeWithMetadata(request).map(_.value)(ExecutionContexts.parasitic)
 
   override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
     // a bit much overhead here because we are using the flow to represent a single response
@@ -166,7 +166,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
             def trailers = metadata.trailers
             def getTrailers = metadata.getTrailers()
           }
-      }(ExecutionContexts.sameThreadExecutionContext)
+      }(ExecutionContexts.parasitic)
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaClientStreamingRequestBuilder[I, O] =

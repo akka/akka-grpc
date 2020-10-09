@@ -9,7 +9,6 @@ import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
 import akka.grpc.scaladsl.headers.`Status`
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
 import akka.util.ByteString
@@ -25,7 +24,6 @@ class GrpcExceptionHandlerSpec
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
-  implicit val mat = ActorMaterializer()
   implicit val ec = system.dispatcher
 
   "The default ExceptionHandler" should {

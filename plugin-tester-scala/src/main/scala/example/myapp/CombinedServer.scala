@@ -11,8 +11,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.grpc.scaladsl.ServerReflection
-import akka.stream.ActorMaterializer
-import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld._
 import example.myapp.echo._
@@ -36,7 +34,6 @@ object CombinedServer {
       .parseString("akka.http.server.preview.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     implicit val sys: ActorSystem = ActorSystem("HelloWorld", conf)
-    implicit val mat: Materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = sys.dispatcher
 
     //#concatOrNotFound

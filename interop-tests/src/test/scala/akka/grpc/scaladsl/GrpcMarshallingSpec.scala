@@ -10,7 +10,6 @@ import akka.grpc.internal.{ AbstractGrpcProtocol, GrpcProtocolNative, Gzip }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest }
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import akka.stream.testkit.TestPublisher
 import akka.stream.testkit.scaladsl.TestSource
@@ -29,7 +28,6 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     val message = SimpleRequest(responseCompressed = Some(BoolValue(true)))
     implicit val serializer = TestService.Serializers.SimpleRequestSerializer
     implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
     val awaitTimeout = 10.seconds
     val zippedBytes =
       AbstractGrpcProtocol.encodeFrameData(

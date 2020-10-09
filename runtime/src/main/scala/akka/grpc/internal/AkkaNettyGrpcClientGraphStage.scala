@@ -91,10 +91,10 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
             def headers = sMetadata
             def getHeaders() = jMetadata
 
-            private lazy val sTrailers = trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(
-              ExecutionContexts.sameThreadExecutionContext)
+            private lazy val sTrailers =
+              trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
             private lazy val jTrailers = trailerPromise.future
-              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.sameThreadExecutionContext)
+              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
               .toJava
             def trailers = sTrailers
             def getTrailers = jTrailers
@@ -149,9 +149,9 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           call.request(1)
           requested += 1
         }
-      override def onDownstreamFinish(): Unit =
+      override def onDownstreamFinish(cause: Throwable): Unit =
         if (isClosed(out)) {
-          call.cancel("Downstream cancelled", null)
+          call.cancel("Downstream cancelled", cause)
           call = null
           completeStage()
         }

@@ -11,7 +11,6 @@ import io.grpc.ConnectivityState._
 
 import akka.Done
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.BeforeAndAfterAll
@@ -20,7 +19,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with Eventually with BeforeAndAfterAll {
   implicit val sys = ActorSystem()
-  implicit val mat = ActorMaterializer()
   implicit val ec = sys.dispatcher
   implicit val patience = PatienceConfig(timeout = 10.seconds, interval = 150.milliseconds)
 

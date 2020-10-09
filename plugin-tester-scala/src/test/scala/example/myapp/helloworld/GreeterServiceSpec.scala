@@ -6,7 +6,6 @@ package example.myapp.helloworld
 
 import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.GrpcClientSettings
-import akka.stream.ActorMaterializer
 import com.google.protobuf.timestamp.Timestamp
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
@@ -40,7 +39,6 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  implicit val mat = ActorMaterializer.create(clientSystem)
   implicit val ec = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>

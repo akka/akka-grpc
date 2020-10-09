@@ -57,7 +57,7 @@ object GrpcResponseHelpers {
     implicit val ec: ExecutionContext = mat.executionContext
     GrpcResponseHelpers(
       e,
-      Source.lazilyAsync(() => status.map(GrpcEntityHelpers.trailer)).mapMaterializedValue(_ => NotUsed),
+      Source.lazyFuture(() => status.map(GrpcEntityHelpers.trailer(_))).mapMaterializedValue(_ => NotUsed),
       eHandler)
   }
 
