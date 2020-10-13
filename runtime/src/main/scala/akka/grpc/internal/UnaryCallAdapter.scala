@@ -69,15 +69,15 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
         case OptionVal.None    => throw new RuntimeException("Never got headers, this should not happen")
       }
 
-      def value: Res = message
-      def getValue: Res = message
+      override def value: Res = message
+      override def getValue(): Res = message
 
       private lazy val sMetadata: akka.grpc.scaladsl.Metadata =
         MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(headersOnMessage)
       private lazy val jMetadata: akka.grpc.javadsl.Metadata =
         MetadataImpl.javaMetadataFromGoogleGrpcMetadata(headersOnMessage)
-      def headers = sMetadata
-      def getHeaders() = jMetadata
+      override def headers = sMetadata
+      override def getHeaders() = jMetadata
 
       private lazy val sTrailer =
         trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)

@@ -58,8 +58,8 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
     val log: LoggingAdapter = NoLogging
 
     "should fail if enter into failure configured number of times" in {
-      val promiseReady = Promise[Unit]
-      val promiseDone = Promise[Done]
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
       val fakeChannel = new FakeChannel(
         Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
 
@@ -84,8 +84,8 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
     }
 
     "should reset counter if enters into ready" in {
-      val promiseReady = Promise[Unit]
-      val promiseDone = Promise[Done]
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
       val fakeChannel =
         new FakeChannel(
           Stream(
@@ -135,8 +135,8 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
     }
 
     "should stop monitoring if SHUTDOWN" in {
-      val promiseReady = Promise[Unit]
-      val promiseDone = Promise[Done]
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
       val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, READY) ++ Stream.continually(SHUTDOWN))
       ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
       // IDLE => CONNECTING

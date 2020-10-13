@@ -2,7 +2,7 @@ language: scala
 
 scala:
   - 2.12.11
-  - 2.13.1
+  - 2.13.3
 
 # make sure to fetch enough commits, so that git describe still works
 git:
@@ -42,7 +42,7 @@ jobs:
       script:
         - echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.m2/.version
         - cat ~/.m2/.version
-        - sbt -jvm-opts .jvmopts-travis akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.1 akka-grpc-runtime/publishM2
+        - sbt -jvm-opts .jvmopts-travis akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
         - find ~/.m2/repository/ -print
       workspaces:
         create:
@@ -55,7 +55,7 @@ jobs:
             - ./scalapb-protoc-plugin/target
     - name: Checks
       script:
-        - sbt -jvm-opts .jvmopts-travis ++2.13.1 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues headerCheckAll grpcVersionSyncCheck scalafmtCheckAll scalafmtSbtCheck
+        - sbt -jvm-opts .jvmopts-travis ++2.13.3 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues headerCheckAll grpcVersionSyncCheck scalafmtCheckAll scalafmtSbtCheck
     - name: Compile benchmarks
       script: 
         - cd benchmark-java 
@@ -77,7 +77,7 @@ jobs:
         - cd ../plugin-tester-java
         - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Java Scala 2.13
-      scala: 2.13.1
+      scala: 2.13.3
       workspaces:
         use: mavenLocal
       script:
@@ -96,7 +96,7 @@ jobs:
         - cd ../plugin-tester-scala 
         - ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Scala 2.13
-      scala: 2.13.1
+      scala: 2.13.3
       workspaces:
         use: mavenLocal
       script: 
@@ -123,7 +123,7 @@ jobs:
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt -jvm-opts .jvmopts-travis whitesourceCheckPolicies whitesourceUpdate
     
     - stage: publish
-      script: sbt -jvm-opts .jvmopts-travis ++2.12.11 publish && git status && sbt -jvm-opts .jvmopts-travis ++2.13.1 akka-grpc-runtime/publish ++2.13.1! akka-grpc-codegen/publish
+      script: sbt -jvm-opts .jvmopts-travis ++2.12.11 publish && git status && sbt -jvm-opts .jvmopts-travis ++2.13.3 akka-grpc-runtime/publish ++2.13.3! akka-grpc-codegen/publish
       name: sbt -jvm-opts .jvmopts-travis publish
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
       name: Gradle plugin

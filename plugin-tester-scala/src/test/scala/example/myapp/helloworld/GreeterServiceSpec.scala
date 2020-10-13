@@ -48,7 +48,7 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
         .withTls(false))(clientSystem.asInstanceOf[ClassicActorSystemProvider])
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     Await.ready(clientSystem.terminate(), 5.seconds)
     Await.ready(serverSystem.terminate(), 5.seconds)
   }
