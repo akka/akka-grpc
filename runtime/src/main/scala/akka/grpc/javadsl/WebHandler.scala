@@ -84,7 +84,7 @@ object WebHandler {
       route
         .seal()
         .flow(as.classicSystem, mat)
-        .toMat(Sink.head[HttpResponse], Keep.right[NotUsed, CompletionStage[HttpResponse]])
+        .toMat(Sink.head[HttpResponse](), Keep.right[NotUsed, CompletionStage[HttpResponse]])
     (req: HttpRequest) => Source.single(req).runWith(sealedFlow, mat)
   }
 }

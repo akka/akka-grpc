@@ -44,7 +44,7 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
     GreeterServiceClient.create(GrpcClientSettings.connectToServiceAt("127.0.0.1", port).withTls(false), clientSystem)
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     Await.ready(clientSystem.terminate(), 5.seconds)
     Await.ready(serverSystem.terminate(), 5.seconds)
   }

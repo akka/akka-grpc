@@ -57,7 +57,7 @@ class AkkaDiscoveryNameResolverProviderSpec
 
       val resolver = provider.newNameResolver(new URI("//" + serviceName), null)
 
-      val addressGroupsPromise = Promise[List[EquivalentAddressGroup]]
+      val addressGroupsPromise = Promise[List[EquivalentAddressGroup]]()
       val listener = new Listener() {
         override def onAddresses(addresses: JList[EquivalentAddressGroup], attributes: Attributes): Unit = {
           import scala.collection.JavaConverters._

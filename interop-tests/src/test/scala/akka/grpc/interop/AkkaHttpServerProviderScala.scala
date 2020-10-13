@@ -70,7 +70,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
       }
     } ~ pathPrefix("FullDuplexCall") {
       entity(as[Source[StreamingOutputCallRequest, NotUsed]]) { source =>
-        val status = Promise[Status]
+        val status = Promise[Status]()
 
         val effectingSource = source
           .map { requestElement =>

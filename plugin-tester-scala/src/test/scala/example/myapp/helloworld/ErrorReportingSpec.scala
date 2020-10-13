@@ -72,6 +72,6 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
       }
   }
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     Await.result(system.terminate(), 5.seconds)
 }
