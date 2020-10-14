@@ -58,6 +58,10 @@ object Dependencies {
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
+
+    val commonProtos =
+      "com.thesamet.scalapb.common-protos" %% "proto-google-common-protos-scalapb_0.10" % "1.18.0-0" % "protobuf"
+
   }
 
   object Test {
@@ -92,6 +96,7 @@ object Dependencies {
     Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
+    Compile.commonProtos,
     Test.akkaDiscoveryConfig,
     Test.akkaTestkit,
     Test.scalaTest,
@@ -115,6 +120,7 @@ object Dependencies {
     Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
     Compile.akkaHttp,
     Compile.akkaSlf4j,
+    Compile.commonProtos,
     Runtime.logback,
     Test.scalaTest.withConfigurations(Some("compile")),
     Test.scalaTestPlusJunit.withConfigurations(Some("compile")),

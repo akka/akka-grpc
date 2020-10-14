@@ -1,6 +1,6 @@
 enablePlugins(BuildInfoPlugin)
 
-val sbtProtocV = "0.99.34"
+val sbtProtocV = "1.0.0-RC2"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
@@ -31,4 +31,4 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.9.0.20200908
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.10.8"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.0-M3"
