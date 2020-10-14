@@ -107,7 +107,7 @@ message FileDescriptorResponse {
 // A list of extension numbers sent by the server answering
 // all_extension_numbers_of_type request.
 message ExtensionNumberResponse {
-  // Full name of the base type, incluing the package name. The format
+  // Full name of the base type, including the package name. The format
   // is <package>.<type>
   string base_type_name = 1;
   repeated int32 extension_number = 2;
