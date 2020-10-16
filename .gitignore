@@ -16,3 +16,5 @@ target
 
 /gradle-plugin/.gradle/
 /gradle-plugin/build/
+
+.bsp/
