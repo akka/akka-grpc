@@ -1,4 +1,5 @@
 # This is used to configure the sbt instance that Travis launches
 
 -Dsbt.color=true
+-Dsbt.supershell=false
 -Dfile.encoding=UTF8
