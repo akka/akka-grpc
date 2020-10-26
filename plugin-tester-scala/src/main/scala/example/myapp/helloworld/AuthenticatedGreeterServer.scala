@@ -5,7 +5,7 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{ Http, Http2, HttpConnectionContext }
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.server.{ Directive0, Route, RouteResult }
 import akka.http.scaladsl.server.Directives._
@@ -68,11 +68,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       })
 
     // Bind service handler servers to localhost:8082
-    val binding = Http2().bindAndHandleAsync(
-      Route.toFunction(route),
-      interface = "127.0.0.1",
-      port = 8082,
-      connectionContext = HttpConnectionContext())
+    val binding = Http().newServerAt("127.0.0.1", 8082).bind(route)
     //#combined
 
     // report successful binding

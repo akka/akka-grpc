@@ -15,8 +15,7 @@ import akka.actor.ActorSystem
 import akka.util.ByteString
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.{ ConnectionContext, Http2 }
-import akka.stream.SystemMaterializer
+import akka.http.scaladsl.{ ConnectionContext, Http }
 import io.grpc.internal.testing.TestUtils
 import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
@@ -29,16 +28,10 @@ case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest 
     extends GrpcServer[(ActorSystem, ServerBinding)] {
   override def start() = {
     implicit val sys = ActorSystem()
-    implicit val mat = SystemMaterializer(sys).materializer
 
     val testService = serverHandlerFactory(sys)
 
-    val bindingFuture = Http2().bindAndHandleAsync(
-      testService,
-      interface = "127.0.0.1",
-      port = 0,
-      parallelism = 256, // TODO remove once https://github.com/akka/akka-http/pull/2146 is merged
-      connectionContext = serverHttpContext())
+    val bindingFuture = Http().newServerAt("127.0.0.1", 0).enableHttps(serverHttpContext()).bind(testService)
 
     val binding = Await.result(bindingFuture, 10.seconds)
     (sys, binding)
