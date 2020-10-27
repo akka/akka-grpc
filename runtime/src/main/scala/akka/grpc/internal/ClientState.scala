@@ -27,7 +27,7 @@ final class ClientState(@InternalStableApi val internalChannel: InternalChannel)
 
   @InternalStableApi
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit sys: ClassicActorSystemProvider) =
-    this(NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher))
+    this(ClientState.createPool(settings, log))
 
   sys.classicSystem.whenTerminated.foreach(_ => close())(sys.classicSystem.dispatcher)
 
@@ -37,6 +37,19 @@ final class ClientState(@InternalStableApi val internalChannel: InternalChannel)
   def closed(): Future[Done] = internalChannel.done
 
   def close(): Future[Done] = ChannelUtils.close(internalChannel)
+}
+
+object ClientState {
+  def createPool(settings: GrpcClientSettings, log: LoggingAdapter)(
+      implicit sys: ClassicActorSystemProvider): InternalChannel = {
+    settings.backend match {
+      case "netty" =>
+        NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher)
+      case "akka-http" =>
+        AkkaHttpClientUtils.createChannel(settings, log)
+      case _ => throw new IllegalArgumentException(s"Unexpected backend [${settings.backend}]")
+    }
+  }
 }
 
 /**

@@ -34,7 +34,7 @@ object ChannelUtils {
    */
   @InternalApi
   def close(internalChannel: InternalChannel): Future[Done] = {
-    internalChannel.managedChannel.shutdown()
+    internalChannel.shutdown()
     internalChannel.done
   }
 
