@@ -46,30 +46,10 @@ final class ScalaUnaryRequestBuilder[I, O](
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
 
   override def invoke(request: I): Future[O] =
-    invoke(request, channel.managedChannel)
-
-  private def invoke(request: I, c: Channel) = {
-    val listener = new UnaryCallAdapter[O]
-    val call = c.newCall(descriptor, callOptionsWithDeadline())
-    call.start(listener, headers.toGoogleGrpcMetadata())
-    call.sendMessage(request)
-    call.halfClose()
-    call.request(2)
-    listener.future
-  }
+    channel.invoke(request, headers, descriptor, defaultOptions)
 
   override def invokeWithMetadata(request: I): Future[GrpcSingleResponse[O]] =
-    invokeWithMetadata(request, channel.managedChannel)
-
-  private def invokeWithMetadata(request: I, c: Channel): Future[GrpcSingleResponse[O]] = {
-    val listener = new UnaryCallWithMetadataAdapter[O]
-    val call = c.newCall(descriptor, callOptionsWithDeadline())
-    call.start(listener, headers.toGoogleGrpcMetadata())
-    call.sendMessage(request)
-    call.halfClose()
-    call.request(2)
-    listener.future
-  }
+    channel.invokeWithMetadata(request, headers, descriptor, callOptionsWithDeadline())
 
   override def withHeaders(headers: MetadataImpl): ScalaUnaryRequestBuilder[I, O] =
     new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
@@ -132,11 +112,8 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
       case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-      case _                 => OptionVal.Some(createflow(defaultOptions, channel.managedChannel))
+      case _                 => OptionVal.Some(channel.createFlow(fqMethodName, headers, descriptor, false, defaultOptions))
     }
-
-  private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -148,7 +125,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     // a bit much overhead here because we are using the flow to represent a single response
     val flow = defaultFlow match {
       case OptionVal.Some(f) => f
-      case OptionVal.None    => createflow(callOptionsWithDeadline(), channel.managedChannel)
+      case OptionVal.None    => channel.createFlow(fqMethodName, headers, descriptor, false, callOptionsWithDeadline())
     }
 
     val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
@@ -233,11 +210,8 @@ final class ScalaServerStreamingRequestBuilder[I, O](
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
       case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-      case _                 => OptionVal.Some(createflow(defaultOptions, channel.managedChannel))
+      case _                 => OptionVal.Some(channel.createFlow(fqMethodName, headers, descriptor, true, defaultOptions))
     }
-
-  private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -245,13 +219,10 @@ final class ScalaServerStreamingRequestBuilder[I, O](
   override def invoke(request: I): Source[O, NotUsed] =
     invokeWithMetadata(request).mapMaterializedValue(_ => NotUsed)
 
-  override def invokeWithMetadata(source: I): Source[O, Future[GrpcResponseMetadata]] =
-    invokeWithMetadata(source, channel.managedChannel)
-
-  private def invokeWithMetadata(source: I, c: Channel) = {
+  override def invokeWithMetadata(source: I): Source[O, Future[GrpcResponseMetadata]] = {
     val flow = defaultFlow match {
       case OptionVal.Some(f) => f
-      case OptionVal.None    => createflow(callOptionsWithDeadline(), c)
+      case OptionVal.None    => channel.createFlow(fqMethodName, headers, descriptor, true, callOptionsWithDeadline())
     }
     Source.single(source).viaMat(flow)(Keep.right)
   }
@@ -320,11 +291,8 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
       case _: FiniteDuration => OptionVal.None // new CallOptions with deadline for each call
-      case _                 => OptionVal.Some(createFlow(defaultOptions, channel.managedChannel))
+      case _                 => OptionVal.Some(channel.createFlow(fqMethodName, headers, descriptor, true, defaultOptions))
     }
-
-  private def createFlow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -335,7 +303,7 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
   override def invokeWithMetadata(source: Source[I, NotUsed]): Source[O, Future[GrpcResponseMetadata]] = {
     val flow = defaultFlow match {
       case OptionVal.Some(f) => f
-      case OptionVal.None    => createFlow(callOptionsWithDeadline(), channel.managedChannel)
+      case OptionVal.None    => channel.createFlow(fqMethodName, headers, descriptor, true, callOptionsWithDeadline())
     }
     source.viaMat(flow)(Keep.right)
   }
