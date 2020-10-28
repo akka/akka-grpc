@@ -85,9 +85,9 @@ object AkkaHttpClientUtils {
     }
 
     implicit def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
-      descriptor.getRequestMarshaller.asInstanceOf[Marshaller[_]].u.asInstanceOf[ProtobufSerializer[I]]
+      descriptor.getRequestMarshaller.asInstanceOf[WithProtobufSerializer[I]].protobufSerializer
     implicit def deserializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[O] =
-      descriptor.getResponseMarshaller.asInstanceOf[Marshaller[_]].u.asInstanceOf[ProtobufSerializer[O]]
+      descriptor.getResponseMarshaller.asInstanceOf[WithProtobufSerializer[O]].protobufSerializer
 
     new InternalChannel() {
       override def shutdown(): Unit = queue.complete()
