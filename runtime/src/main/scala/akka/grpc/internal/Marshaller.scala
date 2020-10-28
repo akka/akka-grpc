@@ -13,7 +13,7 @@ import akka.grpc.ProtobufSerializer
  * INTERNAL API
  */
 @InternalApi
-final class Marshaller[T <: scalapb.GeneratedMessage](u: ProtobufSerializer[T])
+final class Marshaller[T <: scalapb.GeneratedMessage](val u: ProtobufSerializer[T])
     extends io.grpc.MethodDescriptor.Marshaller[T] {
   override def parse(stream: InputStream): T = {
     val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
