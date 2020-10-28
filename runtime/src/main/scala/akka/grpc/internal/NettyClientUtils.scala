@@ -7,12 +7,11 @@ package akka.grpc.internal
 import java.util.concurrent.TimeUnit
 
 import javax.net.ssl.SSLContext
-import akka.Done
+import akka.{ Done, NotUsed }
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.scaladsl.{ Flow, Keep, Source }
-import akka.util.OptionVal
 import com.github.ghik.silencer.silent
 import io.grpc.{ CallOptions, MethodDescriptor }
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
@@ -144,21 +143,18 @@ object NettyClientUtils {
       }
 
       override def invokeWithMetadata[I, O](
-          source: I,
-          defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]],
+          source: Source[I, NotUsed],
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
+          streamingResponse: Boolean,
           options: CallOptions) = {
-        val flow = defaultFlow match {
-          case OptionVal.Some(f) => f
-          case OptionVal.None =>
-            createFlow(headers, descriptor, true, callOptionsWithDeadline(options, settings))
-        }
-        Source.single(source).viaMat(flow)(Keep.right)
+        val flow =
+          createFlow(headers, descriptor, streamingResponse, callOptionsWithDeadline(options, settings))
+        source.viaMat(flow)(Keep.right)
       }
 
       // TODO can't you derive the method name from the descriptor?
-      override def createFlow[I, O](
+      private def createFlow[I, O](
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
           streamingResponse: Boolean,

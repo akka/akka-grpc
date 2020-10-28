@@ -5,11 +5,10 @@
 package akka.grpc.internal
 
 import scala.concurrent.Future
-import akka.Done
+import akka.{ Done, NotUsed }
 import akka.annotation.InternalApi
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
-import akka.stream.scaladsl.{ Flow, Source }
-import akka.util.OptionVal
+import akka.stream.scaladsl.Source
 import io.grpc.{ CallOptions, MethodDescriptor }
 
 /**
@@ -29,17 +28,11 @@ abstract class InternalChannel {
       options: CallOptions): Future[GrpcSingleResponse[O]]
 
   def invokeWithMetadata[I, O](
-      source: I,
-      defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]],
-      headers: MetadataImpl,
-      descriptor: MethodDescriptor[I, O],
-      options: CallOptions): Source[O, Future[GrpcResponseMetadata]]
-
-  def createFlow[I, O](
+      source: Source[I, NotUsed],
       headers: MetadataImpl,
       descriptor: MethodDescriptor[I, O],
       streamingResponse: Boolean,
-      options: CallOptions): Flow[I, O, Future[GrpcResponseMetadata]]
+      options: CallOptions): Source[O, Future[GrpcResponseMetadata]]
 
   def shutdown(): Unit
   def done: Future[Done]

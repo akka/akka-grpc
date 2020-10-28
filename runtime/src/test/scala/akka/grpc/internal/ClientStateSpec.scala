@@ -6,11 +6,10 @@ package akka.grpc.internal
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Future, Promise }
-import akka.Done
+import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
-import akka.stream.scaladsl.{ Flow, Source }
-import akka.util.OptionVal
+import akka.stream.scaladsl.Source
 import io.grpc.{ CallOptions, MethodDescriptor }
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.BeforeAndAfterAll
@@ -36,16 +35,11 @@ class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with E
             descriptor: MethodDescriptor[I, O],
             options: CallOptions): Future[GrpcSingleResponse[O]] = ???
         override def invokeWithMetadata[I, O](
-            source: I,
-            defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]],
-            headers: MetadataImpl,
-            descriptor: MethodDescriptor[I, O],
-            options: CallOptions): Source[O, Future[GrpcResponseMetadata]] = ???
-        override def createFlow[I, O](
+            source: Source[I, NotUsed],
             headers: MetadataImpl,
             descriptor: MethodDescriptor[I, O],
             streamingResponse: Boolean,
-            options: CallOptions): Flow[I, O, Future[GrpcResponseMetadata]] = ???
+            options: CallOptions): Source[O, Future[GrpcResponseMetadata]] = ???
         override def shutdown(): Unit = channelCompletion.success(Done)
         override def done: Future[Done] = channelCompletion.future
       }
