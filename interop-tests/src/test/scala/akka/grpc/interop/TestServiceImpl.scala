@@ -45,7 +45,7 @@ class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
   override def emptyCall(req: Empty) =
     Future.successful(Empty())
 
-  override def unaryCall(req: SimpleRequest): Future[SimpleResponse] =
+  override def unaryCall(req: SimpleRequest): Future[SimpleResponse] = {
     req.responseStatus match {
       case None =>
         Future.successful(SimpleResponse(Some(Payload(ByteString.copyFrom(new Array[Byte](req.responseSize))))))
@@ -55,6 +55,7 @@ class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
         // Future.failed(new GrpcServiceException(responseStatus))
         throw new GrpcServiceException(responseStatus)
     }
+  }
 
   override def cacheableUnaryCall(in: SimpleRequest): Future[SimpleResponse] = ???
 
