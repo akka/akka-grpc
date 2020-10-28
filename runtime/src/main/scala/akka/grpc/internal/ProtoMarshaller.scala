@@ -5,16 +5,18 @@
 package akka.grpc.internal
 
 import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
+
 import io.grpc.KnownLength
-import akka.annotation.InternalApi
+import akka.annotation.InternalStableApi
 import akka.grpc.ProtobufSerializer
 
 /**
  * INTERNAL API
  */
-@InternalApi
+@InternalStableApi
 class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T])
-    extends io.grpc.MethodDescriptor.Marshaller[T] {
+    extends io.grpc.MethodDescriptor.Marshaller[T]
+    with WithProtobufSerializer[T] {
   override def parse(stream: InputStream): T = {
     val baos = new ByteArrayOutputStream(math.max(64, stream.available()))
     val buffer = new Array[Byte](32 * 1024)
@@ -31,4 +33,6 @@ class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]
 
   override def stream(value: T): InputStream =
     new ByteArrayInputStream(value.toByteArray) with KnownLength
+
+  override def protobufSerializer: ProtobufSerializer[T] = u
 }
