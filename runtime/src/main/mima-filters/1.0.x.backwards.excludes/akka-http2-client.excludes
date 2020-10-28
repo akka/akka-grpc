@@ -1,0 +1,6 @@
+# Internal API
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.Codecs.detect")
+ProblemFilters.exclude[Problem]("akka.grpc.internal.InternalChannel*")
+
+# ApiMayChange
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcClientSettings.this")
