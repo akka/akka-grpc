@@ -34,13 +34,13 @@ object Codecs {
       .getOrElse(Identity)
 
   /**
-   * Determines the `Message-Encoding` specified in a request.
+   * Determines the `Message-Encoding` specified in a message.
    *
-   * @param request the gRPC request
+   * @param message the gRPC message
    * @return the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or [[Failure]] if an unsupported encoding was specified.
    */
-  def detect(request: jm.HttpRequest): Try[Codec] =
-    detect(`Message-Encoding`.findIn(request.getHeaders).headOption)
+  def detect(message: jm.HttpMessage): Try[Codec] =
+    detect(`Message-Encoding`.findIn(message.getHeaders))
 
   /**
    * Determines the `Message-Encoding` specified in a gRPC stream to be unmarshalled.
