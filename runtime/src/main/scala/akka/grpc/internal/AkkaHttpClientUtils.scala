@@ -22,7 +22,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import com.github.ghik.silencer.silent
-import io.grpc.{ CallOptions, MethodDescriptor }
+import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 
 import scala.collection.immutable
@@ -104,7 +104,17 @@ object AkkaHttpClientUtils {
           options: CallOptions): Future[O] = {
         val src =
           invokeWithMetadata(Source.single(request), descriptor.getFullMethodName, headers, descriptor, false, options)
-        src.toMat(Sink.head)(Keep.right).run()
+        val (metadata, result) = src.toMat(Sink.headOption)(Keep.both).run()
+        metadata.flatMap(meta =>
+          meta.trailers.flatMap(trailers =>
+            trailers.getText("grpc-status") match {
+              case Some("0") =>
+                result.map(_.get)
+              case None =>
+                Future.failed(new StatusRuntimeException(Status.INTERNAL.withDescription("No return status found")))
+              case Some(statusCode) =>
+                Future.failed(new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt)))
+            }))
       }
 
       override def invokeWithMetadata[I, O](
