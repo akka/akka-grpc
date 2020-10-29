@@ -14,15 +14,19 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
 import akka.http.Http2Bridge
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext }
-import akka.http.scaladsl.model.{ AttributeKey, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
+import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.util.ByteString
 import com.github.ghik.silencer.silent
 import io.grpc.{ CallOptions, MethodDescriptor }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 
+import scala.collection.immutable
+import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success }
 
@@ -98,25 +102,9 @@ object AkkaHttpClientUtils {
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[O] = {
-        implicit val serializer: ProtobufSerializer[I] = descriptor
-        val deserializer: ProtobufSerializer[O] = descriptor
-        val httpRequest = GrpcRequestHelpers(
-          Uri(s"https://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
-          Source.single(request))
-        singleRequest(httpRequest).flatMap(response => {
-          httpRequest.toString()
-          Codecs.detect(response) match {
-            case Success(codec) =>
-              implicit val reader = GrpcProtocolNative.newReader(codec)
-              response.entity.dataBytes
-                .via(reader.dataFrameDecoder)
-                .map(data => deserializer.deserialize(data))
-                // TODO probably shouldn't cancel after reading the element?
-                .runWith(Sink.head[O])
-            case Failure(e) =>
-              Future.failed(e)
-          }
-        })
+        val src =
+          invokeWithMetadata(Source.single(request), descriptor.getFullMethodName, headers, descriptor, false, options)
+        src.toMat(Sink.head)(Keep.right).run()
       }
 
       override def invokeWithMetadata[I, O](
@@ -143,33 +131,37 @@ object AkkaHttpClientUtils {
               Codecs.detect(response) match {
                 case Success(codec) =>
                   implicit val reader = GrpcProtocolNative.newReader(codec)
-                  response.entity.dataBytes
-                    .via(reader.dataFrameDecoder)
-                    .map(data => deserializer.deserialize(data))
-                    .mapMaterializedValue(_ =>
-                      // TODO actually look at the chunks so we can construct the metadata including trailers
-                      Future.successful(new GrpcResponseMetadata() {
+                  val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
+                  response.entity match {
+                    case Chunked(_, chunks) =>
+                      chunks
+                        .map {
+                          case Chunk(data, _) =>
+                            data
+                          case LastChunk(_, trailer) =>
+                            trailerPromise.success(trailer)
+                            ByteString.empty
+                        }
+                        .via(reader.dataFrameDecoder)
+                        .map(data => deserializer.deserialize(data))
+                        .mapMaterializedValue(_ =>
+                          Future.successful(new GrpcResponseMetadata() {
+                            override def headers: akka.grpc.scaladsl.Metadata =
+                              new HeaderMetadataImpl(response.headers)
 
-                        /**
-                         * Scala API: The response metadata, the metadata is only for reading and must not be mutated.
-                         */
-                        override def headers: akka.grpc.scaladsl.Metadata = ???
+                            override def getHeaders(): akka.grpc.javadsl.Metadata =
+                              new JavaMetadataImpl(new HeaderMetadataImpl(response.headers))
 
-                        /**
-                         * Java API: The response metadata, the metadata is only for reading and must not be mutated.
-                         */
-                        override def getHeaders(): akka.grpc.javadsl.Metadata = ???
+                            override def trailers: Future[akka.grpc.scaladsl.Metadata] =
+                              trailerPromise.future.map(new HeaderMetadataImpl(_))
 
-                        /**
-                         * Scala API: Trailers from the server, is completed after the response stream completes
-                         */
-                        override def trailers: Future[akka.grpc.scaladsl.Metadata] = ???
-
-                        /**
-                         * Java API: Trailers from the server, is completed after the response stream completes
-                         */
-                        override def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata] = ???
-                      }))
+                            override def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata] =
+                              trailerPromise.future
+                                .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
+                                .toJava
+                          }))
+                    case _ => throw new IllegalStateException("Expected chunked response")
+                  }
                 case Failure(e) =>
                   Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
               }
