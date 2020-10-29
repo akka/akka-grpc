@@ -340,8 +340,10 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
 
     final CompletionStage<Messages.SimpleResponse> response = client.unaryCall(request);
     response.toCompletableFuture().handle((res, ex) -> {
-      if (!(ex instanceof StatusRuntimeException))
+      if (!(ex instanceof StatusRuntimeException)) {
+        ex.printStackTrace();
         fail("Expected [StatusRuntimeException] but got " + (ex == null ? "null" : ex.getClass().toString()));
+      }
 
       final StatusRuntimeException e = (StatusRuntimeException)ex;
       assertEquals(Status.UNKNOWN.getCode(), e.getStatus().getCode());
