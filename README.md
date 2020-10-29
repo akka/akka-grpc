@@ -15,11 +15,10 @@ toolkit.
 This library is ready to be used in production, but API's and build system plugins are still expected to be improved and [may change](https://doc.akka.io/docs/akka/current/common/may-change.html).
 
 The API on both sides (Client and Server) is a simple Akka Streams-based one.
-We plan to also provide a 'power user' API for each of these ([#191](https://github.com/akka/akka-grpc/issues/191), [#179](https://github.com/akka/akka-grpc/issues/179)).
 
 The client side is
 currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded),
-we plan to replace this by [io.grpc:grpc-core](https://mvnrepository.com/artifact/io.grpc/grpc-core) and Akka HTTP.
+we plan to replace this by just [io.grpc:grpc-core](https://mvnrepository.com/artifact/io.grpc/grpc-core) and [Akka HTTP](https://doc.akka.io/docs/akka-http/current).
 
 As for performance, we are currently relying on the JVM TLS implementation,
 which is sufficient for many use cases, but is planned to be replaced with
