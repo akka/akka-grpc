@@ -1,4 +1,5 @@
 resolvers += Resolver.sonatypeRepo("staging")
+resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 organization := "com.lightbend.akka.grpc"
 
