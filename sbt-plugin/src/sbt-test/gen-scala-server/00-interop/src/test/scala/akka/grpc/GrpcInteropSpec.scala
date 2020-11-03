@@ -74,8 +74,18 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
   })
 }
 
-object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
+object AkkaHttpClientProviderScala extends AkkaClientProvider {
   val label: String = "akka-grpc scala client tester"
+
+  val pendingCases =
+    Set(
+      "cancel_after_begin",
+      "cancel_after_first_response",
+      "timeout_on_sleeping_server",
+      "custom_metadata",
+      "client_compressed_unary",
+      "client_compressed_streaming",
+      "server_compressed_unary")
 
   def client = AkkaGrpcClientScala(settings => implicit sys => new AkkaGrpcClientTester(settings))
 }
