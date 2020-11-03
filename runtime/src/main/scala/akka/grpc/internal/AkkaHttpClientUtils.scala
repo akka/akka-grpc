@@ -15,6 +15,7 @@ import akka.event.LoggingAdapter
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
 import akka.http.Http2Bridge
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
@@ -49,15 +50,20 @@ object AkkaHttpClientUtils {
     // TODO FIXME discovery, loadbalancing etc
     val host = settings.serviceName
 
-    val connectionContext = ConnectionContext.httpsClient {
-      settings.trustManager match {
-        case None => SSLContext.getDefault
-        case Some(trustManager) =>
-          val sslContext: SSLContext = SSLContext.getInstance("TLS")
-          sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
-          sslContext
+    val connectionContext =
+      // TODO https://github.com/akka/akka-http/pull/3586
+      //if (settings.useTls)
+      ConnectionContext.httpsClient {
+        settings.trustManager match {
+          case None => SSLContext.getDefault
+          case Some(trustManager) =>
+            val sslContext: SSLContext = SSLContext.getInstance("TLS")
+            sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
+            sslContext
+        }
       }
-    }
+//      else
+//        HttpConnectionContext()
 
     val clientConnectionSettings = settings.overrideAuthority match {
       case None => ClientConnectionSettings(sys)
@@ -142,6 +148,11 @@ object AkkaHttpClientUtils {
                 case Success(codec) =>
                   implicit val reader = GrpcProtocolNative.newReader(codec)
                   val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
+
+                  // TODO https://github.com/akka/akka-http/issues/3563 resolve the promise
+                  // with the *actual* trailer below
+                  trailerPromise.success(immutable.Seq(RawHeader("grpc-status", "0")))
+
                   response.entity match {
                     case Chunked(_, chunks) =>
                       chunks
@@ -149,7 +160,9 @@ object AkkaHttpClientUtils {
                           case Chunk(data, _) =>
                             data
                           case LastChunk(_, trailer) =>
-                            trailerPromise.success(trailer)
+                            // TODO https://github.com/akka/akka-http/issues/3563 Akka HTTP
+                            // does not emit a LastChunk with trailer yet
+                            // trailerPromise.success(trailer)
                             ByteString.empty
                         }
                         .via(reader.dataFrameDecoder)
