@@ -80,6 +80,7 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
   private def runGrpcClient(testCaseName: String, client: GrpcClient, port: Int): Unit = {
     val args: Array[String] = Array(
       "--server_host_override=foo.test.google.fr",
+      "--use_tls=true",
       "--use_test_ca=true",
       s"--test_case=$testCaseName",
       s"--server_port=$port")
@@ -139,14 +140,4 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
 trait AkkaHttpServerProvider extends GrpcServerProvider
 
-trait AkkaHttpClientProvider extends GrpcClientProvider {
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary")
-}
+trait AkkaClientProvider extends GrpcClientProvider

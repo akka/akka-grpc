@@ -30,7 +30,8 @@ import scala.util.control.NoStackTrace
  * The same implementation is also be found as part of the 'scripted' tests at
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSystem) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implicit system: ActorSystem)
+    extends ClientTester {
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val mat = SystemMaterializer(system).materializer
@@ -40,6 +41,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSy
   def setUp(): Unit = {
     val grpcSettings = GrpcClientSettings
       .connectToServiceAt(settings.serverHost, settings.serverPort)
+      .withBackend(backend)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
       .withTrustManager(SSLContextUtils.trustManagerFromResource("/certs/ca.pem"))
