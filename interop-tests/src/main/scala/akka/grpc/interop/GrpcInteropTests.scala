@@ -88,9 +88,8 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
       case NonFatal(t) => fail(t)
     }
 
-  private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit = {
+  private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit =
     client.run(args)
-  }
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
     val result =
@@ -145,14 +144,4 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
 trait AkkaHttpServerProvider extends GrpcServerProvider
 
-trait AkkaHttpClientProvider extends GrpcClientProvider {
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary")
-}
+trait AkkaClientProvider extends GrpcClientProvider
