@@ -65,11 +65,7 @@ object AkkaHttpClientProviderScala extends AkkaClientProviderScala("akka-http") 
       "client_compressed_unary",
       "client_compressed_streaming",
       "server_compressed_unary",
-      // TODO https://github.com/akka/akka-http/issues/3563 Akka HTTP
-      "status_code_and_message",
-      // TODO https://github.com/akka/akka-http/issues/3563 Akka HTTP
-      "unimplemented_method",
-      // TODO https://github.com/akka/akka-http/issues/3563 Akka HTTP
+      // TODO https://github.com/akka/akka-grpc/issues/1165
       "unimplemented_service")
 }
 
