@@ -14,9 +14,8 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.Http2Bridge
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, Chunked, LastChunk }
-import akka.http.scaladsl.{ ClientTransport, ConnectionContext }
+import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.OverflowStrategy
@@ -79,12 +78,12 @@ object AkkaHttpClientUtils {
       Source
         .queue[HttpRequest](4242, OverflowStrategy.fail)
         .via(
-          Http2Bridge.connect(
-            settings.overrideAuthority.getOrElse(host),
-            settings.defaultPort,
-            connectionContext,
-            clientConnectionSettings,
-            log))
+          Http()
+            .connectionTo(settings.overrideAuthority.getOrElse(host))
+            .toPort(settings.defaultPort)
+            .withCustomHttpsConnectionContext(connectionContext)
+            .withClientConnectionSettings(clientConnectionSettings)
+            .http2())
         .toMat(Sink.foreach { res =>
           res.attribute(ResponsePromise.Key).get.promise.trySuccess(res)
         })(Keep.both)
