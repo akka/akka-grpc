@@ -213,7 +213,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implici
               responseParameters = Seq(ResponseParameters(size = 314159)),
               payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
 
-    val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.head)(Keep.both).run()
+    val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.headOption)(Keep.both).run()
 
     Await.result(futureResponse, awaitTimeout) // just to see call was successful and fail early if not
     val fullDuplexMetadata = Await.result(futureMetadata, awaitTimeout)
@@ -258,12 +258,13 @@ class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implici
     throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {
-    val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
-    assertEquals(expectedStatus.getCode, e.getStatus.getCode)
+    val s = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
+    assertEquals(expectedStatus.getCode, s.getStatus.getCode)
   }
 
   def assertFailure(failure: Future[_], expectedStatus: Status, expectedMessage: String): Unit = {
-    val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
+    val throwable = Await.result(failure.failed, awaitTimeout)
+    val e = throwable.asInstanceOf[StatusRuntimeException]
     assertEquals(expectedStatus.getCode, e.getStatus.getCode)
     assertEquals(expectedMessage, e.getStatus.getDescription)
   }
