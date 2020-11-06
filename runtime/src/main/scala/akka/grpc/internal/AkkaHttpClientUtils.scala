@@ -12,10 +12,10 @@ import akka.{ Done, NotUsed }
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
+import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
 import akka.http.Http2Bridge
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, Chunked, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
@@ -82,8 +82,9 @@ object AkkaHttpClientUtils {
           Http2Bridge.connect(
             settings.overrideAuthority.getOrElse(host),
             settings.defaultPort,
+            connectionContext,
             clientConnectionSettings,
-            connectionContext))
+            log))
         .toMat(Sink.foreach { res =>
           res.attribute(ResponsePromise.Key).get.promise.trySuccess(res)
         })(Keep.both)
@@ -91,7 +92,13 @@ object AkkaHttpClientUtils {
 
     def singleRequest(request: HttpRequest): Future[HttpResponse] = {
       val p = Promise[HttpResponse]()
-      queue.offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p))).flatMap(_ => p.future)
+      queue
+        .offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p)))
+        .flatMap(o => {
+          log.info(s"XXX enqueue: $o")
+          p.future.onComplete(t => log.info(s"XXX dequeue: ${t.isSuccess}"))
+          p.future
+        })
     }
 
     implicit def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
@@ -110,17 +117,11 @@ object AkkaHttpClientUtils {
           options: CallOptions): Future[O] = {
         val src =
           invokeWithMetadata(Source.single(request), descriptor.getFullMethodName, headers, descriptor, false, options)
-        val (metadata, result) = src.toMat(Sink.headOption)(Keep.both).run()
-        metadata.flatMap(meta =>
-          meta.trailers.flatMap(trailers =>
-            trailers.getText("grpc-status") match {
-              case Some("0") =>
-                result.map(_.get)
-              case None =>
-                Future.failed(new StatusRuntimeException(Status.INTERNAL.withDescription("No return status found")))
-              case Some(statusCode) =>
-                Future.failed(new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt)))
-            }))
+        val result = src.toMat(Sink.headOption)(Keep.right).run()
+        result.flatMap {
+          case Some(r) => Future.successful(r)
+          case None    => Future.failed(throw new IllegalStateException("Successful status code but no data found"))
+        }
       }
 
       override def invokeWithMetadata[I, O](
@@ -146,25 +147,33 @@ object AkkaHttpClientUtils {
             {
               Codecs.detect(response) match {
                 case Success(codec) =>
-                  implicit val reader = GrpcProtocolNative.newReader(codec)
+                  log.info(s"XXX response $response started")
+                  implicit val reader: GrpcProtocolReader = GrpcProtocolNative.newReader(codec)
                   val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
-
-                  // TODO https://github.com/akka/akka-http/issues/3563 resolve the promise
-                  // with the *actual* trailer below
-                  trailerPromise.success(immutable.Seq(RawHeader("grpc-status", "0")))
+                  // Completed with success or failure based on grpc-status and grpc-message trailing headers
+                  val completionFuture: Future[Unit] = trailerPromise.future.flatMap(parseResponseStatus)
+                  completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
 
                   response.entity match {
                     case Chunked(_, chunks) =>
                       chunks
+                        .concat(Source
+                          .maybe[ChunkStreamPart]
+                          .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
                         .map {
                           case Chunk(data, _) =>
                             data
                           case LastChunk(_, trailer) =>
-                            // TODO https://github.com/akka/akka-http/issues/3563 Akka HTTP
-                            // does not emit a LastChunk with trailer yet
-                            // trailerPromise.success(trailer)
+                            trailerPromise.success(trailer)
                             ByteString.empty
                         }
+                        .watchTermination()((_, done) =>
+                          done.onComplete(c => {
+                            log.info(s"XXX response $response termination ${c.isSuccess}")
+                            trailerPromise.trySuccess(immutable.Seq.empty)
+                          }))
+                        // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
+                        .via(new CancellationBarrierGraphStage)
                         .via(reader.dataFrameDecoder)
                         .map(data => deserializer.deserialize(data))
                         .mapMaterializedValue(_ =>
@@ -192,6 +201,20 @@ object AkkaHttpClientUtils {
           }
         })
       }.mapMaterializedValue(_.flatten)
+    }
+  }
+
+  private def parseResponseStatus(trailers: Seq[HttpHeader]): Future[Unit] = {
+    trailers.find(_.name == "grpc-status").map(_.value) match {
+      case Some("0") =>
+        Future.successful(())
+      case None =>
+        Future.failed(new StatusRuntimeException(Status.INTERNAL.withDescription("No return status found")))
+      case Some(statusCode) => {
+        val description = trailers.find(_.name == "grpc-message").map(_.value)
+        Future.failed(
+          new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull)))
+      }
     }
   }
 
