@@ -43,17 +43,28 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
   serverProvider.label + " with " + clientProvider.label should {
     testCases.foreach { testCaseName =>
       s"pass the $testCaseName integration test" in {
+        // It is useful to be able to disable TLS locally to diagnose problems with wireshark:
+        val tls = true
         val allPending = serverProvider.pendingCases ++ clientProvider.pendingCases
         pendingTestCaseSupport(allPending(testCaseName)) {
-          withGrpcServer(server) { port => runGrpcClient(testCaseName, client, port) }
+          withGrpcServer(server, Array(s"--use_tls=$tls")) { port =>
+            runGrpcClient(
+              client,
+              Array(
+                s"--use_tls=$tls",
+                s"--server_port=$port",
+                "--server_host_override=foo.test.google.fr",
+                "--use_test_ca=true",
+                s"--test_case=$testCaseName"))
+          }
         }
       }
     }
   }
 
-  private def withGrpcServer[T](server: GrpcServer[T])(block: Int => Unit): Assertion =
+  private def withGrpcServer[T](server: GrpcServer[T], args: Array[String])(block: Int => Unit): Assertion =
     try {
-      val binding = server.start()
+      val binding = server.start(args)
       try {
         block(server.getPort(binding))
       } catch {
@@ -77,13 +88,7 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
       case NonFatal(t) => fail(t)
     }
 
-  private def runGrpcClient(testCaseName: String, client: GrpcClient, port: Int): Unit = {
-    val args: Array[String] = Array(
-      "--server_host_override=foo.test.google.fr",
-      "--use_tls=true",
-      "--use_test_ca=true",
-      s"--test_case=$testCaseName",
-      s"--server_port=$port")
+  private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit = {
     client.run(args)
   }
 
