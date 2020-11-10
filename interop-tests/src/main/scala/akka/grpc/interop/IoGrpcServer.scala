@@ -12,8 +12,9 @@ import io.grpc.testing.integration2.TestServiceServer
 object IoGrpcServer extends GrpcServer[TestServiceServer] {
   @volatile var didAlreadyWarn = false
 
-  override def start() = {
+  override def start(args: Array[String]) = {
     val server = new TestServiceServer
+    server.parseArgs(args)
     if (server.useTls && !didAlreadyWarn) {
       didAlreadyWarn = true
       println(

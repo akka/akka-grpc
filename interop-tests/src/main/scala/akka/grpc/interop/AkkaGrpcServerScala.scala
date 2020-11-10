@@ -26,12 +26,16 @@ import scala.concurrent.{ Await, Future }
  */
 case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest => Future[HttpResponse])
     extends GrpcServer[(ActorSystem, ServerBinding)] {
-  override def start() = {
+  override def start(args: Array[String]) = {
     implicit val sys = ActorSystem()
 
     val testService = serverHandlerFactory(sys)
 
-    val bindingFuture = Http().newServerAt("127.0.0.1", 0).enableHttps(serverHttpContext()).bind(testService)
+    val bindingFuture =
+      if (args.contains("--use_tls=false"))
+        Http().newServerAt("127.0.0.1", 0).bind(testService)
+      else
+        Http().newServerAt("127.0.0.1", 0).enableHttps(serverHttpContext()).bind(testService)
 
     val binding = Await.result(bindingFuture, 10.seconds)
     (sys, binding)
