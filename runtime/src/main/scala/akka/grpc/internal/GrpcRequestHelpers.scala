@@ -14,7 +14,6 @@ import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.http.scaladsl.model.{ HttpEntity, HttpMethods, HttpRequest, Uri }
-import io.grpc.Status
 
 import scala.collection.immutable
 
@@ -28,7 +27,7 @@ object GrpcRequestHelpers {
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpRequest =
-    request(uri, GrpcEntityHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler))
+    request(uri, GrpcEntityHelpers(e, Source.empty, eHandler))
 
   private def request[T](uri: Uri, entity: Source[ChunkStreamPart, NotUsed])(
       implicit writer: GrpcProtocolWriter): HttpRequest = {
