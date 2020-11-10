@@ -42,7 +42,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
     this.handlerFactory = handlerFactory;
   }
 
-  public Tuple2<ActorSystem, ServerBinding> start() throws Exception {
+  public Tuple2<ActorSystem, ServerBinding> start(String[] args) throws Exception {
     ActorSystem sys = ActorSystem.create(
       "akka-grpc-server-java",
       ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on"));
@@ -50,6 +50,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
 
     Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat, sys);
 
+    // TODO switch to newServerAt API and take into account --use_tls=false argument
     CompletionStage<ServerBinding> binding = Http.get(sys).bindAndHandleAsync(
       req -> {
         Iterator<String> segmentIterator = req.getUri().pathSegments().iterator();

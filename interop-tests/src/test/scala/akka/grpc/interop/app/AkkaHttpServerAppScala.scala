@@ -15,6 +15,6 @@ import akka.grpc.interop.AkkaHttpServerProviderScala
  * You can start this app from sbt with 'akka-grpc-interop-tests/test:reStart'
  */
 object AkkaHttpServerAppScala extends App {
-  val (sys, binding) = AkkaHttpServerProviderScala.server.start()
+  val (sys, binding) = AkkaHttpServerProviderScala.server.start(Array())
   sys.log.info(s"Bound to ${binding.localAddress}")
 }

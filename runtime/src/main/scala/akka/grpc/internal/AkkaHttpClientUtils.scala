@@ -49,21 +49,6 @@ object AkkaHttpClientUtils {
     // TODO FIXME discovery, loadbalancing etc
     val host = settings.serviceName
 
-    val connectionContext =
-      // TODO https://github.com/akka/akka-http/pull/3586
-      //if (settings.useTls)
-      ConnectionContext.httpsClient {
-        settings.trustManager match {
-          case None => SSLContext.getDefault
-          case Some(trustManager) =>
-            val sslContext: SSLContext = SSLContext.getInstance("TLS")
-            sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
-            sslContext
-        }
-      }
-//      else
-//        HttpConnectionContext()
-
     val clientConnectionSettings = settings.overrideAuthority match {
       case None => ClientConnectionSettings(sys)
       case Some(authority) =>
@@ -74,16 +59,33 @@ object AkkaHttpClientUtils {
         }))
     }
 
+    val builder = Http()
+      .connectionTo(settings.overrideAuthority.getOrElse(host))
+      .toPort(settings.defaultPort)
+      .withClientConnectionSettings(clientConnectionSettings)
+
+    val http2client =
+      if (settings.useTls) {
+        val connectionContext =
+          ConnectionContext.httpsClient {
+            settings.trustManager match {
+              case None => SSLContext.getDefault
+              case Some(trustManager) =>
+                val sslContext: SSLContext = SSLContext.getInstance("TLS")
+                sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
+                sslContext
+            }
+          }
+
+        builder.withCustomHttpsConnectionContext(connectionContext).http2()
+      } else {
+        builder.http2WithPriorKnowledge()
+      }
+
     val (queue, doneFuture) =
       Source
         .queue[HttpRequest](4242, OverflowStrategy.fail)
-        .via(
-          Http()
-            .connectionTo(settings.overrideAuthority.getOrElse(host))
-            .toPort(settings.defaultPort)
-            .withCustomHttpsConnectionContext(connectionContext)
-            .withClientConnectionSettings(clientConnectionSettings)
-            .http2())
+        .via(http2client)
         .toMat(Sink.foreach { res =>
           res.attribute(ResponsePromise.Key).get.promise.trySuccess(res)
         })(Keep.both)
