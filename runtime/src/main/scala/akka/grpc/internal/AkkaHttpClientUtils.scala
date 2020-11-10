@@ -152,7 +152,8 @@ object AkkaHttpClientUtils {
                   implicit val reader: GrpcProtocolReader = GrpcProtocolNative.newReader(codec)
                   val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
                   // Completed with success or failure based on grpc-status and grpc-message trailing headers
-                  val completionFuture: Future[Unit] = trailerPromise.future.flatMap(parseResponseStatus)
+                  val completionFuture: Future[Unit] =
+                    trailerPromise.future.flatMap(trailers => parseResponseStatus(response.headers, trailers))
                   completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
 
                   response.entity match {
@@ -205,14 +206,15 @@ object AkkaHttpClientUtils {
     }
   }
 
-  private def parseResponseStatus(trailers: Seq[HttpHeader]): Future[Unit] = {
-    trailers.find(_.name == "grpc-status").map(_.value) match {
+  private def parseResponseStatus(headers: Seq[HttpHeader], trailers: Seq[HttpHeader]): Future[Unit] = {
+    val allHeaders = headers ++ trailers
+    allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case Some("0") =>
         Future.successful(())
       case None =>
         Future.failed(new StatusRuntimeException(Status.INTERNAL.withDescription("No return status found")))
       case Some(statusCode) => {
-        val description = trailers.find(_.name == "grpc-message").map(_.value)
+        val description = allHeaders.find(_.name == "grpc-message").map(_.value)
         Future.failed(
           new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull)))
       }
