@@ -14,7 +14,7 @@ import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 
 import scala.compat.java8.FutureConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * INTERNAL API
@@ -23,13 +23,16 @@ import scala.concurrent.Future
  */
 @InternalApi
 final class ClientState(@InternalStableApi val internalChannel: InternalChannel)(
-    implicit sys: ClassicActorSystemProvider) {
+    implicit sys: ClassicActorSystemProvider,
+    ec: ExecutionContext) {
 
   @InternalStableApi
-  def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit sys: ClassicActorSystemProvider) =
-    this(NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher))
+  def this(settings: GrpcClientSettings, log: LoggingAdapter)(
+      implicit sys: ClassicActorSystemProvider,
+      ec: ExecutionContext) =
+    this(NettyClientUtils.createChannel(settings, log)(ec))
 
-  sys.classicSystem.whenTerminated.foreach(_ => close())(sys.classicSystem.dispatcher)
+  sys.classicSystem.whenTerminated.foreach(_ => close())(ec)
 
   def closedCS(): CompletionStage[Done] = closed().toJava
   def closeCS(): CompletionStage[Done] = close().toJava

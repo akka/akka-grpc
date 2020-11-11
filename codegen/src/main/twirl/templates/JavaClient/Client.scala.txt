@@ -36,14 +36,14 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       private final Materializer mat;
       private final ExecutionContext ec;
 
-      private Default@{service.name}Client(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
+      private Default@{service.name}Client(GrpcClientSettings settings, ClassicActorSystemProvider sys,  ExecutionContext ec) {
         this.settings = settings;
         this.mat = SystemMaterializer.get(sys).materializer();
-        this.ec = sys.classicSystem().dispatcher();
+        this.ec = ec;
         this.clientState = new ClientState(
           settings,
           akka.event.Logging$.MODULE$.apply(sys.classicSystem(), Default@{service.name}Client.class, akka.event.LogSource$.MODULE$.<Default@{service.name}Client>fromAnyClass()),
-          sys);
+          sys, ec);
         this.options = NettyClientUtils.callOptions(settings);
 
         sys.classicSystem().getWhenTerminated().whenComplete((v, e) -> close());

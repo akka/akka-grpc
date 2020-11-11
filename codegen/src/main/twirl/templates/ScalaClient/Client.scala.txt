@@ -41,14 +41,13 @@ import akka.grpc.internal.ClientState
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 object @{service.name}Client {
-  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
+  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider, ec: ExecutionContext): @{service.name}Client =
     new Default@{service.name}Client(settings)
 }
 
-final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
+final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider, ec: ExecutionContext) extends @{service.name}Client {
   import Default@{service.name}Client._
 
-  private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
   private val options = NettyClientUtils.callOptions(settings)
   private val clientState = new ClientState(settings, akka.event.Logging(sys.classicSystem, this.getClass))
 
@@ -91,7 +90,6 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
   override def closed: scala.concurrent.Future[akka.Done] = clientState.closed()
-
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
@@ -132,5 +130,4 @@ trait @{service.name}ClientPowerApi {
       def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     }
   }
-
 }
