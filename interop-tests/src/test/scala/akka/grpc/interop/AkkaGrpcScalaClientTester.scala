@@ -17,6 +17,7 @@ import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServic
 import io.grpc.testing.integration2.{ ClientTester, Settings }
 import io.grpc.{ Status, StatusRuntimeException }
 import org.junit.Assert._
+import org.scalatest.matchers.should.Matchers.{ a, convertToAnyShouldWrapper }
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -258,12 +259,14 @@ class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implici
     throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {
-    val s = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
-    assertEquals(expectedStatus.getCode, s.getStatus.getCode)
+    val throwable = Await.result(failure.failed, awaitTimeout)
+    throwable shouldBe a[StatusRuntimeException]
+    assertEquals(expectedStatus.getCode, throwable.asInstanceOf[StatusRuntimeException].getStatus.getCode)
   }
 
   def assertFailure(failure: Future[_], expectedStatus: Status, expectedMessage: String): Unit = {
     val throwable = Await.result(failure.failed, awaitTimeout)
+    throwable shouldBe a[StatusRuntimeException]
     val e = throwable.asInstanceOf[StatusRuntimeException]
     assertEquals(expectedStatus.getCode, e.getStatus.getCode)
     assertEquals(expectedMessage, e.getStatus.getDescription)
