@@ -64,9 +64,7 @@ object AkkaHttpClientProviderScala extends AkkaClientProviderScala("akka-http") 
       "custom_metadata",
       "client_compressed_unary",
       "client_compressed_streaming",
-      "server_compressed_unary",
-      // TODO https://github.com/akka/akka-grpc/issues/1165
-      "unimplemented_service")
+      "server_compressed_unary")
 }
 
 object AkkaNettyClientProviderJava extends AkkaClientProvider {
