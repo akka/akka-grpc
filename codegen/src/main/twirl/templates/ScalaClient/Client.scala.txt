@@ -90,7 +90,6 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
   override def closed: scala.concurrent.Future[akka.Done] = clientState.closed()
-
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
@@ -131,5 +130,4 @@ trait @{service.name}ClientPowerApi {
       def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     }
   }
-
 }
