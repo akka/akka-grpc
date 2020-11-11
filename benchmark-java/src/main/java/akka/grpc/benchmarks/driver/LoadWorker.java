@@ -28,7 +28,7 @@ import akka.grpc.benchmarks.proto.WorkerService;
 import akka.grpc.benchmarks.proto.WorkerServiceHandlerFactory;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Source;
 import com.typesafe.config.Config;
@@ -62,7 +62,7 @@ public class LoadWorker {
   }
 
   public CompletionStage<ServerBinding> start() throws Exception {
-    Materializer mat = ActorMaterializer.create(system);
+    Materializer mat = SystemMaterializer.get(system).materializer();
 
     WorkerServiceImpl impl = new WorkerServiceImpl(mat);
 

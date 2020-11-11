@@ -5,9 +5,6 @@
 package akka.grpc.interop;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
-import akka.stream.Materializer;
-import akka.grpc.interop.GrpcClient;
 import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration2.ClientTester;
 import io.grpc.testing.integration2.TestServiceClient;

@@ -24,7 +24,7 @@ import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.Control;
 import akka.grpc.benchmarks.proto.Stats;
 import akka.grpc.benchmarks.proto.WorkerServiceClient;
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
 import akka.stream.SharedKillSwitch;
@@ -72,7 +72,7 @@ public class LoadWorkerTest extends JUnitSuite {
     Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
     system = ActorSystem.create("LoadWorkerTest", conf);
-    mat = ActorMaterializer.create(system);
+    mat = SystemMaterializer.get(system).materializer();
 
     int port = Utils.pickUnusedPort();
     worker = new LoadWorker(system, port, 0);
