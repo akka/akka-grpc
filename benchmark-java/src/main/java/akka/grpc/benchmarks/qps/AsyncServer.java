@@ -25,7 +25,7 @@ import akka.grpc.benchmarks.proto.BenchmarkServiceHandlerFactory;
 import akka.grpc.benchmarks.proto.Messages;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBuilder;
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.KillSwitches;
 import akka.stream.Materializer;
 import akka.stream.SharedKillSwitch;
@@ -72,7 +72,7 @@ public class AsyncServer {
 
     system = ActorSystem.create("AsyncServer", conf);
 
-    Materializer mat = ActorMaterializer.create(system);
+    Materializer mat = SystemMaterializer.get(system).materializer();
 
     benchmarkService = new BenchmarkServiceImpl(mat);
 

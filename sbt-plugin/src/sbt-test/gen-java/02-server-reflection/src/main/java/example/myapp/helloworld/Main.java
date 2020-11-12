@@ -4,7 +4,7 @@ import java.util.concurrent.CompletionStage;
 
 import akka.actor.ActorSystem;
 
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -34,7 +34,7 @@ public class Main {
     }
 
     public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
-        Materializer mat = ActorMaterializer.create(sys);
+        Materializer mat = SystemMaterializer.get(sys).materializer();
 
         //#server-reflection
         // Instantiate implementation

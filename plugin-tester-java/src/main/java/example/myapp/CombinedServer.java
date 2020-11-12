@@ -6,7 +6,7 @@ package example.myapp;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.Http;
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -38,7 +38,7 @@ class CombinedServer {
       Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
       ActorSystem sys = ActorSystem.create("HelloWorld", conf);
-      Materializer mat = ActorMaterializer.create(sys);
+      Materializer mat = SystemMaterializer.get(sys).materializer();
 
       //#concatOrNotFound
       Function<HttpRequest, CompletionStage<HttpResponse>> greeterService =

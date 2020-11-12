@@ -18,6 +18,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.codegen)
+  .settings(resolvers += Resolver.sbtPluginRepo("releases"))
   .settings(
     mkBatAssemblyTask := {
       val file = assembly.value
