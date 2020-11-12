@@ -14,7 +14,7 @@ import akka.grpc.ProtobufSerializer
  * INTERNAL API
  */
 @InternalStableApi
-class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T])
+abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
     extends io.grpc.MethodDescriptor.Marshaller[T]
     with WithProtobufSerializer[T] {
   override def parse(stream: InputStream): T = {
@@ -28,11 +28,29 @@ class ProtoMarshaller[T <: com.google.protobuf.Message](u: ProtobufSerializer[T]
       baos.write(buffer, 0, bytesRead)
       bytesRead = stream.read(buffer)
     }
-    u.deserialize(akka.util.ByteString(baos.toByteArray))
+    protobufSerializer.deserialize(akka.util.ByteString(baos.toByteArray))
   }
 
+}
+
+/**
+ * INTERNAL API
+ */
+@InternalStableApi
+final class Marshaller[T <: scalapb.GeneratedMessage](protobufSerializer: ProtobufSerializer[T])
+    extends BaseMarshaller[T](protobufSerializer) {
+  override def parse(stream: InputStream): T = super.parse(stream)
   override def stream(value: T): InputStream =
     new ByteArrayInputStream(value.toByteArray) with KnownLength
+}
 
-  override def protobufSerializer: ProtobufSerializer[T] = u
+/**
+ * INTERNAL API
+ */
+@InternalStableApi
+class ProtoMarshaller[T <: com.google.protobuf.Message](protobufSerializer: ProtobufSerializer[T])
+    extends BaseMarshaller[T](protobufSerializer) {
+  override def parse(stream: InputStream): T = super.parse(stream)
+  override def stream(value: T): InputStream =
+    new ByteArrayInputStream(value.toByteArray) with KnownLength
 }
