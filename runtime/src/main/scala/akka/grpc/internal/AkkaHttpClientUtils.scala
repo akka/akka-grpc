@@ -14,7 +14,7 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, Chunked, Default, LastChunk }
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, Default, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
