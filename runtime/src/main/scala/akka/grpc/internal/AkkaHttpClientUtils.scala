@@ -14,7 +14,7 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, Default, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
@@ -29,6 +29,8 @@ import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success }
+
+import akka.http.scaladsl.model.StatusCodes
 
 /**
  * INTERNAL API
@@ -152,7 +154,7 @@ object AkkaHttpClientUtils {
                   val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
                   // Completed with success or failure based on grpc-status and grpc-message trailing headers
                   val completionFuture: Future[Unit] =
-                    trailerPromise.future.flatMap(trailers => parseResponseStatus(response.headers, trailers))
+                    trailerPromise.future.flatMap(trailers => parseResponseStatus(response, trailers))
                   completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
 
                   response.entity match {
@@ -194,7 +196,8 @@ object AkkaHttpClientUtils {
                                 .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
                                 .toJava
                           }))
-                    case _ => throw new IllegalStateException("Expected chunked response")
+                    case Default(_, _, _) => throw mapToStatusException(response, Seq.empty)
+                    case e                => throw new IllegalStateException(s"Expected chunked or default response but got $e")
                   }
                 case Failure(e) =>
                   Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
@@ -206,18 +209,41 @@ object AkkaHttpClientUtils {
     }
   }
 
-  private def parseResponseStatus(headers: Seq[HttpHeader], trailers: Seq[HttpHeader]): Future[Unit] = {
-    val allHeaders = headers ++ trailers
+  private def parseResponseStatus(response: HttpResponse, trailers: Seq[HttpHeader]): Future[Unit] = {
+    val allHeaders = response.headers ++ trailers
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case Some("0") =>
         Future.successful(())
+      case _ =>
+        Future.failed(mapToStatusException(response, trailers))
+    }
+  }
+
+  private def mapToStatusException(response: HttpResponse, trailers: Seq[HttpHeader]): StatusRuntimeException = {
+    val allHeaders = response.headers ++ trailers
+    allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case None =>
-        Future.failed(new StatusRuntimeException(Status.INTERNAL.withDescription("No return status found")))
-      case Some(statusCode) => {
+        new StatusRuntimeException(mapHttpStatus(response).withDescription("No grpc-status found"))
+      case Some(statusCode) =>
         val description = allHeaders.find(_.name == "grpc-message").map(_.value)
-        Future.failed(
-          new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull)))
-      }
+        new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull))
+    }
+  }
+
+  /**
+   * See https://grpc.github.io/grpc/core/md_doc_http-grpc-status-mapping.html
+   */
+  private def mapHttpStatus(response: HttpResponse): Status = {
+    response.status match {
+      case StatusCodes.BadRequest         => Status.INTERNAL
+      case StatusCodes.Unauthorized       => Status.UNAUTHENTICATED
+      case StatusCodes.Forbidden          => Status.PERMISSION_DENIED
+      case StatusCodes.NotFound           => Status.UNIMPLEMENTED
+      case StatusCodes.TooManyRequests    => Status.UNAVAILABLE
+      case StatusCodes.BadGateway         => Status.UNAVAILABLE
+      case StatusCodes.ServiceUnavailable => Status.UNAVAILABLE
+      case StatusCodes.GatewayTimeout     => Status.UNAVAILABLE
+      case _                              => Status.UNKNOWN
     }
   }
 
