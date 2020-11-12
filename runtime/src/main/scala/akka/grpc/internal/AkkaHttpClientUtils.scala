@@ -14,7 +14,7 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, Chunked, LastChunk }
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
@@ -158,9 +158,6 @@ object AkkaHttpClientUtils {
                   response.entity match {
                     case Chunked(_, chunks) =>
                       chunks
-                        .concat(Source
-                          .maybe[ChunkStreamPart]
-                          .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
                         .map {
                           case Chunk(data, _) =>
                             data
@@ -173,6 +170,10 @@ object AkkaHttpClientUtils {
                             log.info(s"XXX response $response termination ${c.isSuccess}")
                             trailerPromise.trySuccess(immutable.Seq.empty)
                           }))
+                        // This never adds any data to the stream, but makes sure it fails with the correct error code if applicable
+                        .concat(Source
+                          .maybe[ByteString]
+                          .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
                         // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
                         .via(new CancellationBarrierGraphStage)
                         .via(reader.dataFrameDecoder)
