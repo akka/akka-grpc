@@ -4,12 +4,13 @@
 
 package akka.grpc.interop
 
-import io.grpc.StatusRuntimeException
-import org.scalatest.{ Assertion, Succeeded }
-
 import scala.util.control.NonFatal
+
+import io.grpc.StatusRuntimeException
 import org.scalatest.matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.Assertion
+import org.scalatest.Succeeded
 
 class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcClientProvider) extends AnyWordSpec {
   import matchers.should.Matchers._
@@ -110,39 +111,3 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
     }
   }
 }
-
-trait GrpcServerProvider {
-  def label: String
-  def pendingCases: Set[String]
-
-  def server: GrpcServer[_]
-}
-
-trait GrpcClientProvider {
-  def label: String
-  def pendingCases: Set[String]
-
-  def client: GrpcClient
-}
-
-object IoGrpcJavaServerProvider extends GrpcServerProvider {
-  val label: String = "grpc-java server"
-
-  val pendingCases =
-    Set()
-
-  val server = IoGrpcServer
-}
-
-object IoGrpcJavaClientProvider extends GrpcClientProvider {
-  val label: String = "grpc-java client tester"
-
-  val pendingCases =
-    Set()
-
-  val client = IoGrpcClient
-}
-
-trait AkkaHttpServerProvider extends GrpcServerProvider
-
-trait AkkaClientProvider extends GrpcClientProvider

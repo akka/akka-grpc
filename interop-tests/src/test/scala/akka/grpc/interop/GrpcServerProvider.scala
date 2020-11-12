@@ -1,22 +1,58 @@
-/*
- * Copyright (C) 2018-2020 Lightbend Inc. <https://www.lightbend.com>
- */
-
 package akka.grpc.interop
-
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcResponseHelpers, Identity }
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
-import akka.http.scaladsl.server.{ Directive0, Directives, Route }
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
-import io.grpc.Status
-import io.grpc.testing.integration.messages.{ SimpleRequest, StreamingOutputCallRequest }
-import io.grpc.testing.integration.test.{ TestService, TestServiceHandler, TestServiceMarshallers }
 
 import scala.collection.immutable
 import scala.concurrent.Promise
+
+import akka.NotUsed
+import akka.actor.ActorSystem
+import akka.grpc.internal.GrpcEntityHelpers
+import akka.grpc.internal.GrpcProtocolNative
+import akka.grpc.internal.GrpcResponseHelpers
+import akka.grpc.internal.Identity
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.server.Directive0
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
+import io.grpc.Status
+import io.grpc.testing.integration.TestServiceHandlerFactory
+import io.grpc.testing.integration.messages.SimpleRequest
+import io.grpc.testing.integration.messages.StreamingOutputCallRequest
+import io.grpc.testing.integration.test.TestService
+import io.grpc.testing.integration.test.TestServiceHandler
+import io.grpc.testing.integration.test.TestServiceMarshallers
+
+/**
+ */
+trait GrpcServerProvider {
+  def label: String
+  def pendingCases: Set[String]
+
+  def server: GrpcServer[_]
+}
+
+object IoGrpcJavaServerProvider extends GrpcServerProvider {
+  val label: String = "grpc-java server"
+
+  val pendingCases =
+    Set()
+
+  val server = IoGrpcServer
+}
+trait AkkaHttpServerProvider extends GrpcServerProvider
+
+object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
+  val label: String = "akka-grpc java server"
+
+  val pendingCases =
+    Set("custom_metadata")
+
+  val server = new AkkaGrpcServerJava((mat, sys) => {
+    TestServiceHandlerFactory.create(new JavaTestServiceImpl(mat), sys)
+  })
+}
 
 object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directives {
   val label: String = "akka-grpc server scala"
