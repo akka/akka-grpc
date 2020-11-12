@@ -77,11 +77,12 @@ class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeA
 
       discovery.setServices(List(server2.localAddress))
 
-      // This is rather heavy-handed, but surprisingly it seems just terminating
-      // the binding isn't sufficient to actually abort the existing connection.
       server1.unbind().futureValue
-      server1.terminate(hardDeadline = 5.seconds).futureValue
+      server1.terminate(hardDeadline = 3.seconds).futureValue
+      // Unfortunately `terminate` currently only waits for the HTTP/1.1 connections
+      // to terminate, https://github.com/akka/akka-http/issues/3580
       service1materializer.shutdown()
+      Thread.sleep(5000)
 
       system.log.info("Sending requests to server 2")
       for (i <- 1 to requestsPerServer) {
