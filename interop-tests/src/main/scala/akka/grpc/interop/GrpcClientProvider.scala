@@ -9,6 +9,20 @@ trait GrpcClientProvider {
   def client: GrpcClient
 }
 
+object Clients {
+  val IoGrpc = IoGrpcJavaClientProvider
+  object AkkaNetty {
+    val Java = AkkaNettyClientProviderJava
+    val Scala = AkkaNettyClientProviderScala
+  }
+  object AkkaHttp {
+    // FIXME: let's have Scala stable and we'll do Java later.
+    // val Java = AkkaNettyClientProviderJava
+    val Scala = AkkaHttpClientProviderScala
+  }
+
+}
+
 object IoGrpcJavaClientProvider extends GrpcClientProvider {
   val label: String = "grpc-java client tester"
 

@@ -6,22 +6,31 @@ package akka.grpc.interop
 
 import java.io.InputStream
 
+import scala.concurrent.duration._
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.util.control.NoStackTrace
+
 import akka.actor.ActorSystem
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
+import akka.grpc.GrpcClientSettings
+import akka.grpc.GrpcResponseMetadata
+import akka.grpc.SSLContextUtils
 import akka.stream.SystemMaterializer
-import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
 import com.google.protobuf.ByteString
 import io.grpc.testing.integration.empty.Empty
 import io.grpc.testing.integration.messages._
-import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServiceClient }
-import io.grpc.testing.integration2.{ ClientTester, Settings }
-import io.grpc.{ Status, StatusRuntimeException }
+import io.grpc.testing.integration.test.TestServiceClient
+import io.grpc.testing.integration.test.UnimplementedServiceClient
+import io.grpc.testing.integration2.ClientTester
+import io.grpc.testing.integration2.Settings
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import org.junit.Assert._
-import org.scalatest.matchers.should.Matchers.{ a, convertToAnyShouldWrapper }
-
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
-import scala.util.control.NoStackTrace
+import org.scalatest.matchers.should.Matchers.a
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
 /**
  * ClientTester implementation that uses the generated akka-grpc Scala client to exercise a server under test.

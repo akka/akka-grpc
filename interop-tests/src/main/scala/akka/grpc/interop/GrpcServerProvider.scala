@@ -33,6 +33,14 @@ trait GrpcServerProvider {
   def server: GrpcServer[_]
 }
 
+object Servers {
+  val IoGrpc = IoGrpcJavaServerProvider
+  object AkkaHttp {
+    val Java = AkkaHttpServerProviderJava
+    val Scala = AkkaHttpServerProviderScala
+  }
+}
+
 object IoGrpcJavaServerProvider extends GrpcServerProvider {
   val label: String = "grpc-java server"
 

@@ -7,13 +7,11 @@ package akka.grpc.interop
 import scala.util.control.NonFatal
 
 import io.grpc.StatusRuntimeException
-import org.scalatest.matchers
-import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.Assertion
 import org.scalatest.Succeeded
+import org.scalatest.wordspec.AnyWordSpec
 
 class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcClientProvider) extends AnyWordSpec {
-  import matchers.should.Matchers._
 
   // see https://github.com/grpc/grpc/blob/master/tools/run_tests/run_interop_tests.py#L543
   val testCases = Seq(
