@@ -142,8 +142,9 @@ object AkkaHttpClientUtils {
           options: CallOptions): Source[O, Future[GrpcResponseMetadata]] = {
         implicit val serializer: ProtobufSerializer[I] = descriptor
         val deserializer: ProtobufSerializer[O] = descriptor
+        val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
-          Uri(s"https://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
+          Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
           source)
         Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
           singleRequest(httpRequest).map { response =>
