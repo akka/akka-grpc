@@ -21,7 +21,6 @@ import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
-import com.github.ghik.silencer.silent
 import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 
@@ -42,11 +41,16 @@ object AkkaHttpClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  @silent("never used")
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
       implicit sys: ClassicActorSystemProvider): InternalChannel = {
     implicit val ec = sys.classicSystem.dispatcher
-    implicit val writer = GrpcProtocolNative.newWriter(Codecs.supportedCodecs.head)
+
+    // https://github.com/grpc/grpc/blob/master/doc/compression.md
+    // since a client can't assume what algorithms a server supports, we
+    // must default to no compression.
+    // Configuring a different default could be a future feature.
+    // Configuring compression per call could be a future power API feature.
+    implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
     // TODO FIXME discovery, loadbalancing etc
     val host = settings.serviceName
