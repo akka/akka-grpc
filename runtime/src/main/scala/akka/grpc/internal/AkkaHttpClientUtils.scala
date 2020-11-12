@@ -197,6 +197,7 @@ object AkkaHttpClientUtils {
                                 .toJava
                           }))
                     case _ =>
+                      response.entity.discardBytes
                       throw mapToStatusException(response, Seq.empty)
                   }
                 case Failure(e) =>
