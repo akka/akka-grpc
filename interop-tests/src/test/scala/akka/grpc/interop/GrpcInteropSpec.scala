@@ -16,9 +16,10 @@ class GrpcInteropAkkaScalaWithAkkaScalaSpec
 class GrpcInteropAkkaScalaWithAkkaJavaSpec
     extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaNettyClientProviderJava)
 
-// TODO testing against grpc-java server (problem with the path, still to be diagnosed)
 class GrpcInteropAkkaHttpScalaServerWithAkkaHttpScalaClientSpec
     extends GrpcInteropTests(AkkaHttpServerProviderScala, AkkaHttpClientProviderScala)
+class GrpcInteropIoServerWithAkkaHttpScalaClientSpec
+    extends GrpcInteropTests(IoGrpcJavaServerProvider, AkkaHttpClientProviderScala)
 
 class GrpcInteropAkkaJavaWithIoSpec extends GrpcInteropTests(AkkaHttpServerProviderJava, IoGrpcJavaClientProvider)
 class GrpcInteropAkkaJavaWithAkkaScalaSpec
