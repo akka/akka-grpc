@@ -13,8 +13,8 @@ import akka.stream.scaladsl.Source
 import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ HttpEntity, HttpMethods, HttpRequest, Uri }
-
+import akka.http.scaladsl.model
+import akka.http.scaladsl.model.{ HttpEntity, HttpMethods, HttpRequest, TransferEncodings, Uri }
 import scala.collection.immutable
 
 @InternalApi
@@ -36,7 +36,8 @@ object GrpcRequestHelpers {
       method = HttpMethods.POST,
       headers = immutable.Seq(
         headers.`Message-Encoding`(writer.messageEncoding.name),
-        headers.`Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(","))),
+        headers.`Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(",")),
+        model.headers.TE(TransferEncodings.trailers)),
       entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 
