@@ -23,11 +23,11 @@ import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
+
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success }
-
 import akka.http.scaladsl.model.StatusCodes
 
 /**
@@ -148,6 +148,7 @@ object AkkaHttpClientUtils {
         val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
           Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
+          headers.asRawHeaders,
           source)
         Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
           singleRequest(httpRequest).map { response =>

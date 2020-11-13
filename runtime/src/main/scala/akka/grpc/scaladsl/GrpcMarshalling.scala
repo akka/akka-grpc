@@ -105,6 +105,6 @@ object GrpcMarshalling {
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpRequest =
-    GrpcRequestHelpers(uri, e, eHandler)
+    GrpcRequestHelpers(uri, List.empty, e, eHandler)
 
 }

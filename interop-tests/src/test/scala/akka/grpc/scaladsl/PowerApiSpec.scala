@@ -4,6 +4,8 @@
 
 package akka.grpc.scaladsl
 
+import com.typesafe.config.ConfigFactory
+
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
@@ -18,8 +20,13 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class PowerApiSpec
-    extends TestKit(ActorSystem("GrpcExceptionHandlerSpec"))
+class PowerApiSpecNetty extends PowerApiSpec("netty")
+class PowerApiSpecAkkaHttp extends PowerApiSpec("akka-http")
+
+class PowerApiSpec(backend: String)
+    extends TestKit(ActorSystem(
+      "GrpcExceptionHandlerSpec",
+      ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load())))
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
