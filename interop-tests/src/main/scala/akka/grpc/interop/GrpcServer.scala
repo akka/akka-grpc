@@ -9,7 +9,7 @@ package akka.grpc.interop
  */
 abstract class GrpcServer[T] {
   @throws[Exception]
-  def start(): T
+  def start(args: Array[String]): T
 
   def getPort(binding: T): Int
 
