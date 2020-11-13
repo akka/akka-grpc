@@ -159,12 +159,12 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
 
   override def getText(key: String): Option[String] =
     headers.reverseIterator.collectFirst {
-      case header if header.name == key => header.value
+      case header if header.name.equalsIgnoreCase(key) => header.value
     }
 
   override def getBinary(key: String): Option[ByteString] =
     headers.reverseIterator.collectFirst {
-      case header if header.name == key =>
+      case header if header.name.equalsIgnoreCase(key) =>
         MetadataImpl.decodeBinaryHeader(header.value)
     }
 
