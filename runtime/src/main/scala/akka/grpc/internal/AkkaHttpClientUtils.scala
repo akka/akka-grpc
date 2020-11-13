@@ -14,7 +14,7 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, Default, LastChunk }
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
@@ -23,7 +23,6 @@ import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
-
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ Future, Promise }
@@ -202,8 +201,9 @@ object AkkaHttpClientUtils {
                                 .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
                                 .toJava
                           }))
-                    case Default(_, _, _) => throw mapToStatusException(response, Seq.empty)
-                    case e                => throw new IllegalStateException(s"Expected chunked or default response but got $e")
+                    case _ =>
+                      response.entity.discardBytes()
+                      throw mapToStatusException(response, Seq.empty)
                   }
                 case Failure(e) =>
                   Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
