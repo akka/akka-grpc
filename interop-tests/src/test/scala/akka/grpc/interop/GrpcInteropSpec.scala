@@ -21,7 +21,7 @@ class GrpcInteropAkkaScalaWithAkkaHttpScalaSpec extends GrpcInteropTests(Servers
 class GrpcInteropAkkaJavaWithIoSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.IoGrpc)
 class GrpcInteropAkkaJavaWithAkkaNettyScalaSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.AkkaNetty.Scala)
 class GrpcInteropAkkaJavaWithAkkaNettyJavaSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.AkkaNetty.Java)
-//class GrpcInteropAkkaJavaWithAkkaHttpScalaSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.AkkaHttp.Scala)
+class GrpcInteropAkkaJavaWithAkkaHttpScalaSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.AkkaHttp.Scala)
 //class GrpcInteropAkkaJavaWithAkkaHttpJavaSpec extends GrpcInteropTests(Servers.Akka.Java, Clients.AkkaHttp.Java)
 
 //--- Aliases
