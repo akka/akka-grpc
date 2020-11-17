@@ -55,22 +55,20 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
       }
     } else {
-      @defining(service.grpcName + "." + method.grpcName){ fqName =>
-        @if(method.methodType == akka.grpc.gen.ClientStreaming){
-          private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-            return new JavaClientStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, mat, ec);
-          }
-        } else if(method.methodType == akka.grpc.gen.ServerStreaming){
-          private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-            return new JavaServerStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
-          }
-        } else if(method.methodType == akka.grpc.gen.BidiStreaming){
-          private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-            return new JavaBidirectionalStreamingRequestBuilder<>(
-                                 @{method.name}Descriptor, "@fqName", channel, options, settings, ec);
-          }
+      @if(method.methodType == akka.grpc.gen.ClientStreaming){
+        private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+          return new JavaClientStreamingRequestBuilder<>(
+                               @{method.name}Descriptor, channel, options, settings, mat, ec);
+        }
+      } else if(method.methodType == akka.grpc.gen.ServerStreaming){
+        private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+          return new JavaServerStreamingRequestBuilder<>(
+                               @{method.name}Descriptor, channel, options, settings, ec);
+        }
+      } else if(method.methodType == akka.grpc.gen.BidiStreaming){
+        private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+          return new JavaBidirectionalStreamingRequestBuilder<>(
+                               @{method.name}Descriptor, channel, options, settings, ec);
         }
       }
     }

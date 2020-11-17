@@ -1,0 +1,10 @@
+# internal constructor. unfortunately this exclusion also masks the
+# @InternalStableApi constructor, but manually verified that that one
+# remains
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ScalaClientStreamingRequestBuilder.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ScalaBidirectionalStreamingRequestBuilder.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.JavaServerStreamingRequestBuilder.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.JavaBidirectionalStreamingRequestBuilder.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.AkkaNettyGrpcClientGraphStage.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.JavaClientStreamingRequestBuilder.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ScalaServerStreamingRequestBuilder.this")

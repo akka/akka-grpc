@@ -57,13 +57,12 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
       @if(method.methodType == akka.grpc.gen.Unary) {
         new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
       } else {
-        val fqName = "@{service.grpcName}.@{method.grpcName}"
         @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
+          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
         } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
+          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
         } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, fqName, channel, options, settings)
+          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
         }
       }
     }
