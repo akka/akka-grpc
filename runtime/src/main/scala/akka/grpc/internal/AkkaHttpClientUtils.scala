@@ -120,21 +120,35 @@ object AkkaHttpClientUtils {
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[O] = {
-        val src =
-          invokeWithMetadata(Source.single(request), descriptor.getFullMethodName, headers, descriptor, false, options)
-        val result = src.toMat(Sink.headOption)(Keep.right).run()
-        result.flatMap {
-          case Some(r) => Future.successful(r)
-          case None    => Future.failed(throw new IllegalStateException("Successful status code but no data found"))
-        }
-      }
+          options: CallOptions): Future[O] = 
+        invokeWithMetadata(request, headers, descriptor, options).map(_.value)
 
       override def invokeWithMetadata[I, O](
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[GrpcSingleResponse[O]] = ???
+          options: CallOptions): Future[GrpcSingleResponse[O]] = {
+        val src =
+          invokeWithMetadata(
+            Source.single(request),
+            descriptor.getFullMethodName,
+            headers,
+            descriptor,
+            streamingResponse = false,
+            options)
+        val (metadataFuture, resultFuture) = src.toMat(Sink.head)(Keep.both).run()
+        metadataFuture.zip(resultFuture).map {
+          case (metadata, result) =>
+            new GrpcSingleResponse[O] {
+              def value: O = result
+              def getValue(): O = result
+              def headers = metadata.headers
+              def getHeaders() = metadata.getHeaders()
+              def trailers = metadata.trailers
+              def getTrailers() = metadata.getTrailers()
+            }
+        }
+      }
 
       override def invokeWithMetadata[I, O](
           source: Source[I, NotUsed],
