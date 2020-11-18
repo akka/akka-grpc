@@ -237,7 +237,7 @@ object AkkaHttpClientUtils {
   }
 
   /**
-   * See https://grpc.github.io/grpc/core/md_doc_http-grpc-status-mapping.html
+   * See https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
    */
   private def mapHttpStatus(response: HttpResponse): Status = {
     response.status match {
