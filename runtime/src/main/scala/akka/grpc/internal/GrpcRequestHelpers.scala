@@ -12,9 +12,11 @@ import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.scaladsl.Source
 import akka.NotUsed
 import akka.annotation.InternalApi
-import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
+import akka.grpc.scaladsl.GrpcExceptionHandler
+import akka.grpc.scaladsl.headers._
 import akka.http.scaladsl.model
-import akka.http.scaladsl.model.{ HttpEntity, HttpMethods, HttpRequest, TransferEncodings, Uri }
+import akka.http.scaladsl.model.{ HttpEntity, HttpHeader, HttpMethods, HttpRequest, TransferEncodings, Uri }
+
 import scala.collection.immutable
 
 @InternalApi
@@ -22,22 +24,23 @@ object GrpcRequestHelpers {
 
   def apply[T](
       uri: Uri,
+      headers: immutable.Seq[HttpHeader],
       e: Source[T, NotUsed],
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpRequest =
-    request(uri, GrpcEntityHelpers(e, Source.empty, eHandler))
+    request(uri, headers, GrpcEntityHelpers(e, trail = Source.empty, eHandler))
 
-  private def request[T](uri: Uri, entity: Source[ChunkStreamPart, NotUsed])(
+  private def request[T](uri: Uri, headers: immutable.Seq[HttpHeader], entity: Source[ChunkStreamPart, NotUsed])(
       implicit writer: GrpcProtocolWriter): HttpRequest = {
     HttpRequest(
       uri = uri,
       method = HttpMethods.POST,
       headers = immutable.Seq(
-        headers.`Message-Encoding`(writer.messageEncoding.name),
-        headers.`Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(",")),
-        model.headers.TE(TransferEncodings.trailers)),
+        `Message-Encoding`(writer.messageEncoding.name),
+        `Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(",")),
+        model.headers.TE(TransferEncodings.trailers)) ++ headers,
       entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 

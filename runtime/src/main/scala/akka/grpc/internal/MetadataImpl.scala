@@ -53,7 +53,7 @@ import akka.grpc.javadsl
   }
 }
 
-@InternalApi private[akka] final class MetadataImpl(entries: List[(String, MetadataEntry)]) {
+@InternalApi private[akka] final class MetadataImpl(val entries: List[(String, MetadataEntry)]) {
   def addEntry(key: String, value: String): MetadataImpl = {
     if (key.endsWith(MetadataImpl.BINARY_SUFFIX))
       throw new IllegalArgumentException(s"String header names must not end with '${MetadataImpl.BINARY_SUFFIX}'")
