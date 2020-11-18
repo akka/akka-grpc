@@ -9,7 +9,7 @@ import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.annotation.InternalApi
 import akka.grpc.{ GrpcServiceException, ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ DataFrame, Frame, GrpcProtocolWriter, TrailerFrame }
-import akka.grpc.scaladsl.{ headers, BytesEntry, Metadata, StringEntry }
+import akka.grpc.scaladsl.{ headers, BytesEntry, Metadata, MetadataEntry, StringEntry }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.RawHeader
@@ -55,7 +55,10 @@ object GrpcEntityHelpers {
       headers.`Status-Message`(d))
 
   def metadataHeaders(metadata: Metadata): List[HttpHeader] =
-    metadata.asList.map {
+    metadataHeaders(metadata.asList)
+
+  def metadataHeaders(metadata: List[(String, MetadataEntry)]): List[HttpHeader] =
+    metadata.map {
       case (key, StringEntry(value)) => RawHeader(key, value)
       case (key, BytesEntry(value))  => RawHeader(key, MetadataImpl.encodeBinaryHeader(value))
     }

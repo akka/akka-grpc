@@ -23,11 +23,11 @@ import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
+
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success }
-
 import akka.http.scaladsl.model.StatusCodes
 
 /**
@@ -120,21 +120,35 @@ object AkkaHttpClientUtils {
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[O] = {
-        val src =
-          invokeWithMetadata(Source.single(request), descriptor.getFullMethodName, headers, descriptor, false, options)
-        val result = src.toMat(Sink.headOption)(Keep.right).run()
-        result.flatMap {
-          case Some(r) => Future.successful(r)
-          case None    => Future.failed(throw new IllegalStateException("Successful status code but no data found"))
-        }
-      }
+          options: CallOptions): Future[O] =
+        invokeWithMetadata(request, headers, descriptor, options).map(_.value)
 
       override def invokeWithMetadata[I, O](
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[GrpcSingleResponse[O]] = ???
+          options: CallOptions): Future[GrpcSingleResponse[O]] = {
+        val src =
+          invokeWithMetadata(
+            Source.single(request),
+            descriptor.getFullMethodName,
+            headers,
+            descriptor,
+            streamingResponse = false,
+            options)
+        val (metadataFuture, resultFuture) = src.toMat(Sink.head)(Keep.both).run()
+        metadataFuture.zip(resultFuture).map {
+          case (metadata, result) =>
+            new GrpcSingleResponse[O] {
+              def value: O = result
+              def getValue(): O = result
+              def headers = metadata.headers
+              def getHeaders() = metadata.getHeaders()
+              def trailers = metadata.trailers
+              def getTrailers() = metadata.getTrailers()
+            }
+        }
+      }
 
       override def invokeWithMetadata[I, O](
           source: Source[I, NotUsed],
@@ -148,6 +162,7 @@ object AkkaHttpClientUtils {
         val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
           Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
+          GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
         Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
           singleRequest(httpRequest).map { response =>

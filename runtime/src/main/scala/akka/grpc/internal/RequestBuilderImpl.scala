@@ -116,7 +116,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
     // a bit much overhead here because we are using the flow to represent a single response
     val src =
-      channel.invokeWithMetadata[I, O](source, fqMethodName, headers, descriptor, false, callOptionsWithDeadline())
+      channel.invokeWithMetadata(source, fqMethodName, headers, descriptor, false, callOptionsWithDeadline())
     val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
       src.toMat(Sink.head)(Keep.both).run()
 
