@@ -4,14 +4,15 @@
 
 package akka.grpc.scaladsl
 
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.{ Sink, Source }
-import example.myapp.helloworld.grpc.helloworld._
-
 import scala.concurrent.Future
 
-class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServicePowerApi {
+import akka.NotUsed
+import akka.actor.ActorSystem
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import example.myapp.helloworld.grpc.helloworld._
+
+class PowerGreeterServiceImpl()(implicit system: ActorSystem) extends GreeterServicePowerApi {
   import system.dispatcher
 
   override def sayHello(in: HelloRequest, metadata: Metadata): Future[HelloReply] = {
@@ -32,10 +33,26 @@ class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServi
     Source(s"Hello, $greetee".toList).map(character => HelloReply(character.toString))
   }
 
+  /**
+   * Once a HelloRequest is received, replies with a never-ending stream of HelloReply's until
+   * a HelloRequest("ByeBye") is received.
+   */
   override def streamHellos(in: Source[HelloRequest, NotUsed], metadata: Metadata): Source[HelloReply, NotUsed] = {
     println(s"sayHello to stream...")
-    in.map(request => HelloReply(s"Hello, ${authTaggedName(request, metadata)}"))
+
+    val expandedSource = in.expand { req =>
+      if (req.name == "ByeBye") {
+        // Sending HelloRequest("ByeBye") causes the server to respond with one last HelloResponse("ByeBye") so
+        // the client should at least see that one.
+        Iterator.single(req)
+      } else
+        Iterator.continually(req)
+    }
+
+    expandedSource.map(request => HelloReply(s"Hello, ${authTaggedName(request, metadata)}"))
   }
+
+  case object Tick
 
   // Bare-bones just for GRPC metadata demonstration purposes
   private def isAuthenticated(metadata: Metadata): Boolean =
