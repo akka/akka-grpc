@@ -15,7 +15,6 @@ import akka.japi.Pair
 import akka.util.ByteString
 import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, StringEntry }
 import akka.grpc.javadsl
-import akka.http.scaladsl.model.headers.RawHeader
 
 @InternalApi private[akka] object MetadataImpl {
   val BINARY_SUFFIX: String = io.grpc.Metadata.BINARY_HEADER_SUFFIX
@@ -54,7 +53,7 @@ import akka.http.scaladsl.model.headers.RawHeader
   }
 }
 
-@InternalApi private[akka] final class MetadataImpl(entries: List[(String, MetadataEntry)]) {
+@InternalApi private[akka] final class MetadataImpl(val entries: List[(String, MetadataEntry)]) {
   def addEntry(key: String, value: String): MetadataImpl = {
     if (key.endsWith(MetadataImpl.BINARY_SUFFIX))
       throw new IllegalArgumentException(s"String header names must not end with '${MetadataImpl.BINARY_SUFFIX}'")
@@ -81,13 +80,6 @@ import akka.http.scaladsl.model.headers.RawHeader
     }
     mutableMetadata
   }
-
-  def asRawHeaders: immutable.Seq[HttpHeader] =
-    entries.map {
-      case (name, StringEntry(value)) => RawHeader(name, value)
-      // FIXME check if this is the right way to encode a binary header value
-      case (name, BytesEntry(value)) => RawHeader(name, value.utf8String)
-    }
 }
 
 /**

@@ -120,7 +120,7 @@ object AkkaHttpClientUtils {
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[O] = 
+          options: CallOptions): Future[O] =
         invokeWithMetadata(request, headers, descriptor, options).map(_.value)
 
       override def invokeWithMetadata[I, O](
@@ -162,7 +162,7 @@ object AkkaHttpClientUtils {
         val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
           Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(host)}/" + descriptor.getFullMethodName),
-          headers.asRawHeaders,
+          GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
         Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
           singleRequest(httpRequest).map { response =>
