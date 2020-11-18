@@ -65,7 +65,7 @@ object AkkaHttpClientUtils {
       case Some(authority) =>
         ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, port) => {
           assert(host == authority)
-          assert(port == settings.defaultPort)
+          assert(port == target.port.getOrElse(settings.defaultPort))
           target.address match {
             case Some(address) =>
               Future.successful(new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort)))
