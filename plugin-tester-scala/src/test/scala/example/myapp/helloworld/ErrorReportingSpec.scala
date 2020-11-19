@@ -46,7 +46,10 @@ class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures wit
       val response = Http().singleRequest(request).futureValue
 
       response.status should be(StatusCodes.OK)
-      allHeaders(response) should contain(RawHeader("grpc-status", Status.Code.UNIMPLEMENTED.value().toString))
+      val trailers = allHeaders(response)
+
+      trailers should contain(RawHeader("grpc-status", Status.Code.UNIMPLEMENTED.value().toString))
+      trailers should contain(RawHeader("grpc-message", "Not implemented: UnknownMethod"))
     }
 
     "respond with an 'invalid argument' gRPC error status when calling an method without a request body" in {
