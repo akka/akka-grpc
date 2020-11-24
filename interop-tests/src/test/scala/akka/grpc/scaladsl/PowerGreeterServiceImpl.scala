@@ -52,8 +52,6 @@ class PowerGreeterServiceImpl()(implicit system: ActorSystem) extends GreeterSer
     expandedSource.map(request => HelloReply(s"Hello, ${authTaggedName(request, metadata)}"))
   }
 
-  case object Tick
-
   // Bare-bones just for GRPC metadata demonstration purposes
   private def isAuthenticated(metadata: Metadata): Boolean =
     metadata.getText("authorization").nonEmpty

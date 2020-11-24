@@ -4,10 +4,6 @@
 
 package akka.grpc.scaladsl
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
-
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration._
@@ -126,38 +122,22 @@ abstract class PowerApiSpec(backend: String)
       client = GreeterServiceClient(
         GrpcClientSettings.connectToServiceAt("localhost", server.localAddress.getPort).withTls(false))
 
-      val p = Promise[HelloRequest]
+      val p = Promise[HelloRequest]()
       val requests: Source[HelloRequest, NotUsed] = Source.single(HelloRequest("Alice")).concat(Source.future(p.future))
 
       val responseSource: Source[HelloReply, Future[GrpcResponseMetadata]] =
         client.streamHellos().invokeWithMetadata(requests)
 
-      val minNumberOfResponses = 200
-      val latch = new CountDownLatch(minNumberOfResponses)
-      val i: AtomicInteger = new AtomicInteger(0)
-      val headers: Future[GrpcResponseMetadata] = responseSource
-        .map { x =>
-          i.incrementAndGet()
-          latch.countDown()
-          x
-        }
-        .to(Sink.ignore)
-        .run
+      val headers: Future[GrpcResponseMetadata] = responseSource.to(Sink.ignore).run()
 
       // blocks progress until redeeming `headers`
       val trailers = headers.futureValue.trailers
 
       // Don't send the finalization message until the headers future was redeemed (see above)
-      // and we've received a good amount of responses.
-      latch.await(5, TimeUnit.SECONDS)
       trailers.isCompleted should be(false)
       p.trySuccess(HelloRequest("ByeBye"))
 
       trailers.futureValue // the trailers future eventually completes
-      val responsesWhenTrailers = i.get()
-      // Sending HelloRequest("ByeBye") causes the server to respond with one last HelloResponse("ByeBye") so
-      // we should at least see that one
-      responsesWhenTrailers should be > minNumberOfResponses
 
     }
   }
