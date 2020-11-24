@@ -30,8 +30,8 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
       if (e.getCause == null) Status.INTERNAL
       else expected(e.getCause)
     case grpcException: GrpcServiceException => grpcException.status
-    case _: NotImplementedError              => Status.UNIMPLEMENTED
-    case _: UnsupportedOperationException    => Status.UNIMPLEMENTED
+    case e: NotImplementedError              => Status.UNIMPLEMENTED.withDescription(e.getMessage)
+    case e: UnsupportedOperationException    => Status.UNIMPLEMENTED.withDescription(e.getMessage)
     case _                                   => Status.INTERNAL
   }
 
@@ -49,7 +49,11 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
     (otherTypes ++ executionExceptions).foreach { e =>
       val exp = expected(e)
       s"Map $e to $exp" in {
-        defaultMapper(system)(e).status shouldBe exp
+        val status = defaultMapper(system)(e).status
+        // according to io.grpc.Status.equals javadoc, equals is not well-defined for Status instances, so
+        // comparing code and description explicitly
+        status.getCode shouldBe exp.getCode
+        status.getDescription shouldBe exp.getDescription
       }
     }
   }

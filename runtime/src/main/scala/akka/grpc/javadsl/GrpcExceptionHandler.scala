@@ -23,7 +23,6 @@ import scala.concurrent.ExecutionException
 object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
-  private val UNIMPLEMENTED = Trailers(Status.UNIMPLEMENTED)
 
   def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] =
     new jFunction[ActorSystem, jFunction[Throwable, Trailers]] {
@@ -45,8 +44,8 @@ object GrpcExceptionHandler {
             else default(system)(e.getCause)
           case grpcException: GrpcServiceException => Trailers(grpcException.status, grpcException.metadata)
           case _: MissingParameterException        => INVALID_ARGUMENT
-          case _: NotImplementedError              => UNIMPLEMENTED
-          case _: UnsupportedOperationException    => UNIMPLEMENTED
+          case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
+          case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
           case other =>
             system.log.error(other, "Unhandled error: [" + other.getMessage + "]")
             INTERNAL
