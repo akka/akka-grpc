@@ -9,9 +9,9 @@ request metadata parameter to each service method. See the detailed chapters on 
 and @ref[Maven](../buildtools/maven.md) for how to set this build option. Note that this option doesn't effect the
 generated client stubs.
 
-@java[Notice: you need change `GreeterServiceHandlerFactory` to `GreeterServiceHandlerFactoryPowerApiHandlerFactory`.]
+@java[Notice: you need to change `GreeterServiceHandlerFactory` to `GreeterServiceHandlerFactoryPowerApiHandlerFactory`.]
 
-@scala[Notice: you need change `GreeterServiceHandler` to `GreeterServicePowerApiHandler`.]
+@scala[Notice: you need to change `GreeterServiceHandler` to `GreeterServicePowerApiHandler`.]
 
 Here's an example implementation of these server power APIs:
 
