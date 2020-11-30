@@ -36,6 +36,11 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       private final Materializer mat;
       private final ExecutionContext ec;
 
+
+      private Default@{service.name}Client(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
+        this(GrpcClientSettings settings, ClassicActorSystemProvider sys, sys.classicSystem().dispatcher())
+      }
+
       private Default@{service.name}Client(GrpcClientSettings settings, ClassicActorSystemProvider sys,  ExecutionContext ec) {
         this.settings = settings;
         this.mat = SystemMaterializer.get(sys).materializer();

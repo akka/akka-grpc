@@ -41,8 +41,11 @@ import akka.grpc.internal.ClientState
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 object @{service.name}Client {
-  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider, ec: ExecutionContext): @{service.name}Client =
-    new Default@{service.name}Client(settings)
+  def apply(settings: GrpcClientSettings, sys: ClassicActorSystemProvider, ec: ExecutionContext): @{service.name}Client =
+    new Default@{service.name}Client(settings)(sys, ec)
+
+  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
+    new Default@{service.name}Client(settings)(sys, sys.classicSystem.dispatcher)
 }
 
 final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider, ec: ExecutionContext) extends @{service.name}Client {
