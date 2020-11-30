@@ -96,7 +96,7 @@ Then, the server can then be started from the command line with:
 ## JDK 8 support
 
 If you want to use TLS-based negotiation on JDK 8 versions prior to
-[1.8.0_251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html),
+[1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
 the server requires a special Java agent for ALPN.
 
 Doing this from inside of Gradle requires some configuration in the `build.gradle`:

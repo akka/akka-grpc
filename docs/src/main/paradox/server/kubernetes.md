@@ -10,7 +10,7 @@ There are 3 ways to use HTTP/2:
 * HTTP/2 over plaintext TCP ('h2c'), without negotiation. This assumes the client has prior knowledge that the server supports HTTP/2.
 
 A straightforward way to expose a TCP endpoint outside the cluster is to create a Kubernetes `Service` of type `LoadBalancer`. Beyond that, Kubernetes supports many types of [Ingress Controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
-[GCE](https://git.k8s.io/ingress-gce/README.md) and [NGINX](https://git.k8s.io/ingress-nginx/README.md)
+[GCE](https://github.com/kubernetes/ingress-gce/blob/master/README.md) and [NGINX](https://github.com/kubernetes/ingress-nginx/blob/master/README.md)
 are the most widely known.
 
 ## LoadBalancer Service
