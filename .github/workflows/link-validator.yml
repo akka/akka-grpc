@@ -15,9 +15,6 @@ jobs:
         # See https://github.com/actions/checkout/issues/299#issuecomment-677674415
         ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Run Antora
-        run: make all
-
       - name: Set up JDK 11
         uses: olafurpg/setup-scala@v10
         with:
@@ -25,6 +22,9 @@ jobs:
 
       - name: Cache Coursier cache
         uses: coursier/cache-action@v5
+
+      - name: sbt site
+        run: sbt docs/makeSite
 
       - name: Install Coursier command line tool
         run: curl -fLo cs https://git.io/coursier-cli-linux && chmod +x cs && ./cs
