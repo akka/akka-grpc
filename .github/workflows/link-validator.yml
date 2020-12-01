@@ -25,7 +25,7 @@ jobs:
         uses: coursier/cache-action@v5
 
       - name: sbt site
-        run: echo "previousStableVersion in ThisBuild := Some(\"x\")\nisSnapshot in ThisBuild := false" > a.sbt && sbt akka-grpc-docs/makeSite
+        run: sbt akka-grpc-docs/makeSite
 
       - name: Install Coursier command line tool
         run: curl -fLo cs https://git.io/coursier-cli-linux && chmod +x cs && ./cs

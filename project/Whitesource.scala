@@ -4,6 +4,8 @@
 
 import sys.process.Process
 
+import scala.util.Try
+
 import sbt._
 import sbt.Keys._
 import sbtwhitesource.WhiteSourcePlugin.autoImport._
@@ -11,7 +13,7 @@ import sbtwhitesource._
 
 object Whitesource extends AutoPlugin {
   lazy val gitCurrentBranch =
-    Process("git rev-parse --abbrev-ref HEAD").!!.replaceAll("\\s", "")
+    Try(Process("git rev-parse --abbrev-ref HEAD").!!.replaceAll("\\s", "")).toOption
 
   override def requires = WhiteSourcePlugin
 
@@ -23,7 +25,7 @@ object Whitesource extends AutoPlugin {
     whitesourceAggregateProjectName := {
       val projectName = (moduleName in LocalRootProject).value.replace("-root", "")
       projectName + "-" + (if (isSnapshot.value)
-                             if (gitCurrentBranch == "master") "master"
+                             if (gitCurrentBranch.contains("master")) "master"
                              else "adhoc"
                            else
                              CrossVersion
