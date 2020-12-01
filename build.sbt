@@ -18,6 +18,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(ReproducibleBuildsPlugin)
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.codegen)
+  .settings(resolvers += Resolver.sbtPluginRepo("releases"))
   .settings(
     mkBatAssemblyTask := {
       val file = assembly.value
@@ -48,9 +49,11 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
   .settings(
-    // We don't actually promise binary compatibility before 1.0.0, but want to
-    // introduce the tooling
-    mimaPreviousArtifacts := Set(organization.value %% "akka-grpc-runtime" % previousStableVersion.value.get),
+    mimaFailOnNoPrevious := true,
+    mimaPreviousArtifacts :=
+     previousStableVersion.value
+       .map(v => Set(organization.value %% "akka-grpc-runtime" % v))
+       .getOrElse(Set.empty),
     AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
@@ -131,6 +134,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     parallelExecution := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
     // setting 'skip in publish' would be more elegant, but we need
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test

@@ -39,12 +39,12 @@ private object AkkaNettyGrpcClientGraphStage {
 @InternalApi
 private final class AkkaNettyGrpcClientGraphStage[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: Channel,
     options: CallOptions,
     streamingResponse: Boolean,
     headers: MetadataImpl)
     extends GraphStageWithMaterializedValue[FlowShape[I, O], Future[GrpcResponseMetadata]] {
+  val fqMethodName = descriptor.getFullMethodName
   val in = Inlet[I](fqMethodName + ".in")
   val out = Outlet[O](fqMethodName + ".out")
 

@@ -103,7 +103,7 @@ libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 ## JDK 8 support
 
 If you want to use TLS-based negotiation on JDK 8 versions prior to
-[1.8.0_251](https://www.oracle.com/technetwork/java/javase/8u251-relnotes-5972664.html),
+[1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
 the server requires a special Java agent for ALPN.
  
 See the [Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-))

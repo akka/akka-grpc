@@ -45,7 +45,7 @@ The project is split up in a number of subprojects:
 * runtime: run-time utilities used by the generated code
 * sbt-plugin: the sbt plugin
 * scalapb-protoc-plugin: the scalapb Scala model code generation packaged as a protoc plugin, to be used from gradle
-* interop-tests: test interoperability between the Akka implementation and the implementation from `io.gpc:grpc-interop-testing`, based on [gRPC's original testset](https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md). These tests are duplicated as more faithful 'scripted' tests under the sbt-project module.
+* [interop-tests](interop-tests/README.md)
 
 Additionally, 'plugin-tester-java' and 'plugin-tester-scala' contain an example
 project in Java and Scala respectively, with both sbt and Gradle configurations.

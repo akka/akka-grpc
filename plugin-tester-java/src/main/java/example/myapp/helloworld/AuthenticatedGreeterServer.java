@@ -17,7 +17,7 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.Route;
 import akka.japi.function.Function;
-import akka.stream.ActorMaterializer;
+import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 
 import example.myapp.helloworld.grpc.GreeterService;
@@ -42,7 +42,7 @@ class AuthenticatedGreeterServer {
   }
 
   public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
-    Materializer mat = ActorMaterializer.create(sys);
+    Materializer mat = SystemMaterializer.get(sys).materializer();
 
     //#http-route
     // A Route to authenticate with

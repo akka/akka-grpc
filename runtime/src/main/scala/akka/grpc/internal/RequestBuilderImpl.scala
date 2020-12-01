@@ -21,6 +21,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
 import akka.grpc.GrpcClientSettings
 import akka.util.OptionVal
+import com.github.ghik.silencer.silent
 
 /**
  * INTERNAL API
@@ -113,21 +114,30 @@ final class JavaUnaryRequestBuilder[I, O](
 @InternalApi
 final class ScalaClientStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
+
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
@@ -136,7 +146,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     }
 
   private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, false, headers))
+    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, channel, options, false, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -170,7 +180,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaClientStreamingRequestBuilder[I, O] =
-    new ScalaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -179,7 +189,6 @@ final class ScalaClientStreamingRequestBuilder[I, O](
 @InternalApi
 final class JavaClientStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
@@ -189,14 +198,23 @@ final class JavaClientStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val delegate =
-    new ScalaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
   override def invoke(request: JavaSource[I, NotUsed]): CompletionStage[O] =
     delegate.invoke(request.asScala).toJava
@@ -205,7 +223,7 @@ final class JavaClientStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(request.asScala).toJava
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingRequestBuilder[I, O] =
-    new JavaClientStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new JavaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -214,7 +232,6 @@ final class JavaClientStreamingRequestBuilder[I, O](
 @InternalApi
 final class ScalaServerStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
@@ -224,11 +241,20 @@ final class ScalaServerStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
@@ -237,7 +263,7 @@ final class ScalaServerStreamingRequestBuilder[I, O](
     }
 
   private def createflow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true, headers))
+    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, channel, options, true, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -257,7 +283,7 @@ final class ScalaServerStreamingRequestBuilder[I, O](
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaServerStreamingRequestBuilder[I, O] =
-    new ScalaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new ScalaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -266,7 +292,6 @@ final class ScalaServerStreamingRequestBuilder[I, O](
 @InternalApi
 final class JavaServerStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
@@ -276,14 +301,23 @@ final class JavaServerStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val delegate =
-    new ScalaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new ScalaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
   override def invoke(request: I): JavaSource[O, NotUsed] =
     delegate.invoke(request).asJava
@@ -292,7 +326,7 @@ final class JavaServerStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(source).mapMaterializedValue(_.toJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaServerStreamingRequestBuilder[I, O] =
-    new JavaServerStreamingRequestBuilder[I, O](descriptor, fqMethodName, channel, defaultOptions, settings, headers)
+    new JavaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -301,21 +335,30 @@ final class JavaServerStreamingRequestBuilder[I, O](
 @InternalApi
 final class ScalaBidirectionalStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
     val headers: MetadataImpl)(implicit ec: ExecutionContext)
     extends akka.grpc.scaladsl.StreamResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaBidirectionalStreamingRequestBuilder[I, O]] {
+
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   private val defaultFlow: OptionVal[Flow[I, O, Future[GrpcResponseMetadata]]] =
     settings.deadline match {
@@ -324,7 +367,7 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
     }
 
   private def createFlow(options: CallOptions, channel: Channel): Flow[I, O, Future[GrpcResponseMetadata]] =
-    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, fqMethodName, channel, options, true, headers))
+    Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, channel, options, true, headers))
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -341,13 +384,7 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaBidirectionalStreamingRequestBuilder[I, O] =
-    new ScalaBidirectionalStreamingRequestBuilder[I, O](
-      descriptor,
-      fqMethodName,
-      channel,
-      defaultOptions,
-      settings,
-      headers)
+    new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -356,7 +393,6 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
 @InternalApi
 final class JavaBidirectionalStreamingRequestBuilder[I, O](
     descriptor: MethodDescriptor[I, O],
-    fqMethodName: String,
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
@@ -366,19 +402,23 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, fqMethodName, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
-  private val delegate = new ScalaBidirectionalStreamingRequestBuilder[I, O](
-    descriptor,
-    fqMethodName,
-    channel,
-    defaultOptions,
-    settings,
-    headers)
+  @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
+  @InternalStableApi
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      @silent("never used") fqMethodName: String,
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+
+  private val delegate =
+    new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
   override def invoke(request: JavaSource[I, NotUsed]): JavaSource[O, NotUsed] =
     delegate.invoke(request.asScala).asJava
@@ -388,13 +428,7 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(source.asScala).mapMaterializedValue(_.toJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaBidirectionalStreamingRequestBuilder[I, O] =
-    new JavaBidirectionalStreamingRequestBuilder[I, O](
-      descriptor,
-      fqMethodName,
-      channel,
-      defaultOptions,
-      settings,
-      headers)
+    new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**

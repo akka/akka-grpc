@@ -4,33 +4,41 @@
 
 package akka.grpc.interop;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.cert.*;
-import java.security.cert.Certificate;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.*;
-import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import javax.net.ssl.*;
-
 import akka.actor.ActorSystem;
-import akka.util.ByteString;
+import akka.http.javadsl.Http;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
-import akka.http.javadsl.model.*;
-import akka.http.javadsl.*;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.settings.ServerSettings;
 import akka.japi.function.Function;
-import akka.stream.*;
+import akka.stream.Materializer;
+import akka.stream.SystemMaterializer;
+import akka.util.ByteString;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.internal.testing.TestUtils;
 import io.grpc.testing.integration.TestService;
 import scala.Function2;
 import scala.Tuple2;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Glue code to start a gRPC server based on the akka-grpc Java API to test against
@@ -42,32 +50,41 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
     this.handlerFactory = handlerFactory;
   }
 
-  public Tuple2<ActorSystem, ServerBinding> start() throws Exception {
+  public Tuple2<ActorSystem, ServerBinding> start(String[] args) throws Exception {
     ActorSystem sys = ActorSystem.create(
       "akka-grpc-server-java",
       ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on"));
-    Materializer mat = ActorMaterializer.create(sys);
+    Materializer mat = SystemMaterializer.get(sys).materializer();
 
     Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat, sys);
 
-    CompletionStage<ServerBinding> binding = Http.get(sys).bindAndHandleAsync(
-      req -> {
-        Iterator<String> segmentIterator = req.getUri().pathSegments().iterator();
-        if (segmentIterator.hasNext()) {
-          if (segmentIterator.next().equals(TestService.name)) {
-            return testService.apply(req);
-          } else {
-            return CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
-          }
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler = req -> {
+      Iterator<String> segmentIterator = req.getUri().pathSegments().iterator();
+      if (segmentIterator.hasNext()) {
+        if (segmentIterator.next().equals(TestService.name)) {
+          return testService.apply(req);
         } else {
           return CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
         }
-      },
-      ConnectWithHttps.toHostHttps("127.0.0.1", 0).withCustomHttpsContext(serverHttpContext()),
-      ServerSettings.create(sys),
-      256, // parallelism TODO remove once https://github.com/akka/akka-http/pull/2146 is merged
-      sys.log(),
-      mat);
+      } else {
+        return CompletableFuture.completedFuture(HttpResponse.create().withStatus(StatusCodes.NOT_FOUND));
+      }
+    };
+    ServerSettings serverSettings = ServerSettings.create(sys);
+
+    CompletionStage<ServerBinding> binding;
+    if (Arrays.asList(args).contains("--use_tls=false")) {
+      binding = Http.get(sys).newServerAt("127.0.0.1", 0)
+              .withMaterializer(mat)
+              .withSettings(serverSettings)
+              .bind(handler);
+    } else {
+      binding = Http.get(sys).newServerAt("127.0.0.1", 0)
+              .withMaterializer(mat)
+              .withSettings(serverSettings)
+              .enableHttps(serverHttpContext())
+              .bind(handler);
+    }
 
     ServerBinding serverBinding = binding.toCompletableFuture().get();
     return new Tuple2<>(sys, serverBinding);

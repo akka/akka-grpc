@@ -52,6 +52,7 @@ class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeA
     }
 
     "re-discover endpoints on failure" in {
+      system.log.info("Starting test: re-discover endpoints on failure")
       val service1materializer = SystemMaterializer(system).createAdditionalSystemMaterializer()
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
@@ -69,19 +70,21 @@ class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeA
 
       val requestsPerServer = 2
 
+      system.log.info("Sending requests to server 1")
       for (i <- 1 to requestsPerServer) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
 
       discovery.setServices(List(server2.localAddress))
 
-      // This is rather heavy-handed, but surprisingly it seems just terminating
-      // the binding isn't sufficient to actually abort the existing connection.
       server1.unbind().futureValue
-      server1.terminate(hardDeadline = 100.milliseconds).futureValue
+      server1.terminate(hardDeadline = 3.seconds).futureValue
+      // Unfortunately `terminate` currently only waits for the HTTP/1.1 connections
+      // to terminate, https://github.com/akka/akka-http/issues/3580
       service1materializer.shutdown()
-      Thread.sleep(100)
+      Thread.sleep(5000)
 
+      system.log.info("Sending requests to server 2")
       for (i <- 1 to requestsPerServer) {
         client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
