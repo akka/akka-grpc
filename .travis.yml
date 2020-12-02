@@ -26,6 +26,8 @@ before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
 install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
 
 stages:
+  - name: drop-travis-caches
+    if: env(RUN_DROP_TRAVIS_CACHES_STAGE) = true
   - name: prepare
     if: NOT tag =~ ^v
   - name: test
@@ -37,6 +39,14 @@ stages:
 
 jobs:
   include:
+    - stage: drop-travis-caches
+      script:
+        - rm -rf $HOME/.m2
+        - rm -rf $HOME/.ivy2/cache
+        - rm -rf $HOME/.sbt
+        - rm -rf $HOME/.cache/coursier
+        - rm -rf $HOME/.jabba
+        - rm -rf $HOME/.gradle
     - stage: prepare 
       name: Publish local M2
       script:
