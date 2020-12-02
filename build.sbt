@@ -51,9 +51,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(
     mimaFailOnNoPrevious := true,
     mimaPreviousArtifacts :=
-     previousStableVersion.value
-       .map(v => Set(organization.value %% "akka-grpc-runtime" % v))
-       .getOrElse(Set.empty),
+      previousStableVersion.value.map(v => Set(organization.value %% "akka-grpc-runtime" % v)).getOrElse(Set.empty),
     AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
