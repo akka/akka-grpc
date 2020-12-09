@@ -7,7 +7,7 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.grpc.scaladsl.ServiceHandler
-import akka.http.scaladsl.{Http2, HttpsConnectionContext}
+import akka.http.scaladsl.{Http, HttpsConnectionContext}
 
 import example.myapp.echo.EchoServiceImpl
 import example.myapp.echo.grpc.EchoServiceHandler
@@ -23,12 +23,9 @@ object Main extends App {
   val greeterHandler = GreeterServiceHandler.partial(new GreeterServiceImpl)
   val serviceHandler = ServiceHandler.concatOrNotFound(echoHandler, greeterHandler)
 
-  Http2().bindAndHandleAsync(
-    serviceHandler,
-    interface = "localhost",
-    port = 8443,
-    parallelism = 256, // Needed to allow running multiple requests concurrently, see https://github.com/akka/akka-http/issues/2145
-    connectionContext = serverHttpContext())
+  Http().newServerAt("localhost", 8443)
+    .enableHttps(serverHttpContext())
+    .bind(serviceHandler)
 
   private def serverHttpContext() = {
     // never put passwords into code!
