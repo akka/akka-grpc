@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.internal
 
 import akka.actor.ActorSystem
@@ -21,7 +25,7 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
     "map a strict 404 response to a failed stream" in {
       val response =
         Future.successful(HttpResponse(NotFound, entity = Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(response, null, system.log)
+      val source = AkkaHttpClientUtils.responseToSource(response, null)
 
       val failure = source.run().failed.futureValue
       // https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
@@ -31,7 +35,7 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
     "map a strict 200 response with non-0 gRPC error code to a failed stream" in {
       val response = Future.successful(
         HttpResponse(OK, List(RawHeader("grpc-status", "9")), Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(response, null, system.log)
+      val source = AkkaHttpClientUtils.responseToSource(response, null)
 
       val failure = source.run().failed.futureValue
       failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)

@@ -44,6 +44,8 @@ object AkkaHttpClientUtils {
       implicit sys: ClassicActorSystemProvider): InternalChannel = {
     implicit val ec = sys.classicSystem.dispatcher
 
+    log.debug("Creating gRPC client channel")
+
     // https://github.com/grpc/grpc/blob/master/doc/compression.md
     // since a client can't assume what algorithms a server supports, we
     // must default to no compression.
@@ -109,13 +111,7 @@ object AkkaHttpClientUtils {
 
     def singleRequest(request: HttpRequest): Future[HttpResponse] = {
       val p = Promise[HttpResponse]()
-      queue
-        .offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p)))
-        .flatMap(o => {
-          log.info(s"XXX enqueue: $o")
-          p.future.onComplete(t => log.info(s"XXX dequeue: ${t.isSuccess}"))
-          p.future
-        })
+      queue.offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p))).flatMap(_ => p.future)
     }
 
     implicit def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
@@ -175,7 +171,7 @@ object AkkaHttpClientUtils {
           Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(target.host)}/" + descriptor.getFullMethodName),
           GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
-        responseToSource(singleRequest(httpRequest), deserializer, log)
+        responseToSource(singleRequest(httpRequest), deserializer)
       }
     }
   }
@@ -184,7 +180,7 @@ object AkkaHttpClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def responseToSource[O](response: Future[HttpResponse], deserializer: ProtobufSerializer[O], log: LoggingAdapter)(
+  def responseToSource[O](response: Future[HttpResponse], deserializer: ProtobufSerializer[O])(
       implicit ec: ExecutionContext,
       mat: Materializer): Source[O, Future[GrpcResponseMetadata]] = {
     Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
@@ -197,13 +193,11 @@ object AkkaHttpClientUtils {
           } else {
             Codecs.detect(response) match {
               case Success(codec) =>
-                log.info(s"XXX response $response started")
                 implicit val reader: GrpcProtocolReader = GrpcProtocolNative.newReader(codec)
                 val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
                 // Completed with success or failure based on grpc-status and grpc-message trailing headers
                 val completionFuture: Future[Unit] =
                   trailerPromise.future.flatMap(trailers => parseResponseStatus(response, trailers))
-                completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
 
                 val responseData =
                   response.entity match {
@@ -217,10 +211,7 @@ object AkkaHttpClientUtils {
                             ByteString.empty
                         }
                         .watchTermination()((_, done) =>
-                          done.onComplete(c => {
-                            log.info(s"XXX response $response termination ${c.isSuccess}")
-                            trailerPromise.trySuccess(immutable.Seq.empty)
-                          }))
+                          done.onComplete(_ => trailerPromise.trySuccess(immutable.Seq.empty)))
                     case Strict(_, data) =>
                       trailerPromise.success(immutable.Seq.empty)
                       Source.single[ByteString](data)
@@ -237,7 +228,7 @@ object AkkaHttpClientUtils {
                   // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
                   .via(new CancellationBarrierGraphStage)
                   .via(reader.dataFrameDecoder)
-                  .map(data => deserializer.deserialize(data))
+                  .map(deserializer.deserialize)
                   .mapMaterializedValue(_ =>
                     Future.successful(new GrpcResponseMetadata() {
                       override def headers: akka.grpc.scaladsl.Metadata =
