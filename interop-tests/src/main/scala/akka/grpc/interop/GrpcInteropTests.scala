@@ -144,4 +144,18 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
 trait AkkaHttpServerProvider extends GrpcServerProvider
 
-trait AkkaClientProvider extends GrpcClientProvider
+trait AkkaClientProvider extends GrpcClientProvider {
+  // All client implementations currently support the same set of interop tests.
+  // When adding support for further interop tests, we should either implement them
+  // for all client implementations simultaneously, or distribute `pendingCases` over
+  // the actual implementations again (also in the scripted GrpcInteropSpec).
+  val pendingCases =
+    Set(
+      "cancel_after_begin",
+      "cancel_after_first_response",
+      "timeout_on_sleeping_server",
+      "custom_metadata",
+      "client_compressed_unary",
+      "client_compressed_streaming",
+      "server_compressed_unary")
+}

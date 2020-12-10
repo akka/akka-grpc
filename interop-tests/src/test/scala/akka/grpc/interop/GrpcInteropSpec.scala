@@ -38,12 +38,12 @@ object Clients {
   val IoGrpc = IoGrpcJavaClientProvider
   object AkkaNetty {
     val Java = AkkaNettyClientProviderJava
-    val Scala = AkkaNettyClientProviderScala
+    val Scala = new AkkaClientProviderScala("netty")
   }
   object AkkaHttp {
     // FIXME: let's have Scala stable and we'll do Java later.
     // val Java = AkkaHttpClientProviderJava
-    val Scala = AkkaHttpClientProviderScala
+    val Scala = new AkkaClientProviderScala("akka-http")
   }
 }
 
@@ -60,48 +60,14 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
   })
 }
 
-abstract class AkkaClientProviderScala(backend: String) extends AkkaClientProvider {
-  val label: String = "akka-grpc scala client tester"
+class AkkaClientProviderScala(backend: String) extends AkkaClientProvider {
+  val label: String = s"akka-grpc scala client tester $backend"
 
   def client = AkkaGrpcClientScala(settings => implicit sys => new AkkaGrpcScalaClientTester(settings, backend))
 }
 
-object AkkaNettyClientProviderScala extends AkkaClientProviderScala("netty") {
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary")
-}
-
-object AkkaHttpClientProviderScala extends AkkaClientProviderScala("akka-http") {
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary")
-}
-
 object AkkaNettyClientProviderJava extends AkkaClientProvider {
   val label: String = "akka-grpc java client tester"
-
-  val pendingCases =
-    Set(
-      "cancel_after_begin",
-      "cancel_after_first_response",
-      "timeout_on_sleeping_server",
-      "custom_metadata",
-      "client_compressed_unary",
-      "client_compressed_streaming",
-      "server_compressed_unary")
 
   def client = new AkkaGrpcClientJava((settings, sys) => new AkkaGrpcJavaClientTester(settings, sys))
 }
