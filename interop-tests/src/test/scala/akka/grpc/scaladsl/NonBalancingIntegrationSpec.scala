@@ -5,13 +5,13 @@
 package akka.grpc.scaladsl
 
 import java.net.InetSocketAddress
-
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
 import akka.stream.SystemMaterializer
+import com.typesafe.config.{ Config, ConfigFactory }
 import example.myapp.helloworld.grpc.helloworld._
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException
@@ -25,12 +25,21 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
-  implicit val system = ActorSystem("NonBalancingIntegrationSpec")
+class NonBalancingIntegrationSpecNetty extends NonBalancingIntegrationSpec()
+class NonBalancingIntegrationSpecAkkaHttp
+    extends NonBalancingIntegrationSpec(
+      ConfigFactory.parseString("""akka.grpc.client."*".backend = "akka-http" """).withFallback(ConfigFactory.load()))
+
+class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
+    extends AnyWordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with ScalaFutures {
+  implicit val system = ActorSystem("NonBalancingIntegrationSpec", config)
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
-  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   "Using pick-first (non load balanced clients)" should {
     "send requests to a single endpoint" in {
@@ -49,6 +58,27 @@ class NonBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeA
       service1.greetings.get + service2.greetings.get should be(100)
       service1.greetings.get should be(100)
       service2.greetings.get should be(0)
+    }
+
+    "send requests to a single endpoint that is restarted in the middle" in {
+      val service1 = new CountingGreeterServiceImpl()
+
+      val server1 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service1)).futureValue
+
+      val discovery = MutableServiceDiscovery(List(server1))
+      val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
+      for (i <- 1 to 50) {
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+      }
+      server1.terminate(5.seconds).futureValue
+      // And restart
+      Http().newServerAt("127.0.0.1", server1.localAddress.getPort).bind(GreeterServiceHandler(service1)).futureValue
+
+      for (i <- 1 to 50) {
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+      }
+
+      service1.greetings.get should be(100)
     }
 
     "re-discover endpoints on failure" in {

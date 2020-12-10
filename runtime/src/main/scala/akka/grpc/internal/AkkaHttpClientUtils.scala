@@ -95,9 +95,9 @@ object AkkaHttpClientUtils {
             }
           }
 
-        builder.withCustomHttpsConnectionContext(connectionContext).http2()
+        builder.withCustomHttpsConnectionContext(connectionContext).managedPersistentHttp2()
       } else {
-        builder.http2WithPriorKnowledge()
+        builder.managedPersistentHttp2WithPriorKnowledge()
       }
 
     val (queue, doneFuture) =
