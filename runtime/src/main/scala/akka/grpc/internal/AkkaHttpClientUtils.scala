@@ -7,7 +7,6 @@ package akka.grpc.internal
 import java.net.InetSocketAddress
 import java.security.SecureRandom
 import java.util.concurrent.CompletionStage
-
 import scala.concurrent.duration._
 import akka.{ Done, NotUsed }
 import akka.actor.ClassicActorSystemProvider
@@ -15,19 +14,19 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk }
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
 import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.stream.OverflowStrategy
+import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
-import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 
+import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
 import akka.http.scaladsl.model.StatusCodes
 
@@ -121,11 +120,13 @@ object AkkaHttpClientUtils {
 
     implicit def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
       descriptor.getRequestMarshaller.asInstanceOf[WithProtobufSerializer[I]].protobufSerializer
+
     implicit def deserializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[O] =
       descriptor.getResponseMarshaller.asInstanceOf[WithProtobufSerializer[O]].protobufSerializer
 
     new InternalChannel() {
       override def shutdown(): Unit = queue.complete()
+
       override def done: Future[Done] = doneFuture
 
       override def invoke[I, O](
@@ -147,10 +148,15 @@ object AkkaHttpClientUtils {
           case (metadata, result) =>
             new GrpcSingleResponse[O] {
               def value: O = result
+
               def getValue(): O = result
+
               def headers = metadata.headers
+
               def getHeaders() = metadata.getHeaders()
+
               def trailers = metadata.trailers
+
               def getTrailers() = metadata.getTrailers()
             }
         }
@@ -169,19 +175,37 @@ object AkkaHttpClientUtils {
           Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(target.host)}/" + descriptor.getFullMethodName),
           GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
-        Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
-          singleRequest(httpRequest).map { response =>
-            {
-              Codecs.detect(response) match {
-                case Success(codec) =>
-                  log.info(s"XXX response $response started")
-                  implicit val reader: GrpcProtocolReader = GrpcProtocolNative.newReader(codec)
-                  val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
-                  // Completed with success or failure based on grpc-status and grpc-message trailing headers
-                  val completionFuture: Future[Unit] =
-                    trailerPromise.future.flatMap(trailers => parseResponseStatus(response, trailers))
-                  completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
+        responseToSource(singleRequest(httpRequest), deserializer, log)
+      }
+    }
+  }
 
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  def responseToSource[O](response: Future[HttpResponse], deserializer: ProtobufSerializer[O], log: LoggingAdapter)(
+      implicit ec: ExecutionContext,
+      mat: Materializer): Source[O, Future[GrpcResponseMetadata]] = {
+    Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
+      response.map { response =>
+        {
+          if (response.status != StatusCodes.OK) {
+            response.entity.discardBytes()
+            val failure = mapToStatusException(response, immutable.Seq.empty)
+            Source.failed(failure).mapMaterializedValue(_ => Future.failed(failure))
+          } else {
+            Codecs.detect(response) match {
+              case Success(codec) =>
+                log.info(s"XXX response $response started")
+                implicit val reader: GrpcProtocolReader = GrpcProtocolNative.newReader(codec)
+                val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
+                // Completed with success or failure based on grpc-status and grpc-message trailing headers
+                val completionFuture: Future[Unit] =
+                  trailerPromise.future.flatMap(trailers => parseResponseStatus(response, trailers))
+                completionFuture.foreach(_ => log.info(s"XXX response $response completion"))
+
+                val responseData =
                   response.entity match {
                     case Chunked(_, chunks) =>
                       chunks
@@ -197,43 +221,47 @@ object AkkaHttpClientUtils {
                             log.info(s"XXX response $response termination ${c.isSuccess}")
                             trailerPromise.trySuccess(immutable.Seq.empty)
                           }))
-                        // This never adds any data to the stream, but makes sure it fails with the correct error code if applicable
-                        .concat(Source
-                          .maybe[ByteString]
-                          .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
-                        // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
-                        .via(new CancellationBarrierGraphStage)
-                        .via(reader.dataFrameDecoder)
-                        .map(data => deserializer.deserialize(data))
-                        .mapMaterializedValue(_ =>
-                          Future.successful(new GrpcResponseMetadata() {
-                            override def headers: akka.grpc.scaladsl.Metadata =
-                              new HeaderMetadataImpl(response.headers)
-
-                            override def getHeaders(): akka.grpc.javadsl.Metadata =
-                              new JavaMetadataImpl(new HeaderMetadataImpl(response.headers))
-
-                            override def trailers: Future[akka.grpc.scaladsl.Metadata] =
-                              trailerPromise.future.map(new HeaderMetadataImpl(_))
-
-                            override def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata] =
-                              trailerPromise.future
-                                .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
-                                .toJava
-                          }))
+                    case Strict(_, data) =>
+                      trailerPromise.success(immutable.Seq.empty)
+                      Source.single[ByteString](data)
                     case _ =>
                       response.entity.discardBytes()
                       throw mapToStatusException(response, Seq.empty)
                   }
-                case Failure(e) =>
-                  Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
-              }
+                responseData
+                  // This never adds any data to the stream, but makes sure it fails with the correct error code if applicable
+                  .concat(
+                    Source
+                      .maybe[ByteString]
+                      .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
+                  // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
+                  .via(new CancellationBarrierGraphStage)
+                  .via(reader.dataFrameDecoder)
+                  .map(data => deserializer.deserialize(data))
+                  .mapMaterializedValue(_ =>
+                    Future.successful(new GrpcResponseMetadata() {
+                      override def headers: akka.grpc.scaladsl.Metadata =
+                        new HeaderMetadataImpl(response.headers)
+
+                      override def getHeaders(): akka.grpc.javadsl.Metadata =
+                        new JavaMetadataImpl(new HeaderMetadataImpl(response.headers))
+
+                      override def trailers: Future[akka.grpc.scaladsl.Metadata] =
+                        trailerPromise.future.map(new HeaderMetadataImpl(_))
+
+                      override def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata] =
+                        trailerPromise.future
+                          .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
+                          .toJava
+                    }))
+              case Failure(e) =>
+                Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
             }
           }
-        })
-      }.mapMaterializedValue(_.flatten)
-    }
-  }
+        }
+      }
+    })
+  }.mapMaterializedValue(_.flatten)
 
   private def parseResponseStatus(response: HttpResponse, trailers: Seq[HttpHeader]): Future[Unit] = {
     val allHeaders = response.headers ++ trailers
