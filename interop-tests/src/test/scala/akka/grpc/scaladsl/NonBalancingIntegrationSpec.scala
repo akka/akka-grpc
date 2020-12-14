@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 class NonBalancingIntegrationSpecNetty extends NonBalancingIntegrationSpec()
@@ -51,12 +51,15 @@ class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
 
       val discovery = MutableServiceDiscovery(List(server1, server2))
       val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
-      for (i <- 1 to 100) {
-        client.sayHello(HelloRequest(s"Hello $i")).futureValue
-      }
 
-      service1.greetings.get + service2.greetings.get should be(100)
-      service1.greetings.get should be(100)
+      val numberOfRequests = 100
+
+      val requests = List.fill(numberOfRequests)(client.sayHello(HelloRequest(s"Hello")))
+
+      Future.sequence(requests).futureValue
+
+      service1.greetings.get + service2.greetings.get should be(numberOfRequests)
+      service1.greetings.get should be(numberOfRequests)
       service2.greetings.get should be(0)
     }
 
@@ -67,18 +70,21 @@ class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
 
       val discovery = MutableServiceDiscovery(List(server1))
       val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
-      for (i <- 1 to 50) {
-        client.sayHello(HelloRequest(s"Hello $i")).futureValue
-      }
+
+      val numberOfRequests = 100
+      val requestsPerConnection = numberOfRequests / 2
+
+      val requestsOnFirstConnection = List.fill(requestsPerConnection)(client.sayHello(HelloRequest(s"Hello")))
+
+      Future.sequence(requestsOnFirstConnection).futureValue
       server1.terminate(5.seconds).futureValue
       // And restart
       Http().newServerAt("127.0.0.1", server1.localAddress.getPort).bind(GreeterServiceHandler(service1)).futureValue
 
-      for (i <- 1 to 50) {
-        client.sayHello(HelloRequest(s"Hello $i")).futureValue
-      }
+      val requestsOnSecondConnection = List.fill(requestsPerConnection)(client.sayHello(HelloRequest(s"Hello")))
+      Future.sequence(requestsOnSecondConnection).futureValue
 
-      service1.greetings.get should be(100)
+      service1.greetings.get should be(numberOfRequests)
     }
 
     "re-discover endpoints on failure" in {
