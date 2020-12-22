@@ -88,9 +88,8 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
       case NonFatal(t) => fail(t)
     }
 
-  private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit = {
+  private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit =
     client.run(args)
-  }
 
   private def pendingTestCaseSupport(expectedToFail: Boolean)(block: => Unit): Assertion = {
     val result =
@@ -145,7 +144,11 @@ object IoGrpcJavaClientProvider extends GrpcClientProvider {
 
 trait AkkaHttpServerProvider extends GrpcServerProvider
 
-trait AkkaHttpClientProvider extends GrpcClientProvider {
+trait AkkaClientProvider extends GrpcClientProvider {
+  // All client implementations currently support the same set of interop tests.
+  // When adding support for further interop tests, we should either implement them
+  // for all client implementations simultaneously, or distribute `pendingCases` over
+  // the actual implementations again (also in the scripted GrpcInteropSpec).
   val pendingCases =
     Set(
       "cancel_after_begin",

@@ -12,6 +12,7 @@ import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
 import akka.stream.{ Materializer, SystemMaterializer }
+import com.typesafe.config.{ Config, ConfigFactory }
 import example.myapp.helloworld.grpc.helloworld._
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException
@@ -25,12 +26,25 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class LoadBalancingIntegrationSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with ScalaFutures {
-  implicit val system = ActorSystem("NonBalancingIntegrationSpec")
+class LoadBalancingIntegrationSpecNetty extends LoadBalancingIntegrationSpec()
+
+// TODO FIXME enable this test when we can use a pool interface in AkkaHttpClientUtils
+// https://github.com/akka/akka-grpc/issues/1196
+// https://github.com/akka/akka-grpc/issues/1197
+//class LoadBalancingIntegrationSpecAkkaHttp
+//    extends LoadBalancingIntegrationSpec(
+//      ConfigFactory.parseString("""akka.grpc.client."*".backend = "akka-http" """).withFallback(ConfigFactory.load()))
+
+class LoadBalancingIntegrationSpec(config: Config = ConfigFactory.load())
+    extends AnyWordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with ScalaFutures {
+  implicit val system = ActorSystem("NonBalancingIntegrationSpec", config)
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
-  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   "Client-side loadbalancing" should {
     "send requests to multiple endpoints" in {

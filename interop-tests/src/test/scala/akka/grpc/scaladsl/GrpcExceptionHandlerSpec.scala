@@ -107,7 +107,7 @@ class GrpcExceptionHandlerSpec
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
       implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
-      val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", Source.single(HelloRequest("")))
+      val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", List.empty, Source.single(HelloRequest("")))
 
       val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
 
@@ -128,7 +128,8 @@ class GrpcExceptionHandlerSpec
         example.myapp.helloworld.grpc.helloworld.GreeterService.Serializers.HelloRequestSerializer
       implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
-      val request = GrpcRequestHelpers(s"/${GreeterService.name}/ItKeepsReplying", Source.single(HelloRequest("")))
+      val request =
+        GrpcRequestHelpers(s"/${GreeterService.name}/ItKeepsReplying", List.empty, Source.single(HelloRequest("")))
 
       val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
 

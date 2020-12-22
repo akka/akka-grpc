@@ -147,7 +147,8 @@ object GrpcClientSettings {
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
-      getOptionalString(clientConfiguration, "load-balancing-policy"))
+      getOptionalString(clientConfiguration, "load-balancing-policy"),
+      clientConfiguration.getString("backend"))
 
   private def getOptionalString(config: Config, path: String): Option[String] =
     config.getString(path) match {
@@ -194,6 +195,7 @@ final class GrpcClientSettings private (
     val userAgent: Option[String],
     val useTls: Boolean,
     val loadBalancingPolicy: Option[String],
+    val backend: String,
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
   require(
     sslContext.isEmpty || trustManager.isEmpty,
@@ -201,6 +203,7 @@ final class GrpcClientSettings private (
   require(
     if (sslContext.isDefined) sslProvider.forall(_ == SslProvider.JDK) else true,
     "When sslContext is configured, sslProvider must not set to something different than JDK")
+  require(backend == "netty" || backend == "akka-http", "backend should be 'netty' or 'akka-http'");
 
   /**
    * If using ServiceDiscovery and no port is returned use this one.
@@ -273,6 +276,10 @@ final class GrpcClientSettings private (
   def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =
     copy(channelBuilderOverrides = builderOverrides)
 
+  @ApiMayChange
+  def withBackend(value: String): GrpcClientSettings =
+    copy(backend = value)
+
   private def copy(
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
@@ -289,6 +296,7 @@ final class GrpcClientSettings private (
       resolveTimeout: FiniteDuration = resolveTimeout,
       connectionAttempts: Option[Int] = connectionAttempts,
       loadBalancingPolicy: Option[String] = loadBalancingPolicy,
+      backend: String = backend,
       channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
       : GrpcClientSettings =
     new GrpcClientSettings(
@@ -308,5 +316,6 @@ final class GrpcClientSettings private (
       resolveTimeout = resolveTimeout,
       connectionAttempts = connectionAttempts,
       loadBalancingPolicy = loadBalancingPolicy,
+      backend = backend,
       channelBuilderOverrides = channelBuilderOverrides)
 }

@@ -17,6 +17,7 @@ import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServic
 import io.grpc.testing.integration2.{ ClientTester, Settings }
 import io.grpc.{ Status, StatusRuntimeException }
 import org.junit.Assert._
+import org.scalatest.matchers.should.Matchers.{ a, convertToAnyShouldWrapper }
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -30,7 +31,8 @@ import scala.util.control.NoStackTrace
  * The same implementation is also be found as part of the 'scripted' tests at
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
-class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSystem) extends ClientTester {
+class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implicit system: ActorSystem)
+    extends ClientTester {
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
   private implicit val mat = SystemMaterializer(system).materializer
@@ -40,6 +42,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSy
   def setUp(): Unit = {
     val grpcSettings = GrpcClientSettings
       .connectToServiceAt(settings.serverHost, settings.serverPort)
+      .withBackend(backend)
       .withOverrideAuthority(settings.serverHostOverride)
       .withTls(settings.useTls)
       .withTrustManager(SSLContextUtils.trustManagerFromResource("/certs/ca.pem"))
@@ -211,7 +214,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSy
               responseParameters = Seq(ResponseParameters(size = 314159)),
               payload = Some(Payload(body = ByteString.copyFrom(new Array[Byte](271828)))))))
 
-    val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.head)(Keep.both).run()
+    val (futureMetadata, futureResponse) = fullDuplexResponseWithMetadata.toMat(Sink.headOption)(Keep.both).run()
 
     Await.result(futureResponse, awaitTimeout) // just to see call was successful and fail early if not
     val fullDuplexMetadata = Await.result(futureMetadata, awaitTimeout)
@@ -256,12 +259,15 @@ class AkkaGrpcScalaClientTester(val settings: Settings)(implicit system: ActorSy
     throw new RuntimeException("Not implemented!timeoutOnSleepingServer") with NoStackTrace
 
   def assertFailure(failure: Future[_], expectedStatus: Status): Unit = {
-    val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
-    assertEquals(expectedStatus.getCode, e.getStatus.getCode)
+    val throwable = Await.result(failure.failed, awaitTimeout)
+    throwable shouldBe a[StatusRuntimeException]
+    assertEquals(expectedStatus.getCode, throwable.asInstanceOf[StatusRuntimeException].getStatus.getCode)
   }
 
   def assertFailure(failure: Future[_], expectedStatus: Status, expectedMessage: String): Unit = {
-    val e = Await.result(failure.failed, awaitTimeout).asInstanceOf[StatusRuntimeException]
+    val throwable = Await.result(failure.failed, awaitTimeout)
+    throwable shouldBe a[StatusRuntimeException]
+    val e = throwable.asInstanceOf[StatusRuntimeException]
     assertEquals(expectedStatus.getCode, e.getStatus.getCode)
     assertEquals(expectedMessage, e.getStatus.getDescription)
   }

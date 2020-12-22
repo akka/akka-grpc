@@ -65,7 +65,7 @@ jobs:
             - ./scalapb-protoc-plugin/target
     - name: Checks
       script:
-        - sbt -jvm-opts .jvmopts-travis ++2.13.3 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues headerCheckAll grpcVersionSyncCheck scalafmtCheckAll scalafmtSbtCheck
+        - sbt -jvm-opts .jvmopts-travis scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck ++2.13.3 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues
     - name: Compile benchmarks
       script: 
         - cd benchmark-java 

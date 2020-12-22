@@ -5,13 +5,12 @@
 package akka.grpc.internal
 
 import scala.concurrent.duration._
-import scala.concurrent.Promise
-
-import io.grpc.ConnectivityState._
-
-import akka.Done
+import scala.concurrent.{ Future, Promise }
+import akka.{ Done, NotUsed }
 import akka.actor.ActorSystem
-
+import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
+import akka.stream.scaladsl.Source
+import io.grpc.{ CallOptions, MethodDescriptor }
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
@@ -24,7 +23,26 @@ class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with E
 
   private def clientState(channelCompletion: Promise[Done] = Promise[Done]()) = {
     val channel =
-      new InternalChannel(new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)), channelCompletion.future)
+      new InternalChannel() {
+        override def invoke[I, O](
+            request: I,
+            headers: MetadataImpl,
+            descriptor: MethodDescriptor[I, O],
+            options: CallOptions): Future[O] = ???
+        override def invokeWithMetadata[I, O](
+            request: I,
+            headers: MetadataImpl,
+            descriptor: MethodDescriptor[I, O],
+            options: CallOptions): Future[GrpcSingleResponse[O]] = ???
+        override def invokeWithMetadata[I, O](
+            source: Source[I, NotUsed],
+            headers: MetadataImpl,
+            descriptor: MethodDescriptor[I, O],
+            streamingResponse: Boolean,
+            options: CallOptions): Source[O, Future[GrpcResponseMetadata]] = ???
+        override def shutdown(): Unit = channelCompletion.success(Done)
+        override def done: Future[Done] = channelCompletion.future
+      }
     new ClientState(channel)
   }
 
@@ -34,14 +52,6 @@ class ClientStateSpec extends AnyWordSpec with Matchers with ScalaFutures with E
       val state = clientState()
       // it provides a channel when needed
       state.internalChannel should not be null
-    }
-    "reuse a valid channel" in {
-      // given a state
-      val state = clientState()
-      // it provides a channel when needed
-      val c1 = state.internalChannel.managedChannel
-      val c2 = state.internalChannel.managedChannel
-      c1 should be(c2)
     }
   }
 

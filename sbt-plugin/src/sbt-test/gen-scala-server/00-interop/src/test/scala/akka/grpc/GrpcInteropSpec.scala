@@ -74,7 +74,7 @@ object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {
   })
 }
 
-object AkkaHttpClientProviderScala extends AkkaHttpClientProvider {
+object AkkaHttpClientProviderScala extends AkkaClientProvider {
   val label: String = "akka-grpc scala client tester"
 
   def client = AkkaGrpcClientScala(settings => implicit sys => new AkkaGrpcClientTester(settings))

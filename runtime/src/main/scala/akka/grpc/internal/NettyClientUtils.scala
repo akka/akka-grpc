@@ -7,20 +7,20 @@ package akka.grpc.internal
 import java.util.concurrent.TimeUnit
 
 import javax.net.ssl.SSLContext
-import akka.Done
+import akka.{ Done, NotUsed }
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
-import akka.grpc.GrpcClientSettings
+import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
+import akka.stream.scaladsl.{ Flow, Keep, Source }
 import com.github.ghik.silencer.silent
-import io.grpc.CallOptions
+import io.grpc.{ CallOptions, MethodDescriptor }
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext, SslContextBuilder }
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Promise
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
 
 /**
@@ -110,7 +110,58 @@ object NettyClientUtils {
         channelClosedPromise.tryFailure(e)
     }
 
-    InternalChannel(channel, channelClosedPromise.future)
+    new InternalChannel {
+      override def shutdown() = channel.shutdown()
+      override def done = channelClosedPromise.future
+
+      override def invoke[I, O](
+          request: I,
+          headers: MetadataImpl,
+          descriptor: MethodDescriptor[I, O],
+          options: CallOptions): Future[O] = {
+        val listener = new UnaryCallAdapter[O]
+        val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+        call.start(listener, headers.toGoogleGrpcMetadata())
+        call.sendMessage(request)
+        call.halfClose()
+        call.request(2)
+        listener.future
+      }
+
+      override def invokeWithMetadata[I, O](
+          request: I,
+          headers: MetadataImpl,
+          descriptor: MethodDescriptor[I, O],
+          options: CallOptions): Future[GrpcSingleResponse[O]] = {
+        val listener = new UnaryCallWithMetadataAdapter[O]
+        val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+        call.start(listener, headers.toGoogleGrpcMetadata())
+        call.sendMessage(request)
+        call.halfClose()
+        call.request(2)
+        listener.future
+      }
+
+      override def invokeWithMetadata[I, O](
+          source: Source[I, NotUsed],
+          headers: MetadataImpl,
+          descriptor: MethodDescriptor[I, O],
+          streamingResponse: Boolean,
+          options: CallOptions) = {
+        val flow =
+          createFlow(headers, descriptor, streamingResponse, callOptionsWithDeadline(options, settings))
+        source.viaMat(flow)(Keep.right)
+      }
+
+      // TODO can't you derive the method name from the descriptor?
+      private def createFlow[I, O](
+          headers: MetadataImpl,
+          descriptor: MethodDescriptor[I, O],
+          streamingResponse: Boolean,
+          options: CallOptions): Flow[I, O, Future[GrpcResponseMetadata]] =
+        Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, channel, options, streamingResponse, headers))
+
+    }
   }
 
   /**
