@@ -110,6 +110,7 @@ jobs:
       workspaces:
         use: mavenLocal
       script: 
+        - find ~/.m2/repository/ -print
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
         - cd ../plugin-tester-scala 
