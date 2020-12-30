@@ -5,15 +5,14 @@
 package akka.grpc.gen.javadsl
 
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
-import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-
 import com.github.ghik.silencer.silent
+import protocgen.CodeGenRequest
 
 abstract class JavaCodeGenerator extends CodeGenerator {
 
@@ -33,24 +32,17 @@ abstract class JavaCodeGenerator extends CodeGenerator {
 
     // generate services code here, the data types we want to leave to scalapb
 
-    val fileDescByName: Map[String, FileDescriptor] =
-      request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
-        case (acc, fp) =>
-          val deps = fp.getDependencyList.asScala.map(acc).toArray
-          acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
-      }
-
     // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
     val params = request.getParameter.toLowerCase
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
+    val codeGenRequest = CodeGenRequest(request)
     val services = (for {
-      file <- request.getFileToGenerateList.asScala
-      fileDesc = fileDescByName(file)
+      fileDesc <- codeGenRequest.filesToGenerate
       serviceDesc <- fileDesc.getServices.asScala
-    } yield Service(fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toVector
+    } yield Service(codeGenRequest, fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toVector
 
     for {
       service <- services

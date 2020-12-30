@@ -5,9 +5,10 @@
 package akka.grpc.gen.scaladsl
 
 import scala.collection.immutable
-
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
+//import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
+import protocgen.CodeGenRequest
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 case class Service(
@@ -25,12 +26,14 @@ case class Service(
 
 object Service {
   def apply(
+      request: CodeGenRequest,
       generatorParams: GeneratorParams,
       fileDesc: FileDescriptor,
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
       usePlayActions: Boolean): Service = {
-    implicit val ops = new DescriptorImplicits(generatorParams, fileDesc.getDependencies.asScala.toList :+ fileDesc)
+    implicit val ops =
+      DescriptorImplicits.fromCodeGenRequest(generatorParams, request)
     import ops._
 
     val serviceClassName = serviceDescriptor.getName

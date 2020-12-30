@@ -7,12 +7,11 @@ package akka.grpc.gen.scaladsl
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
-import com.google.protobuf.Descriptors._
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
-
 import com.github.ghik.silencer.silent
+import protocgen.CodeGenRequest
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
   // Override this to add generated files per service
@@ -35,12 +34,6 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
-    val fileDescByName: Map[String, FileDescriptor] =
-      request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
-        case (acc, fp) =>
-          val deps = fp.getDependencyList.asScala.map(acc).toArray
-          acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps))
-      }
 
     // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
@@ -49,12 +42,13 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
+    val codeGenRequest = CodeGenRequest(request)
     val services =
       (for {
-        file <- request.getFileToGenerateList.asScala
-        fileDesc = fileDescByName(file)
+        fileDesc <- codeGenRequest.filesToGenerate
         serviceDesc <- fileDesc.getServices.asScala
       } yield Service(
+        codeGenRequest,
         parseParameters(request.getParameter),
         fileDesc,
         serviceDesc,
