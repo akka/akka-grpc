@@ -9,7 +9,7 @@ import akka.actor.{
   ExtensionIdProvider
 }
 import akka.annotation.{ InternalApi, InternalStableApi }
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.javadsl.model.HttpRequest
 
 import scala.annotation.nowarn
 

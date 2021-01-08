@@ -1,12 +1,15 @@
 package akka.grpc.scaladsl
 
+import com.typesafe.config.ConfigFactory
+
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity, TelemetryExtension, TelemetrySpi }
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.javadsl.model.HttpRequest
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
-import com.typesafe.config.ConfigFactory
+
 import example.myapp.helloworld.grpc.helloworld.{ GreeterService, GreeterServiceHandler, HelloRequest }
+
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -37,7 +40,7 @@ class TelemetrySpec
       val (prefix, method, request) = spi.requests(0)
       prefix should be(GreeterService.name)
       method should be("SayHello")
-      request.entity.contentType should be(GrpcProtocolNative.contentType)
+      request.entity.getContentType should be(GrpcProtocolNative.contentType)
     }
   }
 }

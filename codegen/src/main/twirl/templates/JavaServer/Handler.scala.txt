@@ -21,6 +21,8 @@ import akka.stream.SystemMaterializer;
 import akka.grpc.Trailers;
 import akka.grpc.javadsl.GrpcMarshalling;
 import akka.grpc.javadsl.GrpcExceptionHandler;
+import akka.grpc.internal.TelemetryExtension;
+import akka.grpc.internal.TelemetrySpi;
 
 @{if (powerApis) "import akka.grpc.javadsl.Metadata;\nimport akka.grpc.javadsl.MetadataBuilder;" else ""}
 
@@ -107,12 +109,16 @@ public class @{serviceName}HandlerFactory {
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> partial(@serviceName implementation, String prefix, Materializer mat, akka.japi.Function<ActorSystem, akka.japi.Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
+      TelemetrySpi spi = TelemetryExtension.get(system).spi();
       return (req -> {
         Iterator<String> segments = req.getUri().pathSegments().iterator();
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
           String method = segments.next();
           if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-          else return handle(req, method, implementation, mat, eHandler, system);
+          else {
+            spi.onRequest(prefix, method, req);
+            return handle(req, method, implementation, mat, eHandler, system);
+          }
         } else {
           return notFound;
         }
