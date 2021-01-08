@@ -46,6 +46,7 @@ class TelemetrySpec
 }
 
 class CollectingTelemetrySpi extends TelemetrySpi {
+  @volatile
   var requests: List[(String, String, HttpRequest)] = Nil
 
   override def onRequest[T <: HttpRequest](prefix: String, method: String, request: T): T = {
