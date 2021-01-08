@@ -95,8 +95,7 @@ object @{serviceName}Handler {
       import @{service.name}.Serializers._
 
       def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] =
-        GrpcMarshalling.negotiated(request, (reader, writer) => {
-          spi.onRequest(prefix, method, request)
+        GrpcMarshalling.negotiated(request, (reader, writer) =>
           (method match {
             @for(method <- service.methods) {
             case "@method.grpcName" =>
@@ -108,11 +107,11 @@ object @{serviceName}Handler {
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
           .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(system, writer))
-      }).getOrElse(unsupportedMediaType)
+      ).getOrElse(unsupportedMediaType)
 
       Function.unlift((req: model.HttpRequest) => req.uri.path match {
         case model.Uri.Path.Slash(model.Uri.Path.Segment(`prefix`, model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)))) =>
-          Some(handle(req, method))
+          Some(handle(spi.onRequest(prefix, method, req), method))
         case _ =>
           None
       })

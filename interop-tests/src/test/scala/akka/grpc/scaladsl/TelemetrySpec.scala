@@ -48,6 +48,8 @@ class TelemetrySpec
 class CollectingTelemetrySpi extends TelemetrySpi {
   var requests: List[(String, String, HttpRequest)] = Nil
 
-  override def onRequest(prefix: String, method: String, request: HttpRequest): Unit =
+  override def onRequest[T <: HttpRequest](prefix: String, method: String, request: T): T = {
     requests :+= (prefix, method, request)
+    request
+  }
 }

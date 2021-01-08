@@ -116,8 +116,7 @@ public class @{serviceName}HandlerFactory {
           String method = segments.next();
           if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
           else {
-            spi.onRequest(prefix, method, req);
-            return handle(req, method, implementation, mat, eHandler, system);
+            return handle(spi.onRequest(prefix, method, req), method, implementation, mat, eHandler, system);
           }
         } else {
           return notFound;

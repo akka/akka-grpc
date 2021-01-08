@@ -52,7 +52,7 @@ private[internal] object TelemetrySpi {
 @InternalStableApi
 trait TelemetrySpi {
   @nowarn
-  def onRequest(prefix: String, method: String, request: HttpRequest): Unit = {}
+  def onRequest[T <: HttpRequest](prefix: String, method: String, request: T): T = request
 }
 
 @InternalApi
