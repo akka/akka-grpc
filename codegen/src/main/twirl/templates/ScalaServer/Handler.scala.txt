@@ -18,6 +18,8 @@ import akka.annotation.ApiMayChange
 import akka.http.scaladsl.model
 import akka.stream.SystemMaterializer
 
+import akka.grpc.internal.TelemetryExtension
+
 @{if (powerApis) "import akka.grpc.scaladsl.MetadataBuilder" else ""}
 
 @defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
@@ -88,10 +90,13 @@ object @{serviceName}Handler {
     def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
       implicit val mat = SystemMaterializer(system).materializer
       implicit val ec: ExecutionContext = mat.executionContext
+      val spi = TelemetryExtension(system).spi
+
       import @{service.name}.Serializers._
 
       def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] =
-        GrpcMarshalling.negotiated(request, (reader, writer) =>
+        GrpcMarshalling.negotiated(request, (reader, writer) => {
+          spi.onRequest(prefix, method, request)
           (method match {
             @for(method <- service.methods) {
             case "@method.grpcName" =>
@@ -103,7 +108,7 @@ object @{serviceName}Handler {
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
           .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(system, writer))
-      ).getOrElse(unsupportedMediaType)
+      }).getOrElse(unsupportedMediaType)
 
       Function.unlift((req: model.HttpRequest) => req.uri.path match {
         case model.Uri.Path.Slash(model.Uri.Path.Segment(`prefix`, model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)))) =>
