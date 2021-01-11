@@ -20,6 +20,10 @@ final case class Method(
     comment: Option[String] = None) {
   import Method._
 
+  require(
+    !ReservedWords.contains(name),
+    s"The method name `$name` is a reserved word in Java, please change it in your proto")
+
   def deserializer = Serializer(inputType)
   def serializer = Serializer(outputType)
 
@@ -91,5 +95,58 @@ object Method {
       else Service.outerClass(t.getFile) + "." + t.getName
     (if (packageName.isEmpty) "" else packageName + ".") + name
   }
+
+  // https://docs.oracle.com/javase/tutorial/java/nutsandbolts/_keywords.html
+  val ReservedWords = Set(
+    "abstract",
+    "continue",
+    "for",
+    "new",
+    "switch",
+    "assert",
+    "default",
+    "goto",
+    "package",
+    "synchronized",
+    "boolean",
+    "do",
+    "if",
+    "private",
+    "this",
+    "break",
+    "double",
+    "implements",
+    "protected",
+    "throw",
+    "byte",
+    "else",
+    "import",
+    "public",
+    "throws",
+    "case",
+    "enum",
+    "instanceof",
+    "return",
+    "transient",
+    "catch",
+    "extends",
+    "int",
+    "short",
+    "try",
+    "char",
+    "final",
+    "interface",
+    "static",
+    "void",
+    "class",
+    "finally",
+    "long",
+    "strictfp",
+    "volatile",
+    "const",
+    "float",
+    "native",
+    "super",
+    "while")
 
 }

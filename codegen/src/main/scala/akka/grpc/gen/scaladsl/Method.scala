@@ -77,7 +77,7 @@ object Method {
   }
 
   // https://github.com/scalapb/ScalaPB/blob/master/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1038
-  private val reservedWords = Set(
+  val ReservedWords = Set(
     "abstract",
     "case",
     "catch",
