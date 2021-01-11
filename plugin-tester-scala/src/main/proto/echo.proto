@@ -8,6 +8,8 @@ package echo;
 // The greeting service definition.
 service EchoService {
     rpc Echo (EchoMessage) returns (EchoMessage) {}
+    rpc Match (EchoMessage) returns (EchoMessage) {};
+
 }
 
 message EchoMessage {

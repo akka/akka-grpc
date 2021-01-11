@@ -10,4 +10,6 @@ import example.myapp.echo.grpc._
 
 class EchoServiceImpl extends EchoService {
   def echo(in: EchoMessage): Future[EchoMessage] = Future.successful(in)
+
+  override def `match`(in: EchoMessage): Future[EchoMessage] = Future.successful(in)
 }

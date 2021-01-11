@@ -48,6 +48,12 @@ case class Method(
       case (true, true)   => BidiStreaming
     }
   }
+
+  val nameSafe = {
+    if (name == "match") {
+      s"""`$name`""".stripMargin
+    } else name
+  }
 }
 
 object Method {

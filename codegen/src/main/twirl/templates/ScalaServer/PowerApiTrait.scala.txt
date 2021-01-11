@@ -14,6 +14,6 @@ import akka.grpc.scaladsl.Metadata
  */
 trait @{service.name}PowerApi {
   @for(method <- service.methods) {
-  def @{method.name}(in: @method.parameterType, metadata: Metadata): @method.returnType
+  def @{method.nameSafe}(in: @method.parameterType, metadata: Metadata): @method.returnType
   }
 }
