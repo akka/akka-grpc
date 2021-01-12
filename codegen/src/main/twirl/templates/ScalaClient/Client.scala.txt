@@ -82,7 +82,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
     }
 
     /**
-     * For access to method metadata use the parameterless version of @{method.name}
+     * For access to method metadata use the parameterless version of @{method.nameSafe}
      */
     def @{method.nameSafe}(in: @method.parameterType): @method.returnType =
       @{method.nameSafe}().invoke(in)
