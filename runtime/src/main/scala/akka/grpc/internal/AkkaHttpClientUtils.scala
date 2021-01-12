@@ -26,8 +26,8 @@ import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
-import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Success }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.{ Failure, Random, Success }
 import akka.http.scaladsl.model.StatusCodes
 
 /**
@@ -53,33 +53,29 @@ object AkkaHttpClientUtils {
     // Configuring compression per call could be a future power API feature.
     implicit val writer = GrpcProtocolNative.newWriter(Identity)
 
-    val target = {
-      // TODO FIXME discovery, loadbalancing etc
-      // https://github.com/akka/akka-grpc/issues/1196
-      // https://github.com/akka/akka-grpc/issues/1197
-      val resolved = settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds)
-      Await.result(resolved, 10.seconds).addresses.head
-    }
+    // TODO FIXME adapt to new API's for discovery, loadbalancing etc
+    // https://github.com/akka/akka-grpc/issues/1196
+    // https://github.com/akka/akka-grpc/issues/1197
 
-    val clientConnectionSettings = settings.overrideAuthority match {
-      case None => ClientConnectionSettings(sys)
-      case Some(authority) =>
-        ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, port) => {
+    val random = new Random()
+    val clientConnectionSettings =
+      ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, _) => {
+        settings.overrideAuthority.foreach { authority =>
           assert(host == authority)
-          assert(port == target.port.getOrElse(settings.defaultPort))
+        }
+        settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
+          val target = resolved.addresses(random.nextInt(resolved.addresses.size))
           target.address match {
             case Some(address) =>
-              Future.successful(new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort)))
+              new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort))
             case None =>
-              Future.successful(new InetSocketAddress(target.host, target.port.getOrElse(settings.defaultPort)))
+              new InetSocketAddress(target.host, target.port.getOrElse(settings.defaultPort))
           }
-
-        }))
-    }
+        }
+      }))
 
     val builder = Http()
-      .connectionTo(settings.overrideAuthority.getOrElse(target.host))
-      .toPort(target.port.getOrElse(settings.defaultPort))
+      .connectionTo(settings.overrideAuthority.getOrElse(settings.serviceName))
       .withClientConnectionSettings(clientConnectionSettings)
 
     val http2client =
@@ -168,7 +164,8 @@ object AkkaHttpClientUtils {
         val deserializer: ProtobufSerializer[O] = descriptor
         val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
-          Uri(s"${scheme}://${settings.overrideAuthority.getOrElse(target.host)}/" + descriptor.getFullMethodName),
+          Uri(
+            s"${scheme}://${settings.overrideAuthority.getOrElse(settings.serviceName)}/" + descriptor.getFullMethodName),
           GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
         responseToSource(singleRequest(httpRequest), deserializer)
