@@ -50,7 +50,7 @@ case class Method(
   }
 
   val nameSafe: String =
-    if (reservedWords.contains(name)) s"""`$name`""".stripMargin
+    if (reservedWords.contains(name)) s"""`$name`"""
     else name
 
 }
