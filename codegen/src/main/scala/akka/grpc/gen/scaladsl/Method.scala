@@ -50,7 +50,7 @@ case class Method(
   }
 
   val nameSafe: String =
-    if (reservedWords.contains(name)) s"""`$name`"""
+    if (ReservedWords.contains(name)) s"""`$name`"""
     else name
 
 }
@@ -77,7 +77,7 @@ object Method {
   }
 
   // https://github.com/scalapb/ScalaPB/blob/master/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1038
-  val ReservedWords = Set(
+  private val ReservedWords = Set(
     "abstract",
     "case",
     "catch",

@@ -97,7 +97,7 @@ object Method {
   }
 
   // https://docs.oracle.com/javase/tutorial/java/nutsandbolts/_keywords.html
-  val ReservedWords = Set(
+  private val ReservedWords = Set(
     "abstract",
     "continue",
     "for",
