@@ -48,6 +48,11 @@ case class Method(
       case (true, true)   => BidiStreaming
     }
   }
+
+  val nameSafe: String =
+    if (reservedWords.contains(name)) s"""`$name`"""
+    else name
+
 }
 
 object Method {
@@ -70,4 +75,50 @@ object Method {
     import ops._
     messageType.scalaType.fullName
   }
+
+  // https://github.com/scalapb/ScalaPB/blob/master/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1038
+  private val reservedWords = Set(
+    "abstract",
+    "case",
+    "catch",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "for",
+    "forSome",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "macro",
+    "match",
+    "new",
+    "null",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "super",
+    "then",
+    "this",
+    "throw",
+    "trait",
+    "try",
+    "true",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+    "ne")
 }

@@ -71,21 +71,21 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.
-     * prefer @{method.name}(@method.parameterType) if possible.
+     * prefer @{method.nameSafe}(@method.parameterType) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      override def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+      override def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
         @{method.name}RequestBuilder(clientState.internalChannel)
     } else {
-      override def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+      override def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
         @{method.name}RequestBuilder(clientState.internalChannel)
     }
 
     /**
-     * For access to method metadata use the parameterless version of @{method.name}
+     * For access to method metadata use the parameterless version of @{method.nameSafe}
      */
-    def @{method.name}(in: @method.parameterType): @method.returnType =
-      @{method.name}().invoke(in)
+    def @{method.nameSafe}(in: @method.parameterType): @method.returnType =
+      @{method.nameSafe}().invoke(in)
   }
 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
@@ -123,12 +123,12 @@ trait @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
      * Lower level "lifted" version of the method, giving access to request metadata etc.
-     * prefer @{method.name}(@method.parameterType) if possible.
+     * prefer @{method.nameSafe}(@method.parameterType) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      def @{method.name}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+      def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     } else {
-      def @{method.name}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+      def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
     }
   }
 

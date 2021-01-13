@@ -13,7 +13,7 @@ trait @{service.name} {
   @for(method <- service.methods) {
   @for(comment <- method.comment) {/**
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll("   * $1")}   */}
-  def @{method.name}(in: @method.parameterType): @method.returnType
+  def @{method.nameSafe}(in: @method.parameterType): @method.returnType
   }
 }
 
