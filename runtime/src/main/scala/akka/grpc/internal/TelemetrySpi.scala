@@ -17,8 +17,12 @@ import akka.http.javadsl.model.HttpRequest
 
 import scala.annotation.nowarn
 
-class TelemetryExtensionImpl(val spi: TelemetrySpi) extends Extension
+/** INTERNAL API */
+@InternalStableApi
+private[internal] class TelemetryExtensionImpl(val spi: TelemetrySpi) extends Extension
 
+/** INTERNAL API */
+@InternalStableApi
 object TelemetryExtension extends ExtensionId[TelemetryExtensionImpl] with ExtensionIdProvider {
   override def lookup = TelemetryExtension
   override def createExtension(system: ExtendedActorSystem) =
