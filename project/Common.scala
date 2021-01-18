@@ -5,6 +5,7 @@ import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
+import sbtprotoc.ProtocPlugin.autoImport.PB
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
@@ -74,5 +75,9 @@ object Common extends AutoPlugin {
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
-    scalafmtOnCompile := true)
+    scalafmtOnCompile := true,
+    // https://github.com/akka/akka-grpc/issues/1238
+    PB.protocExecutable := (if (protocbridge.SystemDetector.detectedClassifier() == "osx-aarch_64")
+                              file("/usr/local/bin/protoc")
+                            else PB.protocExecutable.value))
 }
