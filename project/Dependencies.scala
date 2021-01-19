@@ -74,8 +74,7 @@ object Dependencies {
   }
 
   object Protobuf {
-    val googleCommonProtos =
-      "com.thesamet.scalapb.common-protos" %% "proto-google-common-protos-scalapb_0.10" % "1.18.1-0" % "protobuf"
+    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.13.0" % "protobuf"
   }
 
   object Plugins {
