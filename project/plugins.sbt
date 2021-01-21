@@ -2,7 +2,7 @@ enablePlugins(BuildInfoPlugin)
 
 // 1.0.0-RC7-1 sets protocVersion := "3.13.0" (without the -v prefix)
 // https://github.com/protocolbuffers/protobuf/releases/tag/v3.13.0
-val sbtProtocV = "1.0.0-RC7-1"
+val sbtProtocV = "1.0.0"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
