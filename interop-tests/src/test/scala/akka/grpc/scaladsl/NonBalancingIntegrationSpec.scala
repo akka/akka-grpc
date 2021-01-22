@@ -11,7 +11,7 @@ import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
 import akka.stream.SystemMaterializer
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc.helloworld._
 import io.grpc.Status.Code
 import io.grpc.StatusRuntimeException
@@ -25,17 +25,17 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-class NonBalancingIntegrationSpecNetty extends NonBalancingIntegrationSpec()
-class NonBalancingIntegrationSpecAkkaHttp
-    extends NonBalancingIntegrationSpec(
-      ConfigFactory.parseString("""akka.grpc.client."*".backend = "akka-http" """).withFallback(ConfigFactory.load()))
+class NonBalancingIntegrationSpecNetty extends NonBalancingIntegrationSpec("netty")
+class NonBalancingIntegrationSpecAkkaHttp extends NonBalancingIntegrationSpec("akka-http")
 
-class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
+class NonBalancingIntegrationSpec(backend: String)
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-  implicit val system = ActorSystem("NonBalancingIntegrationSpec", config)
+  implicit val system = ActorSystem(
+    "NonBalancingIntegrationSpec",
+    ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load()))
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
@@ -59,8 +59,8 @@ class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
       Future.sequence(requests).futureValue
 
       service1.greetings.get + service2.greetings.get should be(numberOfRequests)
-      service1.greetings.get should be(numberOfRequests)
-      service2.greetings.get should be(0)
+      service1.greetings.get should (be(0).or(be(numberOfRequests)))
+      service2.greetings.get should (be(0).or(be(numberOfRequests)))
     }
 
     "send requests to a single endpoint that is restarted in the middle" in {
@@ -149,6 +149,10 @@ class NonBalancingIntegrationSpec(config: Config = ConfigFactory.load())
     }
 
     "eventually fail when no valid endpoints are provided" in {
+      // https://github.com/akka/akka-grpc/issues/1246
+      if (backend == "akka-http")
+        cancel("The Akka HTTP backend doesn't fail when the persistent connection fails")
+
       val discovery =
         new MutableServiceDiscovery(
           List(new InetSocketAddress("example.invalid", 80), new InetSocketAddress("example.invalid", 80)))
