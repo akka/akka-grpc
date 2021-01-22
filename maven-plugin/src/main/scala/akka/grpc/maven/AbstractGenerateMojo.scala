@@ -5,15 +5,15 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
-
 import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
+
 import javax.inject.Inject
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.project.MavenProject
 import org.sonatype.plexus.build.incremental.BuildContext
-import protocbridge.{ JvmGenerator, Target }
+import protocbridge.{ JvmGenerator, ProtocRunner, Target }
 import scalapb.ScalaPbCodeGenerator
 
 import scala.beans.BeanProperty
@@ -203,11 +203,13 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
       targets: Seq[Target]): Int =
     try {
       val incPath = "-I" + protoDir.getCanonicalPath
-      protocbridge.ProtocBridge.run(
-        protocCommand,
+      protocbridge.ProtocBridge.execute(
+        ProtocRunner.fromFunction((args, _) => protocCommand(args)),
         targets,
         Seq(incPath) ++ protocOptions ++ schemas.map(_.getCanonicalPath),
-        pluginFrontend = protocbridge.frontend.PluginFrontend.newInstance)
+        artifact =>
+          throw new RuntimeException(
+            s"The version of sbt-protoc you are using is incompatible with '${artifact}' code generator. Please update sbt-protoc to a version >= 0.99.33"))
     } catch {
       case e: Exception =>
         throw new RuntimeException("error occurred while compiling protobuf files: %s".format(e.getMessage), e)

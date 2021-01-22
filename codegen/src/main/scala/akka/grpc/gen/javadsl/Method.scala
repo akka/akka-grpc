@@ -6,9 +6,8 @@ package akka.grpc.gen.javadsl
 
 import akka.grpc.gen._
 import com.google.protobuf.Descriptors.{ Descriptor, MethodDescriptor }
+import protocgen.CodeGenRequest
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
-
-import scala.collection.JavaConverters._
 
 final case class Method(
     name: String,
@@ -57,14 +56,11 @@ final case class Method(
 }
 
 object Method {
-  def apply(descriptor: MethodDescriptor): Method = {
+  def apply(request: CodeGenRequest, descriptor: MethodDescriptor): Method = {
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
-      implicit val ops =
-        new DescriptorImplicits(
-          GeneratorParams(),
-          descriptor.getFile.getDependencies.asScala.toList :+ descriptor.getFile)
+      val ops = DescriptorImplicits.fromCodeGenRequest(GeneratorParams(), request)
       import ops._
       descriptor.comment
     }

@@ -5,6 +5,7 @@
 package akka.grpc.gen.javadsl
 
 import com.google.protobuf.Descriptors.{ FileDescriptor, ServiceDescriptor }
+import protocgen.CodeGenRequest
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 import scala.annotation.tailrec
@@ -26,6 +27,7 @@ final case class Service(
 
 object Service {
   def apply(
+      request: CodeGenRequest,
       fileDesc: FileDescriptor,
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
@@ -33,8 +35,7 @@ object Service {
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
-      implicit val ops =
-        new DescriptorImplicits(GeneratorParams(), fileDesc.getDependencies.asScala.toList :+ fileDesc.getFile)
+      val ops = DescriptorImplicits.fromCodeGenRequest(GeneratorParams(), request)
       import ops._
       serviceDescriptor.comment
     }
@@ -46,7 +47,7 @@ object Service {
       packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.toList.map(method => Method(method)),
+      serviceDescriptor.getMethods.asScala.toList.map(method => Method(request, method)),
       serverPowerApi,
       usePlayActions,
       comment)
