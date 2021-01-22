@@ -3,8 +3,8 @@ resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 enablePlugins(AkkaGrpcPlugin)
 
-javacOptions  += "-Xdoclint:all"
+javacOptions += "-Xdoclint:all"
 
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-Compile / PB.protocOptions += "--include_std_types"
+libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.13.0" % "protobuf"

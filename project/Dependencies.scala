@@ -73,6 +73,10 @@ object Dependencies {
     val logback = "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime" // Eclipse 1.0
   }
 
+  object Protobuf {
+    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.13.0" % "protobuf"
+  }
+
   object Plugins {
     val sbtProtoc = "com.thesamet" % "sbt-protoc" % BuildInfo.sbtProtocVersion
   }
@@ -126,5 +130,6 @@ object Dependencies {
     Compile.grpcStub,
     Compile.akkaHttpCors,
     Test.scalaTest,
-    Test.scalaTestPlusJunit)
+    Test.scalaTestPlusJunit,
+    Protobuf.googleCommonProtos)
 }

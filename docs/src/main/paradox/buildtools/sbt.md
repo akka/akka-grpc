@@ -50,6 +50,17 @@ contains the `flat_package` parameter.
 akkaGrpcCodeGeneratorSettings += "single_line_to_proto_string"
 ```
 
+#### Using a local `protoc` command
+
+Protocol Buffers does not distribute binaries of `protoc` for use on Apple Silicon (ARM/M1) for the time being. You may [build `protoc` locally](https://github.com/protocolbuffers/protobuf/tree/master/src) and make ScalaPB use the local build by setting `PB.protocExecutable`.
+
+```scala
+PB.protocExecutable := {
+  if (protocbridge.SystemDetector.detectedClassifier() == "osx-aarch_64") file("/usr/local/bin/protoc")
+  else PB.protocExecutable.value
+}
+```
+
 Available parameters are listed in the [ScalaPB documentation](https://scalapb.github.io/sbt-settings.html).
 
 ### `sbt-protoc` settings
@@ -106,7 +117,7 @@ If you want to use TLS-based negotiation on JDK 8 versions prior to
 [1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
 the server requires a special Java agent for ALPN.
  
-See the [Akka HTTP docs about HTTP/2](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-))
+See the @extref:[Akka HTTP docs about HTTP/2](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-)
 for more information.
 
 ## Starting your Akka gRPC server from sbt
