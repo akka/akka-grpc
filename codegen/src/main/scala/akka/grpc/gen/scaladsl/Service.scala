@@ -7,7 +7,6 @@ package akka.grpc.gen.scaladsl
 import scala.collection.immutable
 import scala.collection.JavaConverters._
 import com.google.protobuf.Descriptors._
-//import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import protocgen.CodeGenRequest
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
