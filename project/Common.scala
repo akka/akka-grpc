@@ -75,9 +75,5 @@ object Common extends AutoPlugin {
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
-    scalafmtOnCompile := true,
-    // https://github.com/akka/akka-grpc/issues/1238
-    PB.protocExecutable := (if (protocbridge.SystemDetector.detectedClassifier() == "osx-aarch_64")
-                              file("/usr/local/bin/protoc")
-                            else PB.protocExecutable.value))
+    scalafmtOnCompile := true)
 }
