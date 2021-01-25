@@ -31,7 +31,7 @@ If you have other configurations with `.proto` sources (for example `Integration
 To additionally generate server "power APIs" that have access to request metadata, as described
 @ref[here](../server/details.md#accessing-request-metadata), set the `server_power_apis` option:
 
-```
+```scala
 akkaGrpcCodeGeneratorSettings += "server_power_apis"
 ```
 
@@ -46,7 +46,7 @@ Passing generator parameters to the underlying ScalaPB generators can be done th
 setting, any specified options will be passed to all underlying generators that are enabled. By default this setting
 contains the `flat_package` parameter.
 
-```
+```scala
 akkaGrpcCodeGeneratorSettings += "single_line_to_proto_string"
 ```
 
@@ -81,7 +81,7 @@ The above, for example, removes `descriptor.proto` from the list of files to be 
 By default protobuf files are looked for in `src/main/protobuf` (and `src/main/proto`).
 You can configure where your `.proto` files are located like this:
 
-```
+```scala
 // "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto_custom":
 inConfig(Compile)(Seq(
   PB.protoSources += sourceDirectory.value / "proto_custom"
