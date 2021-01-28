@@ -11,9 +11,12 @@ import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGen
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
 import com.github.ghik.silencer.silent
+import com.google.protobuf.ExtensionRegistry
 import protocgen.CodeGenRequest
+import scalapb.options.Scalapb
 
 abstract class ScalaCodeGenerator extends CodeGenerator {
+
   // Override this to add generated files per service
   def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
@@ -30,6 +33,12 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
           BuildInfo.organization,
           BuildInfo.runtimeArtifactName + "_" + scalaBinaryVersion.prefix,
           BuildInfo.version))
+
+  override def registerExtensions(registry: ExtensionRegistry): Unit = {
+    // Allow the embedded ScalaPB compiler helper classes to observe package/file-level options,
+    // so that properties looked up through DescriptorImplicits are in line with ScalaPB generated stubs
+    Scalapb.registerAllExtensions(registry)
+  }
 
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {

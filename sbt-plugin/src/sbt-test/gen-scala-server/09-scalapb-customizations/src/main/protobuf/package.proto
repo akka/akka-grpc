@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+package helloworld;
+
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  scope: PACKAGE
+  flat_package: true
+};
