@@ -7,6 +7,8 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
+import akka.annotation.ApiMayChange
+
 @for(comment <- service.comment) {/**
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll(" * $1")} */}
 trait @{service.name} {
@@ -15,6 +17,13 @@ trait @{service.name} {
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll("   * $1")}   */}
   def @{method.nameSafe}(in: @method.parameterType): @method.returnType
   }
+}
+
+@mapMethodType(methodType: akka.grpc.gen.MethodType) = {
+  @if(methodType == akka.grpc.gen.Unary) { MethodDescriptor.MethodType.UNARY }
+  @if(methodType == akka.grpc.gen.ClientStreaming) {MethodDescriptor.MethodType.CLIENT_STREAMING }
+  @if(methodType == akka.grpc.gen.ServerStreaming) { MethodDescriptor.MethodType.SERVER_STREAMING }
+  @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
 object @{service.name} extends akka.grpc.ServiceDescription {
@@ -27,6 +36,24 @@ object @{service.name} extends akka.grpc.ServiceDescription {
     import akka.grpc.scaladsl.ScalapbProtobufSerializer
     @for(serializer <- service.serializers) {
     val @serializer.name = @serializer.init
+    }
+  }
+
+  @@ApiMayChange
+  object MethodDescriptors {
+    import akka.grpc.internal.Marshaller
+    import io.grpc.MethodDescriptor
+    import Serializers._
+
+    @for(method <- service.methods) {
+    val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
+      MethodDescriptor.newBuilder()
+        .setType(@mapMethodType(method.methodType))
+        .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
+        .setRequestMarshaller(new Marshaller(@method.deserializer.name))
+        .setResponseMarshaller(new Marshaller(@method.serializer.name))
+        .setSampledToLocalTracing(true)
+        .build()
     }
   }
 }

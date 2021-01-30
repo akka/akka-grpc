@@ -9,15 +9,12 @@ package @service.packageName
 
 import scala.concurrent.ExecutionContext
 
-import io.grpc.MethodDescriptor
-
 import akka.actor.ClassicActorSystemProvider
 
 import akka.grpc.GrpcClientSettings
 
 import akka.grpc.scaladsl.AkkaGrpcClient
 
-import akka.grpc.internal.Marshaller
 import akka.grpc.internal.NettyClientUtils
 import akka.grpc.internal.ClientState
 
@@ -46,7 +43,7 @@ object @{service.name}Client {
 }
 
 final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
-  import Default@{service.name}Client._
+  import @{service.name}.MethodDescriptors._
 
   private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
   private val options = NettyClientUtils.callOptions(settings)
@@ -91,32 +88,6 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
   override def closed: scala.concurrent.Future[akka.Done] = clientState.closed()
 
-}
-
-@mapMethodType(methodType: akka.grpc.gen.MethodType) = {
-  @if(methodType == akka.grpc.gen.Unary) { MethodDescriptor.MethodType.UNARY }
-  @if(methodType == akka.grpc.gen.ClientStreaming) {MethodDescriptor.MethodType.CLIENT_STREAMING }
-  @if(methodType == akka.grpc.gen.ServerStreaming) { MethodDescriptor.MethodType.SERVER_STREAMING }
-  @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
-}
-
-private object Default@{service.name}Client {
-
-  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
-    new Default@{service.name}Client(settings)
-
-  import @{service.name}.Serializers._
-
-  @for(method <- service.methods) {
-    private val @{method.name}Descriptor: MethodDescriptor[@method.inputTypeUnboxed, @method.outputTypeUnboxed] =
-      MethodDescriptor.newBuilder()
-        .setType(@mapMethodType(method.methodType))
-        .setFullMethodName(MethodDescriptor.generateFullMethodName("@service.grpcName", "@method.grpcName"))
-        .setRequestMarshaller(new Marshaller(@method.deserializer.name))
-        .setResponseMarshaller(new Marshaller(@method.serializer.name))
-        .setSampledToLocalTracing(true)
-        .build()
-  }
 }
 
 trait @{service.name}ClientPowerApi {
