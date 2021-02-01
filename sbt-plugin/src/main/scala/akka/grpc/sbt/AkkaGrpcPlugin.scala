@@ -84,6 +84,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
       akkaGrpcExtraGenerators := Seq.empty,
+      libraryDependencies ++= {
+        if (akkaGrpcGeneratedLanguages.value.contains(AkkaGrpc.Scala))
+          // Make scalapb.proto available for import in user-defined protos for file and package-level options
+          Seq("com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf")
+        else Seq()
+      },
       PB.recompile in Compile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log

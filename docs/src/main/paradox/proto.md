@@ -38,6 +38,7 @@ whose name is determined by the `java_outer_classname` setting. By setting the
 `java_multiple_files` option, the message classes will be generated in separate files,
 but the 'outer' class is still generated with some metadata and utilities.
 
-The Scala code generation uses the mechanism described in the
-[ScalaPB documentation](https://scalapb.github.io/customizations.html)
-with the `flat_package` option enabled.
+The Scala code generation runs with the
+[`flat_package` generator option](https://scalapb.github.io/docs/sbt-settings/#additional-options-to-the-generator) enabled by default.
+Customizations can be added on a
+[per-file and/or per-package basis](https://scalapb.github.io/customizations.html).

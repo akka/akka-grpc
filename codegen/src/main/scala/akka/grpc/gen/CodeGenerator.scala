@@ -4,6 +4,8 @@
 
 package akka.grpc.gen
 
+import com.github.ghik.silencer.silent
+import com.google.protobuf.ExtensionRegistry
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
@@ -22,8 +24,13 @@ trait CodeGenerator {
   /** Takes Scala binary version and returns suggested dependency Seq */
   def suggestedDependencies: ScalaBinaryVersion => Seq[Artifact]
 
-  final def run(request: Array[Byte], logger: Logger): Array[Byte] =
-    run(CodeGeneratorRequest.parseFrom(request), logger: Logger).toByteArray
+  def registerExtensions(@silent("never used") registry: ExtensionRegistry): Unit = {}
+
+  final def run(request: Array[Byte], logger: Logger): Array[Byte] = {
+    val registry = ExtensionRegistry.newInstance
+    registerExtensions(registry)
+    run(CodeGeneratorRequest.parseFrom(request, registry), logger: Logger).toByteArray
+  }
 }
 
 object CodeGenerator {
