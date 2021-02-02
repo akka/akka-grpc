@@ -103,7 +103,7 @@ happen locally in your project.
 It is also possible to add the `.proto` resources as 'external' includes,
 assuming that the artifact also contains the correct generated classes for
 this API. This is not always possible, since the upstream artifact may not
-contain any generated classes or may contain classes that were were generated
+contain any generated classes or may contain classes that were generated
 in a way that is incompatible with your intended use. To include an artifact
 as an external protobuf source, add it like:
 
