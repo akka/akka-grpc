@@ -45,6 +45,11 @@ Variables to be expanded in this template:
          git add api/akka-grpc/current api/akka-grpc/$VERSION$
          git commit -m "Akka gRPC $VERSION$"
          ```
+    - [ ] push changes to the [remote git repository](https://github.com/akka/doc.akka.io)
+         ```
+         cd ~/www
+         git push origin master
+         ```
 
 ### Announcements
 
