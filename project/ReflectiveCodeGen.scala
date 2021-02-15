@@ -64,8 +64,6 @@ object ReflectiveCodeGen extends AutoPlugin {
             }
           }
         }.value,
-        // Reload generators on each invocation
-        PB.cacheClassLoaders := false,
         setCodeGenerator := loadAndSetGenerator(
           // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
           (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
@@ -76,7 +74,6 @@ object ReflectiveCodeGen extends AutoPlugin {
           codeGeneratorSettings.value,
           PB.targets.value.asInstanceOf[ListBuffer[Target]],
           scalaBinaryVersion.value),
-        PB.recompile ~= (_ => true),
         PB.protoSources in Compile := PB.protoSources.value ++ Seq(
           PB.externalIncludePath.value,
           sourceDirectory.value / "proto"))) ++ Seq(
