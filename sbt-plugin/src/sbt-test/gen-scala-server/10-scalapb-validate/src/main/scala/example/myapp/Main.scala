@@ -1,24 +1,20 @@
 package example.myapp
 
+import scala.util.{Failure, Success, Try}
 import scalapb.validate._
 
 import example.myapp.helloworld.grpc.HelloRequest
 
 object Main extends App {
 
-  val valid = HelloRequest("valid")
-  val ko    = HelloRequest("ko")
-
-  val requestValidator = Validator[HelloRequest]
-
-  requestValidator.validate(valid) match {
-    case Success             => // expected
-    case Failure(violations) => throw new RuntimeException(s"unexpected violations $violations for $valid")
+  Try(HelloRequest("valid")) match {
+    case Success(_) => // expected
+    case Failure(e) => throw new RuntimeException("unexpected violations for \"valid\"", e)
   }
 
-  requestValidator.validate(ko) match {
-    case Success    => throw new RuntimeException(s"unexpected success for $ko")
-    case Failure(_) => // expected
+  Try(HelloRequest("ko")) match {
+    case Success(_) => throw new RuntimeException("unexpected success for \"ko\"")
+    case Failure(e) => // expected
   }
 
 }

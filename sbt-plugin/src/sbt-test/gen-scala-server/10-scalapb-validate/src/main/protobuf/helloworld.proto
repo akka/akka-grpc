@@ -5,6 +5,16 @@ option java_package = "example.myapp.helloworld.grpc";
 package helloworld;
 
 import "validate/validate.proto";
+import "scalapb/scalapb.proto";
+import "scalapb/validate.proto";
+
+option (scalapb.options) = {
+    scope: FILE
+    [scalapb.validate.file] {
+        validate_at_construction: true
+        insert_validator_instance: false
+    }
+};
 
 // The greeting service definition.
 service GreeterService {
