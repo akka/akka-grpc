@@ -29,7 +29,7 @@ val root = project.in(file("."))
       "org.scalatest" %% "scalatest" % "3.1.2" % "test",
       "org.scalatestplus" %% "junit-4-12" % "3.1.2.0" % "test"
     ),
-    Compile / PB.generate := ((Compile / PB.generate) dependsOn (
+    PB.artifactResolver := (PB.artifactResolver dependsOn (
         codeGenProject / Compile / publishLocal)).value
   )
 

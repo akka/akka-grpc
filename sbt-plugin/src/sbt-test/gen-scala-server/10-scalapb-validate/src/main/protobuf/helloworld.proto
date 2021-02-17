@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option java_package = "example.myapp.helloworld.grpc";
+
+package helloworld;
+
+import "validate/validate.proto";
+import "scalapb/scalapb.proto";
+import "scalapb/validate.proto";
+
+option (scalapb.options) = {
+    scope: FILE
+    [scalapb.validate.file] {
+        validate_at_construction: true
+        insert_validator_instance: false
+    }
+};
+
+// The greeting service definition.
+service GreeterService {
+    // Sends a greeting
+    rpc SayHello (HelloRequest) returns (HelloReply) {}
+
+    rpc ItKeepsTalking (stream HelloRequest) returns (HelloReply) {}
+
+    rpc ItKeepsReplying (HelloRequest) returns (stream HelloReply) {}
+
+    rpc StreamHellos (stream HelloRequest) returns (stream HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+    string name = 1 [(validate.rules).string.min_len = 3];;
+}
+
+// The response message containing the greetings
+message HelloReply {
+    string message = 1;
+}
