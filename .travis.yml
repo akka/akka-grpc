@@ -127,16 +127,14 @@ jobs:
       script:
         - sbt -jvm-opts .jvmopts-travis akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
         - sbt -jvm-opts .jvmopts-travis akka-grpc-maven-plugin/publishM2
-        - cd plugin-tester-java 
-        - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate compile
+        - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` -pl plugin-tester-java akka-grpc:generate scala:compile
     - name: Test Maven Scala
       workspaces:
         use: mavenLocal
       script:
         - sbt -jvm-opts .jvmopts-travis akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
         - sbt -jvm-opts .jvmopts-travis akka-grpc-maven-plugin/publishM2
-        - cd plugin-tester-scala
-        - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate scala:compile
+        - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` -pl plugin-tester-scala akka-grpc:generate scala:compile
 
     - stage: whitesource
       script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt -jvm-opts .jvmopts-travis whitesourceCheckPolicies whitesourceUpdate

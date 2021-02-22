@@ -92,8 +92,8 @@
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
         <generatorSettings implementation="java.util.List" default-value=""/>
         <extraGenerators implementation="java.util.List" default-value=""/>
-        <protoPaths default-value="src/main/proto,src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
-        <outputDirectory default-value="target/generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
+        <protoPaths default-value="${project.build.sourceDirectory}/../proto,${project.build.sourceDirectory}/../protobuf">${akka-grpc.protoPaths}</protoPaths>
+        <outputDirectory default-value="${project.build.outputDirectory}/../generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v3.11.4">${akka-grpc.protoc-version}</protocVersion>
         <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
