@@ -128,12 +128,27 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     var directoryFound = false
     protoPaths.forEach { protoPath =>
       // verify proto dir exists
-      val protoDir = new File(project.getBasedir, protoPath)
+      //https://maven.apache.org/plugin-developers/common-bugs.html#Resolving_Relative_Paths
+      val protoDir = {
+        val protoFile = new File(protoPath)
+        if (!protoFile.isAbsolute()) {
+          new File(project.getBasedir(), protoPath).toPath().normalize().toFile()
+        } else {
+          protoFile
+        }
+      }
       if (protoDir.exists()) {
         directoryFound = true
         // generated sources should be compiled
         val generatedSourcesDir = s"${outputDirectory}/akka-grpc-${chosenLanguage.targetDirSuffix}"
-        val compileSourceRoot = new File(project.getBasedir, generatedSourcesDir)
+        val compileSourceRoot = {
+          val generatedSourcesFile = new File(generatedSourcesDir)
+          if (!generatedSourcesFile.isAbsolute()) {
+            new File(project.getBasedir(), generatedSourcesDir).toPath().normalize().toFile()
+          } else {
+            generatedSourcesFile
+          }
+        }
         addGeneratedSourceRoot(generatedSourcesDir)
         generate(chosenLanguage, compileSourceRoot, protoDir)
       }
@@ -217,17 +232,26 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
       protocOptions: Seq[String],
       targets: Seq[Target]): Unit = {
     // Sort by the length of path names to ensure that we have parent directories before sub directories
-    val generatedTargetDirs = targets.map(_.outputPath).sortBy(_.getAbsolutePath.length)
-    generatedTargetDirs.foreach(_.mkdirs())
-    if (schemas.nonEmpty && targets.nonEmpty) {
-      getLog.info("Compiling %d protobuf files to %s".format(schemas.size, generatedTargetDirs.mkString(",")))
+    val generatedTargets = targets
+      .map { t =>
+        if (!t.outputPath.isAbsolute()) {
+          t.copy(outputPath = new File(t.outputPath.getAbsolutePath).toPath().normalize().toFile())
+        } else {
+          t
+        }
+      }
+      .sortBy(_.outputPath.getAbsolutePath.length)
+    generatedTargets.foreach(_.outputPath.mkdirs())
+    if (schemas.nonEmpty && generatedTargets.nonEmpty) {
+      getLog.info(
+        "Compiling %d protobuf files to %s".format(schemas.size, generatedTargets.map(_.outputPath).mkString(",")))
       schemas.foreach { schema => buildContext.removeMessages(schema) }
       getLog.debug("Compiling schemas [%s]".format(schemas.mkString(",")))
       getLog.debug("protoc options: %s".format(protocOptions.mkString(",")))
 
       getLog.info("Compiling protobuf")
       val (out, err, exitCode) = captureStdOutAnderr {
-        executeProtoc(protocCommand, schemas, protoDir, protocOptions, targets)
+        executeProtoc(protocCommand, schemas, protoDir, protocOptions, generatedTargets)
       }
       if (exitCode != 0) {
         err.split("\n\r").map(_.trim).map(parseError).foreach {
@@ -247,12 +271,12 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           getLog.debug("protoc output: " + out)
           getLog.debug("protoc stderr: " + err)
         }
-        generatedTargetDirs.foreach { dir =>
-          getLog.info("Protoc target directory: %s".format(dir.getAbsolutePath))
-          buildContext.refresh(dir)
+        generatedTargets.foreach { dir =>
+          getLog.info("Protoc target directory: %s".format(dir.outputPath.getAbsolutePath))
+          buildContext.refresh(dir.outputPath)
         }
       }
-    } else if (schemas.nonEmpty && targets.isEmpty) {
+    } else if (schemas.nonEmpty && generatedTargets.isEmpty) {
       getLog.info("Protobufs files found, but PB.targets is empty.")
     }
   }
