@@ -127,7 +127,7 @@ jobs:
       script:
         - sbt -jvm-opts .jvmopts-travis akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
         - sbt -jvm-opts .jvmopts-travis akka-grpc-maven-plugin/publishM2
-        - cd plugin-tester-java 
+        - cd plugin-tester-java
         - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate compile
     - name: Test Maven Scala
       workspaces:
