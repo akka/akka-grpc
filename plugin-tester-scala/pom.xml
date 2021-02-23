@@ -19,12 +19,6 @@
     <project.encoding>UTF-8</project.encoding>
   </properties>
 
-  <parent>
-    <groupId>com.lightbend.akka.grpc</groupId>
-    <artifactId>parent-project</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
