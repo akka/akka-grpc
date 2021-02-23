@@ -237,15 +237,12 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
       protocOptions: Seq[String],
       targets: Seq[Target]): Unit = {
     // Sort by the length of path names to ensure that we have parent directories before sub directories
-    // protoc wants relative directories instead
     val generatedTargets = targets
       .map { t =>
         if (!t.outputPath.isAbsolute()) {
-          t
+          t.copy(outputPath = new File(t.outputPath.getAbsolutePath).toPath().normalize().toFile())
         } else {
-          val relative =
-            project.getBasedir().toPath().getParent().normalize().relativize(t.outputPath.toPath().normalize()).toFile()
-          t.copy(outputPath = relative)
+          t
         }
       }
       .sortBy(_.outputPath.getAbsolutePath.length)
