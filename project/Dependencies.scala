@@ -32,7 +32,6 @@ object Dependencies {
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
     val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Versions.akkaHttp
-    val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
 
@@ -93,7 +92,6 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
-    Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
     Test.akkaDiscoveryConfig,
