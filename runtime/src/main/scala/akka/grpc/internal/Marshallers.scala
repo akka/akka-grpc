@@ -28,7 +28,7 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
       baos.write(buffer, 0, bytesRead)
       bytesRead = stream.read(buffer)
     }
-    protobufSerializer.deserialize(akka.util.ByteString(baos.toByteArray))
+    protobufSerializer.deserialize(akka.util.ByteString.fromArrayUnsafe(baos.toByteArray))
   }
 
 }
