@@ -18,7 +18,7 @@ object Gzip extends Codec {
     gzos.write(uncompressed.toArray)
     gzos.flush()
     gzos.close()
-    ByteString(baos.toByteArray)
+    ByteString.fromArrayUnsafe(baos.toByteArray)
   }
 
   override def uncompress(compressed: ByteString): ByteString = {
@@ -31,6 +31,6 @@ object Gzip extends Codec {
       baos.write(buffer, 0, read)
       read = gzis.read(buffer)
     }
-    ByteString(baos.toByteArray)
+    ByteString.fromArrayUnsafe(baos.toByteArray)
   }
 }
