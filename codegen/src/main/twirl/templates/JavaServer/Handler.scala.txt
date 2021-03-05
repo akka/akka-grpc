@@ -92,7 +92,7 @@ public class @{serviceName}HandlerFactory {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), eHandler, system);
     }
 
-@if(serviceName == "ServerReflection") {} else {
+@if(serviceName != "ServerReflection") {
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
