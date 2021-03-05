@@ -73,7 +73,7 @@ object Dependencies {
   }
 
   object Protobuf {
-    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.15.4" % "protobuf"
+    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.15.5" % "protobuf"
   }
 
   object Plugins {
