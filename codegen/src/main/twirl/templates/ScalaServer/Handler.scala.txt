@@ -78,6 +78,22 @@ object @{serviceName}Handler {
     def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
       partial(implementation, prefix, eHandler).orElse { case _ => notFound }
 
+@if(serviceName == "ServerReflection") {} else {
+
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler. The generated handler falls back to a reflection handler for
+     * `@{service.name}` and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     */
+    def withServerReflection(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
+        akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
+          @{serviceName}Handler.partial(implementation),
+          akka.grpc.scaladsl.ServerReflection.partial(List(@{service.name})))
+}
+
     /**
      * Creates a partial `HttpRequest` to `HttpResponse` handler that can be combined with handlers of other
      * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example

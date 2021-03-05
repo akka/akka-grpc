@@ -92,6 +92,27 @@ public class @{serviceName}HandlerFactory {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), eHandler, system);
     }
 
+@if(serviceName == "ServerReflection") {} else {
+
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler. The generated handler falls back to a reflection handlers for
+     * `@{service.name}` and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
+     * several services.
+     */
+    @@SuppressWarnings("unchecked")
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> createWithServerReflection(@serviceName implementation, ClassicActorSystemProvider system) {
+      return akka.grpc.javadsl.ServiceHandler.concatOrNotFound(
+          @{serviceName}HandlerFactory.create(implementation, system),
+          akka.grpc.javadsl.ServerReflection.create(
+            java.util.Collections.singletonList(@{service.name}.description),
+            system));
+    }
+
+}
+
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
      * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
