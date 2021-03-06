@@ -12,6 +12,6 @@ object Serializer {
   def apply(messageType: Descriptor): Serializer =
     Serializer(
       messageType.getName + "Serializer",
-      s"new GoogleProtobufSerializer<>(${Method.getMessageType(messageType)}.class)",
+      s"new GoogleProtobufSerializer<>(${Method.getMessageType(messageType)}.parser())",
       Method.getMessageType(messageType))
 }
