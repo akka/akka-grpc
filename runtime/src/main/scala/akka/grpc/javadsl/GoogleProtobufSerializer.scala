@@ -12,13 +12,12 @@ import com.google.protobuf.Parser
 @ApiMayChange
 class GoogleProtobufSerializer[T <: com.google.protobuf.Message](parser: Parser[T]) extends ProtobufSerializer[T] {
 
-  // For binary compatibility in generated sources, can be dropped in version 2.x
+  @deprecated("Kept for binary compatibility, use the main constructor instead", since = "akka-grpc 1.1.2")
   def this(clazz: Class[T]) =
     this(clazz.getMethod("parser").invoke(clazz).asInstanceOf[Parser[T]])
 
   override def serialize(t: T): ByteString =
     ByteString.fromArrayUnsafe(t.toByteArray)
-  override def deserialize(bytes: ByteString): T = {
+  override def deserialize(bytes: ByteString): T =
     parser.parseFrom(bytes.toArray)
-  }
 }
