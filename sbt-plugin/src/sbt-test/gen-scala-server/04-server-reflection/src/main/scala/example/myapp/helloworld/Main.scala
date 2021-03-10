@@ -29,15 +29,16 @@ object Main extends App {
     implicit val ec: ExecutionContext = sys.dispatcher
 
     //#server-reflection
-    // Create service handlers
-    val greeter: PartialFunction[HttpRequest, Future[HttpResponse]] =
-      GreeterServiceHandler.partial(new GreeterServiceImpl())
-    val reflection: PartialFunction[HttpRequest, Future[HttpResponse]] =
-      ServerReflection.partial(List(GreeterService))
+    // Create service handler with a fallback to a Server Reflection handler.
+    // `.withServerReflection` is a convenience method that contacts a partial
+    // function of the provided service with a reflection handler for that
+    // same service.
+    val greeter: HttpRequest => Future[HttpResponse] =
+      GreeterServiceHandler.withServerReflection(new GreeterServiceImpl())
 
     // Bind service handler servers to localhost:8080
     val binding = Http().bindAndHandleAsync(
-      ServiceHandler.concatOrNotFound(greeter, reflection),
+      greeter,
       interface = "127.0.0.1",
       port = 8080,
       connectionContext = HttpConnectionContext())
@@ -47,4 +48,23 @@ object Main extends App {
     binding.foreach { binding =>
       println(s"gRPC server bound to: ${binding.localAddress}")
     }
+
+    //#server-reflection-manual-concat
+    // Create service handlers
+    val greeterPartial: PartialFunction[HttpRequest, Future[HttpResponse]] =
+      GreeterServiceHandler.partial(new GreeterServiceImpl(), "greeting-prefix")
+    val echoPartial: PartialFunction[HttpRequest, Future[HttpResponse]] =
+      EchoServiceHandler.partial(new EchoServiceImpl())
+    // Create the reflection handler for multiple services
+    val reflection =
+      ServerReflection.partial(List(GreeterService, EchoService))
+
+    // Concatenate the partial functions into a single handler
+    val handler =
+      ServiceHandler.concatOrNotFound(
+        greeterPartial,
+        echoPartial,
+        reflection),
+    //#server-reflection-manual-concat
+
 }
