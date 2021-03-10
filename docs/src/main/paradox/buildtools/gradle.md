@@ -26,9 +26,6 @@ Names and default values are provided.
     akkaGrpc {
         generateClient = true
         generateServer = true
-        generatePlay = false
-        usePlayActions = false
-        serverPowerApis = false
         extraGenerators = []       
     }
     ```
