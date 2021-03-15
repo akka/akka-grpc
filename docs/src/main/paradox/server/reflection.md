@@ -23,20 +23,32 @@ this metadata to implement things like completion and sending arbitrary
 commands.
 
 This is achieved by providing a gRPC service that provides endpoints that
-can be used to query this information
+can be used to query this information.
 
 ## Providing
 
-When providing gRPC Server Reflection, you will be serving multiple services
-(at least your own service and the reflection service) as described
-@ref[here](walkthrough.md) { #Serving_multiple_services }. The reflection service
-can be generated via `ServerReflection`:
+The generated service handler includes a convenience method to create an Akka HTTP 
+handler with your service together with Server Reflection: 
 
 Scala
 :  @@snip [Main.scala](/sbt-plugin/src/sbt-test/gen-scala-server/04-server-reflection/src/main/scala/example/myapp/helloworld/Main.scala) { #server-reflection }
 
 Java
 :  @@snip [Main.java](/sbt-plugin/src/sbt-test/gen-java/02-server-reflection/src/main/java/example/myapp/helloworld/Main.java) { #server-reflection }
+
+For more advanced setups you will have to combine your partial handler
+with the `ServerReflection` handler explicitly. 
+
+For example, if you need to combine multiple services, or if you want to use an overload of the 
+service factory methods. In these cases, the reflection service can be generated via 
+`ServerReflection` and manually concatenated as described in the walkthrough
+section on @ref[serving multiple services](walkthrough.md#serving-multiple-services) { }:
+
+Scala
+:  @@snip [Main.scala](/sbt-plugin/src/sbt-test/gen-scala-server/04-server-reflection/src/main/scala/example/myapp/helloworld/Main.scala) { #server-reflection-manual-concat }
+
+Java
+:  @@snip [Main.java](/sbt-plugin/src/sbt-test/gen-java/02-server-reflection/src/main/java/example/myapp/helloworld/Main.java) { #server-reflection-manual-concat }
 
 ## Consuming
 
