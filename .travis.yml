@@ -157,14 +157,14 @@ jobs:
         - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate scala:compile
 
     - stage: whitesource
-      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && sbt -jvm-opts .jvmopts-travis whitesourceCheckPolicies whitesourceUpdate
+      script: git branch -f "$TRAVIS_BRANCH" && git checkout "$TRAVIS_BRANCH" && cp .jvmopts-travis .jvmopts && sbt whitesourceCheckPolicies whitesourceUpdate
     
     - stage: publish
-      script: cp .jvmopts-travis .jvmopts && sbt -jvm-opts .jvmopts-travis ++2.12.11 publish && git status && sbt -jvm-opts .jvmopts-travis ++2.13.3 akka-grpc-runtime/publish ++2.13.3! akka-grpc-codegen/publish
-      name: sbt -jvm-opts .jvmopts-travis publish
+      script: cp .jvmopts-travis .jvmopts && sbt ++2.12.11 publish && git status && sbt ++2.13.3 akka-grpc-runtime/publish ++2.13.3! akka-grpc-codegen/publish
+      name: sbt publish
     - script: openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d && cd gradle-plugin && ./gradlew publishPlugins
       name: Gradle plugin
-    - script: eval "$(ssh-agent -s)" && echo $SCP_SECRET | base64 -d > /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-add /tmp/id_rsa && sbt -jvm-opts .jvmopts-travis akka-grpc-docs/publishRsync
+    - script: eval "$(ssh-agent -s)" && echo $SCP_SECRET | base64 -d > /tmp/id_rsa && chmod 600 /tmp/id_rsa && ssh-add /tmp/id_rsa && cp .jvmopts-travis .jvmopts && sbt akka-grpc-docs/publishRsync
       name: Documentation
 
 
