@@ -82,60 +82,14 @@ proto definitions from a dependency classpath. This is not yet supported
 for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
 it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
 
+## JDK 8 support
+
+If you want to use TLS-based negotiation on JDK 8, Akka gRPC requires JDK 8 update 252 or later. JVM support for ALPN has been backported to JDK 8u252 which is now widely available. Support for using the Jetty ALPN agent has been [dropped in Akka HTTP 10.2.0](https://doc.akka.io/docs/akka-http/current/migration-guide/migration-guide-10.2.x.html#http-2-support-requires-jdk-8-update-252-or-later), and therefore is not supported by Akka gRPC.
+
 ## Starting your Akka gRPC server from Maven
 
-If you want to use TLS-based negotiation on JDK 8 versions prior to
-[1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
-the server requires a special Java agent for ALPN.
+You can start your gRPC application as usual with:
 
-Doing this from inside of Maven requires some configuration:
-
-`pom.xml` for JVM 8
-:   ```xml
-    <dependencies>
-      <dependency>
-        <groupId>org.mortbay.jetty.alpn</groupId>
-        <artifactId>jetty-alpn-agent</artifactId>
-        <version>2.0.10</version>
-        <scope>runtime</scope>
-      </dependency>
-    <dependencies>
-     ...
-    <plugins>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.5.1</version>
-        <executions>
-          <execution>
-            <id>getClasspathFilenames</id>
-            <goals>
-              <!-- provides the jars of the classpath as properties inside of Maven
-                   so that we can refer to one of the jars in the exec plugin config below -->
-              <goal>properties</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <configuration>
-          <executable>java</executable>
-          <arguments>
-            <argument>-javaagent:${org.mortbay.jetty.alpn:jetty-alpn-agent:jar}</argument>
-            <argument>-classpath</argument>
-            <classpath />
-            <argument>com.example.MainClass</argument>
-          </arguments>
-        </configuration>
-      </plugin>
-    </plugins>
-    ```
-
-The server can then be started from the command line with:
-
+```bash
+mvn compile exec:exec
 ```
-mvn compile dependency:properties exec:exec
-```
-
