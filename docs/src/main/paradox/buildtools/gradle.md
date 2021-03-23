@@ -29,7 +29,7 @@ Names and default values are provided.
         generatePlay = false
         usePlayActions = false
         serverPowerApis = false
-        extraGenerators = []       
+        extraGenerators = []
     }
     ```
     @@@
@@ -51,12 +51,12 @@ To additionally generate server "power APIs" that have access to request metadat
 
 ## Protoc version
 
-Default version of `protoc` compiler is 3.4.0. 
+Default version of `protoc` compiler is 3.4.0.
 The version and the location of `protoc` can be changed using `protobuf-gradle-plugin` [settings](https://github.com/google/protobuf-gradle-plugin#locate-external-executables).
 
 ## Proto source directory
 
-By default the plugin looks for `.proto` files under 
+By default the plugin looks for `.proto` files under
 
 * `src/main/protobuf`
 * `src/main/proto`
@@ -73,9 +73,13 @@ explicit by duplicating the proto definitions in your project.
 
 This is supported by `protobuf-gradle-plugin` and explained [here](https://github.com/google/protobuf-gradle-plugin#protos-in-dependencies).
 
+## JDK 8 support
+
+If you want to use TLS-based negotiation on JDK 8, Akka gRPC requires JDK 8 update 252 or later. JVM support for ALPN has been backported to JDK 8u252 which is now widely available. Support for using the Jetty ALPN agent has been [dropped in Akka HTTP 10.2.0](https://doc.akka.io/docs/akka-http/current/migration-guide/migration-guide-10.2.x.html#http-2-support-requires-jdk-8-update-252-or-later), and therefore is not supported by Akka gRPC.
+
 ## Starting your Akka gRPC server from gradle
 
-Build script needs a custom task 
+Build script needs a custom task
 
 `build.gradle`
 :   @@@vars
@@ -92,32 +96,6 @@ Then, the server can then be started from the command line with:
 ```
 ./gradlew runServer
 ```
-
-## JDK 8 support
-
-If you want to use TLS-based negotiation on JDK 8 versions prior to
-[1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
-the server requires a special Java agent for ALPN.
-
-Doing this from inside of Gradle requires some configuration in the `build.gradle`:
-
-`build.gradle` for JVM 8 prior to update 251
-:   @@@vars
-    ```gradle
-    configurations {
-      alpnagent
-    }
-    dependencies {
-      // Configuration for modules that use Jetty ALPN agent
-      alpnagent 'org.mortbay.jetty.alpn:jetty-alpn-agent:2.0.10'
-    }
-    task runServer(type: JavaExec) {
-      classpath = sourceSets.main.runtimeClasspath
-      main = 'com.example.helloworld.GreeterServer'
-      jvmArgs "-javaagent:" + configurations.alpnagent.asPath
-    }
-    ```
-    @@@
 
 ## Play Framework support
 
