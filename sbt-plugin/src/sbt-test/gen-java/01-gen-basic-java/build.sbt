@@ -7,4 +7,4 @@ javacOptions += "-Xdoclint:all"
 
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.15.5" % "protobuf"
+libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.15.6" % "protobuf"
