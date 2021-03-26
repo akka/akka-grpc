@@ -139,7 +139,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.afterEvaluate { Project p ->
 
-            if (p.sourceSets.main.allJava.isEmpty()) {
+            if (akkaGrpcExt.scala && p.sourceSets.main.allJava.isEmpty()) {
                 p.tasks.getByName("compileJava").enabled = false
             }
 
