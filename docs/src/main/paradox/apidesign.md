@@ -51,6 +51,7 @@ Follow the [documentation](https://scalapb.github.io/docs/validation) to update 
 in order to generate the validators using `sbt-protoc` (@ref[used by Akka gRPC](buildtools/sbt.md#sbt-protoc-settings)).
 
 With the default parameters and target set by Akka gRPC, additions to your `build.sbt` should be:
+
 @@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/10-scalapb-validate/build.sbt) { #setup }
 
 The `validate_at_construction` option can be particularly interesting in a server-side context
