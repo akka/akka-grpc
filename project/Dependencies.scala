@@ -6,8 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.11"
-    val scala213 = "2.13.3"
+    val scala212 = "2.12.13"
+    val scala213 = "2.13.5"
 
     // the order in the list is important because the head will be considered the default.
     val CrossScalaForLib = Seq(scala212, scala213)
@@ -16,7 +16,7 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.6.9"
+    val akka = "2.6.13"
     val akkaBinary = "2.6"
     val akkaHttp = "10.2.3"
     val akkaHttpBinary = "10.2"
