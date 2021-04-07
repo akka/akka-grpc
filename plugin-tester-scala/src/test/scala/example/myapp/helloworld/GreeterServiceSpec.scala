@@ -66,7 +66,7 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
       ("WrongHeaderName", "Hello, Alice (not authenticated)")).zipWithIndex.foreach {
       case ((mdName, expResp), ix) =>
         s"use metadata in replying to single request ($ix)" in {
-          val reply = clients.last.sayHello().addHeader(mdName, "<some auth token>").invoke(HelloRequest("Alice"))
+          val reply = clients.last.sayHello().addHeader(mdName, "Bearer test").invoke(HelloRequest("Alice"))
           reply.futureValue should ===(HelloReply(expResp))
         }
     }

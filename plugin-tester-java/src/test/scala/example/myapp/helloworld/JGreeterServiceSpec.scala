@@ -67,7 +67,7 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
         s"use metadata in replying to single request ($ix)" in {
           val reply = clients.last
             .sayHello()
-            .addHeader(mdName, "<some auth token>")
+            .addHeader(mdName, "Bearer test")
             .invoke(HelloRequest.newBuilder.setName("Alice").build())
           reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage(expResp).build())
         }
