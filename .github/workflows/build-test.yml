@@ -68,9 +68,13 @@ jobs:
       matrix:
         include:
           - SCALA_VERSION: 2.12.11
+            JABBA_JDK: 1.8.0-275
+          - SCALA_VERSION: 2.12.11
+            JABBA_JDK: 1.11.0-9
           - SCALA_VERSION: 2.13.3
-          - JABBA_JDK: 1.8.0-275
-          - JABBA_JDK: 1.11.0-9
+            JABBA_JDK: 1.8.0-275
+          - SCALA_VERSION: 2.13.3
+            JABBA_JDK: 1.11.0-9
     steps:
       - name: Checkout
         uses: actions/checkout@v2
