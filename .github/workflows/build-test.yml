@@ -63,13 +63,14 @@ jobs:
   compile-and-test:
     name: Compile and test
     runs-on: ubuntu-18.04
-    fail-fast: false
-    matrix:
-      include:
-        - SCALA_VERSION: 2.12.11
-        - SCALA_VERSION: 2.13.3
-        - JABBA_JDK: 1.8.0-275
-        - JABBA_JDK: 1.11.0-9
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - SCALA_VERSION: 2.12.11
+          - SCALA_VERSION: 2.13.3
+          - JABBA_JDK: 1.8.0-275
+          - JABBA_JDK: 1.11.0-9
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -97,7 +98,8 @@ jobs:
   test-sbt:
     name: sbt scripted tests
     runs-on: ubuntu-18.04
-    fail-fast: false
+    strategy:
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -128,7 +130,8 @@ jobs:
   test-gradle:
     name: Gradle tests
     runs-on: ubuntu-18.04
-    fail-fast: false
+    strategy:
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -194,7 +197,8 @@ jobs:
   test-maven:
     name: Maven tests
     runs-on: ubuntu-18.04
-    fail-fast: false
+    strategy:
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
