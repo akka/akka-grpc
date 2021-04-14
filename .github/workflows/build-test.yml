@@ -158,8 +158,8 @@ jobs:
 
       - name: Gather version
         run: |-
-          echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.m2/.version
-          cat ~/.m2/.version
+          echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.version
+          cat ~/.version
 
       - name: Test Gradle Java Scala 2.12
         run: |-
@@ -169,7 +169,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
 
       - name: Test Gradle Java Scala 2.13
         run: |-
@@ -179,7 +179,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
 
       - name: Test Gradle Scala 2.12
         run: |-
@@ -189,7 +189,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
 
       - name: Test Gradle Scala 2.13
         run: |-
@@ -199,8 +199,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
-
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
 
 
   test-maven:
@@ -230,8 +229,8 @@ jobs:
 
       - name: Gather version
         run: |-
-          echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.m2/.version
-          cat ~/.m2/.version
+          echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.version
+          cat ~/.version
 
       - name: Test Maven Java
         run: |-
@@ -239,7 +238,7 @@ jobs:
           sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
           sbt akka-grpc-maven-plugin/publishM2
           cd plugin-tester-java
-          mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate compile
+          mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate compile
 
       - name: Test Maven Scala
         run: |-
@@ -247,4 +246,4 @@ jobs:
           sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
           sbt akka-grpc-maven-plugin/publishM2
           cd plugin-tester-scala
-          mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate scala:compile
+          mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate scala:compile
