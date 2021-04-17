@@ -90,6 +90,12 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
 }
 
+object Default@{service.name}Client {
+
+  def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
+    new Default@{service.name}Client(settings)
+}
+
 trait @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
