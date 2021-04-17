@@ -102,6 +102,18 @@ class ApplySpec extends BaseSpec {
         project.tasks.getByName("compileJava").enabled
     }
 
+    def "should enable compileJava if project has only generated java source files"() {
+        given:
+        sampleSetup("kotlin")
+        when:
+        def kotlinDir = projectDir.newFolder('src', 'main', 'kotlin')
+        new File(kotlinDir, "Empty.kt").text = "object Empty {}"
+        and:
+        project.evaluate()
+        then: "compileJava is enabled"
+        project.tasks.getByName("compileJava").enabled
+    }
+
     def "should allow implicit declarations of scala-library version"() {
         given:
         project.pluginManager.apply PLUGIN_CODE

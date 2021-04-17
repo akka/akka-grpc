@@ -5,7 +5,7 @@ javaOptions in run ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+Pr
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.35.0" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.36.1" // checked synced by GrpcVersionSyncCheckPlugin
 
 val runtimeProject = ProjectRef(file("../"), "akka-grpc-runtime")
 
@@ -29,7 +29,7 @@ val root = project.in(file("."))
       "org.scalatest" %% "scalatest" % "3.1.2" % "test",
       "org.scalatestplus" %% "junit-4-12" % "3.1.2.0" % "test"
     ),
-    Compile / PB.generate := ((Compile / PB.generate) dependsOn (
+    PB.artifactResolver := (PB.artifactResolver dependsOn (
         codeGenProject / Compile / publishLocal)).value
   )
 

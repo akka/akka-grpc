@@ -21,18 +21,17 @@ object Dependencies {
     val akkaHttp = "10.2.3"
     val akkaHttpBinary = "10.2"
 
-    val grpc = "1.35.0" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.36.1" // checked synced by GrpcVersionSyncCheckPlugin
 
     val scalaTest = "3.1.4"
 
-    val maven = "3.6.3"
+    val maven = "3.8.1"
   }
 
   object Compile {
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
     val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Versions.akkaHttp
-    val akkaHttp2Support = "com.typesafe.akka" %% "akka-http2-support" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
 
@@ -74,7 +73,7 @@ object Dependencies {
   }
 
   object Protobuf {
-    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.14.0" % "protobuf"
+    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % "3.15.8" % "protobuf"
   }
 
   object Plugins {
@@ -93,7 +92,6 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
-    Compile.akkaHttp2Support,
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
     Test.akkaDiscoveryConfig,

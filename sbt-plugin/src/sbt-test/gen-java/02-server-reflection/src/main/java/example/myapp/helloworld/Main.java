@@ -1,6 +1,7 @@
 package example.myapp.helloworld;
 
 import java.util.concurrent.CompletionStage;
+import akka.japi.function.Function;
 
 import akka.actor.ActorSystem;
 
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import akka.grpc.javadsl.ServiceHandler;
 import akka.grpc.javadsl.ServerReflection;
 import akka.http.javadsl.*;
+import akka.http.javadsl.model.*;
 
 import example.myapp.helloworld.grpc.*;
 
@@ -36,19 +38,31 @@ public class Main {
     public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
         Materializer mat = SystemMaterializer.get(sys).materializer();
 
+        //#server-reflection-manual-concat
+        // Create service handlers
+        Function<HttpRequest, CompletionStage<HttpResponse>> greetingPartial =
+                GreeterServiceHandlerFactory.create(new GreeterServiceImpl(), "greeting-prefix", sys);
+        Function<HttpRequest, CompletionStage<HttpResponse>> echoPartial =
+                EchoServiceHandlerFactory.create(new EchoServiceImpl(), sys);
+        // Create the reflection handler for multiple services
+        Function<HttpRequest, CompletionStage<HttpResponse>> reflectionPartial =
+                ServerReflection.create(Arrays.asList(GreeterService.description, EchoService.description), sys);
+
+        // Concatenate the partial functions into a single handler
+        ServiceHandler.concatOrNotFound(
+                                greetingPartial,
+                                echoPartial,
+                                reflectionPartial);
+        //#server-reflection-manual-concat
+
         //#server-reflection
         // Instantiate implementation
         GreeterService impl = new GreeterServiceImpl();
 
         // Bind service handler servers to localhost:8080
         return Http.get(sys)
-	  .newServerAt("127.0.0.1", 8080)
-	  .bind(
-            ServiceHandler.concatOrNotFound(
-                GreeterServiceHandlerFactory.create(impl, sys),
-                ServerReflection.create(Arrays.asList(GreeterService.description), sys)
-            )
-	  );
+          .newServerAt("127.0.0.1", 8080)
+          .bind(GreeterServiceHandlerFactory.createWithServerReflection(impl, sys));
         //#server-reflection
     }
 

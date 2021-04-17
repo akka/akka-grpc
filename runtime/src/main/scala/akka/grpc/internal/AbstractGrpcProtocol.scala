@@ -73,7 +73,9 @@ object AbstractGrpcProtocol {
   @inline
   def encodeFrameData(frameType: ByteString, data: ByteString): ByteString = {
     val length = data.length
-    frameType ++ ByteString((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte) ++ data
+    val encodedLength = ByteString.fromArrayUnsafe(
+      Array((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte))
+    frameType ++ encodedLength ++ data
   }
 
   def writer(protocol: GrpcProtocol, codec: Codec, encodeFrame: Frame => ChunkStreamPart): GrpcProtocolWriter =

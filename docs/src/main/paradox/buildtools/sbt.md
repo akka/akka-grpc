@@ -68,7 +68,6 @@ Available parameters are listed in the [ScalaPB documentation](https://scalapb.g
 To tune the `sbt-protoc` [additional options](https://github.com/thesamet/sbt-protoc#additional-options) such as the proto source directory
 you can configure them like this:
 
-
 ```scala
   .settings(
     inConfig(Compile)(Seq(
@@ -76,6 +75,7 @@ you can configure them like this:
     ))
   )
 ```
+
 The above, for example, removes `descriptor.proto` from the list of files to be processed.
 
 By default protobuf files are looked for in `src/main/protobuf` (and `src/main/proto`).
@@ -103,7 +103,7 @@ happen locally in your project.
 It is also possible to add the `.proto` resources as 'external' includes,
 assuming that the artifact also contains the correct generated classes for
 this API. This is not always possible, since the upstream artifact may not
-contain any generated classes or may contain classes that were were generated
+contain any generated classes or may contain classes that were generated
 in a way that is incompatible with your intended use. To include an artifact
 as an external protobuf source, add it like:
 
@@ -113,17 +113,12 @@ libraryDependencies += "com.example" %% "my-grpc-service" % "1.0.0" % "protobuf"
 
 ## JDK 8 support
 
-If you want to use TLS-based negotiation on JDK 8 versions prior to
-[1.8.0_251](https://www.oracle.com/java/technologies/javase/8u251-relnotes.html),
-the server requires a special Java agent for ALPN.
- 
-See the @extref:[Akka HTTP docs about HTTP/2](akka-http:server-side/http2.html#application-layer-protocol-negotiation-alpn-)
-for more information.
+If you want to use TLS-based negotiation on JDK 8, Akka gRPC requires JDK 8 update 252 or later. JVM support for ALPN has been backported to JDK 8u252 which is now widely available. Support for using the Jetty ALPN agent has been [dropped in Akka HTTP 10.2.0](https://doc.akka.io/docs/akka-http/current/migration-guide/migration-guide-10.2.x.html#http-2-support-requires-jdk-8-update-252-or-later), and therefore is not supported by Akka gRPC.
 
 ## Starting your Akka gRPC server from sbt
 
 You can start your gRPC application as usual with:
 
-```
-runMain io.grpc.examples.helloworld.GreeterServer
+```bash
+sbt "runMain io.grpc.examples.helloworld.GreeterServer"
 ```

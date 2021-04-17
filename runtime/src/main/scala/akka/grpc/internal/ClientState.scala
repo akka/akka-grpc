@@ -12,6 +12,7 @@ import akka.annotation.InternalApi
 import akka.annotation.InternalStableApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
+import akka.grpc.scaladsl.Grpc
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
@@ -29,14 +30,17 @@ final class ClientState(@InternalStableApi val internalChannel: InternalChannel)
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit sys: ClassicActorSystemProvider) =
     this(ClientState.createPool(settings, log))
 
-  sys.classicSystem.whenTerminated.foreach(_ => close())(sys.classicSystem.dispatcher)
+  Grpc(sys).registerClient(this)
 
   def closedCS(): CompletionStage[Done] = closed().toJava
   def closeCS(): CompletionStage[Done] = close().toJava
 
   def closed(): Future[Done] = internalChannel.done
 
-  def close(): Future[Done] = ChannelUtils.close(internalChannel)
+  def close(): Future[Done] = {
+    Grpc(sys).deregisterClient(this)
+    ChannelUtils.close(internalChannel)
+  }
 }
 
 object ClientState {
