@@ -34,14 +34,14 @@ class NonBalancingIntegrationSpec(backend: String)
     with BeforeAndAfterAll
     with ScalaFutures {
   implicit val system = ActorSystem(
-    "NonBalancingIntegrationSpec",
+    s"NonBalancingIntegrationSpec-$backend",
     ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load()))
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(15.seconds, Span(10, org.scalatest.time.Millis))
 
-  "Using pick-first (non load balanced clients)" should {
+  s"Using pick-first (non load balanced clients) - $backend" should {
     "send requests to a single endpoint" in {
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
