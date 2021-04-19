@@ -39,7 +39,7 @@ class NonBalancingIntegrationSpec(backend: String)
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(15.seconds, Span(10, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(3.seconds, Span(10, org.scalatest.time.Millis))
 
   s"Using pick-first (non load balanced clients) - $backend" should {
     "send requests to a single endpoint" in {
@@ -150,7 +150,8 @@ class NonBalancingIntegrationSpec(backend: String)
       val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       for (i <- 1 to 100) {
-        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+        println(s" Sending request [$i]")
+        client.sayHello(HelloRequest(s"Hello $i")).map(_ => println(s" Received response number [$i]")).futureValue
       }
 
       service.greetings.get should be(1 + 100)
