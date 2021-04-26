@@ -10,7 +10,7 @@ val akkaGrpcRuntimeName = "akka-grpc-runtime"
 lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 
 // gradle plugin compatibility (avoid `+` in snapshot versions)
-dynverSeparator in ThisBuild := "-"
+(ThisBuild / dynverSeparator) := "-"
 
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
@@ -30,16 +30,16 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
     buildInfoKeys += "grpcVersion" → Dependencies.Versions.grpc,
     buildInfoPackage := "akka.grpc.gen",
-    artifact in (Compile, assembly) := {
-      val art = (artifact in (Compile, assembly)).value
+    (Compile / assembly / artifact) := {
+      val art = (Compile / assembly / artifact).value
       art.withClassifier(Some("assembly"))
     },
-    mainClass in assembly := Some("akka.grpc.gen.Main"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
+    (assembly / mainClass) := Some("akka.grpc.gen.Main"),
+    (assembly / assemblyOption) := (assembly / assemblyOption).value.copy(prependShellScript =
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := scala212)
-  .settings(addArtifact(artifact in (Compile, assembly), assembly))
+  .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
 lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
@@ -69,17 +69,17 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
       val file = assembly.value
       Assemblies.mkBatAssembly(file)
     },
-    artifact in (Compile, assembly) := {
-      val art = (artifact in (Compile, assembly)).value
+    (Compile / assembly / artifact) := {
+      val art = (Compile / assembly / artifact).value
       art.withClassifier(Some("assembly"))
     },
-    mainClass in assembly := Some("akka.grpc.scalapb.Main"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript =
+    (assembly / mainClass) := Some("akka.grpc.scalapb.Main"),
+    (assembly / assemblyOption) := (assembly / assemblyOption).value.copy(prependShellScript =
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
-  .settings(addArtifact(artifact in (Compile, assembly), assembly))
+  .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
 
@@ -109,9 +109,9 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
     scriptedLaunchOpts ++= sys.props.collect { case (k @ "sbt.ivy.home", v) => s"-D$k=$v" }.toSeq,
     scriptedDependencies := {
       val p1 = publishLocal.value
-      val p2 = (publishLocal in codegen).value
-      val p3 = (publishLocal in runtime).value
-      val p4 = (publishLocal in interopTests).value
+      val p2 = (codegen / publishLocal).value
+      val p3 = (runtime / publishLocal).value
+      val p4 = (interopTests / publishLocal).value
     },
     scriptedBufferLog := false,
     crossSbtVersions := Seq("1.0.0"))
@@ -138,7 +138,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     // sbt scripted test
     whitesourceIgnore := true)
   .settings(inConfig(Test)(Seq(
-    mainClass in reStart := (mainClass in run in Test).value, {
+    reStart / mainClass  := (Test / run / mainClass).value, {
       import spray.revolver.Actions._
       reStart := Def
         .inputTask {
@@ -147,12 +147,12 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
             reLogTag.value,
             thisProjectRef.value,
             reForkOptions.value,
-            (mainClass in reStart).value,
-            (fullClasspath in reStart).value,
+            (reStart / mainClass).value,
+            (reStart / fullClasspath).value,
             reStartArgs.value,
             startArgsParser.parsed)
         }
-        .dependsOn(products in Compile)
+        .dependsOn((Compile / products))
         .evaluated
     })))
 
@@ -160,7 +160,7 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(runtime)
   .enablePlugins(JmhPlugin)
   .disablePlugins(MimaPlugin)
-  .settings(skip in publish := true)
+  .settings((publish / skip) := true)
 
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
@@ -211,7 +211,7 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.pluginTester)
   .settings(
-    skip in publish := true,
+    (publish / skip) := true,
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := scala212,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
@@ -221,7 +221,7 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.pluginTester)
   .settings(
-    skip in publish := true,
+    (publish / skip) := true,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := scala212,
@@ -242,8 +242,8 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
     pluginTesterJava,
     docs)
   .settings(
-    skip in publish := true,
-    unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get,
+    (publish / skip) := true,
+    (Compile / headerCreate / unmanagedSources) := (baseDirectory.value / "project").**("*.scala").get,
     // unidoc combines sources and jars from all subprojects and that
     // might include some incompatible ones. Depending on the
     // classpath order that might lead to scaladoc compilation errors.

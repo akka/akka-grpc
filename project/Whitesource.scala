@@ -23,13 +23,13 @@ object Whitesource extends AutoPlugin {
     // do not change the value of whitesourceProduct
     whitesourceProduct := "Lightbend Reactive Platform",
     whitesourceAggregateProjectName := {
-      val projectName = (moduleName in LocalRootProject).value.replace("-root", "")
+      val projectName = (LocalRootProject / moduleName).value.replace("-root", "")
       projectName + "-" + (if (isSnapshot.value)
                              if (gitCurrentBranch.contains("master")) "master"
                              else "adhoc"
                            else
                              CrossVersion
-                               .partialVersion((version in LocalRootProject).value)
+                               .partialVersion((LocalRootProject / version).value)
                                .map { case (major, minor) => s"$major.$minor-stable" }
                                .getOrElse("adhoc"))
     },
