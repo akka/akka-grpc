@@ -30,7 +30,7 @@ enablePlugins(AkkaGrpcPlugin)
 // They have different "java_outer_classname" options, but scalapb does not look at it:
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
-excludeFilter in PB.generate := new SimpleFileFilter(
+PB.generate / excludeFilter := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
 //#sources-both
