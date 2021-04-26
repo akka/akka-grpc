@@ -138,7 +138,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     // sbt scripted test
     whitesourceIgnore := true)
   .settings(inConfig(Test)(Seq(
-    reStart / mainClass  := (Test / run / mainClass).value, {
+    reStart / mainClass := (Test / run / mainClass).value, {
       import spray.revolver.Actions._
       reStart := Def
         .inputTask {
