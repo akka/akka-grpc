@@ -90,15 +90,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
           Seq("com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf")
         else Seq()
       },
-      PB.recompile in Compile := {
+      Compile / PB.recompile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
-        (PB.recompile in Compile).value
+        (Compile / PB.recompile).value
       },
-      PB.recompile in Test := {
+      Test / PB.recompile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
-        (PB.recompile in Test).value
+        (Test / PB.recompile).value
       })
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
@@ -106,11 +106,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
-        target in akkaGrpcCodeGeneratorSettings := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
+        akkaGrpcCodeGeneratorSettings / target := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
           configuration.value.name),
-        managedSourceDirectories += (target in akkaGrpcCodeGeneratorSettings).value,
-        unmanagedResourceDirectories ++= (resourceDirectories in PB.recompile).value,
-        watchSources in Defaults.ConfigGlobal ++= (sources in PB.recompile).value,
+        managedSourceDirectories += (akkaGrpcCodeGeneratorSettings / target).value,
+        unmanagedResourceDirectories ++= (PB.recompile / resourceDirectories).value,
+        Defaults.ConfigGlobal / watchSources ++= (PB.recompile / sources).value,
         akkaGrpcGenerators := {
           generatorsFor(
             akkaGrpcGeneratedSources.value,
@@ -122,7 +122,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
           targetsFor(
-            (target in akkaGrpcCodeGeneratorSettings).value,
+            (akkaGrpcCodeGeneratorSettings / target).value,
             akkaGrpcCodeGeneratorSettings.value,
             akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto") ++
