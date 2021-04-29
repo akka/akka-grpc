@@ -1,0 +1,13 @@
+# scalapb generates different code for the generated reflection
+# classes.
+# We don't consider those part of our public API (users will use
+# it only through akka.grpc.(scala|java)dsl.ServerReflection)),
+# so we can exclude those changes:
+ProblemFilters.exclude[MissingTypesProblem]("grpc.reflection.v1alpha.reflection.*$")
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.*$Builder")
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.*$Builder$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.*.merge")
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.*.newBuilder")
+
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("grpc.reflection.v1alpha.reflection.*.parseFrom")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("grpc.reflection.v1alpha.reflection.*.merge")
