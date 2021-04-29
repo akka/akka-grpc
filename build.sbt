@@ -29,7 +29,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
     buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
     buildInfoKeys += "grpcVersion" → Dependencies.Versions.grpc,
-    buildInfoKeys += "googleCommonProtobufVersion" → Dependencies.Versions.googleCommonProtobuf,
+    buildInfoKeys += "googleProtobufVersion" → Dependencies.Versions.googleProtobuf,
     buildInfoPackage := "akka.grpc.gen",
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value

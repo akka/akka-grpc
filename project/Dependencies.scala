@@ -23,7 +23,7 @@ object Dependencies {
 
     val grpc = "1.37.0" // checked synced by GrpcVersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
-    val googleCommonProtobuf = "3.15.8"
+    val googleProtobuf = "3.15.8"
 
     val scalaTest = "3.1.4"
 
@@ -75,7 +75,7 @@ object Dependencies {
   }
 
   object Protobuf {
-    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleCommonProtobuf % "protobuf"
+    val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
   }
 
   object Plugins {
