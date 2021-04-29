@@ -1,6 +1,6 @@
 enablePlugins(AkkaGrpcPlugin)
 
-javaOptions in run ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
+run / javaOptions ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
 
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
@@ -33,4 +33,4 @@ val root = project.in(file("."))
         codeGenProject / Compile / publishLocal)).value
   )
 
-javacOptions in compile += "-Xlint:deprecation"
+compile / javacOptions += "-Xlint:deprecation"

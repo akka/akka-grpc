@@ -25,8 +25,8 @@ env:
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
 
 install: |
-  # install 'real' sbt launcher https://eed3si9n.com/sbt-1.4.8
-  export SBT_LAUNCHER=1.4.8
+  # install 'real' sbt launcher https://eed3si9n.com/sbt-1.5.1
+  export SBT_LAUNCHER=1.5.1
   export SBT_OPTS="-Dfile.encoding=UTF-8"
   curl -L --silent "https://github.com/sbt/sbt/releases/download/v$SBT_LAUNCHER/sbt-$SBT_LAUNCHER.tgz" > $HOME/sbt.tgz
   tar zxf $HOME/sbt.tgz -C $HOME
@@ -96,7 +96,7 @@ jobs:
         use: mavenLocal
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
         - find ~/.m2 | grep gradle
@@ -120,7 +120,7 @@ jobs:
         use: mavenLocal
       script: 
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
         - cd ../plugin-tester-scala 

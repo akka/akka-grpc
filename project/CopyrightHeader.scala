@@ -22,7 +22,7 @@ object CopyrightHeader extends AutoPlugin {
             HeaderFileType.scala -> cStyleComment,
             HeaderFileType.java -> cStyleComment,
             HeaderFileType("txt") -> twirlStyleBlockComment),
-          unmanagedResourceDirectories in headerCreate += baseDirectory.value / "src" / "main" / "twirl"))
+          (headerCreate / unmanagedResourceDirectories) += baseDirectory.value / "src" / "main" / "twirl"))
     })
 
   // Not determined automatically so that it can be updated in a PR instead of

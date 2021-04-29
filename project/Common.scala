@@ -72,7 +72,7 @@ object Common extends AutoPlugin {
     libraryDependencies ++= Seq(
       compilerPlugin(("com.github.ghik" % "silencer-plugin" % silencerVersion).cross(CrossVersion.full)),
       ("com.github.ghik" % "silencer-lib" % silencerVersion % Provided).cross(CrossVersion.full)),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
+    (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
