@@ -134,13 +134,6 @@ class NonBalancingIntegrationSpec(backend: String)
       val service = new CountingGreeterServiceImpl()
       val server = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service)).futureValue
 
-      // A first successful request. A vanilla probe...
-      val discoveryHappyPath = new MutableServiceDiscovery(List(server.localAddress))
-      val serviceClient =
-        GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discoveryHappyPath).withTls(false))
-      serviceClient.sayHello(HelloRequest(s"Hello")).futureValue
-
-      // ... and now we test the endpoint selection.
       val discovery =
         new MutableServiceDiscovery(
           List(
@@ -154,7 +147,7 @@ class NonBalancingIntegrationSpec(backend: String)
         client.sayHello(HelloRequest(s"Hello $i")).map(_ => println(s" Received response number [$i]")).futureValue
       }
 
-      service.greetings.get should be(1 + 100)
+      service.greetings.get should be(100)
     }
 
     "eventually fail when no valid endpoints are provided" in {
