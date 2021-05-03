@@ -39,7 +39,7 @@ class NonBalancingIntegrationSpec(backend: String)
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(3.seconds, Span(10, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   s"Using pick-first (non load balanced clients) - $backend" should {
     "send requests to a single endpoint" in {
