@@ -128,7 +128,11 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     val src =
       channel.invokeWithMetadata(source, headers, descriptor, false, callOptionsWithDeadline())
     val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
-      src.toMat(Sink.head)(Keep.both).run()
+      src
+        // Continue reading to get the trailing headers
+        .via(new CancellationBarrierGraphStage)
+        .toMat(Sink.head)(Keep.both)
+        .run()
 
     metadataFuture
       .zip(resultFuture)
