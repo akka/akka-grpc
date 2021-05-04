@@ -91,18 +91,6 @@ jobs:
       script: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-scala-server/*"
     - name: Scripted gen-java
       script: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-java/*"
-    - name: Gradle Java Scala 2.12 
-      scala: 2.12.11
-      workspaces:
-        use: mavenLocal
-      script:
-        - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2
-        - cd gradle-plugin 
-        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
-        - find ~/.m2 | grep gradle
-        - cd ../plugin-tester-java
-        - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Java Scala 2.13
       scala: 2.13.3
       workspaces:
@@ -115,17 +103,6 @@ jobs:
         - find ~/.m2 | grep gradle
         - cd ../plugin-tester-java
         - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
-    - name: Gradle Scala 2.12
-      scala: 2.12.11
-      workspaces:
-        use: mavenLocal
-      script: 
-        - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2
-        - cd gradle-plugin 
-        - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
-        - cd ../plugin-tester-scala 
-        - ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Scala 2.13
       scala: 2.13.3
       workspaces:
