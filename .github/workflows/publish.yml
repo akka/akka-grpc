@@ -72,4 +72,5 @@ jobs:
           ssh-add /tmp/id_rsa
           cp .jvmopts-travis .jvmopts
           sbt akka-grpc-docs/publishRsync
-        env: SCP_SECRET: ${{ secrets.SCP_SECRET }}
+        env:
+          SCP_SECRET: ${{ secrets.SCP_SECRET }}
