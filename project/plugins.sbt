@@ -14,7 +14,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.18")
 addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.6.1")
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.8.1")
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.0")
 addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.24")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.0")
 
