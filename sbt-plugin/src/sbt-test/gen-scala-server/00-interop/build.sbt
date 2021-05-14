@@ -11,7 +11,7 @@ organization := "com.lightbend.akka.grpc"
 resolvers += Resolver.bintrayRepo("akka", "maven")
 resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
-val grpcVersion = "1.37.0" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.37.1" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
