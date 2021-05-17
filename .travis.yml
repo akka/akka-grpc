@@ -66,7 +66,7 @@ jobs:
       name: Publish local M2
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.6 akka-grpc-runtime/publishM2
         - find ~/.m2/repository/ -print
       workspaces:
         create:
@@ -80,7 +80,7 @@ jobs:
     - name: Checks
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck ++2.13.3 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues
+        - sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck ++2.13.6 mimaReportBinaryIssues ++2.12.11 mimaReportBinaryIssues
     - name: Compile benchmarks
       script: 
         - cd benchmark-java 
@@ -92,24 +92,24 @@ jobs:
     - name: Scripted gen-java
       script: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-java/*"
     - name: Gradle Java Scala 2.13
-      scala: 2.13.3
+      scala: 2.13.6
       workspaces:
         use: mavenLocal
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.6 akka-grpc-runtime/publishM2
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
         - find ~/.m2 | grep gradle
         - cd ../plugin-tester-java
         - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
     - name: Gradle Scala 2.13
-      scala: 2.13.3
+      scala: 2.13.6
       workspaces:
         use: mavenLocal
       script: 
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.6 akka-grpc-runtime/publishM2
         - find ~/.m2/repository/ -print
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
@@ -120,7 +120,7 @@ jobs:
         use: mavenLocal
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.6 akka-grpc-runtime/publishM2
         - sbt akka-grpc-maven-plugin/publishM2
         - cd plugin-tester-java
         - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate compile
@@ -129,7 +129,7 @@ jobs:
         use: mavenLocal
       script:
         - cp .jvmopts-travis .jvmopts
-        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
+        - sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.11 akka-grpc-runtime/publishM2 ++2.13.6 akka-grpc-runtime/publishM2
         - sbt akka-grpc-maven-plugin/publishM2
         - cd plugin-tester-scala
         - mvn -Dakka.grpc.project.version=`cat ~/.m2/.version` akka-grpc:generate scala:compile
