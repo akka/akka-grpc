@@ -37,7 +37,7 @@ install: |
   jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
 
 before_script: 
-  - echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8` > ~/.m2/.version
+  - echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`-SNAPSHOT > ~/.m2/.version
   - cat ~/.m2/.version
 
 stages:
