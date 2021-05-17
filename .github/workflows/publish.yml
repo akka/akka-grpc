@@ -32,24 +32,7 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 
-  gradle:
-    name: Gradle
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
-          fetch-depth: 0
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11.0-9
-      - name: Publish
-        run: |-
-          openssl aes-256-cbc -K $encrypted_9c9c33071881_key -iv $encrypted_9c9c33071881_iv -in gradle.properties.enc -out ./gradle-plugin/gradle.properties -d
-          cd gradle-plugin
-          ./gradlew publishPlugins
+  # TODO publish gradle from here as well
 
   documentation:
     name: Documentation
