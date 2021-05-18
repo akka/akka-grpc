@@ -102,9 +102,6 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .disablePlugins(MimaPlugin)
   .settings(Dependencies.sbtPlugin)
   .settings(
-    publishMavenStyle := false,
-    bintrayPackage := "sbt-akka-grpc",
-    bintrayRepository := "sbt-plugin-releases",
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
     scriptedLaunchOpts ++= sys.props.collect { case (k @ "sbt.ivy.home", v) => s"-D$k=$v" }.toSeq,
