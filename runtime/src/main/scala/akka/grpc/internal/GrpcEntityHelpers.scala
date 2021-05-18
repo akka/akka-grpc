@@ -39,10 +39,22 @@ object GrpcEntityHelpers {
   def apply[T](e: T)(implicit m: ProtobufSerializer[T], writer: GrpcProtocolWriter): Source[ChunkStreamPart, NotUsed] =
     chunks(Source.single(e), Source.empty)
 
+  import akka.stream._
+  import akka.stream.scaladsl._
+  import scala.annotation.unchecked.uncheckedVariance
+  //A faster implementation of concat that does not allocate so much
+  private def concatCheap[U, Mat2](that: Graph[SourceShape[U], Mat2]): Graph[FlowShape[U @uncheckedVariance, U], Mat2] =
+    GraphDSL.create(that) { implicit b => r =>
+      import GraphDSL.Implicits._
+      val merge = b.add(new Concat[U](2))
+      r ~> merge.in(1)
+      FlowShape(merge.in(0), merge.out)
+    }
+
   private def chunks[T](e: Source[T, NotUsed], trail: Source[Frame, NotUsed])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter): Source[ChunkStreamPart, NotUsed] =
-    e.map { msg => DataFrame(m.serialize(msg)) }.concat(trail).via(writer.frameEncoder)
+    e.map { msg => DataFrame(m.serialize(msg)) }.via(concatCheap(trail)).via(writer.frameEncoder)
 
   def trailer(status: Status): TrailerFrame =
     TrailerFrame(trailers = statusHeaders(status))
