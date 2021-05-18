@@ -24,8 +24,7 @@ jobs:
       - name: Publish
         run: |-
           cp .jvmopts-travis .jvmopts
-          sbt ++2.12.11 ci-release
-          sbt ++2.13.3 akka-grpc-runtime/ci-release ++2.13.3! akka-grpc-codegen/ci-release
+          sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
