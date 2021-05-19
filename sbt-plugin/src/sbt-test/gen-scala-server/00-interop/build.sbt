@@ -3,13 +3,8 @@
 scalaVersion := "2.12.11"
 
 resolvers += Resolver.sonatypeRepo("staging")
-resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 organization := "com.lightbend.akka.grpc"
-
-// For the akka-http snapshot
-resolvers += Resolver.bintrayRepo("akka", "maven")
-resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 val grpcVersion = "1.37.1" // checked synced by GrpcVersionSyncCheckPlugin
 

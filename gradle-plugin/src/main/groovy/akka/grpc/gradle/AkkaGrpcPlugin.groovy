@@ -54,7 +54,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             mavenCentral()
             if (VersionNumber.parse(baselineVersion).qualifier) {
                 maven {
-                    url "https://dl.bintray.com/akka/snapshots"
+                    url "https://oss.sonatype.org/content/repositories/snapshots"
                 }
             }
         }

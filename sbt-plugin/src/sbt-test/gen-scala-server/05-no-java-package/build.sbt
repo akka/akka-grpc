@@ -3,6 +3,5 @@
 scalaVersion := "2.12.11"
 
 resolvers += Resolver.sonatypeRepo("staging")
-resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 enablePlugins(AkkaGrpcPlugin)
