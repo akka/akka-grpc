@@ -173,13 +173,10 @@ runMain io.grpc.examples.helloworld.GreeterClient
 Gradle
 :   ```
 ./gradlew run
-
 ```
 
 Maven
 :   ```
 mvn akka-grpc:generate compile exec:java -Dexec.mainClass=io.grpc.examples.helloworld.GreeterClient
 ```
-
-
 
