@@ -30,7 +30,7 @@ class HandlerProcessingBenchmark extends CommonBenchmark {
   val in = Source.repeat(ServerReflectionRequest()).take(10000)
   val request: HttpRequest = {
     implicit val serializer = ServerReflection.Serializers.ServerReflectionRequestSerializer
-    GrpcRequestHelpers(Uri("https://unused.example/" + ServerReflection.name + "/ServerReflectionInfo"), in)
+    GrpcRequestHelpers(Uri("https://unused.example/" + ServerReflection.name + "/ServerReflectionInfo"), Nil, in)
   }
 
   val handler: HttpRequest => Future[HttpResponse] = ServerReflectionHandler(new ServerReflection {
