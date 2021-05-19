@@ -102,7 +102,7 @@ jobs:
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
         - find ~/.m2 | grep gradle
         - cd ../plugin-tester-java
-        - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=`cat ~/.m2/.version`
+        - ./gradlew clean test --console=plain --info --stacktrace  -Dakka.grpc.project.version=$(cat ~/.m2/.version | sed -e s/-SNAPSHOT//)
     - name: Gradle Scala 2.13
       scala: 2.13.3
       workspaces:
@@ -114,7 +114,7 @@ jobs:
         - cd gradle-plugin 
         - ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace 
         - cd ../plugin-tester-scala 
-        - ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.m2/.version`
+        - ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.m2/.version | sed -e s/-SNAPSHOT//)
     - name: Test Maven Java
       workspaces:
         use: mavenLocal

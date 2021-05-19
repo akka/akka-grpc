@@ -169,7 +169,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
 
       - name: Test Gradle Java Scala 2.13
         run: |-
@@ -179,7 +179,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
 
       - name: Test Gradle Scala 2.12
         run: |-
@@ -189,7 +189,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
 
       - name: Test Gradle Scala 2.13
         run: |-
@@ -199,7 +199,7 @@ jobs:
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
           cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=`cat ~/.version`
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
 
 
   test-maven:
