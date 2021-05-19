@@ -22,9 +22,7 @@ Variables to be expanded in this template:
 
 - [ ] Make sure any running [Travis builds](https://travis-ci.org/akka/akka-grpc) for the commit you would like to release have completed.
 - [ ] Tag the release `git tag -a -m 'Release v$VERSION$' v$VERSION$` and push the tag `git push --tags`
-- [ ] Check that Travis CI release build has executed successfully (Travis will start a [CI build](https://travis-ci.org/akka/akka-grpc/builds) for the new tag to publish artifacts to Bintray and documentation to Gustav)
-- [ ] Go to [Bintray](https://bintray.com/akka/maven/akka-grpc) and select the just released version
-- [ ] Log in, go to the Maven Central tab, check the *Close and release repository when done* checkbox and sync with Sonatype (using your Sonatype TOKEN key and password)
+- [ ] Check that the GitHub Actions release build has executed successfully (it should publish artifacts to Sonatype and documentation to Gustav)
 
 ### Check availability
 

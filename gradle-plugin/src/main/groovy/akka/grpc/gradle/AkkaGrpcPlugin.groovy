@@ -20,6 +20,16 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
     Project project
 
+    // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
+    String getBaselineVersion(String pluginVersion) {
+        def pv = System.getProperty("akka.grpc.baseline.version", pluginVersion)
+        if (VersionNumber.parse(pv).qualifier) {
+            pv + "-SNAPSHOT"
+        } else {
+            pv
+        }
+    }
+
     @Override
     void apply(Project project) {
 
@@ -38,14 +48,13 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.pluginManager.apply ProtobufPlugin
 
-        // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
-        def baselineVersion = System.getProperty("akka.grpc.baseline.version", akkaGrpcExt.pluginVersion)
+        def baselineVersion = getBaselineVersion(akkaGrpcExt.pluginVersion)
 
         project.repositories {
             mavenCentral()
             if (VersionNumber.parse(baselineVersion).qualifier) {
                 maven {
-                    url "https://dl.bintray.com/akka/snapshots"
+                    url "https://oss.sonatype.org/content/repositories/snapshots"
                 }
             }
         }
