@@ -6,6 +6,7 @@ import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInf
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtprotoc.ProtocPlugin.autoImport.PB
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
@@ -17,7 +18,6 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      sonatypeProfileName := "com.lightbend",
       resolvers += Resolver.sonatypeRepo("staging"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
@@ -32,6 +32,7 @@ object Common extends AutoPlugin {
   val silencerVersion = "1.7.1"
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
+    sonatypeProfileName := "com.lightbend",
     scalacOptions ++= List(
       "-unchecked",
       "-deprecation",
