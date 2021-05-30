@@ -5,6 +5,7 @@
 package akka.grpc.gen
 
 import java.io.ByteArrayOutputStream
+import java.net.URLDecoder
 
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorRequest
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
@@ -45,7 +46,8 @@ object Main extends App {
   private val extraGenerators: List[String] =
     parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
 
-  private val logger = parameters.get("logfile").map(new FileLogger(_)).getOrElse(SilencedLogger)
+  private val logger: Logger =
+    parameters.get("logfile_enc").map(URLDecoder.decode(_, "utf-8")).map(new FileLogger(_)).getOrElse(SilencedLogger)
 
   val out = {
     val codeGenerators =
