@@ -9,12 +9,13 @@ import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.grpc.{ ProtobufSerializer, Trailers }
-import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
+import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpResponse, Trailer }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import com.github.ghik.silencer.silent
 import io.grpc.Status
 
 import scala.collection.immutable
@@ -38,6 +39,18 @@ object GrpcResponseHelpers {
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
     GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
+
+  def responseForSingleElement[T](e: T, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
+      implicit m: ProtobufSerializer[T],
+      writer: GrpcProtocolWriter): HttpResponse = {
+    @silent("never used") def x = eHandler // FIXME: what to do with that
+
+    val data = DataFrame(m.serialize(e))
+    val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeFrame(data).data)
+    val trailer = Trailer(GrpcEntityHelpers.trailer(Status.OK).trailers)
+    HttpResponse(headers = headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil, entity = strictEntity)
+      .addAttribute(AttributeKeys.trailer, trailer)
+  }
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],

@@ -75,8 +75,8 @@ object GrpcMarshalling {
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ClassicActorSystemProvider): HttpResponse =
-    marshalStream(Source.single(e), eHandler)
+      @silent("never used") /* but public API, kept for compat */ system: ClassicActorSystemProvider): HttpResponse =
+    GrpcResponseHelpers.responseForSingleElement(e, eHandler)
 
   def marshalStream[T](
       e: Source[T, NotUsed],

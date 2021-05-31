@@ -76,5 +76,7 @@ object Common extends AutoPlugin {
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
-    scalafmtOnCompile := true)
+    scalafmtOnCompile := true,
+    resolvers += "akka-http-snapshot-repository" at "https://oss.sonatype.org/content/repositories/snapshots",
+  )
 }
