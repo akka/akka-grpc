@@ -18,7 +18,12 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
     extends io.grpc.MethodDescriptor.Marshaller[T]
     with WithProtobufSerializer[T] {
   override def parse(stream: InputStream): T = {
-    val buffer = new Array[Byte](32 * 1024)
+    val buffer =
+      new Array[Byte](stream match {
+        case k: KnownLength => math.max(0, k.available()) // No need to oversize this if we already know the size
+        case _              => 32 * 1024
+      })
+
     // Blocking calls underneath...
     // we can't avoid it for the moment because we are relying on the Netty's Channel API
     val bytes = stream.read(buffer, 0, buffer.length) match {
@@ -29,12 +34,13 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
           .fromArrayUnsafe(buffer, 0, n) // Potentially wasteful, can we bet that the ByteString will be thrown away?
       case full =>
         val baos = new ByteArrayOutputStream(buffer.length * 2) // To avoid immediate resize
-        baos.write(buffer, 0, full)
-        var bytesRead = stream.read(buffer)
-        while (bytesRead >= 0) {
+        var bytesRead = full
+
+        do {
           baos.write(buffer, 0, bytesRead)
           bytesRead = stream.read(buffer)
-        }
+        } while (bytesRead >= 0)
+
         akka.util.ByteString.fromArrayUnsafe(baos.toByteArray)
     }
 
