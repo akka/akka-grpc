@@ -46,8 +46,14 @@ object Main extends App {
   private val extraGenerators: List[String] =
     parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
 
+  // Prefer logfile_enc with fallback to logfile
   private val logger: Logger =
-    parameters.get("logfile_enc").map(URLDecoder.decode(_, "utf-8")).map(new FileLogger(_)).getOrElse(SilencedLogger)
+    parameters
+      .get("logfile_enc")
+      .map(URLDecoder.decode(_, "utf-8"))
+      .orElse(parameters.get("logfile"))
+      .map(new FileLogger(_))
+      .getOrElse(SilencedLogger)
 
   val out = {
     val codeGenerators =
