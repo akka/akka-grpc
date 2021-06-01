@@ -201,6 +201,29 @@ jobs:
           cd ../plugin-tester-scala
           ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
 
+  test-docs:
+    name: Docs
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Checkout GitHub merge
+        if: github.event.pull_request
+        run: |-
+          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
+          git checkout scratch
+      - name: Set up JDK 11
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11.0-9
+      - name: Cache Coursier cache
+        uses: coursier/cache-action@v5
+      - name: Test Maven Java
+        run: |-
+          cp .jvmopts-travis .jvmopts
+          sbt paradox
 
   test-maven:
     name: Maven tests
