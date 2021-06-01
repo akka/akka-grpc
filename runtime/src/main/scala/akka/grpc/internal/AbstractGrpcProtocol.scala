@@ -88,9 +88,26 @@ object AbstractGrpcProtocol {
   def reader(
       codec: Codec,
       decodeFrame: (Int, ByteString) => Frame,
-      flowAdapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] = identity)
-      : GrpcProtocolReader =
-    GrpcProtocolReader(codec, flowAdapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
+      flowAdapter: ByteString => ByteString = null): GrpcProtocolReader = {
+    val adapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] =
+      if (flowAdapter eq null) identity
+      else x => Flow[ByteString].map(flowAdapter).via(x)
+
+    def decoder(bs: ByteString): ByteString = {
+      val reader = new ByteReader(bs)
+      def rec(output: ByteString): ByteString = if (reader.hasRemaining) {
+        val frameType = reader.readByte()
+        val length = reader.readIntBE()
+        if ((frameType & 0x80) == 0)
+          if ((frameType & 1) == 1) throw new IllegalStateException("don't support codecs here right now")
+          else rec(output ++ reader.take(length))
+        else rec(output) // ignoring unknown frame
+      } else output
+      rec(ByteString.empty)
+    }
+
+    GrpcProtocolReader(codec, decoder, adapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
+  }
 
   class GrpcFramingDecoderStage(codec: Codec, deframe: (Int, ByteString) => Frame) extends ByteStringParser[Frame] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =

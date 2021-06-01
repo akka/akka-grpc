@@ -7,7 +7,6 @@ package akka.grpc.scaladsl
 import io.grpc.Status
 
 import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
@@ -15,11 +14,10 @@ import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal._
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
+import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
 
 object GrpcMarshalling {
@@ -28,7 +26,7 @@ object GrpcMarshalling {
       req,
       (r, _) => {
         implicit val reader: GrpcProtocolReader = r
-        unmarshal(req.entity.dataBytes)
+        unmarshal(req.entity)
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
@@ -39,7 +37,7 @@ object GrpcMarshalling {
       req,
       (r, _) => {
         implicit val reader: GrpcProtocolReader = r
-        unmarshalStream(req.entity.dataBytes)
+        unmarshalStream(req.entity)
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
@@ -55,6 +53,13 @@ object GrpcMarshalling {
       reader: GrpcProtocolReader): Future[T] = {
     data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(SingleParameterSink())
   }
+  def unmarshal[T](
+      entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
+    entity match {
+      case HttpEntity.Strict(_, data) =>
+        Future.successful(u.deserialize(reader.decodeFrames(data)))
+      case _ => unmarshal(entity.dataBytes)
+    }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
       implicit u: ProtobufSerializer[T],
@@ -69,6 +74,12 @@ object GrpcMarshalling {
         // don't want the cancellation bubbled out
         .via(new CancellationBarrierGraphStage))
   }
+
+  def unmarshalStream[T](entity: HttpEntity)(
+      implicit u: ProtobufSerializer[T],
+      @silent("never used") mat: Materializer,
+      reader: GrpcProtocolReader): Future[Source[T, NotUsed]] =
+    unmarshalStream(entity.dataBytes)
 
   def marshal[T](
       e: T = Identity,
