@@ -11,6 +11,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -125,7 +126,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             option "server_power_apis=${akkaGrpcExt.serverPowerApis}"
                             option "use_play_actions=${akkaGrpcExt.usePlayActions}"
                             option "extra_generators=${akkaGrpcExt.extraGenerators.join(';')}"
-                            option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
+                            option "logfile_enc=${URLEncoder.encode(logFile.toString(), "utf-8")}"
                             if (akkaGrpcExt.includeStdTypes) {
                                 option "include_std_types=true"
                             }
