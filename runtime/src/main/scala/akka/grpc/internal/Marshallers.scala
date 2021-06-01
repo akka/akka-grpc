@@ -30,8 +30,9 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
       case -1 =>
         akka.util.ByteString.empty // EOF immediately
       case n if n < buffer.length =>
-        akka.util.ByteString
-          .fromArrayUnsafe(buffer, 0, n) // Potentially wasteful, can we bet that the ByteString will be thrown away?
+        // WARNING: buffer is retained in full below,
+        // which could be problematic if ProtobufSerializer.deserialize keeps a reference to the ByteString
+        akka.util.ByteString.fromArrayUnsafe(buffer, 0, n)
       case full =>
         val baos = new ByteArrayOutputStream(buffer.length * 2) // To avoid immediate resize
         var bytesRead = full
