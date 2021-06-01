@@ -15,7 +15,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("com.lightbend" % "sbt-whitesource" % "0.1.18")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.2")
 addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.24")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.2")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
 addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
 
 // docs
