@@ -26,24 +26,29 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
 
     // Blocking calls underneath...
     // we can't avoid it for the moment because we are relying on the Netty's Channel API
-    val bytes = stream.read(buffer, 0, buffer.length) match {
-      case -1 =>
-        akka.util.ByteString.empty // EOF immediately
-      case n if n < buffer.length =>
-        // WARNING: buffer is retained in full below,
-        // which could be problematic if ProtobufSerializer.deserialize keeps a reference to the ByteString
-        akka.util.ByteString.fromArrayUnsafe(buffer, 0, n)
-      case full =>
+    val initialBytes = stream.read(buffer, 0, buffer.length)
+    val nextByte = if (initialBytes < 0) -1 else stream.read() // Test for EOF
+    val bytes =
+      if (nextByte == -1) {
+        if (initialBytes < 1) akka.util.ByteString.empty // EOF immediately
+        else {
+          // WARNING: buffer is retained in full below,
+          // which could be problematic if ProtobufSerializer.deserialize keeps a reference to the ByteString
+          akka.util.ByteString.fromArrayUnsafe(buffer, 0, initialBytes)
+        }
+      } else {
         val baos = new ByteArrayOutputStream(buffer.length * 2) // To avoid immediate resize
-        var bytesRead = full
+        baos.write(buffer, 0, initialBytes)
+        baos.write(nextByte)
 
-        do {
+        var bytesRead = stream.read(buffer)
+        while (bytesRead >= 0) {
           baos.write(buffer, 0, bytesRead)
           bytesRead = stream.read(buffer)
-        } while (bytesRead >= 0)
+        }
 
         akka.util.ByteString.fromArrayUnsafe(baos.toByteArray)
-    }
+      }
 
     protobufSerializer.deserialize(bytes)
   }
