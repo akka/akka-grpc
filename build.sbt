@@ -161,8 +161,7 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
-    (publish / skip) := true
-  )
+    (publish / skip) := true)
 
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
