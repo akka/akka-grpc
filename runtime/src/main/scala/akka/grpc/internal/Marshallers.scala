@@ -4,11 +4,12 @@
 
 package akka.grpc.internal
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream, InputStream }
+import java.io.{ ByteArrayInputStream, InputStream }
 
 import io.grpc.KnownLength
 import akka.annotation.InternalStableApi
 import akka.grpc.ProtobufSerializer
+import scala.annotation.tailrec
 
 /**
  * INTERNAL API
@@ -24,33 +25,22 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
         case _              => 32 * 1024
       })
 
-    // Blocking calls underneath...
-    // we can't avoid it for the moment because we are relying on the Netty's Channel API
-    val initialBytes = stream.read(buffer, 0, buffer.length)
-    val nextByte = if (initialBytes < 0) -1 else stream.read() // Test for EOF
-    val bytes =
-      if (nextByte == -1) {
-        if (initialBytes < 1) akka.util.ByteString.empty // EOF immediately
-        else {
-          // WARNING: buffer is retained in full below,
-          // which could be problematic if ProtobufSerializer.deserialize keeps a reference to the ByteString
-          akka.util.ByteString.fromArrayUnsafe(buffer, 0, initialBytes)
-        }
+    @tailrec def readBytes(buffer: Array[Byte], at: Int, result: akka.util.ByteString): akka.util.ByteString = {
+      val capacity = buffer.length - at
+      val bytesRead = stream.read(buffer, at, capacity)
+      if (bytesRead < 0) {
+          if (at > 0) result ++ akka.util.ByteString.fromArrayUnsafe(buffer, 0, at) // Potentially wasteful since at could be small
+          else result
       } else {
-        val baos = new ByteArrayOutputStream(buffer.length * 2) // To avoid immediate resize
-        baos.write(buffer, 0, initialBytes)
-        baos.write(nextByte)
-
-        var bytesRead = stream.read(buffer)
-        while (bytesRead >= 0) {
-          baos.write(buffer, 0, bytesRead)
-          bytesRead = stream.read(buffer)
-        }
-
-        akka.util.ByteString.fromArrayUnsafe(baos.toByteArray)
+        // Reading 0 bytes from an EOF stream should still EOF (-1) but didn't so has more data
+        if (capacity == 0 && bytesRead == 0)
+          readBytes(buffer, 0, result ++ akka.util.ByteString(buffer))
+        else
+          readBytes(buffer, at + bytesRead, result)
       }
+    }
 
-    protobufSerializer.deserialize(bytes)
+    protobufSerializer.deserialize(readBytes(buffer, 0, akka.util.ByteString.empty))
   }
 }
 
