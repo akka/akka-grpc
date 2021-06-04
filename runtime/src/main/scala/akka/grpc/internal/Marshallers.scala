@@ -29,8 +29,9 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
       val capacity = buffer.length - at
       val bytesRead = stream.read(buffer, at, capacity)
       if (bytesRead < 0) {
-          if (at > 0) result ++ akka.util.ByteString.fromArrayUnsafe(buffer, 0, at) // Potentially wasteful since at could be small
-          else result
+        if (at > 0)
+          result ++ akka.util.ByteString.fromArrayUnsafe(buffer, 0, at) // Potentially wasteful since at could be small
+        else result
       } else {
         // Reading 0 bytes from an EOF stream should still EOF (-1) but didn't so has more data
         if (capacity == 0 && bytesRead == 0)
