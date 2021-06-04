@@ -158,7 +158,10 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(runtime)
   .enablePlugins(JmhPlugin)
   .disablePlugins(MimaPlugin)
-  .settings((publish / skip) := true)
+  .settings(
+    crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+    (publish / skip) := true)
 
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
@@ -238,6 +241,7 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
     interopTests,
     pluginTesterScala,
     pluginTesterJava,
+    benchmarks,
     docs)
   .settings(
     (publish / skip) := true,
