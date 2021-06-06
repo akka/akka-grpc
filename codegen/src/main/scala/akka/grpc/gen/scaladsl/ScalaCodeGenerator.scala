@@ -43,6 +43,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   // generate services code here, the data types we want to leave to scalapb
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {
     val b = CodeGeneratorResponse.newBuilder
+    b.setSupportedFeatures(CodeGeneratorResponse.Feature.FEATURE_PROTO3_OPTIONAL.getNumber)
 
     // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
