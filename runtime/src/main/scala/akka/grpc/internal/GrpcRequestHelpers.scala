@@ -37,6 +37,7 @@ object GrpcRequestHelpers {
     HttpRequest(
       uri = uri,
       method = HttpMethods.POST,
+      // FIXME how can client exclude gzip?
       headers = immutable.Seq(
         `Message-Encoding`(writer.messageEncoding.name),
         `Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(",")),
