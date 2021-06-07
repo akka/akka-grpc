@@ -8,7 +8,6 @@ import akka.annotation.ApiMayChange
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
 import akka.http.javadsl.{ model => jm }
-
 import scala.collection.immutable
 import scala.util.Try
 
@@ -19,16 +18,19 @@ final class `Message-Accept-Encoding`(override val value: String)
   override def renderInResponses = true
   override val companion = `Message-Accept-Encoding`
 
-  lazy val values: Array[String] = value.split(",")
+  lazy val values: Array[String] = value.split(',')
 }
 
 @ApiMayChange
 object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-Accept-Encoding`] {
   override val name = "grpc-accept-encoding"
-  override def parse(value: String) = Try(new `Message-Accept-Encoding`(value))
+  override val lowercaseName: String = super.lowercaseName
+
+  override def parse(value: String): Try[`Message-Accept-Encoding`] =
+    Try(new `Message-Accept-Encoding`(value))
 
   def findIn(headers: Iterable[jm.HttpHeader]): Array[String] =
-    headers.find(_.is(name)).map(_.value()).map(_.split(",")).getOrElse(Array.empty)
+    headers.collectFirst { case h if h.is(name) => h.value().split(',') }.getOrElse(Array.empty)
 
   /** Java API */
   def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Array[String] = {
@@ -48,10 +50,12 @@ final class `Message-Encoding`(encoding: String) extends ModeledCustomHeader[`Me
 @ApiMayChange
 object `Message-Encoding` extends ModeledCustomHeaderCompanion[`Message-Encoding`] {
   override val name = "grpc-encoding"
-  override def parse(encoding: String) = Try(new `Message-Encoding`(encoding))
+  override val lowercaseName: String = super.lowercaseName
+
+  override def parse(encoding: String): Try[`Message-Encoding`] = Try(new `Message-Encoding`(encoding))
 
   def findIn(headers: Iterable[jm.HttpHeader]): Option[String] =
-    headers.find(_.is(name)).map(_.value())
+    headers.collectFirst { case h if h.is(name) => h.value() }
 
   /** Java API */
   def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Option[String] = {
@@ -69,10 +73,12 @@ final class `Status`(code: Int) extends ModeledCustomHeader[`Status`] {
 
 object `Status` extends ModeledCustomHeaderCompanion[`Status`] {
   override val name = "grpc-status"
-  override def parse(value: String) = Try(new `Status`(Integer.parseInt(value)))
+  override val lowercaseName: String = super.lowercaseName
+
+  override def parse(value: String): Try[`Status`] = Try(new `Status`(Integer.parseInt(value)))
 
   def findIn(headers: immutable.Seq[HttpHeader]): Option[Int] =
-    headers.find(_.is(name)).map(h => Integer.parseInt(h.value()))
+    headers.collectFirst { case h if h.is(name) => Integer.parseInt(h.value()) }
 }
 
 // TODO percent-encoding of message?
@@ -84,8 +90,10 @@ final class `Status-Message`(override val value: String) extends ModeledCustomHe
 
 object `Status-Message` extends ModeledCustomHeaderCompanion[`Status-Message`] {
   override val name = "grpc-message"
-  override def parse(value: String) = Try(new `Status-Message`(value))
+  override val lowercaseName: String = super.lowercaseName
+
+  override def parse(value: String): Try[`Status-Message`] = Try(new `Status-Message`(value))
 
   def findIn(headers: immutable.Seq[HttpHeader]): Option[String] =
-    headers.find(_.is(name)).map(_.value())
+    headers.collectFirst { case h if h.is(name) => h.value() }
 }
