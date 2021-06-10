@@ -18,7 +18,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers += Resolver.sonatypeRepo("staging"),
+      //resolvers += Resolver.sonatypeRepo("staging"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
