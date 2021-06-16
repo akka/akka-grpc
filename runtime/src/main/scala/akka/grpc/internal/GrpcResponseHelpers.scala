@@ -11,7 +11,16 @@ import akka.annotation.InternalApi
 import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpResponse, Trailer }
+import akka.http.scaladsl.model.{
+  AttributeKeys,
+  HttpEntity,
+  HttpHeader,
+  HttpProtocols,
+  HttpResponse,
+  ResponseEntity,
+  StatusCodes,
+  Trailer
+}
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -29,6 +38,7 @@ import scala.util.control.NonFatal
 @InternalApi // consumed from generated classes so cannot be private
 object GrpcResponseHelpers {
   private val TrailerOk = GrpcEntityHelpers.trailer(Status.OK)
+  private val TrailerOkAttribute = Trailer(TrailerOk.trailers)
 
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
@@ -49,16 +59,29 @@ object GrpcResponseHelpers {
     try {
       val data = DataFrame(m.serialize(e))
       val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeFrame(data).data)
-      val trailer = Trailer(TrailerOk.trailers)
-      HttpResponse(headers = headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil, entity = strictEntity)
-        .addAttribute(AttributeKeys.trailer, trailer)
+      responseWithTrailers(
+        headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
+        strictEntity,
+        TrailerOkAttribute)
     } catch {
       case NonFatal(ex) =>
         val trailers = GrpcEntityHelpers.handleException(ex, eHandler)
-        HttpResponse(headers = headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil).addAttribute(
-          AttributeKeys.trailer,
+        responseWithTrailers(
+          headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
+          HttpEntity.Empty,
           Trailer(GrpcEntityHelpers.trailer(trailers.status, trailers.metadata).trailers))
     }
+
+  private def responseWithTrailers(
+      headers: immutable.Seq[HttpHeader],
+      entity: ResponseEntity,
+      trailer: Trailer): HttpResponse =
+    new HttpResponse(
+      status = StatusCodes.OK,
+      headers = headers,
+      entity = entity,
+      protocol = HttpProtocols.`HTTP/2.0`,
+      attributes = Map(AttributeKeys.trailer -> trailer))
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
