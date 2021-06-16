@@ -63,7 +63,7 @@ object GrpcMarshalling {
       system: ClassicActorSystemProvider,
       eHandler: JFunction[ActorSystem, JFunction[Throwable, Trailers]] = GrpcExceptionHandler.defaultMapper)
       : HttpResponse =
-    marshalStream(Source.single(e), m, writer, system, eHandler)
+    GrpcResponseHelpers.responseForSingleElement(e, scalaAnonymousPartialFunction(eHandler))(m, writer, system)
 
   def marshalStream[T](
       e: Source[T, NotUsed],
