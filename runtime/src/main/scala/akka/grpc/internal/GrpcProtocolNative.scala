@@ -19,7 +19,7 @@ import com.github.ghik.silencer.silent
 object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
 
   override protected def writer(codec: Codec) =
-    AbstractGrpcProtocol.writer(this, codec, encodeFrame(codec, _))
+    AbstractGrpcProtocol.writer(this, codec, encodeFrame(codec, _), encodeDataToFrameBytes(codec, _))
 
   override protected def reader(codec: Codec): GrpcProtocolReader =
     AbstractGrpcProtocol.reader(codec, decodeFrame)
@@ -28,12 +28,14 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
   private def decodeFrame(@silent("never used") frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
-  private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart = {
-    val compressedFlag = AbstractGrpcProtocol.fieldType(codec)
+  private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =
     frame match {
-      case DataFrame(data)       => Chunk(AbstractGrpcProtocol.encodeFrameData(compressedFlag, codec.compress(data)))
+      case DataFrame(data)       => Chunk(encodeDataToFrameBytes(codec, data))
       case TrailerFrame(headers) => LastChunk(trailer = headers)
     }
+  private def encodeDataToFrameBytes(codec: Codec, data: ByteString): ByteString = {
+    val compressedFlag = AbstractGrpcProtocol.fieldType(codec)
+    AbstractGrpcProtocol.encodeFrameData(compressedFlag, codec.compress(data))
   }
 
 }

@@ -9,7 +9,7 @@ import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.grpc.{ ProtobufSerializer, Trailers }
-import akka.grpc.GrpcProtocol.{ DataFrame, GrpcProtocolWriter, TrailerFrame }
+import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.http.scaladsl.model.{
   AttributeKeys,
@@ -57,8 +57,7 @@ object GrpcResponseHelpers {
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
     try {
-      val data = DataFrame(m.serialize(e))
-      val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeFrame(data).data)
+      val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeDataToFrameBytes((m.serialize(e))))
       responseWithTrailers(
         headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
         strictEntity,
