@@ -18,7 +18,7 @@ object Dependencies {
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
     val akka = "2.6.9"
     val akkaBinary = "2.6"
-    val akkaHttp = "10.2.4+26-75aec5f7-SNAPSHOT"
+    val akkaHttp = "10.2.4+48-b667fd93-SNAPSHOT"
     val akkaHttpBinary = "10.2"
 
     val grpc = "1.38.0" // checked synced by GrpcVersionSyncCheckPlugin
