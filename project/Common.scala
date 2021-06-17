@@ -13,6 +13,8 @@ object Common extends AutoPlugin {
 
   override def requires = JvmPlugin
 
+  private val consoleDisabledOptions = Seq("-Xfatal-warnings", "-Ywarn-unused", "-Ywarn-unused-import")
+
   override def globalSettings =
     Seq(
       organization := "com.lightbend.akka.grpc",
@@ -51,6 +53,7 @@ object Common extends AutoPlugin {
       "-P:silencer:globalFilters=Use LazyList instead of Stream",
       // ignore imports in templates
       "-P:silencer:pathFilters=.*.txt"),
+    Compile / console / scalacOptions ~= (_ filterNot consoleDisabledOptions.contains),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
       "-doc-title",

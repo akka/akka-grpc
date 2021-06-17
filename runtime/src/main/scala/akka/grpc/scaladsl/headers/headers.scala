@@ -8,6 +8,7 @@ import akka.annotation.ApiMayChange
 import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
 import akka.http.javadsl.{ model => jm }
+
 import scala.collection.immutable
 import scala.util.Try
 
@@ -68,6 +69,7 @@ final class `Status`(code: Int) extends ModeledCustomHeader[`Status`] {
   override def renderInRequests = false
   override def renderInResponses = true
   override val companion = `Status`
+
   override def value() = code.toString
 }
 
@@ -81,18 +83,20 @@ object `Status` extends ModeledCustomHeaderCompanion[`Status`] {
     headers.collectFirst { case h if h.is(name) => Integer.parseInt(h.value()) }
 }
 
-// TODO percent-encoding of message?
-final class `Status-Message`(override val value: String) extends ModeledCustomHeader[`Status-Message`] {
+// grpc-message must be percent encoded: https://github.com/grpc/grpc/issues/4672
+final class `Status-Message`(val unencodedValue: String) extends ModeledCustomHeader[`Status-Message`] {
   override def renderInRequests = false
   override def renderInResponses = true
   override val companion = `Status-Message`
+  override def value() = PercentEncoding.Encoder.encode(unencodedValue)
 }
 
 object `Status-Message` extends ModeledCustomHeaderCompanion[`Status-Message`] {
   override val name = "grpc-message"
   override val lowercaseName: String = super.lowercaseName
 
-  override def parse(value: String): Try[`Status-Message`] = Try(new `Status-Message`(value))
+  override def parse(value: String): Try[`Status-Message`] = Try(
+    new `Status-Message`(PercentEncoding.Decoder.decode(value)))
 
   def findIn(headers: immutable.Seq[HttpHeader]): Option[String] =
     headers.collectFirst { case h if h.is(name) => h.value() }
