@@ -56,9 +56,8 @@ object GrpcMarshalling {
   def unmarshal[T](
       entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
     entity match {
-      case HttpEntity.Strict(_, data) =>
-        Future.successful(u.deserialize(reader.decodeFrames(data)))
-      case _ => unmarshal(entity.dataBytes)
+      case HttpEntity.Strict(_, data) => Future.successful(u.deserialize(reader.decodeSingleFrame(data)))
+      case _                          => unmarshal(entity.dataBytes)
     }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(

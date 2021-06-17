@@ -89,21 +89,21 @@ object AbstractGrpcProtocol {
       codec: Codec,
       decodeFrame: (Int, ByteString) => Frame,
       flowAdapter: ByteString => ByteString = null): GrpcProtocolReader = {
+    val strictAdapter: ByteString => ByteString = if (flowAdapter eq null) identity else flowAdapter
     val adapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] =
       if (flowAdapter eq null) identity
       else x => Flow[ByteString].map(flowAdapter).via(x)
 
-    def decoder(bs: ByteString): ByteString = {
+    // strict decoder
+    def decoder(bs: ByteString): ByteString = try {
       val reader = new ByteReader(bs)
-      def rec(output: ByteString): ByteString = if (reader.hasRemaining) {
-        val frameType = reader.readByte()
-        val length = reader.readIntBE()
-        val data = reader.take(length)
-        if ((frameType & 0x80) == 0) rec(output ++ codec.uncompress((frameType & 1) == 1, data))
-        else rec(output) // ignoring unknown frame
-      } else output
-      rec(ByteString.empty)
-    }
+      val frameType = reader.readByte()
+      val length = reader.readIntBE()
+      val data = reader.take(length)
+      if (reader.hasRemaining) throw new IllegalStateException("Unexpected data")
+      if ((frameType & 0x80) == 0) strictAdapter(codec.uncompress((frameType & 1) == 1, data))
+      else throw new IllegalStateException("Cannot read unknown frame")
+    } catch { case ByteStringParser.NeedMoreData => throw new MissingParameterException }
 
     GrpcProtocolReader(codec, decoder, adapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
   }
