@@ -15,7 +15,7 @@ import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
-import io.grpc.{ Status, StatusException }
+import io.grpc.StatusException
 
 abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
 
@@ -57,7 +57,7 @@ object AbstractGrpcProtocol {
   def fieldType(codec: Codec) = if (codec == Identity) notCompressed else compressed
 
   /**
-   * Adjusts thye compressibility of a content type to suit a message encoding.
+   * Adjusts the compressibility of a content type to suit a message encoding.
    * @param contentType the content type for the gRPC protocol.
    * @param codec the message encoding being used to encode objects.
    * @return the provided content type, with the compressibility adapted to reflect whether HTTP transport level compression should be used.
@@ -98,9 +98,8 @@ object AbstractGrpcProtocol {
       def rec(output: ByteString): ByteString = if (reader.hasRemaining) {
         val frameType = reader.readByte()
         val length = reader.readIntBE()
-        if ((frameType & 0x80) == 0)
-          if ((frameType & 1) == 1) throw new IllegalStateException("don't support codecs here right now")
-          else rec(output ++ reader.take(length))
+        val data = reader.take(length)
+        if ((frameType & 0x80) == 0) rec(output ++ codec.uncompress((frameType & 1) == 1, data))
         else rec(output) // ignoring unknown frame
       } else output
       rec(ByteString.empty)
@@ -130,21 +129,15 @@ object AbstractGrpcProtocol {
         sealed case class ReadFrame(frameType: Int, length: Int) extends Step {
           private val compression = (frameType & 0x01) == 1
 
-          override def parse(reader: ByteReader): ParseResult[Frame] = {
-            if (compression) codec match {
-              case Identity =>
-                failStage(
-                  new StatusException(
-                    Status.INTERNAL.withDescription(
-                      "Compressed-Flag bit is set, but a compression encoding is not specified")))
+          override def parse(reader: ByteReader): ParseResult[Frame] =
+            try ParseResult(
+              Some(deframe(frameType, codec.uncompress(compression, reader.take(length)))),
+              ReadFrameHeader)
+            catch {
+              case s: StatusException =>
+                failStage(s) // handle explicitly to avoid noisy log
                 ParseResult(None, Failed)
-              case _ =>
-                ParseResult(Some(deframe(frameType, codec.uncompress(reader.take(length)))), ReadFrameHeader)
             }
-            else {
-              ParseResult(Some(deframe(frameType, reader.take(length))), ReadFrameHeader)
-            }
-          }
         }
 
         final case object Failed extends Step {
