@@ -18,16 +18,6 @@ object Codecs {
   private val supportedNames: Set[String] = supportedCodecs.map(_.name).toSet
   private val supportedByName = supportedCodecs.map(c => c.name -> c).toMap
 
-  private def extractHeaders(request: jm.HttpMessage): Iterable[jm.HttpHeader] = {
-    request match {
-      case sReq: sm.HttpMessage =>
-        sReq.headers
-      case _ =>
-        import scala.collection.JavaConverters._
-        request.getHeaders.asScala
-    }
-  }
-
   /**
    * Determines the message encoding to use for a server response to a client.
    *
@@ -35,8 +25,8 @@ object Codecs {
    * @return a codec to compress data frame bodies with, which will be [[Identity]] unless the client specifies support for another supported encoding.
    */
   def negotiate(request: jm.HttpRequest): Codec = {
-    val headers = extractHeaders(request)
-    val accepted = `Message-Accept-Encoding`.findIn(headers)
+    val accepted =
+      request.asInstanceOf[sm.HttpMessage].header[`Message-Accept-Encoding`].map(_.values).getOrElse(Array.empty)
 
     if (accepted.length == 0) {
       Identity
