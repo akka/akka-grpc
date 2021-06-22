@@ -17,12 +17,23 @@ import com.github.ghik.silencer.silent
  *  - Trailer frames are encoded to [[LastChunk]], to be rendered into the underlying HTTP/2 transport
  */
 object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
+  private val identityReader = AbstractGrpcProtocol.reader(Identity, decodeFrame)
+  private val identityWriter =
+    AbstractGrpcProtocol.writer(this, Identity, encodeFrame(Identity, _), encodeDataToFrameBytes(Identity, _))
 
-  override protected def writer(codec: Codec) =
-    AbstractGrpcProtocol.writer(this, codec, encodeFrame(codec, _), encodeDataToFrameBytes(codec, _))
+  private val gzipReader = AbstractGrpcProtocol.reader(Gzip, decodeFrame)
+  private val gzipWriter =
+    AbstractGrpcProtocol.writer(this, Gzip, encodeFrame(Gzip, _), encodeDataToFrameBytes(Gzip, _))
 
-  override protected def reader(codec: Codec): GrpcProtocolReader =
-    AbstractGrpcProtocol.reader(codec, decodeFrame)
+  override protected def writer(codec: Codec) = codec match {
+    case Identity => identityWriter
+    case Gzip     => gzipWriter
+  }
+
+  override protected def reader(codec: Codec): GrpcProtocolReader = codec match {
+    case Identity => identityReader
+    case Gzip     => gzipReader
+  }
 
   @inline
   private def decodeFrame(@silent("never used") frameType: Int, data: ByteString) = DataFrame(data)
