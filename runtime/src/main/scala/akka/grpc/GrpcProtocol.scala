@@ -99,6 +99,7 @@ object GrpcProtocol {
   case class GrpcProtocolReader(
       /** The compression codec to be used for data frames */
       messageEncoding: Codec,
+      decodeSingleFrame: ByteString => ByteString,
       /** A Flow of Frames over a stream of messages encoded in gRPC framing. */
       frameDecoder: Flow[ByteString, Frame, NotUsed]) {
 

@@ -116,7 +116,7 @@ object @{serviceName}Handler {
             @for(method <- service.methods) {
             case "@method.grpcName" =>
                 @{if(powerApis) { "val metadata = MetadataBuilder.fromHeaders(request.headers)" } else { "" }}
-                @{method.unmarshal}(request.entity.dataBytes)(@method.deserializer.name, mat, reader)
+                @{method.unmarshal}(request.entity)(@method.deserializer.name, mat, reader)
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.nameSafe}(_@{if(powerApis) { ", metadata" } else { "" }}))
                   .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, writer, system))
             }
