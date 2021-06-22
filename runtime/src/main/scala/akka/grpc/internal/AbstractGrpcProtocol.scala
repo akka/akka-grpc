@@ -77,6 +77,30 @@ object AbstractGrpcProtocol {
       Array((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte))
     frameType ++ encodedLength ++ data
   }
+  def encodeFrameDataCheap(isCompressed: Boolean, data: ByteString): ByteString = {
+    val length = data.length
+
+    // for small buffers copying should be cheaper than allocating a complicated ByteString
+    // FIXME: find good size where it is actually like this, or implement in ByteString directly
+    if (data.size < 100) {
+      val result = new Array[Byte](5 + data.length)
+      result(0) = if (isCompressed) 1 else 0
+      result(1) = (length >> 24).toByte
+      result(2) = (length >> 16).toByte
+      result(3) = (length >> 8).toByte
+      result(4) = length.toByte
+      data.copyToArray(result, 5)
+      ByteString.fromArrayUnsafe(result)
+    } else {
+      val result = new Array[Byte](5)
+      result(0) = if (isCompressed) 1 else 0
+      result(1) = (length >> 24).toByte
+      result(2) = (length >> 16).toByte
+      result(3) = (length >> 8).toByte
+      result(4) = length.toByte
+      ByteString.fromArrayUnsafe(result) ++ data
+    }
+  }
 
   def writer(
       protocol: GrpcProtocol,
