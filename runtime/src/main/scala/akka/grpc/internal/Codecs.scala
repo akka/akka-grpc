@@ -57,7 +57,8 @@ object Codecs {
    * @return the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or [[Failure]] if an unsupported encoding was specified.
    */
   def detect(message: jm.HttpMessage): Try[Codec] =
-    detect(`Message-Encoding`.findIn(extractHeaders(message)))
+    detect(message.asInstanceOf[sm.HttpMessage].header[`Message-Encoding`].map(_.value))
+  //detect(extractHeaders(message).find(_.name == "grpc-encoding"))
 
   /**
    * Determines the `Message-Encoding` specified in a gRPC stream to be unmarshalled.
