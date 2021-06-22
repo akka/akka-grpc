@@ -20,6 +20,30 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.github.ghik.silencer.silent
 
+import java.nio.ByteBuffer
+
+object BufferPool {
+  private val size = 65536
+  private val threadLocalBuffer = new ThreadLocal[ByteBuffer] {
+    override def initialValue(): ByteBuffer = ByteBuffer.allocateDirect(size)
+  }
+
+  def acquire(length: Int): ByteBuffer =
+    if (length <= size) {
+      val buf = threadLocalBuffer.get()
+      require(buf ne null)
+      threadLocalBuffer.set(null)
+      buf
+    } else ByteBuffer.allocate(length) // not direct
+
+  def release(buffer: ByteBuffer) =
+    if (buffer.isDirect) {
+      val buf = threadLocalBuffer.get()
+      require(buf eq null)
+      threadLocalBuffer.set(buffer)
+    }
+}
+
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     negotiated(
@@ -56,8 +80,16 @@ object GrpcMarshalling {
   def unmarshal[T](
       entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
     entity match {
-      case HttpEntity.Strict(_, data) => Future.successful(u.deserialize(reader.decodeSingleFrame(data)))
-      case _                          => unmarshal(entity.dataBytes)
+      case HttpEntity.Strict(_, data) =>
+        val frameData = reader.decodeSingleFrame(data)
+        val buf = BufferPool.acquire(frameData.size)
+        val result =
+          try {
+            frameData.copyToBuffer(buf)
+            u.deserialize(buf)
+          } finally BufferPool.release(buf)
+        Future.successful(result)
+      case _ => unmarshal(entity.dataBytes)
     }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(

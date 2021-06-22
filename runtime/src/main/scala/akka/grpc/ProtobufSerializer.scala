@@ -6,7 +6,11 @@ package akka.grpc
 
 import akka.util.ByteString
 
+import java.nio.ByteBuffer
+
 trait ProtobufSerializer[T] {
   def serialize(t: T): ByteString
   def deserialize(bytes: ByteString): T
+
+  def deserialize(buffer: ByteBuffer): T
 }
