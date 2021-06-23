@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2021 Lightbend Inc. <http://www.lightbend.com>
+ * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
  * Copyright 2016, gRPC Authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package akka.grpc.scaladsl.headers
 
 import java.nio.ByteBuffer
@@ -39,9 +40,13 @@ private[grpc] object PercentEncoding {
     def encode(value: String): String = {
       val valueBytes = value.getBytes(StandardCharsets.UTF_8)
       val firstIndexToEscape = valueBytes.indexWhere(isEscapingChar(_))
-      if (firstIndexToEscape == -1)
-        new String(valueBytes)
-      else
+      if (firstIndexToEscape == -1) {
+        // Why not return original input?
+        // The following is not always true for any value: `new String(value.getBytes(StandardCharsets.UTF_8)) == value`
+        // Consider "a \ud801": its underlying array of bytes is [97, 0, 32, 0, 1, -40] while "a \ud801".getBytes(StandardCharsets.UTF_8) yields [97, 32, 63]
+        // There are 2 effects of decoding: ascii characters are encoded with 1 byte and lone surrogate has been replaced with ? (63 in ascii)
+        new String(valueBytes, StandardCharsets.US_ASCII)
+      } else
         encodeSlow(valueBytes, firstIndexToEscape)
     }
 
@@ -88,13 +93,15 @@ private[grpc] object PercentEncoding {
       var i = 0
       while (i < source.length) {
         if (source(i) == '%' && i + 2 < source.length) {
-          try {
-            buf.put(Integer.parseInt(new String(source, i + 1, 2, TransferEncoding), 16).toByte)
+          val ch0 = Character.digit(source(i + 1), 16)
+          val ch1 = Character.digit(source(i + 2), 16)
+          if (ch0 > -1 && ch1 > -1) {
+            val res = (ch0 << 4) + ch1
+            buf.put(res.toByte)
             i += 3
-          } catch {
-            case _: NumberFormatException =>
-              buf.put(source(i))
-              i += 1
+          } else {
+            buf.put(source(i))
+            i += 1
           }
         } else {
           buf.put(source(i))

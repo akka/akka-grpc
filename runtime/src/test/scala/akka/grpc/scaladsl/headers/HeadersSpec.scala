@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package akka.grpc.scaladsl.headers
 
 import org.scalatest.matchers.should.Matchers
