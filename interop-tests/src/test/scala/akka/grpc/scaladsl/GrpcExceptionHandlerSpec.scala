@@ -30,7 +30,7 @@ class GrpcExceptionHandlerSpec
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
       implicit val serializer = TestService.Serializers.SimpleRequestSerializer
       implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
-      // request that missing the actual data
+      // request that is missing the actual data
       val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(GrpcProtocolNative.contentType))
 
       val result: Future[HttpResponse] = GrpcMarshalling

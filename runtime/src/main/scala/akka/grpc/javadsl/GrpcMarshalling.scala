@@ -64,7 +64,7 @@ object GrpcMarshalling {
   def unmarshalStream[T](
       entity: HttpEntity,
       u: ProtobufSerializer[T],
-      @silent("never used") mat: Materializer,
+      mat: Materializer,
       reader: GrpcProtocolReader): CompletionStage[Source[T, NotUsed]] =
     unmarshalStream(entity.getDataBytes, u, mat, reader)
 
