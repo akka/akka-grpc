@@ -7,7 +7,8 @@ package akka.grpc.interop
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcEntityHelpers, GrpcProtocolNative, GrpcResponseHelpers, Identity }
-import akka.http.scaladsl.model.{ HttpEntity, HttpHeader }
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpHeader, Trailer }
 import akka.http.scaladsl.server.{ Directive0, Directives, Route }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -95,17 +96,22 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   // TODO move to runtime library or even akka-http
   def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] => immutable.Seq[HttpHeader]): Directive0 =
     mapResponse(response =>
-      response.withEntity(response.entity match {
-        case HttpEntity.Chunked(contentType, data) => {
-          HttpEntity.Chunked(
-            contentType,
-            data.map {
-              case chunk: HttpEntity.Chunk => chunk
-              case last: HttpEntity.LastChunk =>
-                HttpEntity.LastChunk(last.extension, f(last.trailer))
-            })
-        }
+      response.entity match {
+        case HttpEntity.Chunked(contentType, data) =>
+          response.withEntity(
+            HttpEntity.Chunked(
+              contentType,
+              data.map {
+                case chunk: HttpEntity.Chunk => chunk
+                case last: HttpEntity.LastChunk =>
+                  HttpEntity.LastChunk(last.extension, f(last.trailer))
+              }))
         case _ =>
-          throw new IllegalArgumentException("Trailing response headers are only supported on Chunked responses")
-      }))
+          val origTrailers = response
+            .attribute(AttributeKeys.trailer)
+            .map(_.headers)
+            .getOrElse(Vector.empty)
+            .map(e => RawHeader(e._1, e._2))
+          response.addAttribute(AttributeKeys.trailer, Trailer(f(origTrailers)))
+      })
 }

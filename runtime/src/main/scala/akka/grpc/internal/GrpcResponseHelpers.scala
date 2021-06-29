@@ -11,7 +11,17 @@ import akka.annotation.InternalApi
 import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.{
+  AttributeKey,
+  AttributeKeys,
+  HttpEntity,
+  HttpHeader,
+  HttpProtocols,
+  HttpResponse,
+  ResponseEntity,
+  StatusCodes,
+  Trailer
+}
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -19,6 +29,7 @@ import io.grpc.Status
 
 import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.control.NonFatal
 
 /**
  * Some helpers for creating HTTP entities for use with gRPC.
@@ -27,17 +38,50 @@ import scala.concurrent.{ ExecutionContext, Future }
  */
 @InternalApi // consumed from generated classes so cannot be private
 object GrpcResponseHelpers {
+  private val TrailerOk = GrpcEntityHelpers.trailer(Status.OK)
+  private val TrailerOkAttribute = Trailer(TrailerOk.trailers)
+
   def apply[T](e: Source[T, NotUsed])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)))
+    GrpcResponseHelpers(e, Source.single(TrailerOk))
 
   def apply[T](e: Source[T, NotUsed], eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
-    GrpcResponseHelpers(e, Source.single(GrpcEntityHelpers.trailer(Status.OK)), eHandler)
+    GrpcResponseHelpers(e, Source.single(TrailerOk), eHandler)
+
+  def responseForSingleElement[T](e: T, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
+      implicit m: ProtobufSerializer[T],
+      writer: GrpcProtocolWriter,
+      system: ClassicActorSystemProvider): HttpResponse =
+    try {
+      val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeDataToFrameBytes((m.serialize(e))))
+      responseWithTrailers(
+        headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
+        strictEntity,
+        TrailerOkAttribute)
+    } catch {
+      case NonFatal(ex) =>
+        val trailers = GrpcEntityHelpers.handleException(ex, eHandler)
+        responseWithTrailers(
+          headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
+          HttpEntity.Empty,
+          Trailer(GrpcEntityHelpers.trailer(trailers.status, trailers.metadata).trailers))
+    }
+
+  private def responseWithTrailers(
+      headers: immutable.Seq[HttpHeader],
+      entity: ResponseEntity,
+      trailer: Trailer): HttpResponse =
+    new HttpResponse(
+      status = StatusCodes.OK,
+      headers = headers,
+      entity = entity,
+      protocol = HttpProtocols.`HTTP/2.0`,
+      attributes = Map.empty[AttributeKey[_], Any].updated(AttributeKeys.trailer, trailer))
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],

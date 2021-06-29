@@ -65,8 +65,6 @@ trait GrpcProtocol {
 @InternalApi
 object GrpcProtocol {
 
-  private val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)
-
   /** A frame in a logical gRPC protocol stream */
   sealed trait Frame
 
@@ -88,6 +86,8 @@ object GrpcProtocol {
       messageEncoding: Codec,
       /** Encodes a frame as a part in a chunk stream. */
       encodeFrame: Frame => ChunkStreamPart,
+      /** A shortcut to encode a data frame directly into a ByteString */
+      encodeDataToFrameBytes: ByteString => ByteString,
       /** A Flow over a stream of Frame using this frame encoding */
       frameEncoder: Flow[Frame, ChunkStreamPart, NotUsed])
 
@@ -97,6 +97,7 @@ object GrpcProtocol {
   case class GrpcProtocolReader(
       /** The compression codec to be used for data frames */
       messageEncoding: Codec,
+      decodeSingleFrame: ByteString => ByteString,
       /** A Flow of Frames over a stream of messages encoded in gRPC framing. */
       frameDecoder: Flow[ByteString, Frame, NotUsed]) {
 
@@ -121,7 +122,13 @@ object GrpcProtocol {
    * Detects which gRPC protocol variant is indicated by a mediatype.
    * @return a [[GrpcProtocol]] matching the request mediatype if known.
    */
-  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = protocols.find(_.mediaTypes.contains(mediaType))
+  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = mediaType.subType match {
+    // FIXME: do we need to check mainType?
+    case "grpc" | "grpc+proto"                   => Some(GrpcProtocolNative)
+    case "grpc-web" | "grpc-web+proto"           => Some(GrpcProtocolWeb)
+    case "grpc-web-text" | "grpc-web-text+proto" => Some(GrpcProtocolWebText)
+    case _                                       => None
+  }
 
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.

@@ -28,13 +28,17 @@ object GrpcEntityHelpers {
       system: ClassicActorSystemProvider): Source[ChunkStreamPart, NotUsed] = {
     chunks(e, trail).recover {
       case t =>
-        val e = eHandler(system.classicSystem).orElse[Throwable, Trailers] {
-          case e: GrpcServiceException => Trailers(e.status, e.metadata)
-          case e: Exception            => Trailers(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
-        }(t)
+        val e = handleException(t, eHandler)
         writer.encodeFrame(trailer(e.status, e.metadata))
     }
   }
+
+  def handleException(t: Throwable, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
+      implicit system: ClassicActorSystemProvider): Trailers =
+    eHandler(system.classicSystem).orElse[Throwable, Trailers] {
+      case e: GrpcServiceException => Trailers(e.status, e.metadata)
+      case e: Exception            => Trailers(Status.UNKNOWN.withCause(e).withDescription("Stream failed"))
+    }(t)
 
   def apply[T](e: T)(implicit m: ProtobufSerializer[T], writer: GrpcProtocolWriter): Source[ChunkStreamPart, NotUsed] =
     chunks(Source.single(e), Source.empty)

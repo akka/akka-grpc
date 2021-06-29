@@ -1,0 +1,8 @@
+# Changes in classes marked as internal
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcProtocol#GrpcProtocolWriter.copy")
+ProblemFilters.exclude[IncompatibleResultTypeProblem]("akka.grpc.GrpcProtocol#GrpcProtocolWriter.copy$default$4")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcProtocol#GrpcProtocolWriter.this")
+ProblemFilters.exclude[MissingTypesProblem]("akka.grpc.GrpcProtocol$GrpcProtocolWriter$")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcProtocol#GrpcProtocolWriter.apply")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.GrpcProtocol#GrpcProtocolWriter.unapply")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.AbstractGrpcProtocol.writer")

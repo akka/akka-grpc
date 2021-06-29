@@ -15,7 +15,7 @@ import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
 import akka.util.ByteString
-import io.grpc.{ Status, StatusException }
+import io.grpc.StatusException
 
 abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
 
@@ -57,7 +57,7 @@ object AbstractGrpcProtocol {
   def fieldType(codec: Codec) = if (codec == Identity) notCompressed else compressed
 
   /**
-   * Adjusts thye compressibility of a content type to suit a message encoding.
+   * Adjusts the compressibility of a content type to suit a message encoding.
    * @param contentType the content type for the gRPC protocol.
    * @param codec the message encoding being used to encode objects.
    * @return the provided content type, with the compressibility adapted to reflect whether HTTP transport level compression should be used.
@@ -77,20 +77,65 @@ object AbstractGrpcProtocol {
       Array((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte))
     frameType ++ encodedLength ++ data
   }
+  def encodeFrameDataCheap(isCompressed: Boolean, data: ByteString): ByteString = {
+    val length = data.length
 
-  def writer(protocol: GrpcProtocol, codec: Codec, encodeFrame: Frame => ChunkStreamPart): GrpcProtocolWriter =
+    // for small buffers copying should be cheaper than allocating a complicated ByteString
+    // FIXME: find good size where it is actually like this, or implement in ByteString directly
+    if (data.size < 100) {
+      val result = new Array[Byte](5 + data.length)
+      result(0) = if (isCompressed) 1 else 0
+      result(1) = (length >> 24).toByte
+      result(2) = (length >> 16).toByte
+      result(3) = (length >> 8).toByte
+      result(4) = length.toByte
+      data.copyToArray(result, 5)
+      ByteString.fromArrayUnsafe(result)
+    } else {
+      val result = new Array[Byte](5)
+      result(0) = if (isCompressed) 1 else 0
+      result(1) = (length >> 24).toByte
+      result(2) = (length >> 16).toByte
+      result(3) = (length >> 8).toByte
+      result(4) = length.toByte
+      ByteString.fromArrayUnsafe(result) ++ data
+    }
+  }
+
+  def writer(
+      protocol: GrpcProtocol,
+      codec: Codec,
+      encodeFrame: Frame => ChunkStreamPart,
+      encodeDataToFrameBytes: ByteString => ByteString): GrpcProtocolWriter =
     GrpcProtocolWriter(
       adjustCompressibility(protocol.contentType, codec),
       codec,
       encodeFrame,
+      encodeDataToFrameBytes,
       Flow[Frame].map(encodeFrame))
 
   def reader(
       codec: Codec,
       decodeFrame: (Int, ByteString) => Frame,
-      flowAdapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] = identity)
-      : GrpcProtocolReader =
-    GrpcProtocolReader(codec, flowAdapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
+      flowAdapter: ByteString => ByteString = null): GrpcProtocolReader = {
+    val strictAdapter: ByteString => ByteString = if (flowAdapter eq null) identity else flowAdapter
+    val adapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] =
+      if (flowAdapter eq null) identity
+      else x => Flow[ByteString].map(flowAdapter).via(x)
+
+    // strict decoder
+    def decoder(bs: ByteString): ByteString = try {
+      val reader = new ByteReader(bs)
+      val frameType = reader.readByte()
+      val length = reader.readIntBE()
+      val data = reader.take(length)
+      if (reader.hasRemaining) throw new IllegalStateException("Unexpected data")
+      if ((frameType & 0x80) == 0) strictAdapter(codec.uncompress((frameType & 1) == 1, data))
+      else throw new IllegalStateException("Cannot read unknown frame")
+    } catch { case ByteStringParser.NeedMoreData => throw new MissingParameterException }
+
+    GrpcProtocolReader(codec, decoder, adapter(Flow.fromGraph(new GrpcFramingDecoderStage(codec, decodeFrame))))
+  }
 
   class GrpcFramingDecoderStage(codec: Codec, deframe: (Int, ByteString) => Frame) extends ByteStringParser[Frame] {
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
@@ -113,21 +158,15 @@ object AbstractGrpcProtocol {
         sealed case class ReadFrame(frameType: Int, length: Int) extends Step {
           private val compression = (frameType & 0x01) == 1
 
-          override def parse(reader: ByteReader): ParseResult[Frame] = {
-            if (compression) codec match {
-              case Identity =>
-                failStage(
-                  new StatusException(
-                    Status.INTERNAL.withDescription(
-                      "Compressed-Flag bit is set, but a compression encoding is not specified")))
+          override def parse(reader: ByteReader): ParseResult[Frame] =
+            try ParseResult(
+              Some(deframe(frameType, codec.uncompress(compression, reader.take(length)))),
+              ReadFrameHeader)
+            catch {
+              case s: StatusException =>
+                failStage(s) // handle explicitly to avoid noisy log
                 ParseResult(None, Failed)
-              case _ =>
-                ParseResult(Some(deframe(frameType, codec.uncompress(reader.take(length)))), ReadFrameHeader)
             }
-            else {
-              ParseResult(Some(deframe(frameType, reader.take(length))), ReadFrameHeader)
-            }
-          }
         }
 
         final case object Failed extends Step {

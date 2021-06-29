@@ -7,7 +7,6 @@ package akka.grpc.scaladsl
 import io.grpc.Status
 
 import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
@@ -15,12 +14,36 @@ import akka.annotation.InternalApi
 import akka.grpc._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal._
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
+import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
+
+import java.nio.ByteBuffer
+import scala.util.{ Failure, Success }
+
+object BufferPool {
+  private val size = 65536
+  private val threadLocalBuffer = new ThreadLocal[ByteBuffer] {
+    override def initialValue(): ByteBuffer = ByteBuffer.allocateDirect(size)
+  }
+
+  def acquire(length: Int): ByteBuffer =
+    if (length <= size) {
+      val buf = threadLocalBuffer.get()
+      require(buf ne null)
+      threadLocalBuffer.set(null)
+      buf
+    } else ByteBuffer.allocate(length) // not direct
+
+  def release(buffer: ByteBuffer) =
+    if (buffer.isDirect) {
+      val buf = threadLocalBuffer.get()
+      require(buf eq null)
+      threadLocalBuffer.set(buffer)
+    }
+}
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
@@ -28,7 +51,7 @@ object GrpcMarshalling {
       req,
       (r, _) => {
         implicit val reader: GrpcProtocolReader = r
-        unmarshal(req.entity.dataBytes)
+        unmarshal(req.entity)
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
@@ -39,14 +62,14 @@ object GrpcMarshalling {
       req,
       (r, _) => {
         implicit val reader: GrpcProtocolReader = r
-        unmarshalStream(req.entity.dataBytes)
+        unmarshalStream(req.entity)
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
   def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
-      case (maybeReader, writer) =>
-        maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)
+      case (Success(reader), writer) => f(reader, writer)
+      case (Failure(ex), _)          => Future.failed(ex)
     }
 
   def unmarshal[T](data: Source[ByteString, Any])(
@@ -55,6 +78,20 @@ object GrpcMarshalling {
       reader: GrpcProtocolReader): Future[T] = {
     data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(SingleParameterSink())
   }
+  def unmarshal[T](
+      entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
+    entity match {
+      case HttpEntity.Strict(_, data) =>
+        val frameData = reader.decodeSingleFrame(data)
+        val buf = BufferPool.acquire(frameData.size)
+        val result =
+          try {
+            frameData.copyToBuffer(buf)
+            u.deserialize(buf)
+          } finally BufferPool.release(buf)
+        Future.successful(result)
+      case _ => unmarshal(entity.dataBytes)
+    }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
       implicit u: ProtobufSerializer[T],
@@ -70,13 +107,19 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage))
   }
 
+  def unmarshalStream[T](entity: HttpEntity)(
+      implicit u: ProtobufSerializer[T],
+      @silent("never used") mat: Materializer,
+      reader: GrpcProtocolReader): Future[Source[T, NotUsed]] =
+    unmarshalStream(entity.dataBytes)
+
   def marshal[T](
       e: T = Identity,
       eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
-    marshalStream(Source.single(e), eHandler)
+    GrpcResponseHelpers.responseForSingleElement(e, eHandler)
 
   def marshalStream[T](
       e: Source[T, NotUsed],
