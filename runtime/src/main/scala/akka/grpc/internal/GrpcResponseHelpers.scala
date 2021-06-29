@@ -12,6 +12,7 @@ import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.http.scaladsl.model.{
+  AttributeKey,
   AttributeKeys,
   HttpEntity,
   HttpHeader,
@@ -80,7 +81,7 @@ object GrpcResponseHelpers {
       headers = headers,
       entity = entity,
       protocol = HttpProtocols.`HTTP/2.0`,
-      attributes = Map(AttributeKeys.trailer -> trailer))
+      attributes = Map.empty[AttributeKey[_], Any].updated(AttributeKeys.trailer, trailer))
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
