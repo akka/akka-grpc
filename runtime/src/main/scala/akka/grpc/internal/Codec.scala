@@ -11,4 +11,6 @@ abstract class Codec {
 
   def compress(bytes: ByteString): ByteString
   def uncompress(bytes: ByteString): ByteString
+
+  def isCompressed: Boolean = this != Identity
 }

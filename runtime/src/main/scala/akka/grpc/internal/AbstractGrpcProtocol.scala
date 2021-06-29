@@ -14,8 +14,10 @@ import akka.stream.impl.io.ByteStringParser
 import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep }
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.GraphStageLogic
-import akka.util.ByteString
+import akka.util.{ ByteString, ByteStringBuilder }
 import io.grpc.{ Status, StatusException }
+
+import java.nio.ByteOrder
 
 abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
 
@@ -70,12 +72,26 @@ object AbstractGrpcProtocol {
       })
       .toContentType
 
-  @inline
+  @deprecated("2.1.0", "In favor of overload that takes Booleans to specify flags")
   def encodeFrameData(frameType: ByteString, data: ByteString): ByteString = {
     val length = data.length
     val encodedLength = ByteString.fromArrayUnsafe(
       Array((length >> 24).toByte, (length >> 16).toByte, (length >> 8).toByte, length.toByte))
     frameType ++ encodedLength ++ data
+  }
+  def encodeFrameData(data: ByteString, isCompressed: Boolean, isTrailer: Boolean): ByteString = {
+    implicit val byteOrder = ByteOrder.BIG_ENDIAN
+    val length = data.length
+    val builder = new ByteStringBuilder()
+    builder.sizeHint(5)
+    val flags =
+      (if (isCompressed) 1 else 0) | (if (isTrailer) 0x80 else 0)
+
+    builder // ...
+      .putByte(flags.toByte)
+      .putInt(length)
+      .++=(data)
+      .result()
   }
 
   def writer(protocol: GrpcProtocol, codec: Codec, encodeFrame: Frame => ChunkStreamPart): GrpcProtocolWriter =
