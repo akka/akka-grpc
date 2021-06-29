@@ -120,7 +120,7 @@ object GrpcProtocol {
    * @return a [[GrpcProtocol]] matching the request mediatype if known.
    */
   def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = mediaType.subType match {
-    // FIXME: do we need to check mainType?
+    // mainType is not checked. We assume it's the right one.
     case "grpc" | "grpc+proto"                   => Some(GrpcProtocolNative)
     case "grpc-web" | "grpc-web+proto"           => Some(GrpcProtocolWeb)
     case "grpc-web-text" | "grpc-web-text+proto" => Some(GrpcProtocolWebText)
