@@ -20,6 +20,8 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.github.ghik.silencer.silent
 
+import scala.util.Try
+
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     negotiated(
@@ -56,7 +58,7 @@ object GrpcMarshalling {
   def unmarshal[T](
       entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
     entity match {
-      case HttpEntity.Strict(_, data) => Future.successful(u.deserialize(reader.decodeSingleFrame(data)))
+      case HttpEntity.Strict(_, data) => Future.fromTry(Try(u.deserialize(reader.decodeSingleFrame(data))))
       case _                          => unmarshal(entity.dataBytes)
     }
 
