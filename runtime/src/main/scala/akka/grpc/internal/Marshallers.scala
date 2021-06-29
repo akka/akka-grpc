@@ -19,7 +19,6 @@ abstract class BaseMarshaller[T](val protobufSerializer: ProtobufSerializer[T])
     with WithProtobufSerializer[T] {
   override def parse(stream: InputStream): T =
     protobufSerializer.deserialize(stream)
-
 }
 
 /**

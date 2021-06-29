@@ -1,11 +1,11 @@
 enablePlugins(AkkaGrpcPlugin)
 
-javaOptions in run ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
+run / javaOptions ++= List("-Xms1g", "-Xmx1g",  "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
 
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.36.1" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.38.1" // checked synced by GrpcVersionSyncCheckPlugin
 
 val runtimeProject = ProjectRef(file("../"), "akka-grpc-runtime")
 
@@ -33,4 +33,4 @@ val root = project.in(file("."))
         codeGenProject / Compile / publishLocal)).value
   )
 
-javacOptions in compile += "-Xlint:deprecation"
+compile / javacOptions += "-Xlint:deprecation"

@@ -11,6 +11,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.util.GradleVersion
 import org.gradle.util.VersionNumber
 
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -19,6 +20,16 @@ import static akka.grpc.gradle.AkkaGrpcPluginExtension.*
 class AkkaGrpcPlugin implements Plugin<Project> {
 
     Project project
+
+    // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
+    String getBaselineVersion(String pluginVersion) {
+        def pv = System.getProperty("akka.grpc.baseline.version", pluginVersion)
+        if (VersionNumber.parse(pv).qualifier) {
+            pv + "-SNAPSHOT"
+        } else {
+            pv
+        }
+    }
 
     @Override
     void apply(Project project) {
@@ -38,14 +49,13 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.pluginManager.apply ProtobufPlugin
 
-        // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
-        def baselineVersion = System.getProperty("akka.grpc.baseline.version", akkaGrpcExt.pluginVersion)
+        def baselineVersion = getBaselineVersion(akkaGrpcExt.pluginVersion)
 
         project.repositories {
             mavenCentral()
             if (VersionNumber.parse(baselineVersion).qualifier) {
                 maven {
-                    url "https://dl.bintray.com/akka/snapshots"
+                    url "https://oss.sonatype.org/content/repositories/snapshots"
                 }
             }
         }
@@ -116,7 +126,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             option "server_power_apis=${akkaGrpcExt.serverPowerApis}"
                             option "use_play_actions=${akkaGrpcExt.usePlayActions}"
                             option "extra_generators=${akkaGrpcExt.extraGenerators.join(';')}"
-                            option "logfile=${project.projectDir.toPath().relativize(logFile).toString()}"
+                            option "logfile_enc=${URLEncoder.encode(logFile.toString(), "utf-8")}"
                             if (akkaGrpcExt.includeStdTypes) {
                                 option "include_std_types=true"
                             }

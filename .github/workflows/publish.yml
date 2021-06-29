@@ -1,0 +1,57 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+    tags: ["*"]
+
+jobs:
+  sbt:
+    name: sbt publish
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
+          fetch-depth: 0
+      - name: Set up JDK 8
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8.0-275
+      - name: Publish
+        run: |-
+          cp .jvmopts-travis .jvmopts
+          sbt ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
+  # TODO publish gradle from here as well
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
+          fetch-depth: 0
+      - name: Set up JDK 8
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8.0-275
+      - name: Publish
+        run: |-
+          eval "$(ssh-agent -s)"
+          echo $SCP_SECRET | base64 -d > /tmp/id_rsa
+          chmod 600 /tmp/id_rsa
+          ssh-add /tmp/id_rsa
+          cp .jvmopts-travis .jvmopts
+          sbt akka-grpc-docs/publishRsync
+        env:
+          SCP_SECRET: ${{ secrets.SCP_SECRET }}

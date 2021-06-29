@@ -37,6 +37,7 @@ object GrpcRequestHelpers {
     HttpRequest(
       uri = uri,
       method = HttpMethods.POST,
+      // FIXME issue #1382 gzip shouldn't be included by default in Message-Accept-Encoding.
       headers = immutable.Seq(
         `Message-Encoding`(writer.messageEncoding.name),
         `Message-Accept-Encoding`(Codecs.supportedCodecs.map(_.name).mkString(",")),

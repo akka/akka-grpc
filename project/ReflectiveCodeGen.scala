@@ -42,7 +42,7 @@ object ReflectiveCodeGen extends AutoPlugin {
 
               Def.task {
                 // path is defined in ProtocPlugin.sourceGeneratorTask
-                val file = (streams in PB.generate).value.cacheDirectory / s"protobuf_${scalaBinaryVersion.value}"
+                val file = (PB.generate / streams).value.cacheDirectory / s"protobuf_${scalaBinaryVersion.value}"
                 IO.delete(file)
 
                 generationResult
@@ -53,7 +53,7 @@ object ReflectiveCodeGen extends AutoPlugin {
         PB.targets := scala.collection.mutable.ListBuffer.empty,
         // Put an artifact resolver that returns the project's classpath for our generators
         PB.artifactResolver := Def.taskDyn {
-          val cp = (fullClasspath in Compile in ProjectRef(file("."), "akka-grpc-codegen")).value.map(_.data)
+          val cp = (ProjectRef(file("."), "akka-grpc-codegen") / Compile / fullClasspath).value.map(_.data)
           val oldResolver = PB.artifactResolver.value
           Def.task { (artifact: BridgeArtifact) =>
             artifact.groupId match {
@@ -66,7 +66,7 @@ object ReflectiveCodeGen extends AutoPlugin {
         }.value,
         setCodeGenerator := loadAndSetGenerator(
           // the magic sauce: use the output classpath from the the sbt-plugin project and instantiate generators from there
-          (fullClasspath in Compile in ProjectRef(file("."), "sbt-akka-grpc")).value,
+          (ProjectRef(file("."), "sbt-akka-grpc") / Compile / fullClasspath).value,
           generatedLanguages.value,
           generatedSources.value,
           extraGenerators.value,
@@ -74,16 +74,16 @@ object ReflectiveCodeGen extends AutoPlugin {
           codeGeneratorSettings.value,
           PB.targets.value.asInstanceOf[ListBuffer[Target]],
           scalaBinaryVersion.value),
-        PB.protoSources in Compile := PB.protoSources.value ++ Seq(
+        (Compile / PB.protoSources) := PB.protoSources.value ++ Seq(
           PB.externalIncludePath.value,
           sourceDirectory.value / "proto"))) ++ Seq(
-      codeGeneratorSettings in Global := Nil,
-      generatedLanguages in Global := Seq("Scala"),
-      generatedSources in Global := Seq("Client", "Server"),
-      extraGenerators in Global := Seq.empty,
-      protocOptions in Global := Seq.empty,
-      watchSources ++= (watchSources in ProjectRef(file("."), "akka-grpc-codegen")).value,
-      watchSources ++= (watchSources in ProjectRef(file("."), "sbt-akka-grpc")).value)
+      (Global / codeGeneratorSettings) := Nil,
+      (Global / generatedLanguages) := Seq("Scala"),
+      (Global / generatedSources) := Seq("Client", "Server"),
+      (Global / extraGenerators) := Seq.empty,
+      (Global / protocOptions) := Seq.empty,
+      watchSources ++= (ProjectRef(file("."), "akka-grpc-codegen") / watchSources).value,
+      watchSources ++= (ProjectRef(file("."), "sbt-akka-grpc") / watchSources).value)
 
   val setCodeGenerator = taskKey[Unit]("grpc-set-code-generator")
 

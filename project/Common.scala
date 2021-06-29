@@ -6,6 +6,7 @@ import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInf
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtprotoc.ProtocPlugin.autoImport.PB
+import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
@@ -18,7 +19,6 @@ object Common extends AutoPlugin {
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
       resolvers += Resolver.sonatypeRepo("staging"),
-      resolvers += Resolver.bintrayRepo("akka", "snapshots"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -32,6 +32,7 @@ object Common extends AutoPlugin {
   val silencerVersion = "1.7.1"
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
+    sonatypeProfileName := "com.lightbend",
     scalacOptions ++= List(
       "-unchecked",
       "-deprecation",
@@ -72,7 +73,7 @@ object Common extends AutoPlugin {
     libraryDependencies ++= Seq(
       compilerPlugin(("com.github.ghik" % "silencer-plugin" % silencerVersion).cross(CrossVersion.full)),
       ("com.github.ghik" % "silencer-lib" % silencerVersion % Provided).cross(CrossVersion.full)),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
+    (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)

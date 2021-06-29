@@ -1,13 +1,12 @@
+// Can be removed when we move to 2.12.14
+// https://github.com/akka/akka-grpc/pull/1279
+scalaVersion := "2.12.11"
+
 resolvers += Resolver.sonatypeRepo("staging")
-resolvers += Resolver.bintrayRepo("akka", "snapshots")
 
 organization := "com.lightbend.akka.grpc"
 
-// For the akka-http snapshot
-resolvers += Resolver.bintrayRepo("akka", "maven")
-resolvers += Resolver.bintrayRepo("akka", "snapshots")
-
-val grpcVersion = "1.36.1" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.38.1" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
@@ -30,7 +29,7 @@ enablePlugins(AkkaGrpcPlugin)
 // They have different "java_outer_classname" options, but scalapb does not look at it:
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
-excludeFilter in PB.generate := new SimpleFileFilter(
+PB.generate / excludeFilter := new SimpleFileFilter(
   (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
 //#sources-both

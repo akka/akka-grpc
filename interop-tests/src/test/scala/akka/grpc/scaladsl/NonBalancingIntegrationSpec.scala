@@ -34,14 +34,14 @@ class NonBalancingIntegrationSpec(backend: String)
     with BeforeAndAfterAll
     with ScalaFutures {
   implicit val system = ActorSystem(
-    "NonBalancingIntegrationSpec",
+    s"NonBalancingIntegrationSpec-$backend",
     ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load()))
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
-  "Using pick-first (non load balanced clients)" should {
+  s"Using pick-first (non load balanced clients) - $backend" should {
     "send requests to a single endpoint" in {
       val service1 = new CountingGreeterServiceImpl()
       val service2 = new CountingGreeterServiceImpl()
@@ -133,6 +133,7 @@ class NonBalancingIntegrationSpec(backend: String)
     "select the right endpoint among invalid ones" in {
       val service = new CountingGreeterServiceImpl()
       val server = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service)).futureValue
+
       val discovery =
         new MutableServiceDiscovery(
           List(
@@ -142,7 +143,8 @@ class NonBalancingIntegrationSpec(backend: String)
       val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       for (i <- 1 to 100) {
-        client.sayHello(HelloRequest(s"Hello $i")).futureValue
+        println(s" Sending request [$i]")
+        client.sayHello(HelloRequest(s"Hello $i")).map(_ => println(s" Received response number [$i]")).futureValue
       }
 
       service.greetings.get should be(100)

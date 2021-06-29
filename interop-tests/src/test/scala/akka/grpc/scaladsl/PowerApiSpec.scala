@@ -11,6 +11,7 @@ import scala.concurrent.duration._
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import akka.grpc.GrpcProtocol.TrailerFrame
 import akka.grpc.GrpcResponseMetadata
 import akka.grpc.internal.GrpcEntityHelpers
 import akka.grpc.internal.GrpcProtocolNative
@@ -139,6 +140,37 @@ abstract class PowerApiSpec(backend: String)
 
       trailers.futureValue // the trailers future eventually completes
 
+    }
+
+    "successfully pass metadata from server to client (for client-streaming calls)" in {
+      val trailer = Promise[TrailerFrame]() // control the sending of the trailer
+
+      implicit val serializer = GreeterService.Serializers.HelloReplySerializer
+      val metadataServer =
+        Http()
+          .newServerAt("localhost", 0)
+          .bind(path(GreeterService.name / "ItKeepsTalking") {
+            implicit val writer = GrpcProtocolNative.newWriter(Identity)
+            complete(
+              GrpcResponseHelpers(Source.single(HelloReply("Hello there!")), trail = Source.future(trailer.future))
+                .addHeader(RawHeader("foo", "bar")))
+          })
+          .futureValue
+
+      client = GreeterServiceClient(
+        GrpcClientSettings.connectToServiceAt("localhost", metadataServer.localAddress.getPort).withTls(false))
+
+      val response = client.itKeepsTalking().invokeWithMetadata(Source.empty).futureValue
+
+      response.value.message shouldBe "Hello there!"
+      response.headers.getText("foo") shouldBe Some("bar")
+
+      // only complete trailer after response received, to test reading of trailing headers
+      trailer.success(GrpcEntityHelpers.trailer(Status.OK, new HeaderMetadataImpl(List(RawHeader("baz", "qux")))))
+
+      response.trailers.futureValue.getText("baz") shouldBe Some("qux")
+
+      metadataServer.terminate(3.seconds)
     }
   }
 

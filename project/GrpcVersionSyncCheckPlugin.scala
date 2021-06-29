@@ -51,7 +51,7 @@ object GrpcVersionSyncCheckPlugin extends AutoPlugin {
         fail("Sanity check failed")
       }
 
-      val buildBase = (baseDirectory in ThisBuild).value
+      val buildBase = (ThisBuild / baseDirectory).value
       val process = Process("git ls-tree -z --full-tree -r --name-only HEAD", buildBase)
       val paths = (process !! log).trim
         .split('\u0000')
