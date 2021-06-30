@@ -9,6 +9,8 @@ import akka.grpc.ProtobufSerializer
 import akka.util.ByteString
 import com.google.protobuf.Parser
 
+import java.io.InputStream
+
 @ApiMayChange
 class GoogleProtobufSerializer[T <: com.google.protobuf.Message](parser: Parser[T]) extends ProtobufSerializer[T] {
 
@@ -20,4 +22,6 @@ class GoogleProtobufSerializer[T <: com.google.protobuf.Message](parser: Parser[
     ByteString.fromArrayUnsafe(t.toByteArray)
   override def deserialize(bytes: ByteString): T =
     parser.parseFrom(bytes.toArray)
+  override def deserialize(data: InputStream): T =
+    parser.parseFrom(data)
 }
