@@ -7,7 +7,6 @@ package akka.grpc.scaladsl
 import io.grpc.Status
 
 import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
@@ -19,8 +18,9 @@ import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-
 import com.github.ghik.silencer.silent
+
+import scala.util.{ Failure, Success }
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
@@ -45,8 +45,8 @@ object GrpcMarshalling {
 
   def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
-      case (maybeReader, writer) =>
-        maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)
+      case (Success(reader), writer) => f(reader, writer)
+      case (Failure(ex), _)          => Future.failed(ex)
     }
 
   def unmarshal[T](data: Source[ByteString, Any])(

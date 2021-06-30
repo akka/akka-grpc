@@ -40,7 +40,7 @@ class LoadBalancingIntegrationSpec(config: Config = ConfigFactory.load())
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-  implicit val system = ActorSystem("NonBalancingIntegrationSpec", config)
+  implicit val system = ActorSystem("LoadBalancingIntegrationSpec", config)
   implicit val mat = SystemMaterializer(system).materializer
   implicit val ec = system.dispatcher
 
