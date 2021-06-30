@@ -31,8 +31,9 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
     val awaitTimeout = 10.seconds
     val zippedBytes =
       AbstractGrpcProtocol.encodeFrameData(
-        AbstractGrpcProtocol.fieldType(Gzip),
-        Gzip.compress(serializer.serialize(message)))
+        Gzip.compress(serializer.serialize(message)),
+        Gzip.isCompressed,
+        isTrailer = false)
 
     "correctly unmarshal a zipped object" in {
       val request = HttpRequest(

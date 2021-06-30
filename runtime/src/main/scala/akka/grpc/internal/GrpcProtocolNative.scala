@@ -28,12 +28,10 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
   private def decodeFrame(@silent("never used") frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
-  private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart = {
-    val compressedFlag = AbstractGrpcProtocol.fieldType(codec)
+  private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =
     frame match {
-      case DataFrame(data)       => Chunk(AbstractGrpcProtocol.encodeFrameData(compressedFlag, codec.compress(data)))
+      case DataFrame(data) =>
+        Chunk(AbstractGrpcProtocol.encodeFrameData(codec.compress(data), codec.isCompressed, isTrailer = false))
       case TrailerFrame(headers) => LastChunk(trailer = headers)
     }
-  }
-
 }
