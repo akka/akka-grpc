@@ -34,4 +34,8 @@ object Gzip extends Codec {
     } finally gzis.close()
     ByteString.fromArrayUnsafe(baos.toByteArray)
   }
+
+  override def uncompress(compressedBitSet: Boolean, bytes: ByteString): ByteString =
+    if (compressedBitSet) uncompress(bytes)
+    else bytes
 }

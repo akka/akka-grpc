@@ -7,8 +7,8 @@ package akka.grpc.scaladsl
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
 import akka.grpc.scaladsl.headers.`Status`
-import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse }
-import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk }
+import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk, Strict }
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
 import akka.util.ByteString
@@ -30,6 +30,7 @@ class GrpcExceptionHandlerSpec
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {
       implicit val serializer = TestService.Serializers.SimpleRequestSerializer
       implicit val marshaller = GrpcProtocolNative.newWriter(Identity)
+      // request that is missing the actual data
       val unmarshallableRequest = HttpRequest(entity = HttpEntity.empty(GrpcProtocolNative.contentType))
 
       val result: Future[HttpResponse] = GrpcMarshalling
@@ -37,11 +38,14 @@ class GrpcExceptionHandlerSpec
         .map(_ => HttpResponse())
         .recoverWith(GrpcExceptionHandler.default)
 
-      result.futureValue.entity match {
+      val response = result.futureValue
+      response.entity match {
         case Chunked(_, chunks) =>
           chunks.runWith(Sink.seq).futureValue match {
             case Seq(LastChunk("", List(`Status`("3")))) => // ok
           }
+        case _: Strict =>
+          response.attribute(AttributeKeys.trailer).get.headers.contains("grpc-status" -> "3")
         case other =>
           fail(s"Unexpected [$other]")
       }

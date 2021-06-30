@@ -6,14 +6,13 @@ package akka.grpc.javadsl
 
 import java.util.concurrent.{ CompletableFuture, CompletionStage }
 import java.util.Optional
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.grpc._
 import akka.grpc.internal._
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
-import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
+import akka.http.javadsl.model.{ HttpEntity, HttpRequest, HttpResponse }
 import akka.japi.{ Function => JFunction }
 import akka.stream.Materializer
 import akka.stream.javadsl.Source
@@ -40,6 +39,13 @@ object GrpcMarshalling {
       reader: GrpcProtocolReader): CompletionStage[T] =
     data.via(reader.dataFrameDecoder).map(u.deserialize).runWith(SingleParameterSink.create[T](), mat)
 
+  def unmarshal[T](
+      entity: HttpEntity,
+      u: ProtobufSerializer[T],
+      mat: Materializer,
+      reader: GrpcProtocolReader): CompletionStage[T] =
+    unmarshal(entity.getDataBytes, u, mat, reader)
+
   def unmarshalStream[T](
       data: Source[ByteString, AnyRef],
       u: ProtobufSerializer[T],
@@ -55,6 +61,12 @@ object GrpcMarshalling {
         .via(new CancellationBarrierGraphStage)
         .mapMaterializedValue(japiFunction(_ => NotUsed)))
   }
+  def unmarshalStream[T](
+      entity: HttpEntity,
+      u: ProtobufSerializer[T],
+      mat: Materializer,
+      reader: GrpcProtocolReader): CompletionStage[Source[T, NotUsed]] =
+    unmarshalStream(entity.getDataBytes, u, mat, reader)
 
   def marshal[T](
       e: T,
