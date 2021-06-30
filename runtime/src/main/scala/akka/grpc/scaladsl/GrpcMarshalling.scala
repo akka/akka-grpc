@@ -20,7 +20,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.github.ghik.silencer.silent
 
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
@@ -45,8 +45,8 @@ object GrpcMarshalling {
 
   def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
-      case (maybeReader, writer) =>
-        maybeReader.map(reader => f(reader, writer)).fold(Future.failed, identity)
+      case (Success(reader), writer) => f(reader, writer)
+      case (Failure(ex), _)          => Future.failed(ex)
     }
 
   def unmarshal[T](data: Source[ByteString, Any])(

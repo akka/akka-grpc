@@ -17,4 +17,6 @@ abstract class Codec {
    * codec will fail with a [[io.grpc.StatusException]] if the compressedBit is set.
    */
   def uncompress(compressedBitSet: Boolean, bytes: ByteString): ByteString
+
+  def isCompressed: Boolean = this != Identity
 }

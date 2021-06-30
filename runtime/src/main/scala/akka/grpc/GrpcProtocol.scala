@@ -65,8 +65,6 @@ trait GrpcProtocol {
 @InternalApi
 object GrpcProtocol {
 
-  private val protocols: Seq[GrpcProtocol] = Seq(GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText)
-
   /** A frame in a logical gRPC protocol stream */
   sealed trait Frame
 
@@ -122,7 +120,13 @@ object GrpcProtocol {
    * Detects which gRPC protocol variant is indicated by a mediatype.
    * @return a [[GrpcProtocol]] matching the request mediatype if known.
    */
-  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = protocols.find(_.mediaTypes.contains(mediaType))
+  def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = mediaType.subType match {
+    // mainType is not checked. We assume it's the right one.
+    case "grpc" | "grpc+proto"                   => Some(GrpcProtocolNative)
+    case "grpc-web" | "grpc-web+proto"           => Some(GrpcProtocolWeb)
+    case "grpc-web-text" | "grpc-web-text+proto" => Some(GrpcProtocolWebText)
+    case _                                       => None
+  }
 
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.
