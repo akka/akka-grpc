@@ -1,9 +1,11 @@
 package akka.grpc.interop
 
-import akka.stream.{ Materializer, SystemMaterializer }
+import akka.stream.{Materializer, SystemMaterializer}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.RouteResult.Complete
-import akka.http.scaladsl.server.{ Directive0, Directives, Route }
+import akka.http.scaladsl.server.{Directive0, Directives, Route}
+
 import io.grpc.testing.integration.TestServiceHandlerFactory
 import io.grpc.testing.integration.test.TestService
 import org.scalatest.WordSpec
@@ -47,18 +49,26 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider {
   })
 
   // TODO to be moved to the runtime lib (or even akka-http itself?)
-  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] => immutable.Seq[HttpHeader]) =
+  def mapTrailingResponseHeaders(f: immutable.Seq[HttpHeader] => immutable.Seq[HttpHeader]): Directive0 =
     mapResponse(response =>
-      response.withEntity(response.entity match {
-        case HttpEntity.Chunked(contentType, data) => {
-          HttpEntity.Chunked(contentType, data.map {
-            case chunk: HttpEntity.Chunk => chunk
-            case last: HttpEntity.LastChunk => HttpEntity.LastChunk(last.extension, f(last.trailer))
-          })
-        }
+      response.entity match {
+        case HttpEntity.Chunked(contentType, data) =>
+          response.withEntity(
+            HttpEntity.Chunked(
+              contentType,
+              data.map {
+                case chunk: HttpEntity.Chunk => chunk
+                case last: HttpEntity.LastChunk =>
+                  HttpEntity.LastChunk(last.extension, f(last.trailer))
+              }))
         case _ =>
-          throw new IllegalArgumentException("Trailing response headers are only supported on Chunked responses")
-      }))
+          val origTrailers = response
+            .attribute(AttributeKeys.trailer)
+            .map(_.headers)
+            .getOrElse(Vector.empty)
+            .map(e => RawHeader(e._1, e._2))
+          response.addAttribute(AttributeKeys.trailer, Trailer(f(origTrailers)))
+      })
 }
 
 object AkkaHttpServerProviderJava extends AkkaHttpServerProvider {

@@ -88,7 +88,7 @@ object GrpcMarshalling {
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
       system: ClassicActorSystemProvider): HttpResponse =
-    marshalStream(Source.single(e), eHandler)
+    GrpcResponseHelpers.responseForSingleElement(e, eHandler)
 
   def marshalStream[T](
       e: Source[T, NotUsed],

@@ -86,6 +86,8 @@ object GrpcProtocol {
       messageEncoding: Codec,
       /** Encodes a frame as a part in a chunk stream. */
       encodeFrame: Frame => ChunkStreamPart,
+      /** A shortcut to encode a data frame directly into a ByteString */
+      encodeDataToFrameBytes: ByteString => ByteString,
       /** A Flow over a stream of Frame using this frame encoding */
       frameEncoder: Flow[Frame, ChunkStreamPart, NotUsed])
 

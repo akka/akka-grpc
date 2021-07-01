@@ -94,11 +94,16 @@ object AbstractGrpcProtocol {
       .result()
   }
 
-  def writer(protocol: GrpcProtocol, codec: Codec, encodeFrame: Frame => ChunkStreamPart): GrpcProtocolWriter =
+  def writer(
+      protocol: GrpcProtocol,
+      codec: Codec,
+      encodeFrame: Frame => ChunkStreamPart,
+      encodeDataToFrameBytes: ByteString => ByteString): GrpcProtocolWriter =
     GrpcProtocolWriter(
       adjustCompressibility(protocol.contentType, codec),
       codec,
       encodeFrame,
+      encodeDataToFrameBytes,
       Flow[Frame].map(encodeFrame))
 
   def reader(
