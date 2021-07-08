@@ -10,7 +10,7 @@ import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerat
 import akka.grpc.gen.{ ProtocSettings, Logger => GenLogger }
 import protocbridge.Generator
 import sbt.Keys._
-import sbt.{ GlobFilter, _ }
+import sbt._
 import sbtprotoc.ProtocPlugin
 import scalapb.ScalaPbCodeGenerator
 
@@ -106,13 +106,6 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
-        // workaround to allow using Scala 2.13 artifacts in Scala 3 projects
-        scalaBinaryVersion := {
-          CrossVersion.partialVersion(scalaVersion.value) match {
-            case Some((3, _)) => "2.13"
-            case _            => scalaBinaryVersion.value
-          }
-        },
         akkaGrpcCodeGeneratorSettings / target := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
           configuration.value.name),
         managedSourceDirectories += (akkaGrpcCodeGeneratorSettings / target).value,
@@ -122,9 +115,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
           generatorsFor(
             akkaGrpcGeneratedSources.value,
             akkaGrpcGeneratedLanguages.value,
-            ScalaBinaryVersion(scalaBinaryVersion.value),
+            generatorScalaBinaryVersion.value,
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
-            GeneratorBridge.plainGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
+            GeneratorBridge.plainGenerator(g, generatorScalaBinaryVersion.value, generatorLogger))
         },
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
@@ -204,15 +197,25 @@ object AkkaGrpcPlugin extends AutoPlugin {
     else generators
   }
 
+  // workaround to allow using Scala 2.13 artifacts in Scala 3 projects
+  def generatorScalaBinaryVersion: Def.Initialize[ScalaBinaryVersion] = Def.setting {
+    ScalaBinaryVersion {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((3, _)) => "2.13"
+        case _            => scalaBinaryVersion.value
+      }
+    }
+  }
+
   /** Sandbox a CodeGenerator, to prepare it to be added to akkaGrpcGenerators */
   def sandboxedGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
-      GeneratorBridge.sandboxedGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
+      GeneratorBridge.sandboxedGenerator(codeGenerator, generatorScalaBinaryVersion.value, generatorLogger)
     }
 
   /** Convert a CodeGenerator, to prepare it to be added to akkaGrpcGenerators without sandboxing */
   def plainGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
-      GeneratorBridge.plainGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
+      GeneratorBridge.plainGenerator(codeGenerator, generatorScalaBinaryVersion.value, generatorLogger)
     }
 }
