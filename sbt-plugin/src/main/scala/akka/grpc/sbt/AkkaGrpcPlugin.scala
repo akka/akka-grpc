@@ -106,6 +106,13 @@ object AkkaGrpcPlugin extends AutoPlugin {
       (if (config == Compile || config == Test) Seq() // already supported by sbt-protoc by default
        else sbtprotoc.ProtocPlugin.protobufConfigSettings) ++
       Seq(
+        // workaround to allow using Scala 2.13 artifacts in Scala 3 projects
+        scalaBinaryVersion := {
+          CrossVersion.partialVersion(scalaVersion.value) match {
+            case Some((3, _)) => "2.13"
+            case _            => scalaBinaryVersion.value
+          }
+        },
         akkaGrpcCodeGeneratorSettings / target := crossTarget.value / "akka-grpc" / Defaults.nameForSrc(
           configuration.value.name),
         managedSourceDirectories += (akkaGrpcCodeGeneratorSettings / target).value,
