@@ -47,42 +47,41 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
   private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
   private val options = NettyClientUtils.callOptions(settings)
-  private val clientState = new ClientState(settings, akka.event.Logging(sys.classicSystem, this.getClass))
+  private val clientState = new ClientState(settings, akka.event.Logging(sys.classicSystem, classOf[Default@{service.name}Client]))
 
   @for(method <- service.methods) {
-    private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) = {
-      @if(method.methodType == akka.grpc.gen.Unary) {
-        new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
-      } else {
-        @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-          new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
-        } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-          new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
-        } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-          new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
-        }
-      }
+  private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) =
+  @if(method.methodType == akka.grpc.gen.Unary) {
+    new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+  } else {
+    @if(method.methodType == akka.grpc.gen.ServerStreaming) {
+    new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+    } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
+    new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+    } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
+    new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
     }
+  }
   }
 
   @for(method <- service.methods) {
-    /**
-     * Lower level "lifted" version of the method, giving access to request metadata etc.
-     * prefer @{method.nameSafe}(@method.parameterType) if possible.
-     */
-    @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      override def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        @{method.name}RequestBuilder(clientState.internalChannel)
-    } else {
-      override def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-        @{method.name}RequestBuilder(clientState.internalChannel)
-    }
+  /**
+   * Lower level "lifted" version of the method, giving access to request metadata etc.
+   * prefer @{method.nameSafe}(@method.parameterType) if possible.
+   */
+  @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
+  override def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+    @{method.name}RequestBuilder(clientState.internalChannel)
+  } else {
+  override def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
+    @{method.name}RequestBuilder(clientState.internalChannel)
+  }
 
-    /**
-     * For access to method metadata use the parameterless version of @{method.nameSafe}
-     */
-    def @{method.nameSafe}(in: @method.parameterType): @method.returnType =
-      @{method.nameSafe}().invoke(in)
+  /**
+   * For access to method metadata use the parameterless version of @{method.nameSafe}
+   */
+  def @{method.nameSafe}(in: @method.parameterType): @method.returnType =
+    @{method.nameSafe}().invoke(in)
   }
 
   override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
@@ -98,15 +97,15 @@ object Default@{service.name}Client {
 
 trait @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
-    /**
-     * Lower level "lifted" version of the method, giving access to request metadata etc.
-     * prefer @{method.nameSafe}(@method.parameterType) if possible.
-     */
-    @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
-      def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
-    } else {
-      def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
-    }
+  /**
+   * Lower level "lifted" version of the method, giving access to request metadata etc.
+   * prefer @{method.nameSafe}(@method.parameterType) if possible.
+   */
+  @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
+  def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+  } else {
+  def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] = ???
+  }
   }
 
 }
