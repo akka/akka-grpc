@@ -59,6 +59,7 @@ object Dependencies {
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
+    val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0"
   }
 
   object Test {
@@ -84,7 +85,13 @@ object Dependencies {
 
   private val l = libraryDependencies
 
-  val codegen = l ++= Seq(Compile.scalapbCompilerPlugin, Test.scalaTest)
+  val codegen = l ++= Seq(
+    Compile.scalapbCompilerPlugin,
+    // Temporarily added: this is a transitive
+    // dependency, but we want to pull it up to
+    // at least version 2.5.0
+    Compile.collectionCompat,
+    Test.scalaTest)
 
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
@@ -96,6 +103,10 @@ object Dependencies {
     Compile.akkaHttp,
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
+    // Temporarily added: this is a transitive
+    // dependency, but we want to pull it up to
+    // at least version 2.5.0
+    Compile.collectionCompat,
     Test.akkaDiscoveryConfig,
     Test.akkaTestkit,
     Test.scalaTest,
