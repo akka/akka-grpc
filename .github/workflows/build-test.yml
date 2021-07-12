@@ -129,6 +129,8 @@ jobs:
 
       - name: Scripted gen-java
         run: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-java/*"
+      - name: Scripted scala3
+        run: cp .jvmopts-travis .jvmopts && sbt ++2.13.3 "sbt-akka-grpc/scripted scala3/*"
 
 
   test-gradle:
