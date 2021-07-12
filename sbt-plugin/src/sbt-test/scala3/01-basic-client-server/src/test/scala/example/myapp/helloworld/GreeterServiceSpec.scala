@@ -15,26 +15,25 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Span, Millis, Seconds }
 import org.scalatest.wordspec.AnyWordSpec
 
-class GreeterServiceSpec extends AnyWordSpec with Matchers with ScalaFutures {
-   implicit val system: ActorSystem = ActorSystem("GreeterServiceSpec")
+class GreeterServiceSpec extends AnyWordSpec with Matchers with ScalaFutures:
+  implicit val system: ActorSystem = ActorSystem("GreeterServiceSpec")
 
-   val binding = Http()
-     .newServerAt("localhost", 0)
-     .bind(GreeterServiceHandler(new GreeterServiceImpl()))
-     .futureValue
+  val binding = Http()
+    .newServerAt("localhost", 0)
+    .bind(GreeterServiceHandler(new GreeterServiceImpl()))
+    .futureValue
 
-   val client = GreeterServiceClient(
-     GrpcClientSettings.connectToServiceAt(
-       "localhost",
-       binding.localAddress.getPort
-     ).withTls(false)
-   )
+  val client = GreeterServiceClient(
+    GrpcClientSettings.connectToServiceAt(
+      "localhost",
+      binding.localAddress.getPort
+    ).withTls(false)
+  )
 
-   "A GreeterService" should {
+  "A GreeterService" should {
     "respond to a unary request" in {
       val reply = client.sayHello(HelloRequest("Dave"))
       val r = scala.concurrent.Await.result(reply, 10.seconds)
       r.message shouldBe("Hello, Dave!")
     }
   }
-}
