@@ -84,6 +84,16 @@ jobs:
   test-sbt:
     name: sbt scripted tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test-set: gen-scala-server
+            scala-version: 2.12.14
+          - test-set: gen-java
+            scala-version: 2.12.14
+          - test-set: scala3
+            scala-version: 2.13.6
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -98,14 +108,8 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.2
 
-      - name: Scripted gen-scala-server
-        run: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-scala-server/*"
-
-      - name: Scripted gen-java
-        run: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-java/*"
-      - name: Scripted scala3
-        run: cp .jvmopts-travis .jvmopts && sbt ++2.13.3 "sbt-akka-grpc/scripted scala3/*"
-
+      - name: Scripted ${{ matrix.test-set }}
+        run: cp .jvmopts-travis .jvmopts && sbt ++${{ matrix.scala-version }} "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
 
   test-gradle:
     name: Gradle tests
