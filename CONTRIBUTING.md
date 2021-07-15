@@ -2,7 +2,7 @@
 
 We follow the standard GitHub [fork & pull](https://help.github.com/articles/using-pull-requests/#fork--pull) approach to pull requests. Just fork the official repo, develop in a branch, and submit a PR!
 
-You're always welcome to submit your PR straight away and start the discussion (without reading the rest of this wonderful doc, or the README.md). The goal of these notes is to make your experience contributing to Akka HTTP as smooth and pleasant as possible. We're happy to guide you through the process once you've submitted your PR.
+You're always welcome to submit your PR straight away and start the discussion (without reading the rest of this wonderful doc, or the README.md). The goal of these notes is to make your experience contributing to Akka gRPC as smooth and pleasant as possible. We're happy to guide you through the process once you've submitted your PR.
 
 # The Akka Community
 
@@ -59,7 +59,7 @@ The steps are exactly the same for everyone involved in the project (be it core 
 
 1. To avoid duplicated effort, it might be good to check the [issue tracker](https://github.com/akka/akka-grpc/issues) and [existing pull requests](https://github.com/akka/akka-grpc/pulls) for existing work.
    - If there is no ticket yet, feel free to [create one](https://github.com/akka/akka-grpc/issues/new) to discuss the problem and the approach you want to take to solve it.
-1. [Fork the project](https://github.com/akka/akka-grpc#fork-destination-box) on GitHub. You'll need to create a feature-branch for your work on your fork, as this way you'll be able to submit a PullRequest against the mainline Akka-http.
+1. [Fork the project](https://github.com/akka/akka-grpc#fork-destination-box) on GitHub. You'll need to create a feature-branch for your work on your fork, as this way you'll be able to submit a PullRequest against the mainline Akka-gRPC.
 1. Create a branch on your fork and work on the feature. For example: `git checkout -b wip-custom-headers-akka-grpc`
    - Please make sure to follow the general quality guidelines (specified below) when developing your patch.
    - Please write additional tests covering your feature and adjust existing ones if needed before submitting your Pull Request. The `validatePullRequest` sbt task ([explained below](#the-validatepullrequest-task)) may come in handy to verify your changes are correct.
