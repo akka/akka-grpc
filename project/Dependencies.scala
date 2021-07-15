@@ -7,7 +7,7 @@ import buildinfo.BuildInfo
 object Dependencies {
   object Versions {
     val scala212 = "2.12.14"
-    val scala213 = "2.13.3"
+    val scala213 = "2.13.6"
 
     // the order in the list is important because the head will be considered the default.
     val CrossScalaForLib = Seq(scala212, scala213)
@@ -28,6 +28,8 @@ object Dependencies {
     val scalaTest = "3.1.4"
 
     val maven = "3.8.1"
+
+    val silencer = "1.7.5"
   }
 
   object Compile {

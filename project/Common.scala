@@ -1,3 +1,5 @@
+package akka.grpc
+
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
@@ -31,7 +33,6 @@ object Common extends AutoPlugin {
       licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0")),
       description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams.")
 
-  val silencerVersion = "1.7.5"
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     sonatypeProfileName := "com.lightbend",
@@ -74,8 +75,8 @@ object Common extends AutoPlugin {
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
     libraryDependencies ++= Seq(
-      compilerPlugin(("com.github.ghik" % "silencer-plugin" % silencerVersion).cross(CrossVersion.full)),
-      ("com.github.ghik" % "silencer-lib" % silencerVersion % Provided).cross(CrossVersion.full)),
+      compilerPlugin(("com.github.ghik" % "silencer-plugin" % Dependencies.Versions.silencer).cross(CrossVersion.full)),
+      ("com.github.ghik" % "silencer-lib" % Dependencies.Versions.silencer % Provided).cross(CrossVersion.full)),
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,

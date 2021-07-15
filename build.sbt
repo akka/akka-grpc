@@ -36,7 +36,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
       art.withClassifier(Some("assembly"))
     },
     (assembly / mainClass) := Some("akka.grpc.gen.Main"),
-    (assembly / assemblyOption) := (assembly / assemblyOption).value.copy(prependShellScript =
+    (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := scala212)
@@ -75,7 +75,7 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
       art.withClassifier(Some("assembly"))
     },
     (assembly / mainClass) := Some("akka.grpc.scalapb.Main"),
-    (assembly / assemblyOption) := (assembly / assemblyOption).value.copy(prependShellScript =
+    (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
