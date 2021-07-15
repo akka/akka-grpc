@@ -5,55 +5,49 @@ on:
   push:
     branches:
       - master
-    tags-ignore: [ v.* ]
+    tags-ignore: [ v* ]
 
 jobs:
   check-code-style:
     name: Checks
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
+
       - name: Set up JDK 11
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.11.0-9
+          java-version: adopt@1.11
+
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
+
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-travis .jvmopts
-          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck ++2.13.3 mimaReportBinaryIssues ++2.12.14 mimaReportBinaryIssues
+          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
 
 
   compile-benchmarks:
     name: Compile Benchmarks
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
+
       - name: Set up JDK 11
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.11.0-9
+          java-version: adopt@1.11
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
       - name: Compile benchmarks
         run: |-
           cd benchmark-java
@@ -62,30 +56,18 @@ jobs:
 
   compile-and-test:
     name: Compile and test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - SCALA_VERSION: 2.12.14
-            JABBA_JDK: 1.8.0-275
-          - SCALA_VERSION: 2.12.14
-            JABBA_JDK: 1.11.0-9
-          - SCALA_VERSION: 2.13.3
-            JABBA_JDK: 1.8.0-275
-          - SCALA_VERSION: 2.13.3
-            JABBA_JDK: 1.11.0-9
+        SCALA_VERSION: [2.12.14, 2.13.6]
+        # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
+        JABBA_JDK: [1.8.0-275, 1.11]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
 
       - name: Set up JDK ${{ matrix.JABBA_JDK }}
         uses: olafurpg/setup-scala@v10
@@ -93,7 +75,7 @@ jobs:
           java-version: adopt@${{ matrix.JABBA_JDK }}
 
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
 
       - name: Compile and test for JDK ${{ matrix.JABBA_JDK }}, Scala ${{ matrix.SCALA_VERSION }}
         run: sbt ++${{ matrix.SCALA_VERSION }} test
@@ -101,28 +83,20 @@ jobs:
 
   test-sbt:
     name: sbt scripted tests
-    runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
-
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.8.0-275
+          java-version: adopt@1.8
 
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
 
       - name: Scripted gen-scala-server
         run: cp .jvmopts-travis .jvmopts && sbt "; project sbt-akka-grpc; scripted gen-scala-server/*"
@@ -135,140 +109,120 @@ jobs:
 
   test-gradle:
     name: Gradle tests
-    runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
-
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.8.0-275
+          java-version: adopt@1.8
 
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
 
       - name: Gather version
         run: |-
           echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`-SNAPSHOT > ~/.version
           cat ~/.version
 
-      - name: Test Gradle Java Scala 2.12
-        run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.14 akka-grpc-runtime/publishM2
-          cd gradle-plugin
-          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
-          find ~/.m2 | grep gradle
-          cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
-
-      - name: Test Gradle Java Scala 2.13
-        run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
-          cd gradle-plugin
-          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
-          find ~/.m2 | grep gradle
-          cd ../plugin-tester-java
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
-
-      - name: Test Gradle Scala 2.12
-        run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.14 akka-grpc-runtime/publishM2
-          cd gradle-plugin
-          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
-          find ~/.m2 | grep gradle
-          cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
-
-      - name: Test Gradle Scala 2.13
-        run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
-          cd gradle-plugin
-          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
-          find ~/.m2 | grep gradle
-          cd ../plugin-tester-scala
-          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
-
-  test-docs:
-    name: Docs
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Cache local Gradle repository
+        uses: actions/cache@v2
         with:
-          fetch-depth: 0
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11.0-9
-      - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
-      - name: Test Maven Java
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('plugin-tester-*/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Publish artifacts locally
         run: |-
           cp .jvmopts-travis .jvmopts
-          sbt paradox
+          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 +akka-grpc-runtime/publishM2
+          cd gradle-plugin
+          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
+          find ~/.m2 | grep gradle
+
+      - name: Test Gradle Java ${{ matrix.SCALA_VERSION }}
+        run: |-
+          cd plugin-tester-java
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
+
+      - name: Test Gradle Scala ${{ matrix.SCALA_VERSION }}
+        run: |-
+          cd plugin-tester-scala
+          ./gradlew clean test --console=plain --info --stacktrace -Dakka.grpc.project.version=$(cat ~/.version | sed -e s/-SNAPSHOT//)
+
+      - name: Stop Gradle Daemon
+        # as suggested in https://github.com/actions/cache/blob/main/examples.md#java---gradle
+        if: always()
+        run: cd plugin-tester-scala; ./gradlew --stop
 
   test-maven:
     name: Maven tests
-    runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Checkout GitHub merge
-        if: github.event.pull_request
-        run: |-
-          git fetch origin pull/${{ github.event.pull_request.number }}/merge:scratch
-          git checkout scratch
-
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.8.0-275
+          java-version: adopt@1.8
 
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6.2
 
       - name: Gather version
         run: |-
           echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`-SNAPSHOT > ~/.version
           cat ~/.version
 
-      - name: Test Maven Java
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('plugin-tester-*/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Publish artifacts locally
         run: |-
           cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.14 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
-          sbt akka-grpc-maven-plugin/publishM2
+          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 +akka-grpc-runtime/publishM2 akka-grpc-maven-plugin/publishM2
+
+      - name: Test Maven Java
+        run: |-
           cd plugin-tester-java
           mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate compile
 
       - name: Test Maven Scala
         run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 ++2.12.14 akka-grpc-runtime/publishM2 ++2.13.3 akka-grpc-runtime/publishM2
-          sbt akka-grpc-maven-plugin/publishM2
           cd plugin-tester-scala
           mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate scala:compile
+
+  test-docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
+      - name: Cache Coursier cache
+        uses: coursier/cache-action@v6.2
+      - name: Test Maven Java
+        run: |-
+          cp .jvmopts-travis .jvmopts
+          sbt paradox
