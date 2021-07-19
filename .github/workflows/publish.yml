@@ -23,7 +23,7 @@ jobs:
 
       - name: Publish
         run: |-
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
@@ -78,7 +78,7 @@ jobs:
           echo $SCP_SECRET | base64 -d > /tmp/id_rsa
           chmod 600 /tmp/id_rsa
           ssh-add /tmp/id_rsa
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-docs/publishRsync
         env:
           SCP_SECRET: ${{ secrets.SCP_SECRET }}

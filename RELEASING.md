@@ -24,9 +24,8 @@ $ sh ./scripts/create-release-issue.sh 0.x.y -patch
 
 ## Gradle plugin release details
 
-The Gradle plugin goes directly to the Gradle Plugin Portal. An encrypted `gradle.properties` that includes a
-publishing key and password is checked in under `gradle.properties.enc` and is decrypted by a private key known
-only to [travis](https://docs.travis-ci.com/user/encrypting-files/).
+The Gradle plugin goes directly to the Gradle Plugin Portal. Publishing keys are stored as Github Action secrets and
+referred to in the Github Action job.
 
 ### Releasing only updated docs
 
