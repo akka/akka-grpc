@@ -25,7 +25,7 @@ object Whitesource extends AutoPlugin {
     whitesourceAggregateProjectName := {
       val projectName = (LocalRootProject / moduleName).value.replace("-root", "")
       projectName + "-" + (if (isSnapshot.value)
-                             if (gitCurrentBranch.contains("master")) "master"
+                             if (gitCurrentBranch.contains("main")) "master"
                              else "adhoc"
                            else
                              CrossVersion
