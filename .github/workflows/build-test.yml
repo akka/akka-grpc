@@ -25,16 +25,16 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.2
 
+      - name: Whitesource policy check
+        if: ${{ env.WHITESOURCE_PASSWORD }} != 0 # should be empty for PRs from forks
+        run: sbt whitesourceCheckPolicies
+        env:
+          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
+
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-ghactions .jvmopts
           sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
-
-      - name: Whitesource policy check
-        if: secrets.WHITESOURCE_PASSWORD != 0 # will be empty for PRs from forks
-        run: sbt whitesourceCheckPolicies
-        env:
-          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
 
   compile-benchmarks:
     name: Compile Benchmarks
