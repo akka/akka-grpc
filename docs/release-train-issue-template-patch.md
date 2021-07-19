@@ -18,7 +18,7 @@ Variables to be expanded in this template:
 
 ### Cutting the release
 
-- [ ] Make sure any running [Travis builds](https://travis-ci.org/akka/akka-grpc) for the commit you would like to release have completed.
+- [ ] Make sure the [Github Actions build](https://github.com/akka/akka-grpc/actions?query=branch%3Amain) for the commit you would like to release has completed.
 - [ ] Tag the release `git tag -a -m 'Release v$VERSION$' v$VERSION$` and push the tag `git push --tags`
 - [ ] Check that the GitHub Actions release build has executed successfully (it should publish artifacts to Sonatype and documentation to Gustav)
 

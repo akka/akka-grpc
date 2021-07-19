@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches: [ main ]
-    tags: ["*"]
+    tags: [ v* ]
 
 jobs:
   sbt:
@@ -15,13 +15,15 @@ jobs:
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
+
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
           java-version: adopt@1.8
+
       - name: Publish
         run: |-
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
@@ -29,7 +31,28 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 
-  # TODO publish gradle from here as well
+      - name: Update Whitesource Listing
+        run: sbt whitesourceUpdate
+        env:
+          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
+
+  gradle-plugin:
+    name: Release gradle plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
+          fetch-depth: 0
+
+      - name: Set up JDK 8
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.8
+
+      - name: Publish Plugin to Gradle Plugin Repository
+        run: cd gradle-plugin && ./gradlew publishPlugins -Pgradle.publish.key='${{ secrets.GRADLE_PUBLISH_KEY }}' -Pgradle.publish.secret='${{ secrets.GRADLE_SECRET }}'
 
   documentation:
     name: Documentation
@@ -40,6 +63,7 @@ jobs:
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
+
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
@@ -54,7 +78,7 @@ jobs:
           echo $SCP_SECRET | base64 -d > /tmp/id_rsa
           chmod 600 /tmp/id_rsa
           ssh-add /tmp/id_rsa
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-docs/publishRsync
         env:
           SCP_SECRET: ${{ secrets.SCP_SECRET }}

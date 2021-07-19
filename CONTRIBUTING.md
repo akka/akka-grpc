@@ -228,7 +228,7 @@ Follow these guidelines when creating public commits and writing commit messages
 
 Example:
 
-    enable Travis CI #1
+    enable CI #1
 
     * Details 1
     * Details 2
@@ -284,15 +284,7 @@ You can read up on remaining and friends in [TestKit.scala](https://github.com/a
 
 ## Continuous Integration
 
-akka-grpc currently uses a combination of jenkins and travis for Continuous
-Integration:
-
-* Jenkins [runs the tests for each PR](https://jenkins.akka.io:8498/view/PR%20Validators/job/pr-validator-akka-grpc/)
-* Travis [checks dependency licenses for all builds](https://travis-ci.org/akka/akka-grpc)
-* Travis will be used for publishing releases
-
-The [Jenkins server farm](https://jenkins.akka.io/), sometimes referred to as "the Lausanne cluster", is sponsored by Lightbend.
-The cluster is made out of real bare-metal boxes, and maintained by the Akka team (and other very helpful people at Lightbend).
+akka-grpc currently uses Github Actions for Continuous Integration. See the `Checks` tab in a PR for details about the current run.
 
 ## Related links
 

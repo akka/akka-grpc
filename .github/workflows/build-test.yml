@@ -27,8 +27,10 @@ jobs:
 
       - name: Code style check and binary-compatibility check
         run: |-
-          cp .jvmopts-travis .jvmopts
-          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
+          cp .jvmopts-ghactions .jvmopts
+          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues whitesourceCheckPolicies
+        env:
+          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
 
 
   compile-benchmarks:
@@ -108,7 +110,7 @@ jobs:
         uses: coursier/cache-action@v6.2
 
       - name: Scripted ${{ matrix.test-set }}
-        run: cp .jvmopts-travis .jvmopts && sbt ++${{ matrix.scala-version }} "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
+        run: cp .jvmopts-ghactions .jvmopts && sbt ++${{ matrix.scala-version }} "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
 
   test-gradle:
     name: Gradle tests
@@ -144,7 +146,7 @@ jobs:
 
       - name: Publish artifacts locally
         run: |-
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 +akka-grpc-runtime/publishM2
           cd gradle-plugin
           ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
@@ -197,7 +199,7 @@ jobs:
 
       - name: Publish artifacts locally
         run: |-
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 +akka-grpc-runtime/publishM2 akka-grpc-maven-plugin/publishM2
 
       - name: Test Maven Java
@@ -227,5 +229,5 @@ jobs:
         uses: coursier/cache-action@v6.2
       - name: Test Maven Java
         run: |-
-          cp .jvmopts-travis .jvmopts
+          cp .jvmopts-ghactions .jvmopts
           sbt paradox
