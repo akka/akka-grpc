@@ -28,7 +28,9 @@ jobs:
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-travis .jvmopts
-          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
+          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues whitesourceCheckPolicies
+        env:
+          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
 
 
   compile-benchmarks:
