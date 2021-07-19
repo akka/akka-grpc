@@ -32,7 +32,7 @@ install: |
   # and install a stable jdk version
   jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
 
-before_script: 
+before_script:
   - echo `git describe --tags | sed -e "s/v\(.*\)-\([0-9][0-9]*\).*/\\1-\\2-/"``git rev-parse HEAD | head -c8`-SNAPSHOT > ~/.m2/.version
   - cat ~/.m2/.version
 
@@ -44,9 +44,9 @@ stages:
   - name: test
     if: NOT tag =~ ^v
   - name: whitesource
-    if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
+    if: repo = akka/akka-grpc AND ((branch = main AND type != pull_request) OR tag =~ ^v)
   - name: publish
-    if: repo = akka/akka-grpc AND ((branch = master AND type != pull_request) OR tag =~ ^v)
+    if: repo = akka/akka-grpc AND ((branch = main AND type != pull_request) OR tag =~ ^v)
 
 jobs:
   include:

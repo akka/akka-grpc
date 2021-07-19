@@ -67,7 +67,7 @@ object Common extends AutoPlugin {
       "akka.pattern:" + // for some reason Scaladoc creates this
       "templates",
       "-doc-source-url", {
-        val branch = if (isSnapshot.value) "master" else s"v${version.value}"
+        val branch = if (isSnapshot.value) "main" else s"v${version.value}"
         s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
       },
       "-doc-canonical-base-url",

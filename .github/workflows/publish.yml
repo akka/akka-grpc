@@ -2,8 +2,7 @@ name: Publish
 
 on:
   push:
-    branches:
-      - master
+    branches: [ main ]
     tags: ["*"]
 
 jobs:

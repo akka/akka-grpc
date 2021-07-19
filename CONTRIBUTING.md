@@ -16,7 +16,7 @@ You may also check out these [other resources](https://akka.io/get-involved/).
 
 Depending on which version (or sometimes module) you want to work on, you should target a specific branch as explained below:
 
-* `master` – active development branch of akka-grpc
+* `main` – active development branch of akka-grpc
 
 ## Issues
 
@@ -54,7 +54,7 @@ You can read its full text here: [Lightbend Community Code of Conduct](https://w
 
 ## General Workflow
 
-The below steps are how to get a patch into a main development branch (e.g. `master`). 
+The below steps are how to get a patch into a main development branch (e.g. `main`).
 The steps are exactly the same for everyone involved in the project (be it core team, or first time contributor).
 
 1. To avoid duplicated effort, it might be good to check the [issue tracker](https://github.com/akka/akka-grpc/issues) and [existing pull requests](https://github.com/akka/akka-grpc/pulls) for existing work.
@@ -154,7 +154,7 @@ Some additional guidelines regarding source code are:
 - Do not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
   - Contributors , each project should make sure that the contributors gets the credit they deserve—in a text file or page on the project website and in the release notes etc.
 
-If these requirements are not met then the code should **not** be merged into master, or even reviewed - regardless of how good or important it is. No exceptions.
+If these requirements are not met then the code should **not** be merged into main, or even reviewed - regardless of how good or important it is. No exceptions.
 
 Whether or not a pull request (or parts of it) shall be back- or forward-ported will be discussed on the pull request discussion page, it shall therefore not be part of the commit messages. If desired the intent can be expressed in the pull request description.
 
