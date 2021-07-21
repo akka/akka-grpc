@@ -6,17 +6,36 @@ import helper.ScalaWrapperPlugin
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Unroll
 
+import static org.gradle.testkit.runner.TaskOutcome.SKIPPED
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static akka.grpc.gradle.AkkaGrpcPluginExtension.PLUGIN_CODE
 
 class ApplySpec extends BaseSpec {
 
     Project project
 
+    File log
+
     def setup() {
         createBuildFolder()
         project = ProjectBuilder.builder().withProjectDir(projectDir.root).build()
+    }
+
+    def createLog() {
+        log = projectDir.newFile("build/akka-grpc-gradle-plugin.log")
+    }
+
+    BuildResult executeGradleTask(String task) {
+        def runner = GradleRunner.create().forwardOutput()
+            .withProjectDir(projectDir.root)
+            .withArguments("--stacktrace", task)
+            .withPluginClasspath()
+            .withDebug(true)
+        runner.build()
     }
 
     @Unroll
@@ -84,22 +103,28 @@ class ApplySpec extends BaseSpec {
     def "should disable compileJava if no java source files found"() {
         given:
         sampleSetup()
+        generateBuildScripts()
+        createLog()
         when:
         project.evaluate()
-        then:
-        !project.tasks.getByName("compileJava").enabled
+        BuildResult result = executeGradleTask("compileJava")
+        then: "compileJava is enabled, but task was skipped"
+        project.tasks.getByName("compileJava").enabled
+        result.task(":compileJava").outcome == SKIPPED
     }
 
     def "should enable compileJava if java source files found"() {
         given:
         sampleSetup()
+        generateBuildScripts()
+        createLog()
         when:
         def javaDir = projectDir.newFolder('src', 'main', 'java')
         new File(javaDir, "Empty.java").text = "final class Empty {}"
         and:
-        project.evaluate()
-        then: "compileJava is enabled"
-        project.tasks.getByName("compileJava").enabled
+        BuildResult result = executeGradleTask("compileJava")
+        then: "compileJava is success"
+        result.task(":compileJava").outcome == SUCCESS
     }
 
     def "should enable compileJava if project has only generated java source files"() {
