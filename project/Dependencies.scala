@@ -27,7 +27,7 @@ object Dependencies {
 
     val scalaTest = "3.1.4"
 
-    val maven = "3.8.1"
+    val maven = "3.8.2"
 
     val silencer = "1.7.5"
   }
