@@ -148,9 +148,9 @@ class AkkaGrpcPlugin implements Plugin<Project> {
         }
 
         project.afterEvaluate { Project p ->
-
-            if (akkaGrpcExt.scala && p.sourceSets.main.allJava.isEmpty()) {
-                p.tasks.getByName("compileJava").enabled = false
+            //Check exist java source before run compileJava.
+            p.tasks.getByName("compileJava").onlyIf {
+                !p.sourceSets.main.allJava.isEmpty()
             }
 
             def scalaVersion = autodetectScala()
