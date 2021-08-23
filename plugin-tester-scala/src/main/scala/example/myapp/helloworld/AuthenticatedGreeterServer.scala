@@ -7,7 +7,7 @@ package example.myapp.helloworld
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.server.{ Directive0, Route, RouteResult }
+import akka.http.scaladsl.server.{ Directive0, Route }
 import akka.http.scaladsl.server.Directives._
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
@@ -48,7 +48,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
       GreeterServiceHandler(new GreeterServiceImpl())
 
     // As a Route
-    val handlerRoute: Route = { ctx => handler(ctx.request).map(RouteResult.Complete) }
+    val handlerRoute: Route = handle(handler)
     //#grpc-route
 
     //#grpc-protected
