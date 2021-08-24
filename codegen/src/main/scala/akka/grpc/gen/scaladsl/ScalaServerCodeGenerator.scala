@@ -43,23 +43,23 @@ class ScalaServerCodeGenerator extends ScalaCodeGenerator {
     } else immutable.Seq.empty
   }
 
-  def filterApi(service: Service, logger: Logger, isPower: Boolean) = {
-    if (service.filterApi) {
-      val b = CodeGeneratorResponse.File.newBuilder()
-      b.setContent(FilterApiTrait(service, isPower).body)
-      val fileName = if (isPower) "Power" else ""
-      b.setName(s"${service.packageDir}/${service.name}Filter${fileName}Api.scala")
-      logger.info(s"Generating Akka gRPC service power API interface for ${service.packageName}.${service.name}")
-      immutable.Seq(b.build)
-    } else immutable.Seq.empty
-  }
-
   val generateFilterTrait: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     filterApi(service, logger, false)
   }
 
   val generateFilterPowerTrait: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] = (logger, service) => {
     filterApi(service, logger, true)
+  }
+
+  private def filterApi(service: Service, logger: Logger, isPower: Boolean) = {
+    if (service.filterApi) {
+      val b = CodeGeneratorResponse.File.newBuilder()
+      b.setContent(FilterApiTrait(service, isPower).body)
+      val fileName = if (isPower) "Power" else ""
+      b.setName(s"${service.packageDir}/${service.name}Filter${fileName}Api.scala")
+      logger.info(s"Generating Akka gRPC filter API interface for ${service.packageName}.${service.name}")
+      immutable.Seq(b.build)
+    } else immutable.Seq.empty
   }
 
 }

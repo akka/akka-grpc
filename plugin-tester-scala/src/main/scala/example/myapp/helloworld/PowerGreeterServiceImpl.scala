@@ -9,9 +9,10 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.scaladsl.Metadata
 import akka.stream.scaladsl.{ Sink, Source }
+import example.myapp.helloworld.grpc.GreeterServiceFilterApi.GenericFilter
 import example.myapp.helloworld.grpc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServicePowerApi {
   import system.dispatcher
@@ -57,5 +58,24 @@ class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServi
 
   override val itKeepsReplyingFilter =
     Seq(FilterItems.RequestStreamResponse.addPower, FilterItems.RequestStreamResponse.removePower)
+
+  trait OnRequestFilter[In, Out] {
+    def apply(request: In)(implicit ex: ExecutionContext): Out
+  }
+
+  object OnRequestFilter {
+    def apply[In, Out](block: In => In) = {
+      new GenericFilter[In, Out] {
+        override def apply(request: In, next: In => Out)(implicit ex: ExecutionContext): Out = {
+          next(block(request))
+        }
+      }
+    }
+  }
+
+  val on = OnRequestFilter[HelloRequest, Future[HelloReply]] { item =>
+    item.copy(name = item.name.reverse)
+  }
+
 }
 //#full-service-impl

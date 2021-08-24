@@ -47,8 +47,7 @@ class GreeterServiceImpl(implicit mat: Materializer) extends GreeterService {
     Seq(
       FilterItems.RequestResponse.requestDuration,
       FilterItems.RequestResponse.timeout,
-      FilterItems.RequestResponse.add,
-      FilterItems.RequestResponse.remove)
+      FilterItems.RequestResponse.addRemove)
 
   override val itKeepsTalkingFilter
       : Seq[GreeterServiceFilterApi.GenericFilter[Source[HelloRequest, NotUsed], Future[HelloReply]]] =

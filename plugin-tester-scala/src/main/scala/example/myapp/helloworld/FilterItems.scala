@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
+ */
 package example.myapp.helloworld
 
 import akka.NotUsed
@@ -42,22 +45,19 @@ class FilterItems(sys: ActorSystem) {
         }
       }
 
-    val add: GenericFilter[HelloRequest, Future[HelloReply]] = new GenericFilter[HelloRequest, Future[HelloReply]] {
-      override def apply(request: HelloRequest, next: HelloRequest => Future[HelloReply])(
-          implicit ex: ExecutionContext): Future[HelloReply] = {
-        next(addToRequest(request))
+    val addRemove: GenericFilter[HelloRequest, Future[HelloReply]] =
+      new GenericFilter[HelloRequest, Future[HelloReply]] {
+        override def apply(request: HelloRequest, next: HelloRequest => Future[HelloReply])(
+            implicit ex: ExecutionContext): Future[HelloReply] = {
+          val newRequest = addToRequest(request)
+          next(newRequest).map(removeFromResponse)
+        }
       }
-    }
     val addPower: PowerFilter[HelloRequest, Future[HelloReply]] = new PowerFilter[HelloRequest, Future[HelloReply]] {
       override def apply(request: (HelloRequest, Metadata), next: (HelloRequest, Metadata) => Future[HelloReply])(
           implicit ex: ExecutionContext): Future[HelloReply] = {
         next(addToRequest(request._1), request._2)
       }
-    }
-
-    val remove: GenericFilter[HelloRequest, Future[HelloReply]] = new GenericFilter[HelloRequest, Future[HelloReply]] {
-      override def apply(request: HelloRequest, next: HelloRequest => Future[HelloReply])(
-          implicit ex: ExecutionContext): Future[HelloReply] = next(request).map(removeFromResponse)
     }
 
     val removePower: PowerFilter[HelloRequest, Future[HelloReply]] = new PowerFilter[HelloRequest, Future[HelloReply]] {
