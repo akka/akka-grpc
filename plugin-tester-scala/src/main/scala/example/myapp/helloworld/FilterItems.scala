@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package example.myapp.helloworld
 
 import akka.NotUsed
