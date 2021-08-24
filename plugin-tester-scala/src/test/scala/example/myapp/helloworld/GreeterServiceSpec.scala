@@ -6,6 +6,7 @@ package example.myapp.helloworld
 
 import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.grpc.GrpcClientSettings
+import akka.stream.scaladsl.{ Sink, Source }
 import com.google.protobuf.timestamp.Timestamp
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
@@ -22,6 +23,8 @@ import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll with ScalaFutures {
+
+  private val awaitTimeout = 15.seconds
 
   implicit val patience = PatienceConfig(10.seconds, Span(100, org.scalatest.time.Millis))
 
@@ -57,6 +60,25 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
     "reply to single request" in {
       val reply = clients.head.sayHello(HelloRequest("Alice"))
       reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
+    }
+    "reply to some requests" in {
+      val source = Source(List(HelloRequest("Alice")))
+      val reply = clients.head.itKeepsTalking(source)
+      reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
+    }
+    "stream back to single request" in {
+      val reply = clients.head.itKeepsReplying(HelloRequest("Alice"))
+      val actual = Await.result(reply.runWith(Sink.seq), awaitTimeout).map(_.message).mkString("")
+      actual shouldBe "Hello, Alice"
+    }
+    "stream back to some requests" in {
+      val reply = clients.head.streamHellos(Source(List(HelloRequest("Alice"))))
+      val actual = Await.result(reply.runWith(Sink.seq), awaitTimeout).map(_.message).mkString("")
+      actual shouldBe "Hello, Alice"
+    }
+    "timeout filter" in {
+      val reply = clients.head.sayHello(HelloRequest("sleep"))
+      reply.futureValue should ===(HelloReply("timeout", None))
     }
   }
 

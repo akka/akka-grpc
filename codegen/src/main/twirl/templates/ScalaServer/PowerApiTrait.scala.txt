@@ -16,4 +16,10 @@ trait @{service.name}PowerApi {
   @for(method <- service.methods) {
   def @{method.nameSafe}(in: @method.parameterType, metadata: Metadata): @method.returnType
   }
+
+@if(service.filterApi) {
+  @for(method <- service.methods) {
+  val @{method.name}Filter: Seq[@{service.name}FilterPowerApi.GenericFilter[@method.parameterType, @method.returnType]] = Nil
+  }
+}
 }

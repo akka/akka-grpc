@@ -2,7 +2,7 @@
  * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
  *@
 
-@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean)
+@(service: akka.grpc.gen.scaladsl.Service, powerApis: Boolean, filterApi: Boolean)
 
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
@@ -110,6 +110,7 @@ object @{serviceName}Handler {
 
       import @{service.name}.Serializers._
 
+
       def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] =
         GrpcMarshalling.negotiated(request, (reader, writer) =>
           (method match {
@@ -117,7 +118,17 @@ object @{serviceName}Handler {
             case "@method.grpcName" =>
                 @{if(powerApis) { "val metadata = MetadataBuilder.fromHeaders(request.headers)" } else { "" }}
                 @{method.unmarshal}(request.entity)(@method.deserializer.name, mat, reader)
+                  @if(filterApi) {
+                  .@{if(method.outputStreaming) { "map" } else { "flatMap" }} { initial: @method.parameterType =>
+                    @if(powerApis){
+                    @{service.name}FilterPowerApi.compose((initial, metadata), implementation.@{method.name}Filter, (r,m) => implementation.@{method.nameSafe}(r,m))
+                    } else {
+                    @{service.name}FilterApi.compose(initial, implementation.@{method.name}Filter, re => implementation.@{method.nameSafe}(re))
+                    }
+                  }
+                  } else {
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.nameSafe}(_@{if(powerApis) { ", metadata" } else { "" }}))
+                  }
                   .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, writer, system))
             }
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))

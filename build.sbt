@@ -215,7 +215,7 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
     (publish / skip) := true,
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := scala212,
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis", "filter_api"))
   .pluginTestingSettings
 
 lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = file("plugin-tester-java"))

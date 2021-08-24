@@ -47,5 +47,15 @@ class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServi
     val authenticated = isAuthenticated(metadata)
     s"${in.name} (${if (!authenticated) "not " else ""}authenticated)"
   }
+
+  val FilterItems = new FilterItems(system)
+
+  override val sayHelloFilter = Seq(FilterItems.RequestResponse.addPower, FilterItems.RequestResponse.removePower)
+
+  override val itKeepsTalkingFilter =
+    Seq(FilterItems.StreamRequestResponse.addPower, FilterItems.StreamRequestResponse.removePower)
+
+  override val itKeepsReplyingFilter =
+    Seq(FilterItems.RequestStreamResponse.addPower, FilterItems.RequestStreamResponse.removePower)
 }
 //#full-service-impl

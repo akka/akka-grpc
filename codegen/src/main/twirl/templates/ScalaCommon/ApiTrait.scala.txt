@@ -17,6 +17,12 @@ trait @{service.name} {
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll("   * $1")}   */}
   def @{method.nameSafe}(in: @method.parameterType): @method.returnType
   }
+
+@if(service.filterApi) {
+  @for(method <- service.methods) {
+  val @{method.name}Filter: Seq[@{service.name}FilterApi.GenericFilter[@method.parameterType, @method.returnType]] = Nil
+  }
+}
 }
 
 @mapMethodType(methodType: akka.grpc.gen.MethodType) = {
