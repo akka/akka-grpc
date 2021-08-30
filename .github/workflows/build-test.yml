@@ -30,13 +30,6 @@ jobs:
           cp .jvmopts-ghactions .jvmopts
           sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
 
-      - name: Whitesource policy check
-        # if PR, then it has to come from akka/akka-grpc and not from fork, i.e. event == PR => PR.repo == akka/akka-grpc
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'akka/akka-grpc' }}
-        run: sbt whitesourceCheckPolicies
-        env:
-          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
-
   compile-benchmarks:
     name: Compile Benchmarks
     runs-on: ubuntu-latest

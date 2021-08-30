@@ -131,10 +131,10 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
-    // setting 'publish/skip' would be more elegant, but we need
+    // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test
-    whitesourceIgnore := true)
+    )
   .settings(inConfig(Test)(Seq(
     reStart / mainClass := (Test / run / mainClass).value, {
       import spray.revolver.Actions._
@@ -172,7 +172,6 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .settings(
     name := "Akka gRPC",
     publish / skip := true,
-    whitesourceIgnore := true,
     makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     previewPath := (Paradox / siteSubdirName).value,
     Preprocess / siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
