@@ -130,11 +130,11 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     parallelExecution := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test
-    )
+  )
   .settings(inConfig(Test)(Seq(
     reStart / mainClass := (Test / run / mainClass).value, {
       import spray.revolver.Actions._
