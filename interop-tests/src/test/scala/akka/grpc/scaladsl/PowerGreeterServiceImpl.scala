@@ -34,8 +34,8 @@ class PowerGreeterServiceImpl()(implicit system: ActorSystem) extends GreeterSer
   }
 
   /**
-   * Once a HelloRequest is received, replies with a never-ending stream of HelloReply's until
-   * a HelloRequest("ByeBye") is received.
+   * Once a HelloRequest is received, replies with a never-ending stream of HelloReply's until a HelloRequest("ByeBye")
+   * is received.
    */
   override def streamHellos(in: Source[HelloRequest, NotUsed], metadata: Metadata): Source[HelloReply, NotUsed] = {
     println(s"sayHello to stream...")

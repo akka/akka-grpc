@@ -8,8 +8,7 @@ import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 
 /**
- * 'barrier' that makes sure that, even when downstream is cancelled,
- * the complete upstream is consumed.
+ * 'barrier' that makes sure that, even when downstream is cancelled, the complete upstream is consumed.
  *
  * @tparam T
  */

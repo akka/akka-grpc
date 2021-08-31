@@ -31,8 +31,11 @@ object Codecs {
   /**
    * Determines the message encoding to use for a server response to a client.
    *
-   * @param request the gRPC client request.
-   * @return a codec to compress data frame bodies with, which will be [[Identity]] unless the client specifies support for another supported encoding.
+   * @param request
+   *   the gRPC client request.
+   * @return
+   *   a codec to compress data frame bodies with, which will be [[Identity]] unless the client specifies support for
+   *   another supported encoding.
    */
   def negotiate(request: jm.HttpRequest): Codec = {
     val headers = extractHeaders(request)
@@ -53,8 +56,11 @@ object Codecs {
   /**
    * Determines the `Message-Encoding` specified in a message.
    *
-   * @param message the gRPC message
-   * @return the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or [[Failure]] if an unsupported encoding was specified.
+   * @param message
+   *   the gRPC message
+   * @return
+   *   the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or
+   *   [[Failure]] if an unsupported encoding was specified.
    */
   def detect(message: jm.HttpMessage): Try[Codec] =
     detect(`Message-Encoding`.findIn(extractHeaders(message)))
@@ -62,8 +68,11 @@ object Codecs {
   /**
    * Determines the `Message-Encoding` specified in a gRPC stream to be unmarshalled.
    *
-   * @param encoding the specified message encoding.
-   * @return the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or [[Failure]] if an unsupported encoding was specified.
+   * @param encoding
+   *   the specified message encoding.
+   * @return
+   *   the specified codec to uncompress data frame bodies with, [[Identity]] if no encoding was specified, or
+   *   [[Failure]] if an unsupported encoding was specified.
    */
   def detect(encoding: Option[String]): Try[Codec] =
     encoding

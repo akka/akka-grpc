@@ -72,9 +72,8 @@ object AbstractGenerateMojo {
 
   /**
    * Turns generatorSettings into sequence of strings, including to:
-   * 1. Filter keys if the values are not false.
-   * 2. Make camelCase into snake_case
-   * e.g. { "flatPackage": "true", "serverPowerApis": "false" } -> ["flat_package"]
+   *   1. Filter keys if the values are not false. 2. Make camelCase into snake_case e.g. { "flatPackage": "true",
+   *      "serverPowerApis": "false" } -> ["flat_package"]
    */
   def parseGeneratorSettings(generatorSettings: java.util.Map[String, String]): Seq[String] = {
     import scala.collection.JavaConverters._

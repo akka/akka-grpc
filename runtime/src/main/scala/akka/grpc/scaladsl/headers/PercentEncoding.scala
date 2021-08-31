@@ -21,7 +21,8 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 /**
- * Excerpt from https://github.com/grpc/grpc/blob/7c9e8b425166276232653725de32ea0422a39b33/doc/PROTOCOL-HTTP2.md#responses:
+ * Excerpt from
+ * https://github.com/grpc/grpc/blob/7c9e8b425166276232653725de32ea0422a39b33/doc/PROTOCOL-HTTP2.md#responses:
  *
  * The value portion of Status-Message is conceptually a Unicode string description of the error, physically encoded as
  * UTF-8 followed by percent-encoding. Percent-encoding is specified in RFC 3986 §2.1, although the form used here has

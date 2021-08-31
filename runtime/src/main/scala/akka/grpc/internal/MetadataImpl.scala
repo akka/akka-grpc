@@ -4,7 +4,7 @@
 
 package akka.grpc.internal
 
-import java.util.{ Locale, Optional, List => jList, Map => jMap }
+import java.util.{ List => jList, Locale, Map => jMap, Optional }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
@@ -84,7 +84,8 @@ import akka.grpc.javadsl
 
 /**
  * This class wraps a mutable Metadata from io.grpc with the Scala Metadata interface.
- * @param delegate The underlying mutable metadata.
+ * @param delegate
+ *   The underlying mutable metadata.
  */
 @InternalApi
 class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
@@ -122,7 +123,8 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
 
 /**
  * This class represents metadata as a list of (key, entry) tuples.
- * @param entries The list of (key, entry) tuples.
+ * @param entries
+ *   The list of (key, entry) tuples.
  */
 @InternalApi
 class EntryMetadataImpl(entries: List[(String, MetadataEntry)] = Nil) extends Metadata {
@@ -148,7 +150,8 @@ class EntryMetadataImpl(entries: List[(String, MetadataEntry)] = Nil) extends Me
 
 /**
  * This class wraps a list of headers from an HttpResponse with the Metadata interface.
- * @param headers The list of HTTP response headers.
+ * @param headers
+ *   The list of HTTP response headers.
  */
 @InternalApi
 class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empty) extends Metadata {
@@ -195,7 +198,8 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
 
 /**
  * This class wraps a scaladsl.Metadata instance with the javadsl.Metadata interface.
- * @param delegate The underlying Scala metadata instance.
+ * @param delegate
+ *   The underlying Scala metadata instance.
  */
 @InternalApi
 class JavaMetadataImpl(delegate: Metadata) extends javadsl.Metadata {

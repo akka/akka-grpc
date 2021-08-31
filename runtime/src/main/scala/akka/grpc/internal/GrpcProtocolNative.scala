@@ -13,8 +13,8 @@ import com.github.ghik.silencer.silent
  * Implementation of the gRPC (`application/grpc+proto`) protocol:
  *
  * Protocol:
- *  - Data frames are encoded to a stream of [[Chunk]] as per the gRPC specification
- *  - Trailer frames are encoded to [[LastChunk]], to be rendered into the underlying HTTP/2 transport
+ *   - Data frames are encoded to a stream of [[Chunk]] as per the gRPC specification
+ *   - Trailer frames are encoded to [[LastChunk]], to be rendered into the underlying HTTP/2 transport
  */
 object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
 

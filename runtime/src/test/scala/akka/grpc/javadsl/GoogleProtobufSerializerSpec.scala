@@ -4,7 +4,7 @@
 
 package akka.grpc.javadsl
 
-import com.google.protobuf.{ ByteString, Any => ProtobufAny }
+import com.google.protobuf.{ Any => ProtobufAny, ByteString }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

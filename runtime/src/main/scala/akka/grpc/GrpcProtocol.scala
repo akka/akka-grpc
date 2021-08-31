@@ -42,7 +42,8 @@ trait GrpcProtocol {
    * INTERNAL API
    *
    * Constructs a protocol writer for writing gRPC protocol frames for this variant
-   * @param codec the compression codec to encode data frame bodies with.
+   * @param codec
+   *   the compression codec to encode data frame bodies with.
    */
   @InternalStableApi
   def newWriter(codec: Codec): GrpcProtocolWriter
@@ -51,7 +52,8 @@ trait GrpcProtocol {
    * INTERNAL API
    *
    * Constructs a protocol reader for reading gRPC protocol frames for this variant.
-   * @param codec the compression codec to decode data frame bodies with.
+   * @param codec
+   *   the compression codec to decode data frame bodies with.
    */
   @InternalStableApi
   def newReader(codec: Codec): GrpcProtocolReader
@@ -77,7 +79,8 @@ object GrpcProtocol {
   /**
    * Implements the encoding of a stream of gRPC Frames into a physical/transport layer.
    *
-   * This maps the logical gRPC frames into a stream of chunks that can be handled by the HTTP/2 or HTTP/1.1 transport layer.
+   * This maps the logical gRPC frames into a stream of chunks that can be handled by the HTTP/2 or HTTP/1.1 transport
+   * layer.
    */
   case class GrpcProtocolWriter(
       /** The media type produced by this writer */
@@ -102,9 +105,9 @@ object GrpcProtocol {
       frameDecoder: Flow[ByteString, Frame, NotUsed]) {
 
     /**
-     * A Flow of Frames over a stream of messages encoded in gRPC framing that only
-     * expects data frames, and produces the body of each data frame.
-     * This flow will throw IllegalStateException if anything other than a data frame is encountered.
+     * A Flow of Frames over a stream of messages encoded in gRPC framing that only expects data frames, and produces
+     * the body of each data frame. This flow will throw IllegalStateException if anything other than a data frame is
+     * encountered.
      */
     val dataFrameDecoder: Flow[ByteString, ByteString, NotUsed] = frameDecoder.map {
       case DataFrame(data) => data
@@ -114,13 +117,15 @@ object GrpcProtocol {
 
   /**
    * Detects which gRPC protocol variant is indicated in a request.
-   * @return a [[GrpcProtocol]] matching the request mediatype if specified and known.
+   * @return
+   *   a [[GrpcProtocol]] matching the request mediatype if specified and known.
    */
   def detect(request: jmodel.HttpRequest): Option[GrpcProtocol] = detect(request.entity.getContentType.mediaType)
 
   /**
    * Detects which gRPC protocol variant is indicated by a mediatype.
-   * @return a [[GrpcProtocol]] matching the request mediatype if known.
+   * @return
+   *   a [[GrpcProtocol]] matching the request mediatype if known.
    */
   def detect(mediaType: jmodel.MediaType): Option[GrpcProtocol] = mediaType.subType match {
     // mainType is not checked. We assume it's the right one.
@@ -133,8 +138,10 @@ object GrpcProtocol {
   /**
    * Calculates the gRPC protocol encoding to use for an interaction with a gRPC client.
    *
-   * @param request the client request to respond to.
-   * @return the protocol reader for the request, and a protocol writer for the response.
+   * @param request
+   *   the client request to respond to.
+   * @return
+   *   the protocol reader for the request, and a protocol writer for the response.
    */
   def negotiate(request: jmodel.HttpRequest): Option[(Try[GrpcProtocolReader], GrpcProtocolWriter)] =
     detect(request).map { variant =>

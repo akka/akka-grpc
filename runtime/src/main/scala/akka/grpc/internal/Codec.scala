@@ -13,8 +13,8 @@ abstract class Codec {
   def uncompress(bytes: ByteString): ByteString
 
   /**
-   * Process the given frame bytes, uncompress if the compression bit is set. Identity
-   * codec will fail with a [[io.grpc.StatusException]] if the compressedBit is set.
+   * Process the given frame bytes, uncompress if the compression bit is set. Identity codec will fail with a
+   * [[io.grpc.StatusException]] if the compressedBit is set.
    */
   def uncompress(compressedBitSet: Boolean, bytes: ByteString): ByteString
 

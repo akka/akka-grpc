@@ -16,7 +16,8 @@ sealed trait MetadataEntry extends javadsl.MetadataEntry
 
 /**
  * Represents a text metadata entry.
- * @param value The entry value.
+ * @param value
+ *   The entry value.
  */
 case class StringEntry(value: String) extends MetadataEntry with javadsl.StringEntry {
 
@@ -28,7 +29,8 @@ case class StringEntry(value: String) extends MetadataEntry with javadsl.StringE
 
 /**
  * Represents a binary metadata entry.
- * @param value The entry value.
+ * @param value
+ *   The entry value.
  */
 case class BytesEntry(value: ByteString) extends MetadataEntry with javadsl.BytesEntry {
 

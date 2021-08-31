@@ -16,8 +16,8 @@ import scala.concurrent.{ Future, Promise }
 /**
  * Stage that reads a single parameter from the stream
  *
- *  This sink does not, like 'Sink.head', complete the stage as soon as the first element has arrived.
- *  This is important to avoid triggering the stream teardown after consuming the first message.
+ * This sink does not, like 'Sink.head', complete the stage as soon as the first element has arrived. This is important
+ * to avoid triggering the stream teardown after consuming the first message.
  *
  * INTERNAL API
  */

@@ -57,8 +57,7 @@ object ClientState {
 }
 
 /**
- * INTERNAL API
- * Used from generated code so can't be private.
+ * INTERNAL API Used from generated code so can't be private.
  *
  * Thrown if a withChannel call is called after closing the internal channel
  */

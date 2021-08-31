@@ -21,31 +21,35 @@ import akka.grpc.scaladsl
 trait Metadata {
 
   /**
-   * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence
-   *         that is a text key is used.
+   * @return
+   *   The text header value for `key` if one exists, if the same key has multiple values the last occurrence that is a
+   *   text key is used.
    */
   def getText(key: String): Optional[String]
 
   /**
-   * @return The binary header value for `key` if one exists, if the same key has multiple values the last occurrence
-   *         that is a text key is used.
+   * @return
+   *   The binary header value for `key` if one exists, if the same key has multiple values the last occurrence that is
+   *   a text key is used.
    */
   def getBinary(key: String): Optional[ByteString]
 
   /**
-   * @return A map from keys to a list of metadata entries. Entries with the same key will be ordered based on
-   *         when they were added or received.
+   * @return
+   *   A map from keys to a list of metadata entries. Entries with the same key will be ordered based on when they were
+   *   added or received.
    */
   def asMap(): Map[String, List[MetadataEntry]]
 
   /**
-   * @return A list of (key, entry) pairs. Pairs with the same key will be ordered based on when they were added
-   *         or received.
+   * @return
+   *   A list of (key, entry) pairs. Pairs with the same key will be ordered based on when they were added or received.
    */
   def asList(): List[Pair[String, MetadataEntry]]
 
   /**
-   * @return Returns the scaladsl.Metadata interface for this instance.
+   * @return
+   *   Returns the scaladsl.Metadata interface for this instance.
    */
   def asScala: scaladsl.Metadata
 }

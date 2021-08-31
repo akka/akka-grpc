@@ -23,8 +23,7 @@ import scala.concurrent.duration.{ Duration, _ }
 object GrpcClientSettings {
 
   /**
-   * Create a client that uses a static host and port. Default configuration
-   * is loaded from reference.conf
+   * Create a client that uses a static host and port. Default configuration is loaded from reference.conf
    */
   def connectToServiceAt(host: String, port: Int)(
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
@@ -39,11 +38,11 @@ object GrpcClientSettings {
   }
 
   /**
-   * Look up client settings from an ActorSystem's configuration. Client configuration
-   * must be under `akka.grpc.client`. Each client configuration falls back to the
-   * defaults defined in reference.conf
+   * Look up client settings from an ActorSystem's configuration. Client configuration must be under `akka.grpc.client`.
+   * Each client configuration falls back to the defaults defined in reference.conf
    *
-   * @param clientName of the client configuration to lookup config from the ActorSystem's config
+   * @param clientName
+   *   of the client configuration to lookup config from the ActorSystem's config
    */
   def fromConfig(clientName: String)(implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
     val system = actorSystem.classicSystem
@@ -62,11 +61,12 @@ object GrpcClientSettings {
 
   /**
    * Configure the client to lookup a valid hostname:port from a service registry accessed via the `ServiceDiscovery`
-   * instance registered in the `actorSystem` provided. When invoking a lookup operation on the service registry, a
-   * name is required and optionally a port name and a protocol. This factory method only requires a `serviceName`.
-   * Use `withServicePortName` and `withServiceProtocol` to refine the lookup on the service registry.
+   * instance registered in the `actorSystem` provided. When invoking a lookup operation on the service registry, a name
+   * is required and optionally a port name and a protocol. This factory method only requires a `serviceName`. Use
+   * `withServicePortName` and `withServiceProtocol` to refine the lookup on the service registry.
    *
-   * @param serviceName name of the remote service to lookup.
+   * @param serviceName
+   *   name of the remote service to lookup.
    */
   def usingServiceDiscovery(serviceName: String)(
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
@@ -78,12 +78,13 @@ object GrpcClientSettings {
   }
 
   /**
-   * Configure the client to lookup a valid hostname:port from a service registry accessed via the provided `ServiceDiscovery`.
-   * When invoking a lookup operation on the service registry, a
-   * name is required and optionally a port name and a protocol. This factory method only requires a `serviceName`.
-   * Use `withServicePortName` and `withServiceProtocol` to refine the lookup on the service registry.
+   * Configure the client to lookup a valid hostname:port from a service registry accessed via the provided
+   * `ServiceDiscovery`. When invoking a lookup operation on the service registry, a name is required and optionally a
+   * port name and a protocol. This factory method only requires a `serviceName`. Use `withServicePortName` and
+   * `withServiceProtocol` to refine the lookup on the service registry.
    *
-   * @param serviceName name of the remote service to lookup.
+   * @param serviceName
+   *   name of the remote service to lookup.
    */
   def usingServiceDiscovery(serviceName: String, discovery: ServiceDiscovery)(
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
@@ -134,14 +135,14 @@ object GrpcClientSettings {
       getOptionalInt(clientConfiguration, "connection-attempts"),
       None,
       getOptionalString(clientConfiguration, "override-authority"),
-      getOptionalString(clientConfiguration, "ssl-provider").map({
+      getOptionalString(clientConfiguration, "ssl-provider").map {
         case "jdk"            => SslProvider.JDK
         case "openssl"        => SslProvider.OPENSSL
         case "openssl_refcnt" => SslProvider.OPENSSL_REFCNT
         case other =>
           throw new IllegalArgumentException(
             s"ssl-provider: expected empty, 'jdk', 'openssl' or 'openssl_refcnt', but got [$other]")
-      }),
+      },
       None,
       getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
@@ -214,17 +215,17 @@ final class GrpcClientSettings private (
   def withSslProvider(sslProvider: SslProvider): GrpcClientSettings = copy(sslProvider = Option(sslProvider))
 
   /**
-   * Prefer using `withContextManager`: withSslContext forces the ssl-provider 'jdk', which is known
-   * not to work on JDK 1.8.0_252.
+   * Prefer using `withContextManager`: withSslContext forces the ssl-provider 'jdk', which is known not to work on JDK
+   * 1.8.0_252.
    */
   def withSslContext(sslContext: SSLContext): GrpcClientSettings = copy(sslContext = Option(sslContext))
   def withTrustManager(trustManager: TrustManager): GrpcClientSettings = copy(trustManager = Option(trustManager))
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
   /**
-   * When using service discovery, port name is the optional parameter to filter the requests. Looking up a service
-   * may return multiple ports (http/https/...) if the remote process only serves the grpc service on a specific port
-   * you must use this setting.
+   * When using service discovery, port name is the optional parameter to filter the requests. Looking up a service may
+   * return multiple ports (http/https/...) if the remote process only serves the grpc service on a specific port you
+   * must use this setting.
    */
   def withServicePortName(servicePortName: String): GrpcClientSettings = copy(servicePortName = Some(servicePortName))
   def withServiceProtocol(serviceProtocol: String): GrpcClientSettings = copy(serviceProtocol = Some(serviceProtocol))
@@ -242,8 +243,8 @@ final class GrpcClientSettings private (
   /**
    * Provides a custom `User-Agent` for the application.
    *
-   * It's an optional parameter. The library will provide a user agent independent of this
-   * option. If provided, the given agent will prepend the library's user agent information.
+   * It's an optional parameter. The library will provide a user agent independent of this option. If provided, the
+   * given agent will prepend the library's user agent information.
    */
   def withUserAgent(value: String): GrpcClientSettings = copy(userAgent = Option(value))
 
@@ -261,16 +262,16 @@ final class GrpcClientSettings private (
     withLoadBalancingPolicy(loadBalancingType)
 
   /**
-   * How many times to retry establishing a connection before failing the client
-   * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
-   * An exponentially increasing backoff is used between attempts.
+   * How many times to retry establishing a connection before failing the client Failure can be monitored using
+   * client.stopped and monitoring the Future/CompletionStage. An exponentially increasing backoff is used between
+   * attempts.
    */
   def withConnectionAttempts(value: Int): GrpcClientSettings =
     copy(connectionAttempts = Some(value))
 
   /**
-   * To override any default channel configurations used by netty. Only for power users.
-   * API may change when io.grpc:grpc-netty-shaded is replaced by io.grpc:grpc-core and Akka HTTP.
+   * To override any default channel configurations used by netty. Only for power users. API may change when
+   * io.grpc:grpc-netty-shaded is replaced by io.grpc:grpc-core and Akka HTTP.
    */
   @ApiMayChange
   def withChannelBuilderOverrides(builderOverrides: NettyChannelBuilder => NettyChannelBuilder): GrpcClientSettings =

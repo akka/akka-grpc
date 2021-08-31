@@ -25,9 +25,12 @@ class MetadataBuilder {
 
   /**
    * Adds a string entry. The key must not end in the "-bin" binary suffix.
-   * @param key The entry key.
-   * @param value The entry value.
-   * @return The updated builder.
+   * @param key
+   *   The entry key.
+   * @param value
+   *   The entry value.
+   * @return
+   *   The updated builder.
    */
   def addText(key: String, value: String): MetadataBuilder = {
     delegate.addText(key, value)
@@ -36,9 +39,12 @@ class MetadataBuilder {
 
   /**
    * Adds a binary entry. The key must end in the "-bin" binary suffix.
-   * @param key The entry key.
-   * @param value The entry value.
-   * @return The updated builder.
+   * @param key
+   *   The entry key.
+   * @param value
+   *   The entry value.
+   * @return
+   *   The updated builder.
    */
   def addBinary(key: String, value: ByteString): MetadataBuilder = {
     delegate.addBinary(key, value)
@@ -47,7 +53,8 @@ class MetadataBuilder {
 
   /**
    * Builds the immutable metadata instance.
-   * @return The instance.
+   * @return
+   *   The instance.
    */
   def build(): Metadata =
     new JavaMetadataImpl(delegate.build())
@@ -57,22 +64,27 @@ class MetadataBuilder {
 object MetadataBuilder {
 
   /**
-   * @return An empty metadata instance.
+   * @return
+   *   An empty metadata instance.
    */
   val empty: Metadata = new JavaMetadataImpl(scaladsl.MetadataBuilder.empty)
 
   /**
    * Constructs a Metadata instance from a collection of HTTP headers.
-   * @param headers The headers.
-   * @return The metadata instance.
+   * @param headers
+   *   The headers.
+   * @return
+   *   The metadata instance.
    */
   def fromHeaders(headers: jIterable[HttpHeader]): Metadata =
     new JavaMetadataImpl(scaladsl.MetadataBuilder.fromHeaders(headers.asScala.map(asScala).toList))
 
   /**
    * Converts from a javadsl.HttpHeader to a scaladsl.HttpHeader.
-   * @param header A Java HTTP header.
-   * @return An equivalent Scala HTTP header.
+   * @param header
+   *   A Java HTTP header.
+   * @return
+   *   An equivalent Scala HTTP header.
    */
   private def asScala(header: HttpHeader): sHttpHeader =
     header match {

@@ -13,8 +13,8 @@ import templates.ScalaCommon.txt._
 import com.github.ghik.silencer.silent
 
 /**
- * Has to be a separate generator rather than a parameter to the existing ones, because
- * it introduces a suggestedDependency on akka-http.
+ * Has to be a separate generator rather than a parameter to the existing ones, because it introduces a
+ * suggestedDependency on akka-http.
  */
 trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
   def name = "akka-grpc-scaladsl-server-marshallers"

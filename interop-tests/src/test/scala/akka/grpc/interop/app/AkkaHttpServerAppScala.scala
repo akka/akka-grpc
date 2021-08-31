@@ -7,8 +7,8 @@ package akka.grpc.interop.app
 import akka.grpc.interop.AkkaHttpServerProviderScala
 
 /**
- * Scala application that starts a web server at localhost serving the test
- * application used for the gRPC integration tests.
+ * Scala application that starts a web server at localhost serving the test application used for the gRPC integration
+ * tests.
  *
  * This can be useful for 'manually' interacting with this server.
  *

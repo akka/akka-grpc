@@ -24,9 +24,12 @@ class MetadataBuilder {
 
   /**
    * Adds a string entry. The key must not end in the "-bin" binary suffix.
-   * @param key The entry key.
-   * @param value The entry value.
-   * @return The updated builder.
+   * @param key
+   *   The entry key.
+   * @param value
+   *   The entry value.
+   * @return
+   *   The updated builder.
    */
   def addText(key: String, value: String): MetadataBuilder = {
     if (key.endsWith(MetadataImpl.BINARY_SUFFIX))
@@ -36,9 +39,12 @@ class MetadataBuilder {
 
   /**
    * Adds a binary entry. The key must end in the "-bin" binary suffix.
-   * @param key The entry key.
-   * @param value The entry value.
-   * @return The updated builder.
+   * @param key
+   *   The entry key.
+   * @param value
+   *   The entry value.
+   * @return
+   *   The updated builder.
    */
   def addBinary(key: String, value: ByteString): MetadataBuilder = {
     if (!key.endsWith(MetadataImpl.BINARY_SUFFIX))
@@ -48,7 +54,8 @@ class MetadataBuilder {
 
   /**
    * Builds the immutable metadata instance.
-   * @return The instance.
+   * @return
+   *   The instance.
    */
   def build(): Metadata = {
     // Reverse the entries list to put it back in order of addition.
@@ -73,8 +80,10 @@ object MetadataBuilder {
 
   /**
    * Creates a Metadata instance from a sequence of HTTP headers.
-   * @param headers The headers.
-   * @return The new Metadata instance.
+   * @param headers
+   *   The headers.
+   * @return
+   *   The new Metadata instance.
    */
   def fromHeaders(headers: immutable.Seq[HttpHeader]): Metadata =
     new HeaderMetadataImpl(headers)

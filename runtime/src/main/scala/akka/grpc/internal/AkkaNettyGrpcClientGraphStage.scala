@@ -25,16 +25,15 @@ private object AkkaNettyGrpcClientGraphStage {
 /**
  * Wrapper graph stage representing a gRPC Netty call as a Flow[I, O, ForLater].
  *
- * Interaction is done through two parts, the ClientCall object and a listener registered
- * to the same which gets callbacks from the client:
+ * Interaction is done through two parts, the ClientCall object and a listener registered to the same which gets
+ * callbacks from the client:
  *
- *                                 ------------------
- *  Flow in       ------ I ----->  |                | ------- O ------->  Flow out
- *                                 |  Netty client  |
- *  upstream pull <-- onReady ---  |      call      | <-- request(1) ---  downstream pull
- *                                 ------------------
+ * ------------------ Flow in ------ I -----> | | ------- O -------> Flow out
+ * | Netty client | upstream pull <-- onReady --- | call | <-- request(1) --- downstream pull
+ * ------------------
  *
- * @param streamingResponse Do we expect a stream of responses or does more than 1 response mean a faulty server?
+ * @param streamingResponse
+ *   Do we expect a stream of responses or does more than 1 response mean a faulty server?
  */
 @InternalApi
 private final class AkkaNettyGrpcClientGraphStage[I, O](

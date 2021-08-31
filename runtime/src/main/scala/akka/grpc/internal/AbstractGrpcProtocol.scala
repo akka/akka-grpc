@@ -32,14 +32,16 @@ abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
 
   /**
    * Obtains a writer for this protocol:
-   * @param codec the compression codec to apply to data frame contents.
+   * @param codec
+   *   the compression codec to apply to data frame contents.
    */
   override def newWriter(codec: Codec): GrpcProtocolWriter = knownWriters(codec)
 
   /**
    * Obtains a reader for this protocol.
    *
-   * @param codec the codec to use for compressed frames.
+   * @param codec
+   *   the codec to use for compressed frames.
    */
   override def newReader(codec: Codec): GrpcProtocolReader = knownReaders(codec)
 
@@ -60,9 +62,13 @@ object AbstractGrpcProtocol {
 
   /**
    * Adjusts the compressibility of a content type to suit a message encoding.
-   * @param contentType the content type for the gRPC protocol.
-   * @param codec the message encoding being used to encode objects.
-   * @return the provided content type, with the compressibility adapted to reflect whether HTTP transport level compression should be used.
+   * @param contentType
+   *   the content type for the gRPC protocol.
+   * @param codec
+   *   the message encoding being used to encode objects.
+   * @return
+   *   the provided content type, with the compressibility adapted to reflect whether HTTP transport level compression
+   *   should be used.
    */
   private def adjustCompressibility(contentType: ContentType.Binary, codec: Codec): ContentType.Binary =
     contentType.mediaType

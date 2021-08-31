@@ -12,7 +12,7 @@ import io.netty.handler.ssl.SslContext
 object ChannelBuilder {
 
   /**
-   *  Reimplementation of the private io.grpc.testing.integration.TestServiceClient$Tester#createChannelBuilder
+   * Reimplementation of the private io.grpc.testing.integration.TestServiceClient$Tester#createChannelBuilder
    */
   def create(settings: Settings): ManagedChannelBuilder[NettyChannelBuilder] =
     if (settings.useAkkaHttp) {

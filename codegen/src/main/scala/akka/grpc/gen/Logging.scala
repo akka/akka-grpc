@@ -54,8 +54,8 @@ class FileLogger(path: String) extends Logger {
 /**
  * Logger that forwards calls to another Logger via reflection.
  *
- *  This enables a code generator that is loaded inside a sandboxed class loader to
- *  use a logger that lives in a different class loader.
+ * This enables a code generator that is loaded inside a sandboxed class loader to use a logger that lives in a
+ * different class loader.
  */
 class ReflectiveLogger(logger: Object) extends Logger {
   private val debugMethod = logger.getClass.getMethod("debug", classOf[String])

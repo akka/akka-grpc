@@ -167,8 +167,7 @@ object NettyClientUtils {
   /**
    * INTERNAL API
    *
-   * Given a Java [[SSLContext]], create a Netty [[SslContext]] that can be used to build
-   * a Netty HTTP/2 channel.
+   * Given a Java [[SSLContext]], create a Netty [[SslContext]] that can be used to build a Netty HTTP/2 channel.
    */
   @InternalApi
   private def createNettySslContext(javaSslContext: SSLContext): SslContext = {
