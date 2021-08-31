@@ -31,11 +31,6 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 
-      - name: Update Whitesource Listing
-        run: sbt whitesourceUpdate
-        env:
-          WHITESOURCE_PASSWORD: "${{ secrets.WHITESOURCE_PASSWORD }}"
-
   gradle-plugin:
     name: Release gradle plugin
     runs-on: ubuntu-latest
