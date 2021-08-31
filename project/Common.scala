@@ -8,12 +8,13 @@ import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInf
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtprotoc.ProtocPlugin.autoImport.PB
+import xerial.sbt.Sonatype
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
 
-  override def requires = JvmPlugin
+  override def requires = JvmPlugin && Sonatype
 
   private val consoleDisabledOptions = Seq("-Xfatal-warnings", "-Ywarn-unused", "-Ywarn-unused-import")
 
