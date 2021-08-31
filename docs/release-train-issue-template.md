@@ -15,7 +15,7 @@ Variables to be expanded in this template:
 ### Before the release
 
 - [ ] Make sure all important / big PRs have been merged by now
-- [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the milestone
+- [ ] Create a news item draft PR on [akka.github.com](https://github.com/akka/akka.github.com), using the [draft release](https://github.com/akka/akka-grpc/releases)
 
 ### Cutting the release
 
