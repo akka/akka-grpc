@@ -30,6 +30,14 @@ jobs:
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.2
 
+      - name: FOSSA policy check
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'akka/akka-grpc' }}
+        run: |-
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/spectrometer/master/install.sh | bash
+          fossa analyze && fossa test
+        env:
+          FOSSA_API_KEY: "${{secrets.FOSSA_API_KEY}}"
+
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-ghactions .jvmopts
