@@ -124,6 +124,7 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             option "generate_client=${akkaGrpcExt.generateClient}"
                             option "generate_server=${akkaGrpcExt.generateServer}"
                             option "server_power_apis=${akkaGrpcExt.serverPowerApis}"
+                            option "filter_api=${akkaGrpcExt.filterApi}"
                             option "use_play_actions=${akkaGrpcExt.usePlayActions}"
                             option "extra_generators=${akkaGrpcExt.extraGenerators.join(';')}"
                             option "logfile_enc=${URLEncoder.encode(logFile.toString(), "utf-8")}"

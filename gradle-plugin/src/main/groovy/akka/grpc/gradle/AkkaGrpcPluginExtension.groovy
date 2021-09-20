@@ -20,6 +20,7 @@ class AkkaGrpcPluginExtension {
     boolean generateServer = true
     boolean generatePlay = false
     boolean serverPowerApis = false
+    boolean filterApi = false
     boolean usePlayActions = false
     boolean includeStdTypes = false
 

@@ -4,6 +4,7 @@ plugins {
 
 akkaGrpc {
   serverPowerApis = true // This isn't default
+  filterApi = true // This isn't default
 }
 
 repositories {
