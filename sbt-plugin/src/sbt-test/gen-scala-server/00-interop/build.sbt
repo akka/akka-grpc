@@ -6,7 +6,7 @@ resolvers += Resolver.sonatypeRepo("staging")
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.40.1" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.41.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
