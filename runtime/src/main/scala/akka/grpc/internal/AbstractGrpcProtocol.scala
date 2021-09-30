@@ -117,12 +117,12 @@ object AbstractGrpcProtocol {
 
     // strict decoder
     def decoder(bs: ByteString): ByteString = try {
-      val reader = new ByteReader(bs)
+      val reader = new ByteReader(strictAdapter(bs))
       val frameType = reader.readByte()
       val length = reader.readIntBE()
       val data = reader.take(length)
       if (reader.hasRemaining) throw new IllegalStateException("Unexpected data")
-      if ((frameType & 0x80) == 0) strictAdapter(codec.uncompress((frameType & 1) == 1, data))
+      if ((frameType & 0x80) == 0) codec.uncompress((frameType & 1) == 1, data)
       else throw new IllegalStateException("Cannot read unknown frame")
     } catch { case ByteStringParser.NeedMoreData => throw new MissingParameterException }
 
