@@ -80,7 +80,7 @@ object GrpcResponseHelpers {
       status = StatusCodes.OK,
       headers = headers,
       entity = entity,
-      protocol = HttpProtocols.`HTTP/2.0`,
+      protocol = HttpProtocols.`HTTP/1.1`,
       attributes = Map.empty[AttributeKey[_], Any].updated(AttributeKeys.trailer, trailer))
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
