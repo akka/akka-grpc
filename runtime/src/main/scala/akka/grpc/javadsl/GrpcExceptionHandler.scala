@@ -16,8 +16,9 @@ import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
 import io.grpc.Status
-
 import scala.concurrent.ExecutionException
+
+import akka.event.Logging
 
 @ApiMayChange
 object GrpcExceptionHandler {
@@ -47,7 +48,8 @@ object GrpcExceptionHandler {
           case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
           case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
           case other =>
-            system.log.error(other, "Unhandled error: [" + other.getMessage + "]")
+            val log = Logging(system, "akka.grpc.javadsl.GrpcExceptionHandler")
+            log.error(other, "Unhandled error: [{}]", other.getMessage)
             INTERNAL
         }
     }

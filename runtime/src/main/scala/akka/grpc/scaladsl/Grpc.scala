@@ -11,8 +11,9 @@ import akka.Done
 import akka.actor.{ CoordinatedShutdown, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import akka.annotation.InternalApi
 import akka.grpc.internal.ClientState
-
 import java.util.concurrent.ConcurrentHashMap
+
+import akka.event.Logging
 
 /** INTERNAL API */
 @InternalApi
@@ -29,7 +30,8 @@ private[grpc] final class GrpcImpl(system: ExtendedActorSystem) extends Extensio
           .map(client =>
             client.close().recover {
               case e =>
-                system.log.error(e, s"Failed to gracefully close $client, proceeding with shutdown anyway")
+                val log = Logging(system, getClass)
+                log.warning("Failed to gracefully close {}, proceeding with shutdown anyway. {}", client, e)
                 Done
             }))
       .map(_ => Done)
