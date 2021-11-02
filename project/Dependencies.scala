@@ -29,7 +29,7 @@ object Dependencies {
 
     val maven = "3.8.3"
 
-    val silencer = "1.7.6"
+    val silencer = "1.7.7"
   }
 
   object Compile {
