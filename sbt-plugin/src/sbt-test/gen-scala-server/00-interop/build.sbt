@@ -6,20 +6,15 @@ resolvers += Resolver.sonatypeRepo("staging")
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.41.0" // checked synced by GrpcVersionSyncCheckPlugin
+val grpcVersion = "1.42.0" // checked synced by GrpcVersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
-  "io.grpc"                  % "grpc-interop-testing"    % grpcVersion                  % "protobuf-src",
+  "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
-  "org.scalatest"           %% "scalatest"               % "3.0.4"                      % "test" // ApacheV2
-  )
-
-scalacOptions ++= List(
-  "-unchecked",
-  "-deprecation",
-  "-language:_",
-  "-encoding", "UTF-8"
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test" // ApacheV2
 )
+
+scalacOptions ++= List("-unchecked", "-deprecation", "-language:_", "-encoding", "UTF-8")
 
 enablePlugins(AkkaGrpcPlugin)
 
@@ -29,8 +24,8 @@ enablePlugins(AkkaGrpcPlugin)
 // They have different "java_outer_classname" options, but scalapb does not look at it:
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
-PB.generate / excludeFilter := new SimpleFileFilter(
-  (f: File) => f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
+PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
+  f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
 
 //#sources-both
 // This is the default - both client and server
@@ -39,30 +34,29 @@ akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server)
 //#sources-both
 
 /**
-//#sources-client
-// only client
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client)
-
-//#sources-client
-
-//#sources-server
-// only server
-akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
-//#sources-server
-
-//#languages-scala
-// default is Scala only
-akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala)
-
-//#languages-scala
-
-//#languages-java
-// Java only
-akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
-
-//#languages-java
-
-**/
+ * //#sources-client
+ * // only client
+ * akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client)
+ *
+ * //#sources-client
+ *
+ * //#sources-server
+ * // only server
+ * akkaGrpcGeneratedSources := Seq(AkkaGrpc.Server)
+ * //#sources-server
+ *
+ * //#languages-scala
+ * // default is Scala only
+ * akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala)
+ *
+ * //#languages-scala
+ *
+ * //#languages-java
+ * // Java only
+ * akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
+ *
+ * //#languages-java
+ */
 
 //#languages-both
 // Generate both Java and Scala API's.
