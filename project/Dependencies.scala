@@ -21,7 +21,7 @@ object Dependencies {
     val akkaHttp = "10.2.7"
     val akkaHttpBinary = "10.2"
 
-    val grpc = "1.41.0" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.41.1" // checked synced by GrpcVersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     val googleProtobuf = "3.18.1"
 
