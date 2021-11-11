@@ -99,7 +99,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
         (Test / PB.recompile).value
-      })
+      },
+      PB.protocVersion := "3.18.1")
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(
