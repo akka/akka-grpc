@@ -80,6 +80,7 @@ object Dependencies {
   }
 
   object Protobuf {
+    val protobufJava = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf
     val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
   }
 
@@ -95,10 +96,12 @@ object Dependencies {
     // dependency, but we want to pull it up to
     // at least version 2.5.0
     Compile.collectionCompat,
+    Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Test.scalaTest)
 
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
+    Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,

@@ -55,7 +55,9 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
       previousStableVersion.value.map(v => Set(organization.value %% "akka-grpc-runtime" % v)).getOrElse(Set.empty),
     AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
-    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
+    PB.protocVersion := Dependencies.Versions.googleProtobuf
+  )
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   .enablePlugins(ReproducibleBuildsPlugin)
 
@@ -130,7 +132,8 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     parallelExecution := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis")
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
+    PB.protocVersion := Dependencies.Versions.googleProtobuf
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
     // sbt scripted test

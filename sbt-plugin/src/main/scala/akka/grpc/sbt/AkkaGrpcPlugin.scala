@@ -9,6 +9,7 @@ import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerat
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.{ ProtocSettings, Logger => GenLogger }
 import protocbridge.Generator
+import sbt.Def
 import sbt.Keys._
 import sbt._
 import sbtprotoc.ProtocPlugin
@@ -100,6 +101,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         generatorLogger.logger = streams.value.log
         (Test / PB.recompile).value
       },
+      // Keep aligned with Akka gRPC proto-java dependency
       PB.protocVersion := "3.18.1")
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
