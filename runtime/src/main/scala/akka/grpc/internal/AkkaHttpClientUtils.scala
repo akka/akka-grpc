@@ -64,7 +64,9 @@ object AkkaHttpClientUtils {
           assert(host == authority)
         }
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
+          log.info(s"discovered: ${resolved.addresses}")
           val target = resolved.addresses(random.nextInt(resolved.addresses.size))
+          log.info(s"selected: ${target}")
           target.address match {
             case Some(address) =>
               new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort))
