@@ -56,8 +56,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     AutomaticModuleName.settings("akka.grpc.runtime"),
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
-    PB.protocVersion := Dependencies.Versions.googleProtobuf
-  )
+    PB.protocVersion := Dependencies.Versions.googleProtobuf)
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   .enablePlugins(ReproducibleBuildsPlugin)
 
