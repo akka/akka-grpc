@@ -9,7 +9,6 @@ import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerat
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.{ ProtocSettings, Logger => GenLogger }
 import protocbridge.Generator
-import sbt.Def
 import sbt.Keys._
 import sbt._
 import sbtprotoc.ProtocPlugin
