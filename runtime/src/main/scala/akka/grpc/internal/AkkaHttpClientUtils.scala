@@ -64,12 +64,10 @@ object AkkaHttpClientUtils {
           assert(host == authority)
         }
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
-          log.info(s"discovered: ${resolved.addresses}")
           // quasi-roundrobin is nicer than random selection: somewhat lower chance of making
           // an 'unlucky choice' multiple times in a row.
           roundRobin += 1
           val target = resolved.addresses(roundRobin % resolved.addresses.size)
-          log.info(s"selected: ${target}")
           target.address match {
             case Some(address) =>
               new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort))
