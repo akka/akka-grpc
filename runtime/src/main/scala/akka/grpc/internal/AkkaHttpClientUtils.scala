@@ -57,7 +57,7 @@ object AkkaHttpClientUtils {
     // https://github.com/akka/akka-grpc/issues/1196
     // https://github.com/akka/akka-grpc/issues/1197
 
-    val random = new Random()
+    var roundRobin: Int = 0
     val clientConnectionSettings =
       ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, _) => {
         settings.overrideAuthority.foreach { authority =>
@@ -65,7 +65,10 @@ object AkkaHttpClientUtils {
         }
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
           log.info(s"discovered: ${resolved.addresses}")
-          val target = resolved.addresses(random.nextInt(resolved.addresses.size))
+          // quasi-roundrobin is nicer than random selection: somewhat lower chance of making
+          // an 'unlucky choice' multiple times in a row.
+          roundRobin += 1
+          val target = resolved.addresses(roundRobin % resolved.addresses.size)
           log.info(s"selected: ${target}")
           target.address match {
             case Some(address) =>
