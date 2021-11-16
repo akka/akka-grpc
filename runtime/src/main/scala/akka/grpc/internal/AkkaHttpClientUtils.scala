@@ -27,7 +27,7 @@ import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Random, Success }
+import scala.util.{ Failure, Success }
 import akka.http.scaladsl.model.StatusCodes
 
 /**
