@@ -27,7 +27,7 @@ import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Random, Success }
+import scala.util.{ Failure, Success }
 import akka.http.scaladsl.model.StatusCodes
 
 /**
@@ -57,14 +57,17 @@ object AkkaHttpClientUtils {
     // https://github.com/akka/akka-grpc/issues/1196
     // https://github.com/akka/akka-grpc/issues/1197
 
-    val random = new Random()
+    var roundRobin: Int = 0
     val clientConnectionSettings =
       ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, _) => {
         settings.overrideAuthority.foreach { authority =>
           assert(host == authority)
         }
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
-          val target = resolved.addresses(random.nextInt(resolved.addresses.size))
+          // quasi-roundrobin is nicer than random selection: somewhat lower chance of making
+          // an 'unlucky choice' multiple times in a row.
+          roundRobin += 1
+          val target = resolved.addresses(roundRobin % resolved.addresses.size)
           target.address match {
             case Some(address) =>
               new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort))
