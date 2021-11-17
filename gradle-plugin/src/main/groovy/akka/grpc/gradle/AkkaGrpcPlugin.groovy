@@ -165,9 +165,9 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                 if (Files.exists(logFile)) {
                     Files.lines(logFile).forEach { line ->
                         if (line.startsWith("[info]")) logger.info(line.substring(7))
-                        else if (line.startsWith("[debug]")) logger.debug(line.substring(7))
-                        else if (line.startsWith("[warn]")) logger.warn(line.substring(6))
-                        else if (line.startsWith("[error]")) logger.error(line.substring(7))
+                        else if (line.startsWith("[debug]")) logger.debug(line.substring(8))
+                        else if (line.startsWith("[warn]")) logger.warn(line.substring(7))
+                        else if (line.startsWith("[error]")) logger.error(line.substring(8))
                     }
                 }
             }
