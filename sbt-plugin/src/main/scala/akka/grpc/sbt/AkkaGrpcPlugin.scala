@@ -7,7 +7,7 @@ package akka.grpc.sbt
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.{ ProtocSettings, Logger => GenLogger }
+import akka.grpc.gen.{ BuildInfo, ProtocSettings, Logger => GenLogger }
 import protocbridge.Generator
 import sbt.Keys._
 import sbt._
@@ -100,8 +100,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         generatorLogger.logger = streams.value.log
         (Test / PB.recompile).value
       },
-      // Keep aligned with Akka gRPC proto-java dependency
-      PB.protocVersion := "3.18.1")
+      PB.protocVersion := BuildInfo.googleProtobufVersion)
 
   def configSettings(config: Configuration): Seq[Setting[_]] =
     inConfig(config)(
