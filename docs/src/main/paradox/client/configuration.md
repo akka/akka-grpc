@@ -62,7 +62,7 @@ Scala
 Java
 :  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #sd-settings }
 
-Alternatively if a `SimpleServiceDiscovery` instance is available elsewhere in your system it can be passed in:
+Alternatively if a default instance is available (configured by `akka.discovery.method`) in your system it can be use like this:
 
 Scala
 :  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/scala/docs/akka/grpc/client/GrpcClientSettingsCompileOnly.scala) { #provide-sd }
