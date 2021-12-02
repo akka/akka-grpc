@@ -175,7 +175,7 @@ Refer to its documentation to learn about the more advanced features it provides
 To generate documentation you can:
 
 ```
-> project docs
+> project akka-grpc-docs
 > paradox
 ```
 

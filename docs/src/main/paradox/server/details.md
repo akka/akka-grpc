@@ -43,9 +43,29 @@ Scala
 Java
 :   @@snip[ExceptionGreeterServiceImpl](/interop-tests/src/test/java/example/myapp/helloworld/grpc/ExceptionGreeterServiceImpl.java) { #streaming }
 
+## Rich error model
+Beyond status codes you can also use the @link:[Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model) { open=new }. Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
 
+Add the following dependency to receive required classes (that are based on the @link:[common protobuf](https://cloud.google.com/apis/design/errors#error_model) { open=new }):
 
+```
+"io.grpc" % "grpc-protobuf" % "1.42.1"
+```
 
+Define a custom error handler (to transform a `StatusRuntimeException` into a common `Trailers` format) and pass it into your handler: 
 
+Scala
+:    @@snip[RichErrorModelSpec](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #custom_eHandler }
 
+Java
+:    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #custom_eHandler }
 
+Build and return the error as an exception:
+
+Scala
+:    @@snip[RichErrorModelSpec](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #rich_error_model_unary }
+
+Java
+:    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorImpl.java) { #rich_error_model_unary }
+
+Please use this approach carefully as we did not look into a potential performance overhead it can introduce. Please look @ref[here](../client/details.md) how to handle this on the client.

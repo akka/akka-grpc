@@ -24,11 +24,15 @@ object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
 
-  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] =
+  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] = {
+    println("defffault")
     new jFunction[ActorSystem, jFunction[Throwable, Trailers]] {
-      override def apply(system: ActorSystem): jFunction[Throwable, Trailers] =
+      override def apply(system: ActorSystem): jFunction[Throwable, Trailers] = {
+        println("defffault appl")
         default(system)
+      }
     }
+  }
 
   /** INTERNAL API */
   @InternalApi
@@ -49,6 +53,9 @@ object GrpcExceptionHandler {
           case e: StatusRuntimeException           => Trailers(e.getStatus, new GrpcMetadataImpl(e.getTrailers))
           case other =>
             val log = Logging(system, "akka.grpc.javadsl.GrpcExceptionHandler")
+            log.error("********")
+            log.error(other.getClass.toString)
+            log.error("********")
             log.error(other, "Unhandled error: [{}]", other.getMessage)
             INTERNAL
         }
