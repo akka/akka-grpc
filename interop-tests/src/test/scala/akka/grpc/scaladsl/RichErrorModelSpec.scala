@@ -116,5 +116,5 @@ class RichErrorModelSpec
 
   }
 
-  override def afterAll(): Unit = system.terminate.futureValue
+  override def afterAll(): Unit = system.terminate().futureValue
 }
