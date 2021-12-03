@@ -46,7 +46,7 @@ Java
 ## Rich error model
 Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in Akka gRPC. However you can use the following manual approach.
 
-Add the following dependency to receive required classes (that are based on the @link:[common protobuf](https://cloud.google.com/apis/design/errors#error_model) { open=new }):
+Add the following dependency to receive required classes (that are based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model)):
 
 ```
 "io.grpc" % "grpc-protobuf" % "1.42.1"
