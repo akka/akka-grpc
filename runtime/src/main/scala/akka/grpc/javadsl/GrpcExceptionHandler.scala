@@ -24,15 +24,11 @@ object GrpcExceptionHandler {
   private val INTERNAL = Trailers(Status.INTERNAL)
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
 
-  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] = {
-    println("defffault")
+  def defaultMapper: jFunction[ActorSystem, jFunction[Throwable, Trailers]] =
     new jFunction[ActorSystem, jFunction[Throwable, Trailers]] {
-      override def apply(system: ActorSystem): jFunction[Throwable, Trailers] = {
-        println("defffault appl")
+      override def apply(system: ActorSystem): jFunction[Throwable, Trailers] = 
         default(system)
-      }
     }
-  }
 
   /** INTERNAL API */
   @InternalApi
