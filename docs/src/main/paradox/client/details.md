@@ -61,7 +61,7 @@ Java
 
 ## Rich error model
 
-Beyond status codes you can also use the @link:[Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model) { open=new }. Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
+Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
 
 Please follow @ref[this](../server/details.md) how to add the necessary dependency.
 
