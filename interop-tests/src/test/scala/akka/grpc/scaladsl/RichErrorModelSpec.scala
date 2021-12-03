@@ -92,25 +92,23 @@ class RichErrorModelSpec
       val richErrorResponse =
         Await.result(client.sayHello(HelloRequest("Bob")).failed, Duration(10, TimeUnit.SECONDS))
 
-      val ex: StatusRuntimeException = (richErrorResponse match {
-        case ex: StatusRuntimeException => Some(ex)
-        case _                          => None
-      }).get
+      richErrorResponse match {
+        case ex: StatusRuntimeException =>
+          val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
+
+          def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
+            com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          import HelloReply.messageCompanion
+          val customErrorReply: HelloReply = fromJavaProto(status.getDetails(0)).unpack
+
+          status.getCode should be(3)
+          status.getMessage should be("What is wrong?")
+          customErrorReply.message should be("The password!")
+
+        case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
+      }
       // #client_request
-
-      // #client_rich_error_model
-      val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
-
-      def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
-        com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
-
-      import HelloReply.messageCompanion
-      val customErrorReply: HelloReply = fromJavaProto(status.getDetails(0)).unpack
-      // #client_rich_error_model
-
-      status.getCode should be(3)
-      status.getMessage should be("What is wrong?")
-      customErrorReply.message should be("The password!")
     }
 
   }

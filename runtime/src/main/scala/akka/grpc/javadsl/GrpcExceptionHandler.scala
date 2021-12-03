@@ -49,6 +49,7 @@ object GrpcExceptionHandler {
           case e: StatusRuntimeException           => Trailers(e.getStatus, new GrpcMetadataImpl(e.getTrailers))
           case other =>
             val log = Logging(system, "akka.grpc.javadsl.GrpcExceptionHandler")
+            log.error(other, "Unhandled error: [{}]", other.getMessage)
             INTERNAL
         }
     }

@@ -63,21 +63,12 @@ Java
 
 Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
 
-Please follow @ref[this](../server/details.md) how to add the necessary dependency.
+Please follow the [server section](../server/details.md) how to add the necessary dependency.
 
-Make the request and cast it as a `StatusRuntimeException`:
+Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`.
 
 Scala
 :  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #client_request }
 
 Java
 :  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #client_request }
-
-
-Extract the Rich error model to access code, message and details.
-
-Scala
-:  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #client_rich_error_model }
-
-Java
-:  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #client_rich_error_model }

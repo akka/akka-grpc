@@ -85,16 +85,14 @@ public class RichErrorModelTest extends JUnitSuite {
             StatusRuntimeException statusEx = response.toCompletableFuture().handle((res, ex) -> {
                 return (StatusRuntimeException) ex;
             }).get();
-            // #client_request
 
-            // #client_rich_error_model
             com.google.rpc.Status status = StatusProto.fromStatusAndTrailers(statusEx.getStatus(), statusEx.getTrailers());
             example.myapp.helloworld.grpc.helloworld.HelloReply details = fromJavaProto(status.getDetails(0)).unpack(example.myapp.helloworld.grpc.helloworld.HelloReply.messageCompanion());
-            // #client_rich_error_model
 
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), status.getCode());
             assertEquals("What is wrong?", status.getMessage());
             assertEquals("The password!", details.message());
+            // #client_request
 
         } catch (Exception e) {
             Assert.fail("Got unexpected error " + e.getMessage());
