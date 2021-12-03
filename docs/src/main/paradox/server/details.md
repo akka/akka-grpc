@@ -68,4 +68,4 @@ Scala
 Java
 :    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorImpl.java) { #rich_error_model_unary }
 
-Please use this approach carefully as we did not look into a potential performance overhead it can introduce. Please look @ref[here](../client/details.md) how to handle this on the client.
+Please look @ref[here](../client/details.md) how to handle this on the client.
