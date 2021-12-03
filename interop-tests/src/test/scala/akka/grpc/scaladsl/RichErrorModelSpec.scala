@@ -6,23 +6,27 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.internal.GrpcMetadataImpl
+import akka.grpc.internal.MetadataImpl
 import akka.grpc.{ GrpcClientSettings, Trailers }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
+import com.google.protobuf.any.Any
+import com.google.rpc.error_details.LocalizedMessage
+import com.google.rpc.{ Code, Status }
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc.helloworld._
 import io.grpc.StatusRuntimeException
+import io.grpc.protobuf.StatusProto
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.{ Duration, _ }
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration._
 
 class RichErrorModelSpec
     extends TestKit(ActorSystem("RichErrorSpec"))
@@ -31,9 +35,7 @@ class RichErrorModelSpec
     with BeforeAndAfterAll
     with ScalaFutures {
 
-  import com.google.protobuf.any.Any
-  import com.google.rpc.{ Code, Status }
-  import io.grpc.protobuf.StatusProto
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   implicit val sys: ActorSystem = system
   implicit val ec: ExecutionContext = sys.dispatcher
@@ -53,7 +55,7 @@ class RichErrorModelSpec
         .newBuilder()
         .setCode(Code.INVALID_ARGUMENT.getNumber)
         .setMessage("What is wrong?")
-        .addDetails(toJavaProto(Any.pack(new HelloReply("The password!"))))
+        .addDetails(toJavaProto(Any.pack(new LocalizedMessage(message = "The password!"))))
         .build()
       Future.failed(StatusProto.toStatusRuntimeException(status))
     }
@@ -77,23 +79,21 @@ class RichErrorModelSpec
       // #custom_eHandler
       val customHandler: PartialFunction[Throwable, Trailers] = {
         case grpcException: StatusRuntimeException =>
-          Trailers(grpcException.getStatus, new GrpcMetadataImpl(grpcException.getTrailers))
+          Trailers(grpcException.getStatus, MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(grpcException.getTrailers))
       }
 
       val service: HttpRequest => Future[HttpResponse] =
         GreeterServiceHandler(RichErrorImpl, eHandler = (_: ActorSystem) => customHandler)
       // #custom_eHandler
 
-      val bound = Await.result(
-        Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service),
-        Duration(5, TimeUnit.SECONDS))
+      val bound =
+        Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service).futureValue
 
       val client = GreeterServiceClient(
         GrpcClientSettings.connectToServiceAt("127.0.0.1", bound.localAddress.getPort).withTls(false))
 
       // #client_request
-      val richErrorResponse =
-        Await.result(client.sayHello(HelloRequest("Bob")).failed, Duration(10, TimeUnit.SECONDS))
+      val richErrorResponse = client.sayHello(HelloRequest("Bob")).failed.futureValue
 
       richErrorResponse match {
         case ex: StatusRuntimeException =>
@@ -102,8 +102,8 @@ class RichErrorModelSpec
           def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
             com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
 
-          import HelloReply.messageCompanion
-          val customErrorReply: HelloReply = fromJavaProto(status.getDetails(0)).unpack
+          import LocalizedMessage.messageCompanion
+          val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
 
           status.getCode should be(3)
           status.getMessage should be("What is wrong?")
@@ -116,8 +116,5 @@ class RichErrorModelSpec
 
   }
 
-  override def afterAll(): Unit = {
-    Await.result(system.terminate(), 10.seconds)
-  }
-
+  override def afterAll(): Unit = system.terminate.futureValue
 }

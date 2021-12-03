@@ -48,9 +48,32 @@ Beyond status codes you can also use the [Rich error model](https://www.grpc.io/
 
 Add the following dependency to receive required classes (that are based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model)):
 
+`sbt`
+:   @@@vars
+```sbt
+libraryDependencies += "io.grpc" % "grpc-protobuf" % "1.42.1"
 ```
-"io.grpc" % "grpc-protobuf" % "1.42.1"
+@@@
+
+`gradle`
+:   @@@vars
+```gradle
+dependencies {
+     implementation 'io.grpc:grpc-protobuf:1.42.1'
+}
 ```
+@@@
+
+`maven`
+:   @@@vars
+```maven
+<dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>1.42.1</version>
+</dependency>
+```
+@@@
 
 Define a custom error handler (to transform a `StatusRuntimeException` into a common `Trailers` format) and pass it into your handler: 
 

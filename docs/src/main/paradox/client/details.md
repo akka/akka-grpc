@@ -63,7 +63,34 @@ Java
 
 Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in Akka gRPC. However you can use the following manual approach.
 
-Please follow the @ref[server section](../server/details.md) how to add the necessary dependency.
+Add the following dependency to receive required classes (that are based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model)):
+
+`sbt`
+:   @@@vars
+```sbt
+libraryDependencies += "io.grpc" % "grpc-protobuf" % "1.42.1"
+```
+@@@
+
+`gradle`
+:   @@@vars
+```gradle
+dependencies {
+     implementation 'io.grpc:grpc-protobuf:1.42.1'
+}
+```
+@@@
+
+`maven`
+:   @@@vars
+```maven
+<dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <version>1.42.1</version>
+</dependency>
+```
+@@@
 
 Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`.
 
