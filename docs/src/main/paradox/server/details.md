@@ -44,7 +44,7 @@ Java
 :   @@snip[ExceptionGreeterServiceImpl](/interop-tests/src/test/java/example/myapp/helloworld/grpc/ExceptionGreeterServiceImpl.java) { #streaming }
 
 ## Rich error model
-Beyond status codes you can also use the @link:[Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model) { open=new }. Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
+Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in Akka gRPC. However you can use the following manual approach.
 
 Add the following dependency to receive required classes (that are based on the @link:[common protobuf](https://cloud.google.com/apis/design/errors#error_model) { open=new }):
 
