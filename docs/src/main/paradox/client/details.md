@@ -63,7 +63,7 @@ Java
 
 Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in akka-grpc. However you can use the following manual approach.
 
-Please follow the [server section](../server/details.md) how to add the necessary dependency.
+Please follow the @ref[server section](../server/details.md) how to add the necessary dependency.
 
 Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`.
 
