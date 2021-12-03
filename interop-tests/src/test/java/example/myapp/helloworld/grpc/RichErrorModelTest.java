@@ -68,7 +68,7 @@ public class RichErrorModelTest extends JUnitSuite {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testFirstMatching() throws Exception {
+    public void testManualApproach() throws Exception {
         Config conf = ConfigFactory.load();
         ActorSystem sys = ActorSystem.create("HelloWorld", conf);
         run(sys);
