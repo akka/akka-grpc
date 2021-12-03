@@ -71,8 +71,8 @@ class RichErrorModelSpec
     //.parseString("akka.http.server.preview.enable-http2 = on")
     .withFallback(ConfigFactory.defaultApplication())
 
-  "Rich error model with the manual approach" should {
-    "work" in {
+  "Rich error model" should {
+    "work with the manual approach" in {
 
       // #custom_eHandler
       val customHandler: PartialFunction[Throwable, Trailers] = {
@@ -84,9 +84,12 @@ class RichErrorModelSpec
         GreeterServiceHandler(RichErrorImpl, eHandler = (_: ActorSystem) => customHandler)
       // #custom_eHandler
 
-      Http(system).newServerAt(interface = "127.0.0.1", port = 8080).bind(service)
+      val bound = Await.result(
+        Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service),
+        Duration(5, TimeUnit.SECONDS))
 
-      val client = GreeterServiceClient(GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080).withTls(false))
+      val client = GreeterServiceClient(
+        GrpcClientSettings.connectToServiceAt("127.0.0.1", bound.localAddress.getPort).withTls(false))
 
       // #client_request
       val richErrorResponse =
