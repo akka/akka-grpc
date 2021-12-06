@@ -5,19 +5,18 @@
 package akka.grpc.javadsl
 
 import java.util.concurrent.CompletionException
-
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
 import akka.annotation.InternalApi
 import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{ GrpcMetadataImpl, GrpcResponseHelpers, MissingParameterException }
 import akka.http.javadsl.model.HttpResponse
 import akka.japi.{ Function => jFunction }
-import io.grpc.Status
-import scala.concurrent.ExecutionException
+import io.grpc.{ Status, StatusRuntimeException }
 
+import scala.concurrent.ExecutionException
 import akka.event.Logging
 
 @ApiMayChange
@@ -47,6 +46,7 @@ object GrpcExceptionHandler {
           case _: MissingParameterException        => INVALID_ARGUMENT
           case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
           case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
+          case e: StatusRuntimeException           => Trailers(e.getStatus, new GrpcMetadataImpl(e.getTrailers))
           case other =>
             val log = Logging(system, "akka.grpc.javadsl.GrpcExceptionHandler")
             log.error(other, "Unhandled error: [{}]", other.getMessage)

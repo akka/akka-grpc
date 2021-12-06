@@ -10,7 +10,7 @@ import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, Identity }
 import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
 import akka.http.scaladsl.model.HttpEntity._
 import akka.http.scaladsl.model.HttpResponse
-import io.grpc.Status
+import io.grpc.{ Status, StatusRuntimeException }
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -30,6 +30,7 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
       if (e.getCause == null) Status.INTERNAL
       else expected(e.getCause)
     case grpcException: GrpcServiceException => grpcException.status
+    case e: StatusRuntimeException           => e.getStatus
     case e: NotImplementedError              => Status.UNIMPLEMENTED.withDescription(e.getMessage)
     case e: UnsupportedOperationException    => Status.UNIMPLEMENTED.withDescription(e.getMessage)
     case _                                   => Status.INTERNAL
@@ -40,7 +41,8 @@ class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutur
     new NotImplementedError,
     new UnsupportedOperationException,
     new NullPointerException,
-    new RuntimeException)
+    new RuntimeException,
+    new StatusRuntimeException(io.grpc.Status.DEADLINE_EXCEEDED))
 
   val executionExceptions: Seq[Throwable] =
     otherTypes.map(new ExecutionException(_)) :+ new ExecutionException("doh", null)

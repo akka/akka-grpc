@@ -9,11 +9,11 @@ import akka.actor.ClassicActorSystemProvider
 import akka.annotation.{ ApiMayChange, InternalStableApi }
 import akka.grpc.{ GrpcServiceException, Trailers }
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
-import akka.grpc.internal.{ GrpcResponseHelpers, MissingParameterException }
+import akka.grpc.internal.{ GrpcMetadataImpl, GrpcResponseHelpers, MissingParameterException }
 import akka.http.scaladsl.model.HttpResponse
-import io.grpc.Status
-import scala.concurrent.{ ExecutionException, Future }
+import io.grpc.{ Status, StatusRuntimeException }
 
+import scala.concurrent.{ ExecutionException, Future }
 import akka.event.Logging
 
 @ApiMayChange
@@ -29,6 +29,9 @@ object GrpcExceptionHandler {
     case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
     case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
     case _: MissingParameterException        => INVALID_ARGUMENT
+    case e: StatusRuntimeException =>
+      val meta = Option(e.getTrailers).getOrElse(new io.grpc.Metadata())
+      Trailers(e.getStatus, new GrpcMetadataImpl(meta))
     case other =>
       val log = Logging(system, "akka.grpc.scaladsl.GrpcExceptionHandler")
       log.error(other, "Unhandled error: [{}]", other.getMessage)
