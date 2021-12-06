@@ -8,6 +8,7 @@ import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import com.google.protobuf.any.Any;
 import com.google.rpc.Code;
+import com.google.rpc.error_details.LocalizedMessage;
 import com.google.rpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.StatusProto;
@@ -31,7 +32,7 @@ public class RichErrorImpl implements GreeterService {
                 .setCode(Code.INVALID_ARGUMENT_VALUE)
                 .setMessage("What is wrong?")
                 .addDetails(toJavaProto(Any.pack(
-                        example.myapp.helloworld.grpc.helloworld.HelloReply.of("The password!")
+                        LocalizedMessage.of("EN", "The password!")
                 )))
                 .build();
         StatusRuntimeException statusRuntimeException = StatusProto.toStatusRuntimeException(status);

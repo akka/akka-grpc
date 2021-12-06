@@ -6,14 +6,10 @@ package example.myapp.helloworld.grpc;
 
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
-import akka.grpc.Trailers;
-import akka.grpc.internal.GrpcMetadataImpl;
-import akka.grpc.javadsl.GrpcExceptionHandler;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
-import akka.japi.Function;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.Status;
@@ -23,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.scalatestplus.junit.JUnitSuite;
 
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 
 import static org.junit.Assert.assertEquals;
@@ -68,7 +63,7 @@ public class RichErrorModelTest extends JUnitSuite {
             }).get();
 
             com.google.rpc.Status status = StatusProto.fromStatusAndTrailers(statusEx.getStatus(), statusEx.getTrailers());
-            example.myapp.helloworld.grpc.helloworld.HelloReply details = fromJavaProto(status.getDetails(0)).unpack(example.myapp.helloworld.grpc.helloworld.HelloReply.messageCompanion());
+            com.google.rpc.error_details.LocalizedMessage details = fromJavaProto(status.getDetails(0)).unpack(com.google.rpc.error_details.LocalizedMessage.messageCompanion());
 
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), status.getCode());
             assertEquals("What is wrong?", status.getMessage());
