@@ -6,8 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.internal.MetadataImpl
-import akka.grpc.{ GrpcClientSettings, Trailers }
+import akka.grpc.GrpcClientSettings
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.scaladsl.Source
@@ -76,15 +75,8 @@ class RichErrorModelSpec
   "Rich error model" should {
     "work with the manual approach" in {
 
-      // #custom_eHandler
-      val customHandler: PartialFunction[Throwable, Trailers] = {
-        case grpcException: StatusRuntimeException =>
-          Trailers(grpcException.getStatus, MetadataImpl.scalaMetadataFromGoogleGrpcMetadata(grpcException.getTrailers))
-      }
-
       val service: HttpRequest => Future[HttpResponse] =
-        GreeterServiceHandler(RichErrorImpl, eHandler = (_: ActorSystem) => customHandler)
-      // #custom_eHandler
+        GreeterServiceHandler(RichErrorImpl)
 
       val bound =
         Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service).futureValue

@@ -75,14 +75,6 @@ dependencies {
 ```
 @@@
 
-Define a custom error handler (to transform a `StatusRuntimeException` into a common `Trailers` format) and pass it into your handler: 
-
-Scala
-:    @@snip[RichErrorModelSpec](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #custom_eHandler }
-
-Java
-:    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #custom_eHandler }
-
 Build and return the error as an exception:
 
 Scala

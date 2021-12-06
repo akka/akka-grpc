@@ -39,26 +39,7 @@ public class RichErrorModelTest extends JUnitSuite {
 
         GreeterService impl = new RichErrorImpl();
 
-        // #custom_eHandler
-        Function<ActorSystem, Function<Throwable, Trailers>> customErrorHandler = new Function<ActorSystem, Function<Throwable, Trailers>>() {
-            @Override
-            public Function<Throwable, Trailers> apply(ActorSystem param) throws Exception, Exception {
-                return new Function<Throwable, Trailers>() {
-                    @Override
-                    public Trailers apply(Throwable ex) throws Exception, Exception {
-                        if ((ex instanceof CompletionException)) ex = ex.getCause();
-                        if ((ex instanceof io.grpc.StatusRuntimeException)) {
-                            StatusRuntimeException statusEx = (StatusRuntimeException) ex;
-                            return new Trailers(statusEx.getStatus(), new GrpcMetadataImpl(statusEx.getTrailers()));
-                        } else {
-                            return GrpcExceptionHandler.defaultMapper().apply(param).apply(ex);
-                        }
-                    }
-                };
-            }
-        };
-        akka.japi.function.Function<HttpRequest, CompletionStage<HttpResponse>> service = GreeterServiceHandlerFactory.create(impl, customErrorHandler, sys);
-        // #custom_eHandler
+        akka.japi.function.Function<HttpRequest, CompletionStage<HttpResponse>> service = GreeterServiceHandlerFactory.create(impl, sys);
 
         return Http
                 .get(sys)
