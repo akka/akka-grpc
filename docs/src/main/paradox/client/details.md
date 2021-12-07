@@ -68,7 +68,7 @@ Add the following dependency to receive required classes (that are based on the 
 `sbt`
 :   @@@vars
 ```sbt
-libraryDependencies += "io.grpc" % "grpc-protobuf" % "1.42.1"
+libraryDependencies += "io.grpc" % "grpc-protobuf" % "$grpc.version$"
 ```
 @@@
 
@@ -76,7 +76,7 @@ libraryDependencies += "io.grpc" % "grpc-protobuf" % "1.42.1"
 :   @@@vars
 ```gradle
 dependencies {
-     implementation 'io.grpc:grpc-protobuf:1.42.1'
+     implementation 'io.grpc:grpc-protobuf:$grpc.version$'
 }
 ```
 @@@
@@ -87,7 +87,7 @@ dependencies {
 <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
-      <version>1.42.1</version>
+      <version>$grpc.version$</version>
 </dependency>
 ```
 @@@
