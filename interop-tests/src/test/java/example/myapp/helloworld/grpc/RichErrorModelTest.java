@@ -68,6 +68,7 @@ public class RichErrorModelTest extends JUnitSuite {
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), status.getCode());
             assertEquals("What is wrong?", status.getMessage());
             assertEquals("The password!", details.message());
+            assertEquals("EN", details.locale());
             // #client_request
 
         } catch (Exception e) {

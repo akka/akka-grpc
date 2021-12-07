@@ -54,7 +54,7 @@ class RichErrorModelSpec
         .newBuilder()
         .setCode(Code.INVALID_ARGUMENT.getNumber)
         .setMessage("What is wrong?")
-        .addDetails(toJavaProto(Any.pack(new LocalizedMessage(message = "The password!"))))
+        .addDetails(toJavaProto(Any.pack(new LocalizedMessage("EN", "The password!"))))
         .build()
       StatusProto.toStatusRuntimeException(status)
     }
@@ -113,6 +113,7 @@ class RichErrorModelSpec
           status.getCode should be(3)
           status.getMessage should be("What is wrong?")
           customErrorReply.message should be("The password!")
+          customErrorReply.locale should be("EN")
 
         case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
       }
@@ -138,6 +139,7 @@ class RichErrorModelSpec
           status.getCode should be(3)
           status.getMessage should be("What is wrong?")
           customErrorReply.message should be("The password!")
+          customErrorReply.locale should be("EN")
 
         case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
       }
@@ -162,6 +164,7 @@ class RichErrorModelSpec
           status.getCode should be(3)
           status.getMessage should be("What is wrong?")
           customErrorReply.message should be("The password!")
+          customErrorReply.locale should be("EN")
 
         case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
       }
@@ -188,6 +191,7 @@ class RichErrorModelSpec
           status.getCode should be(3)
           status.getMessage should be("What is wrong?")
           customErrorReply.message should be("The password!")
+          customErrorReply.locale should be("EN")
 
         case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
       }
