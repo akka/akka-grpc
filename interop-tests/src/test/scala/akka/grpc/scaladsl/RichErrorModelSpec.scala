@@ -9,7 +9,7 @@ import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
 import com.google.protobuf.any.Any
 import com.google.rpc.error_details.LocalizedMessage
@@ -49,23 +49,43 @@ class RichErrorModelSpec
       javaPbOut.build
     }
 
-    def sayHello(in: HelloRequest): Future[HelloReply] = {
+    private def statusRuntimeEx = {
       val status: Status = Status
         .newBuilder()
         .setCode(Code.INVALID_ARGUMENT.getNumber)
         .setMessage("What is wrong?")
         .addDetails(toJavaProto(Any.pack(new LocalizedMessage(message = "The password!"))))
         .build()
-      Future.failed(StatusProto.toStatusRuntimeException(status))
+      StatusProto.toStatusRuntimeException(status)
     }
-    // #rich_error_model_unary
 
-    override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = ???
+    def sayHello(in: HelloRequest): Future[HelloReply] = {
+      Future.failed(statusRuntimeEx)
+    }
 
-    override def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = ???
+    def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
+      Source.failed(statusRuntimeEx)
+    }
 
-    override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = ???
+    override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
+      in.runWith(Sink.seq).flatMap { _ =>
+        Future.failed(statusRuntimeEx)
+      }
+    }
+
+    override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = {
+      Source.failed(statusRuntimeEx)
+    }
   }
+
+  val service: HttpRequest => Future[HttpResponse] =
+    GreeterServiceHandler(RichErrorImpl)
+
+  val bound =
+    Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service).futureValue
+
+  val client = GreeterServiceClient(
+    GrpcClientSettings.connectToServiceAt("127.0.0.1", bound.localAddress.getPort).withTls(false))
 
   val conf = ConfigFactory
     .load()
@@ -73,16 +93,8 @@ class RichErrorModelSpec
     .withFallback(ConfigFactory.defaultApplication())
 
   "Rich error model" should {
-    "work with the manual approach" in {
 
-      val service: HttpRequest => Future[HttpResponse] =
-        GreeterServiceHandler(RichErrorImpl)
-
-      val bound =
-        Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service).futureValue
-
-      val client = GreeterServiceClient(
-        GrpcClientSettings.connectToServiceAt("127.0.0.1", bound.localAddress.getPort).withTls(false))
+    "work with the manual approach on a unary call" in {
 
       // #client_request
       val richErrorResponse = client.sayHello(HelloRequest("Bob")).failed.futureValue
@@ -104,6 +116,81 @@ class RichErrorModelSpec
         case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
       }
       // #client_request
+    }
+
+    "work with the manual approach on a stream request" in {
+
+      val requests = List("Alice", "Bob", "Peter").map(HelloRequest(_))
+
+      val richErrorResponse = client.itKeepsTalking(Source(requests)).failed.futureValue
+
+      richErrorResponse match {
+        case ex: StatusRuntimeException =>
+          val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
+
+          def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
+            com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          import LocalizedMessage.messageCompanion
+          val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
+
+          status.getCode should be(3)
+          status.getMessage should be("What is wrong?")
+          customErrorReply.message should be("The password!")
+
+        case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
+      }
+
+    }
+
+    "work with the manual approach on a stream response" in {
+      val richErrorResponseStream = client.itKeepsReplying(HelloRequest("Bob"))
+      val richErrorResponse =
+        richErrorResponseStream.run.failed.futureValue
+
+      richErrorResponse match {
+        case ex: StatusRuntimeException =>
+          val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
+
+          def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
+            com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          import LocalizedMessage.messageCompanion
+          val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
+
+          status.getCode should be(3)
+          status.getMessage should be("What is wrong?")
+          customErrorReply.message should be("The password!")
+
+        case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
+      }
+
+    }
+
+    "work with the manual approach on a bidi stream" in {
+
+      val requests = List("Alice", "Bob", "Peter").map(HelloRequest(_))
+      val richErrorResponseStream = client.streamHellos(Source(requests))
+      val richErrorResponse =
+        richErrorResponseStream.run.failed.futureValue
+
+      richErrorResponse match {
+        case ex: StatusRuntimeException =>
+          val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
+
+          def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
+            com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          import LocalizedMessage.messageCompanion
+          val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
+
+          status.getCode should be(3)
+          status.getMessage should be("What is wrong?")
+          customErrorReply.message should be("The password!")
+
+        case ex => fail(s"This should be a StatusRuntimeException but it is ${ex.getClass}")
+      }
+
     }
 
   }
