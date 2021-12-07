@@ -147,7 +147,7 @@ class RichErrorModelSpec
     "work with the manual approach on a stream response" in {
       val richErrorResponseStream = client.itKeepsReplying(HelloRequest("Bob"))
       val richErrorResponse =
-        richErrorResponseStream.run.failed.futureValue
+        richErrorResponseStream.run().failed.futureValue
 
       richErrorResponse match {
         case ex: StatusRuntimeException =>
@@ -173,7 +173,7 @@ class RichErrorModelSpec
       val requests = List("Alice", "Bob", "Peter").map(HelloRequest(_))
       val richErrorResponseStream = client.streamHellos(Source(requests))
       val richErrorResponse =
-        richErrorResponseStream.run.failed.futureValue
+        richErrorResponseStream.run().failed.futureValue
 
       richErrorResponse match {
         case ex: StatusRuntimeException =>
