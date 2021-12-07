@@ -18,6 +18,7 @@ import java.util.concurrent.CompletionStage;
 
 public class RichErrorImpl implements GreeterService {
 
+    // #rich_error_model_unary
     private com.google.protobuf.Any toJavaProto(com.google.protobuf.any.Any scalaPbSource) {
         com.google.protobuf.Any.Builder javaPbOut = com.google.protobuf.Any.newBuilder();
         javaPbOut.setTypeUrl(scalaPbSource.typeUrl());
@@ -25,7 +26,6 @@ public class RichErrorImpl implements GreeterService {
         return javaPbOut.build();
     }
 
-    // #rich_error_model_unary
     @Override
     public CompletionStage<HelloReply> sayHello(HelloRequest in) {
         Status status = Status.newBuilder()
