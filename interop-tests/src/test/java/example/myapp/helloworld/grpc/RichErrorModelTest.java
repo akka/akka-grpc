@@ -63,6 +63,9 @@ public class RichErrorModelTest extends JUnitSuite {
             }).get();
 
             com.google.rpc.Status status = StatusProto.fromStatusAndTrailers(statusEx.getStatus(), statusEx.getTrailers());
+
+            assertEquals("type.googleapis.com/google.rpc.LocalizedMessage", status.getDetails(0).getTypeUrl());
+
             com.google.rpc.error_details.LocalizedMessage details = fromJavaProto(status.getDetails(0)).unpack(com.google.rpc.error_details.LocalizedMessage.messageCompanion());
 
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), status.getCode());

@@ -88,10 +88,7 @@ class RichErrorModelSpec
   val client = GreeterServiceClient(
     GrpcClientSettings.connectToServiceAt("127.0.0.1", bound.localAddress.getPort).withTls(false))
 
-  val conf = ConfigFactory
-    .load()
-    //.parseString("akka.http.server.preview.enable-http2 = on")
-    .withFallback(ConfigFactory.defaultApplication())
+  val conf = ConfigFactory.load().withFallback(ConfigFactory.defaultApplication())
 
   "Rich error model" should {
 
@@ -106,6 +103,8 @@ class RichErrorModelSpec
 
           def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
             com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          status.getDetails(0).getTypeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
           import LocalizedMessage.messageCompanion
           val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
@@ -133,6 +132,8 @@ class RichErrorModelSpec
           def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
             com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
 
+          status.getDetails(0).getTypeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
+
           import LocalizedMessage.messageCompanion
           val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
 
@@ -157,6 +158,8 @@ class RichErrorModelSpec
 
           def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
             com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          status.getDetails(0).getTypeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
           import LocalizedMessage.messageCompanion
           val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
@@ -184,6 +187,8 @@ class RichErrorModelSpec
 
           def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
             com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
+
+          status.getDetails(0).getTypeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
           import LocalizedMessage.messageCompanion
           val customErrorReply: LocalizedMessage = fromJavaProto(status.getDetails(0)).unpack
