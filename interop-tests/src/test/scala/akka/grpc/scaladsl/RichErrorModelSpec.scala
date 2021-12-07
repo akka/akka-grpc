@@ -62,6 +62,7 @@ class RichErrorModelSpec
     def sayHello(in: HelloRequest): Future[HelloReply] = {
       Future.failed(statusRuntimeEx)
     }
+    // #rich_error_model_unary
 
     def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
       Source.failed(statusRuntimeEx)
