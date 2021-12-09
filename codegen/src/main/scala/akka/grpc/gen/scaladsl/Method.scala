@@ -15,6 +15,7 @@ case class Method(
     inputStreaming: Boolean,
     outputType: Descriptor,
     outputStreaming: Boolean,
+    options: com.google.protobuf.DescriptorProtos.MethodOptions,
     comment: Option[String] = None)(implicit ops: DescriptorImplicits) {
   import Method._
 
@@ -65,6 +66,7 @@ object Method {
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
       descriptor.toProto.getServerStreaming,
+      descriptor.getOptions,
       descriptor.comment)
   }
 
