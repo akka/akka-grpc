@@ -1,7 +1,6 @@
 package akka.grpc.build
 
 import java.io.File
-
 import sbt._
 import sbt.Keys._
 import sbtprotoc.ProtocPlugin
@@ -9,7 +8,7 @@ import ProtocPlugin.autoImport.PB
 import protocbridge.Target
 import sbt.ProjectRef
 import sbt.file
-import sbt.internal.inc.classpath.ClasspathUtilities
+import sbt.internal.inc.classpath.ClasspathUtil
 
 import scala.collection.mutable.ListBuffer
 import protocbridge.{ Artifact => BridgeArtifact }
@@ -104,7 +103,7 @@ object ReflectiveCodeGen extends AutoPlugin {
     val cp = classpath.map(_.data)
     // ensure to set right parent classloader, so that protocbridge.ProtocCodeGenerator etc are
     // compatible with what is already accessible from this sbt build
-    val loader = ClasspathUtilities.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
+    val loader = ClasspathUtil.toLoader(cp, classOf[protocbridge.ProtocCodeGenerator].getClassLoader)
     import scala.reflect.runtime.universe
     import scala.tools.reflect.ToolBox
 
