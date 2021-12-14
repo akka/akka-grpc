@@ -112,8 +112,7 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
       val p3 = (runtime / publishLocal).value
       val p4 = (interopTests / publishLocal).value
     },
-    scriptedBufferLog := false,
-    crossSbtVersions := Seq("1.0.0"))
+    scriptedBufferLog := false)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
