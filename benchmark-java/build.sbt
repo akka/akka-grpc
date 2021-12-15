@@ -5,7 +5,7 @@ run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+Prin
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.42.1" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.43.0" // checked synced by VersionSyncCheckPlugin
 
 val runtimeProject = ProjectRef(file("../"), "akka-grpc-runtime")
 
