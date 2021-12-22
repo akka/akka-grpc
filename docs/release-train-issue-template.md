@@ -56,6 +56,7 @@ Variables to be expanded in this template:
 - [ ] Tweet using the akkateam account (or ask someone to) about the new release
 - [ ] Announce on [Gitter akka/akka](https://gitter.im/akka/akka)
 - [ ] Announce internally
+- [ ] Record the release date [here](https://github.com/lightbend/together-portal/blob/master/app/models/Product.scala#L48)
 
 ### Afterwards
 
