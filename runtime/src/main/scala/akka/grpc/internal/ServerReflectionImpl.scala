@@ -5,12 +5,15 @@
 package akka.grpc.internal
 
 import com.google.protobuf.Descriptors.FileDescriptor
-
 import akka.NotUsed
 import akka.annotation.InternalApi
 import akka.stream.scaladsl._
-
 import _root_.grpc.reflection.v1alpha.reflection._
+import com.google.protobuf.ByteString
+
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.concurrent
+import collection.JavaConverters._
 
 /**
  * INTERNAL API
@@ -19,6 +22,9 @@ import _root_.grpc.reflection.v1alpha.reflection._
 final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor], services: List[String])
     extends ServerReflection {
   import ServerReflectionImpl._
+
+  private val protoBytesLocalCache: concurrent.Map[String, ByteString] =
+    new ConcurrentHashMap[String, ByteString]().asScala
 
   def serverReflectionInfo(in: Source[ServerReflectionRequest, NotUsed]): Source[ServerReflectionResponse, NotUsed] = {
     in.map(req => {
@@ -29,13 +35,13 @@ final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescr
         case In.Empty =>
           Out.Empty
         case In.FileByFilename(fileName) =>
-          val list = fileDescriptors.get(fileName).map(_.toProto.toByteString).toList
+          val list = fileDescriptors.get(fileName).map(getProtoBytes).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
         case In.FileContainingSymbol(symbol) =>
-          val list = findFileDescForSymbol(symbol, fileDescriptors).map(_.toProto.toByteString).toList
+          val list = findFileDescForSymbol(symbol, fileDescriptors).map(getProtoBytes).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
         case In.FileContainingExtension(ExtensionRequest(container, number, _)) =>
-          val list = findFileDescForExtension(container, number, fileDescriptors).map(_.toProto.toByteString).toList
+          val list = findFileDescForExtension(container, number, fileDescriptors).map(getProtoBytes).toList
           Out.FileDescriptorResponse(FileDescriptorResponse(list))
         case In.AllExtensionNumbersOfType(container) =>
           val list =
@@ -52,6 +58,9 @@ final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescr
       ServerReflectionResponse(req.host, Some(req), response)
     })
   }
+
+  private def getProtoBytes(fileDescriptor: FileDescriptor): ByteString =
+    protoBytesLocalCache.getOrElseUpdate(fileDescriptor.getName, fileDescriptor.toProto.toByteString)
 }
 
 /**
