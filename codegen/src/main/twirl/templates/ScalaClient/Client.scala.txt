@@ -37,7 +37,6 @@ import akka.grpc.AkkaGrpcGenerated
 }
 
 // Not sealed so users can extend to write their stubs
-@@AkkaGrpcGenerated
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 @@AkkaGrpcGenerated
@@ -46,6 +45,7 @@ object @{service.name}Client {
     new Default@{service.name}Client(settings)
 }
 
+@@AkkaGrpcGenerated
 final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
   import @{service.name}.MethodDescriptors._
 

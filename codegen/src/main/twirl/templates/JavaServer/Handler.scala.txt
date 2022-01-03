@@ -24,6 +24,8 @@ import akka.grpc.javadsl.GrpcExceptionHandler;
 import akka.grpc.internal.TelemetryExtension;
 import akka.grpc.internal.TelemetrySpi;
 
+import akka.grpc.AkkaGrpcGenerated;
+
 @{if (powerApis) "import akka.grpc.javadsl.Metadata;\nimport akka.grpc.javadsl.MetadataBuilder;" else ""}
 
 import static @{service.packageName}.@{service.name}.Serializers.*;
@@ -36,6 +38,8 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
  * https://github.com/akka/akka-grpc/issues/994
  */
 @@ApiMayChange
+
+@@AkkaGrpcGenerated
 public class @{serviceName}HandlerFactory {
 
     private static final CompletionStage<akka.http.javadsl.model.HttpResponse> notFound = CompletableFuture.completedFuture(

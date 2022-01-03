@@ -7,8 +7,11 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName;
 
+import akka.grpc.AkkaGrpcGenerated;
+
 @GenMethodImports(service)
 
+@@AkkaGrpcGenerated
 public abstract class @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
     /**
