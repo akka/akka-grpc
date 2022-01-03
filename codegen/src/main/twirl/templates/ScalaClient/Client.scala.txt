@@ -18,6 +18,8 @@ import akka.grpc.scaladsl.AkkaGrpcClient
 import akka.grpc.internal.NettyClientUtils
 import akka.grpc.internal.ClientState
 
+import akka.grpc.AkkaGrpcGenerated
+
 @{
   def withSingleResponse(stmt: String) = Set("import akka.grpc.scaladsl.SingleResponseRequestBuilder", stmt)
   def withStreamResponse(stmt: String) = Set("import akka.grpc.scaladsl.StreamResponseRequestBuilder", stmt)
@@ -35,8 +37,10 @@ import akka.grpc.internal.ClientState
 }
 
 // Not sealed so users can extend to write their stubs
+@@AkkaGrpcGenerated
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
+@@AkkaGrpcGenerated
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
     new Default@{service.name}Client(settings)

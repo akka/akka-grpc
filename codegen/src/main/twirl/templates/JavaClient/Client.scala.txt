@@ -21,8 +21,11 @@ import static @{service.packageName}.@{service.name}.Serializers.*;
 
 import scala.concurrent.ExecutionContext;
 
+import akka.grpc.AkkaGrpcGenerated;
+
 @GenMethodImports(service)
 
+@@AkkaGrpcGenerated
 public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
     return new Default@{service.name}Client(settings, sys);
