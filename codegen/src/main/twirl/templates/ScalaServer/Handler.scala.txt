@@ -20,6 +20,8 @@ import akka.stream.SystemMaterializer
 
 import akka.grpc.internal.TelemetryExtension
 
+import akka.grpc.AkkaGrpcGenerated
+
 @{if (powerApis) "import akka.grpc.scaladsl.MetadataBuilder" else ""}
 
 @defining(if (powerApis) service.name + "PowerApi" else service.name) { serviceName =>
@@ -30,6 +32,7 @@ import akka.grpc.internal.TelemetryExtension
  * https://github.com/akka/akka-grpc/issues/994
  */
 @@ApiMayChange
+@@AkkaGrpcGenerated
 object @{serviceName}Handler {
     private val notFound = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.NotFound))
     private val unsupportedMediaType = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.UnsupportedMediaType))

@@ -93,6 +93,7 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 
 }
 
+@@AkkaGrpcGenerated
 object Default@{service.name}Client {
 
   def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =

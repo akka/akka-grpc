@@ -31,6 +31,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
     return new Default@{service.name}Client(settings, sys);
   }
 
+  @@AkkaGrpcGenerated
   protected final static class Default@{service.name}Client extends @{service.name}Client {
 
       private final ClientState clientState;

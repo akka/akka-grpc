@@ -10,6 +10,8 @@ package @service.packageName;
 import akka.grpc.ProtobufSerializer;
 import akka.grpc.javadsl.GoogleProtobufSerializer;
 
+import akka.grpc.AkkaGrpcGenerated;
+
 @for(comment <- service.comment) {/**
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll(" * $1")} */}
 public interface @{service.name} {
@@ -22,6 +24,7 @@ public interface @{service.name} {
   static String name = "@service.grpcName";
   static akka.grpc.ServiceDescription description = new akka.grpc.internal.ServiceDescriptionImpl(name, @service.descriptor);
 
+  @@AkkaGrpcGenerated
   public static class Serializers {
     @for(serializer <- service.serializers) {
       public static ProtobufSerializer<@{serializer.messageType}> @serializer.name = @serializer.init;

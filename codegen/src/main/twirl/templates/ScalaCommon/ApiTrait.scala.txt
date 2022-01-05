@@ -9,6 +9,8 @@ package @service.packageName
 
 import akka.annotation.ApiMayChange
 
+import akka.grpc.AkkaGrpcGenerated
+
 @for(comment <- service.comment) {/**
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll(" * $1")} */}
 trait @{service.name} {
@@ -26,6 +28,7 @@ trait @{service.name} {
   @if(methodType == akka.grpc.gen.BidiStreaming) {MethodDescriptor.MethodType.BIDI_STREAMING }
 }
 
+@@AkkaGrpcGenerated
 object @{service.name} extends akka.grpc.ServiceDescription {
   val name = "@service.grpcName"
 
@@ -40,6 +43,7 @@ object @{service.name} extends akka.grpc.ServiceDescription {
   }
 
   @@ApiMayChange
+  @@AkkaGrpcGenerated
   object MethodDescriptors {
     import akka.grpc.internal.Marshaller
     import io.grpc.MethodDescriptor
