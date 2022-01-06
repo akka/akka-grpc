@@ -37,6 +37,7 @@ import akka.grpc.AkkaGrpcGenerated
 }
 
 // Not sealed so users can extend to write their stubs
+@@AkkaGrpcGenerated
 trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
 
 @@AkkaGrpcGenerated
@@ -100,6 +101,7 @@ object Default@{service.name}Client {
     new Default@{service.name}Client(settings)
 }
 
+@@AkkaGrpcGenerated
 trait @{service.name}ClientPowerApi {
   @for(method <- service.methods) {
   /**

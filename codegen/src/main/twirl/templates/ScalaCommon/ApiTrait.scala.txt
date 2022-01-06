@@ -13,6 +13,7 @@ import akka.grpc.AkkaGrpcGenerated
 
 @for(comment <- service.comment) {/**
 @{java.util.regex.Pattern.compile("^\\s?(.*)$", java.util.regex.Pattern.MULTILINE).matcher(comment).replaceAll(" * $1")} */}
+@@AkkaGrpcGenerated
 trait @{service.name} {
   @for(method <- service.methods) {
   @for(comment <- method.comment) {/**
