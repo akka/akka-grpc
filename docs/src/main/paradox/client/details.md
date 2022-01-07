@@ -100,4 +100,4 @@ Scala
 Java
 :  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #client_request }
 
- Please look @ref[here](../server/details.md) how to create errors with such details on the server side. 
+Please look @ref[here](../server/details.md) how to create errors with such details on the server side.
