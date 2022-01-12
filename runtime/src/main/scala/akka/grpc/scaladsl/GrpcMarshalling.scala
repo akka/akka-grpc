@@ -6,7 +6,10 @@ package akka.grpc.scaladsl
 
 import io.grpc.Status
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
@@ -18,9 +21,6 @@ import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse, Uri }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import com.github.ghik.silencer.silent
-
-import scala.util.{ Failure, Success, Try }
 
 object GrpcMarshalling {
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
@@ -34,7 +34,7 @@ object GrpcMarshalling {
 
   def unmarshalStream[T](req: HttpRequest)(
       implicit u: ProtobufSerializer[T],
-      @silent("never used") mat: Materializer): Future[Source[T, NotUsed]] = {
+      /*@nowarn("cat=unused-params")*/ mat: Materializer): Future[Source[T, NotUsed]] = {
     negotiated(
       req,
       (r, _) => {
@@ -64,7 +64,7 @@ object GrpcMarshalling {
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
       implicit u: ProtobufSerializer[T],
-      @silent("never used") mat: Materializer,
+      @nowarn("cat=unused-params") mat: Materializer,
       reader: GrpcProtocolReader): Future[Source[T, NotUsed]] = {
     Future.successful(
       data

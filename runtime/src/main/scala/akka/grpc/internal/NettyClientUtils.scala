@@ -12,13 +12,13 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
 import akka.stream.scaladsl.{ Flow, Keep, Source }
-import com.github.ghik.silencer.silent
 import io.grpc.{ CallOptions, MethodDescriptor }
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext, SslContextBuilder }
 
+import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
@@ -36,14 +36,14 @@ object NettyClientUtils {
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
       implicit ec: ExecutionContext): InternalChannel = {
 
-    @silent("method nameResolverFactory")
+    @nowarn("cat=deprecation")
     var builder =
       NettyChannelBuilder
         // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
         // we follow their lead and encode the service name as the 'authority' of the URI.
         .forTarget("//" + settings.serviceName)
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
-        // TODO avoid nameResolverFactory #1092
+        // TODO avoid nameResolverFactory #1092, then 'nowarn' can be removed above
         .nameResolverFactory(
           new AkkaDiscoveryNameResolverProvider(
             settings.serviceDiscovery,
