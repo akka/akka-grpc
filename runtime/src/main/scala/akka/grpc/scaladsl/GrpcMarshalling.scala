@@ -32,9 +32,8 @@ object GrpcMarshalling {
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
-  def unmarshalStream[T](req: HttpRequest)(
-      implicit u: ProtobufSerializer[T],
-      /*@nowarn("cat=unused-params")*/ mat: Materializer): Future[Source[T, NotUsed]] = {
+  def unmarshalStream[T](
+      req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
     negotiated(
       req,
       (r, _) => {
