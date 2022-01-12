@@ -49,8 +49,7 @@ object Common extends AutoPlugin {
       // Generated code for methods/fields marked 'deprecated'
       "-Wconf:msg=Marked as deprecated in proto file:silent",
       // ignore imports in templates (FIXME why is that trailig .* needed?)
-      "-Wconf:src=.*.txt.*:silent"
-    ),
+      "-Wconf:src=.*.txt.*:silent"),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
