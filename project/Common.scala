@@ -46,15 +46,13 @@ object Common extends AutoPlugin {
       "-encoding",
       "UTF-8"),
     Compile / scalacOptions ++= Seq(
-      // generated code for methods/fields marked 'deprecated'
-      "-P:silencer:globalFilters=Marked as deprecated in proto file",
-      // generated scaladoc sometimes has this problem
-      "-P:silencer:globalFilters=unbalanced or unclosed heading",
+      // Generated code for methods/fields marked 'deprecated'
+      "-Wconf:msg=Marked as deprecated in proto file:silent",
       // deprecated in 2.13, but used as long as we support 2.12
-      "-P:silencer:globalFilters=Use `scala.jdk.CollectionConverters` instead",
-      "-P:silencer:globalFilters=Use LazyList instead of Stream",
-      // ignore imports in templates
-      "-P:silencer:pathFilters=.*.txt"),
+      "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
+      "-Wconf:msg=Use LazyList instead of Stream:silent",
+      // ignore imports in templates (FIXME why is that trailig .* needed?)
+      "-Wconf:src=.*.txt.*:silent"),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
@@ -75,9 +73,6 @@ object Common extends AutoPlugin {
       "https://doc.akka.io/api/akka-grpc/current/"),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
-    libraryDependencies ++= Seq(
-      compilerPlugin(("com.github.ghik" % "silencer-plugin" % Dependencies.Versions.silencer).cross(CrossVersion.full)),
-      ("com.github.ghik" % "silencer-lib" % Dependencies.Versions.silencer % Provided).cross(CrossVersion.full)),
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,

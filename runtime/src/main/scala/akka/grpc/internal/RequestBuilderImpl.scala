@@ -19,7 +19,6 @@ import io.grpc._
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 import akka.grpc.GrpcClientSettings
-import com.github.ghik.silencer.silent
 
 /**
  * INTERNAL API
@@ -111,7 +110,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
@@ -177,7 +176,7 @@ final class JavaClientStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
@@ -220,7 +219,7 @@ final class ScalaServerStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
@@ -263,7 +262,7 @@ final class JavaServerStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
@@ -307,7 +306,7 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
@@ -350,7 +349,7 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
-      @silent("never used") fqMethodName: String,
+      fqMethodName: String,
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =

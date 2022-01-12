@@ -4,13 +4,12 @@
 
 package akka.grpc.gen.scaladsl
 
+import scala.annotation.nowarn
 import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.ScalaCommon.txt._
-
-import com.github.ghik.silencer.silent
 
 /**
  * Has to be a separate generator rather than a parameter to the existing ones, because
@@ -27,7 +26,7 @@ trait ScalaMarshallersCodeGenerator extends ScalaCodeGenerator {
         .suggestedDependencies(scalaBinaryVersion)
 
   def generateMarshalling(
-      @silent("never used") logger: Logger,
+      @nowarn("cat=unused-params") logger: Logger,
       service: Service): immutable.Seq[CodeGeneratorResponse.File] = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setContent(Marshallers(service).body)

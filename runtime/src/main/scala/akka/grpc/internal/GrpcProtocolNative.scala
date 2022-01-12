@@ -7,7 +7,7 @@ package akka.grpc.internal
 import akka.grpc.GrpcProtocol._
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart, LastChunk }
 import akka.util.ByteString
-import com.github.ghik.silencer.silent
+import scala.annotation.nowarn
 
 /**
  * Implementation of the gRPC (`application/grpc+proto`) protocol:
@@ -25,7 +25,7 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
     AbstractGrpcProtocol.reader(codec, decodeFrame)
 
   @inline
-  private def decodeFrame(@silent("never used") frameType: Int, data: ByteString) = DataFrame(data)
+  private def decodeFrame(@nowarn("cat=unused-params") frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =
