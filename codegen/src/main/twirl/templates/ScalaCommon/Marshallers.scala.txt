@@ -20,6 +20,9 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 
+import akka.grpc.AkkaGrpcGenerated
+
+@@AkkaGrpcGenerated
 object @{service.name}Marshallers {
   @for(serializer <- service.serializers) {
   implicit val @serializer.name = @{service.packageName}.@{service.name}.Serializers.@{serializer.name}
