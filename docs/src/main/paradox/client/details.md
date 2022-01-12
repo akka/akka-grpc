@@ -33,8 +33,8 @@ to shut down).
 
 Client-side load balancing is desirable when you are using the default
 `static` or the `grpc-dns` discovery mechanism. You can set the
-`load-balancing-policy` client configuration option to `round-robin` to enable
-the round-robin client-side load balancing strategy provided by grpc-java.
+`load-balancing-policy` client configuration option to `round_robin` to enable
+the round_robin client-side load balancing strategy provided by grpc-java.
 
 Note that load balancing is marked as [experimental](https://github.com/grpc/grpc-java/issues/1771) in grpc-java.
 
