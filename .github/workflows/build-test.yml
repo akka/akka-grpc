@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        SCALA_VERSION: [2.12.14, 2.13.8]
+        SCALA_VERSION: [2.12.15, 2.13.8]
         # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
         JABBA_JDK: [1.8.0-275, 1.11]
     steps:
