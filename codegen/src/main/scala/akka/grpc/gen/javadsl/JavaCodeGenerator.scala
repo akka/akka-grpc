@@ -9,9 +9,9 @@ import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGen
 import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
 
+import scala.annotation.nowarn
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-import com.github.ghik.silencer.silent
 import protocgen.CodeGenRequest
 
 abstract class JavaCodeGenerator extends CodeGenerator {
@@ -20,11 +20,11 @@ abstract class JavaCodeGenerator extends CodeGenerator {
   def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   /** Override these to add service-independent generated files */
-  def staticContent(@silent("never used") logger: Logger): Set[CodeGeneratorResponse.File] =
+  def staticContent(@nowarn("cat=unused-params") logger: Logger): Set[CodeGeneratorResponse.File] =
     Set.empty
   def staticContent(
-      @silent("never used") logger: Logger,
-      @silent("never used") allServices: Seq[Service]): Set[CodeGeneratorResponse.File] =
+      @nowarn("cat=unused-params") logger: Logger,
+      @nowarn("cat=unused-params") allServices: Seq[Service]): Set[CodeGeneratorResponse.File] =
     Set.empty
 
   override def run(request: CodeGeneratorRequest, logger: Logger): CodeGeneratorResponse = {

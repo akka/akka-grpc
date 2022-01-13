@@ -4,13 +4,13 @@
 
 package akka.grpc.gen.scaladsl
 
+import scala.annotation.nowarn
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
-import com.github.ghik.silencer.silent
 import com.google.protobuf.ExtensionRegistry
 import protocgen.CodeGenRequest
 import scalapb.options.Scalapb
@@ -21,10 +21,10 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
   def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] = Set.empty
 
   // Override these to add service-independent generated files
-  def staticContent(@silent("never used") logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
+  def staticContent(@nowarn("cat=unused-params") logger: Logger): Set[CodeGeneratorResponse.File] = Set.empty
   def staticContent(
-      @silent("never used") logger: Logger,
-      @silent("never used") allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
+      @nowarn("cat=unused-params") logger: Logger,
+      @nowarn("cat=unused-params") allServices: Seq[Service]): Set[CodeGeneratorResponse.File] = Set.empty
 
   override def suggestedDependencies =
     (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>

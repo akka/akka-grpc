@@ -16,7 +16,7 @@
     <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
-    <grpc.version>1.42.0</grpc.version> <!-- checked synced by GrpcVersionSyncCheckPlugin -->
+    <grpc.version>1.43.2</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
   </properties>
 

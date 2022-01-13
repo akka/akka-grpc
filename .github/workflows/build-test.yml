@@ -41,7 +41,7 @@ jobs:
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-ghactions .jvmopts
-          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck +mimaReportBinaryIssues
+          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck googleProtobufVersionSyncCheck +mimaReportBinaryIssues
 
   compile-benchmarks:
     name: Compile Benchmarks
@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        SCALA_VERSION: [2.12.15, 2.13.7]
+        SCALA_VERSION: [2.12.14, 2.13.8]
         # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
         JABBA_JDK: [1.8.0-275, 1.11]
     steps:
@@ -104,7 +104,7 @@ jobs:
           - test-set: gen-java
             scala-version: 2.12.15
           - test-set: scala3
-            scala-version: 2.13.7
+            scala-version: 2.13.8
     steps:
       - name: Checkout
         uses: actions/checkout@v2

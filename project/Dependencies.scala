@@ -6,8 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.15"
-    val scala213 = "2.13.7"
+    val scala212 = "2.12.14"
+    val scala213 = "2.13.8"
 
     // the order in the list is important because the head will be considered the default.
     val CrossScalaForLib = Seq(scala212, scala213)
@@ -21,17 +21,15 @@ object Dependencies {
     val akkaHttp = "10.2.7"
     val akkaHttpBinary = "10.2"
 
-    val grpc = "1.42.0" // checked synced by GrpcVersionSyncCheckPlugin
+    val grpc = "1.43.2" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "3.18.1"
+    val googleProtobuf = "3.19.2" // checked synced by VersionSyncCheckPlugin
 
     val scalaTest = "3.1.4"
 
-    val maven = "3.8.3"
-
-    val silencer = "1.7.7"
+    val maven = "3.8.4"
   }
 
   object Compile {
@@ -76,7 +74,7 @@ object Dependencies {
   }
 
   object Runtime {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.2.7" % "runtime" // Eclipse 1.0
+    val logback = "ch.qos.logback" % "logback-classic" % "1.2.10" % "runtime" // Eclipse 1.0
   }
 
   object Protobuf {
