@@ -4,15 +4,15 @@
 
 package akka.grpc.internal
 
-import java.util.{Locale, Optional, List => jList, Map => jMap}
+import java.util.{ Locale, Optional, List => jList, Map => jMap }
 import scala.collection.JavaConverters._
-import scala.collection.{immutable, mutable}
+import scala.collection.{ immutable, mutable }
 import scala.compat.java8.OptionConverters._
 import akka.annotation.InternalApi
 import akka.http.scaladsl.model.HttpHeader
 import akka.japi.Pair
 import akka.util.ByteString
-import akka.grpc.scaladsl.{BytesEntry, Metadata, MetadataEntry, StringEntry}
+import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, StringEntry }
 import akka.grpc.javadsl
 import com.google.protobuf.any
 
