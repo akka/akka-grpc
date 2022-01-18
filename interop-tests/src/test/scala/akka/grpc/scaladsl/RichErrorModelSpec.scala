@@ -96,7 +96,6 @@ class RichErrorModelSpec
 
       // #client_request
       val richErrorResponse = client.sayHello(HelloRequest("Bob")).failed.futureValue
-
       richErrorResponse match {
         case ex: StatusRuntimeException =>
           val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)

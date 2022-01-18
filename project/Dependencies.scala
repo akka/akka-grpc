@@ -48,6 +48,7 @@ object Dependencies {
     val grpcCore = "io.grpc" % "grpc-core" % Versions.grpc
     val grpcStub = "io.grpc" % "grpc-stub" % Versions.grpc
     val grpcNettyShaded = "io.grpc" % "grpc-netty-shaded" % Versions.grpc
+    val grpcProtobuf = "io.grpc" % "grpc-protobuf" % Versions.grpc
 
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
@@ -90,11 +91,13 @@ object Dependencies {
   val codegen = l ++= Seq(
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+    Compile.grpcProtobuf,
     Test.scalaTest)
 
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+    Compile.grpcProtobuf,
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,

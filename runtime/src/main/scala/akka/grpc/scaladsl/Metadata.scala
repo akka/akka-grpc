@@ -15,6 +15,8 @@ import akka.util.ByteString
 @ApiMayChange
 @DoNotInherit trait Metadata {
 
+  val raw: Option[io.grpc.Metadata] = None
+
   /**
    * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence
    *         that is a text key is used.
