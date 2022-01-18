@@ -10,11 +10,12 @@ import akka.annotation.InternalStableApi
 import akka.grpc.GrpcProtocol.{ GrpcProtocolReader, GrpcProtocolWriter }
 import akka.grpc.internal.{ Codec, Codecs, GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
-import akka.http.scaladsl.model.{ ContentType, HttpHeader }
+import akka.http.scaladsl.model.{ ContentType, HttpHeader, HttpResponse, Trailer }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 
+import scala.collection.immutable
 import scala.util.Try
 
 /**
@@ -87,7 +88,7 @@ object GrpcProtocol {
       /** Encodes a frame as a part in a chunk stream. */
       encodeFrame: Frame => ChunkStreamPart,
       /** A shortcut to encode a data frame directly into a ByteString */
-      encodeDataToFrameBytes: ByteString => ByteString,
+      encodeDataToResponse: (ByteString, immutable.Seq[HttpHeader], Trailer) => HttpResponse,
       /** A Flow over a stream of Frame using this frame encoding */
       frameEncoder: Flow[Frame, ChunkStreamPart, NotUsed])
 

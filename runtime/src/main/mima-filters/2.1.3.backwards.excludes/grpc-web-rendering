@@ -1,0 +1,3 @@
+# InternalApi
+ProblemFilters.exclude[Problem]("akka.grpc.GrpcProtocol*")
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.AbstractGrpcProtocol.*")
