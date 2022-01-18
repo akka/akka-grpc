@@ -18,8 +18,6 @@ import io.grpc._
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ ExecutionContext, Future }
-import akka.grpc.GrpcClientSettings
-
 
 /**
  * INTERNAL API
