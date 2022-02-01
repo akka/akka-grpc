@@ -52,13 +52,21 @@ akkaGrpcCodeGeneratorSettings += "single_line_to_proto_string"
 
 #### Using a local `protoc` command
 
-Protocol Buffers does not distribute binaries of `protoc` for use on Apple Silicon (ARM/M1) for the time being. You may [build `protoc` locally](https://github.com/protocolbuffers/protobuf/tree/master/src) and make ScalaPB use the local build by setting `PB.protocExecutable`.
+Akka gRPC uses the `protoc` tool to pass `.proto` definitions
+to various code generation components,
+via [ScalaPB](https://scalapb.github.io)'s
+[sbt-protoc](https://github.com/thesamet/sbt-protoc) and
+[protoc-jar](https://github.com/os72/protoc-jar/). This will
+automatically download the right `protoc` for your system
+during the build.
+
+If `protoc-jar` fails to download `protoc` for your system, for
+example because it is not available for your architecture or
+due to network restrictions, you can explicitly specify a local
+protoc executable instead:
 
 ```scala
-PB.protocExecutable := {
-  if (protocbridge.SystemDetector.detectedClassifier() == "osx-aarch_64") file("/usr/local/bin/protoc")
-  else PB.protocExecutable.value
-}
+PB.protocExecutable := file("/usr/local/bin/protoc")
 ```
 
 Available parameters are listed in the [ScalaPB documentation](https://scalapb.github.io/sbt-settings.html).
