@@ -6,7 +6,7 @@ buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
 addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.3")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.6")
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.5")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.1")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.1.0")
