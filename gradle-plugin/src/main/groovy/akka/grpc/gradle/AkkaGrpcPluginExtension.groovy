@@ -5,7 +5,7 @@ import org.gradle.api.Project
 
 class AkkaGrpcPluginExtension {
 
-    static final String PROTOC_VERSION = "3.11.0"
+    static final String PROTOC_VERSION = "3.19.4"
 
     static final String PROTOC_PLUGIN_SCALA_VERSION = "2.12"
 
