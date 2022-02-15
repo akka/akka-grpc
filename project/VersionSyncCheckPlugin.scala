@@ -34,8 +34,7 @@ object VersionSyncCheckPlugin extends AutoPlugin {
       raw"""(?i)protoc_?version.*= ?"-?v?(\d+\.\d+\.\d+)"""".r.unanchored,
       Seq(
         Paths.get("maven-plugin/src/main/maven/plugin.xml"),
-        Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPluginExtension.groovy"),
-      )).value)
+        Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPluginExtension.groovy"))).value)
 
   def versionSyncCheckImpl(
       name: String,
