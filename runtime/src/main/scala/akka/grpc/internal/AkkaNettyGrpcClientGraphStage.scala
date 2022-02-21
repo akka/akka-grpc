@@ -172,7 +172,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           call = null
         }
         if (!matVal.isCompleted) {
-          matVal.failure(new AbruptStageTerminationException(this))
+          matVal.tryFailure(new AbruptStageTerminationException(this))
         }
       }
 
