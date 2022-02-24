@@ -8,7 +8,7 @@ import akka.grpc.GrpcProtocol
 import akka.grpc.GrpcProtocol.{ Frame, GrpcProtocolReader, GrpcProtocolWriter }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.http.scaladsl.model.{ ContentType, MediaType }
+import akka.http.scaladsl.model.{ ContentType, HttpHeader, HttpResponse, MediaType, Trailer }
 import akka.stream.Attributes
 import akka.stream.impl.io.ByteStringParser
 import akka.stream.impl.io.ByteStringParser.{ ByteReader, ParseResult, ParseStep }
@@ -18,6 +18,7 @@ import akka.util.{ ByteString, ByteStringBuilder }
 import io.grpc.StatusException
 
 import java.nio.ByteOrder
+import scala.collection.immutable
 
 abstract class AbstractGrpcProtocol(subType: String) extends GrpcProtocol {
 
@@ -98,12 +99,12 @@ object AbstractGrpcProtocol {
       protocol: GrpcProtocol,
       codec: Codec,
       encodeFrame: Frame => ChunkStreamPart,
-      encodeDataToFrameBytes: ByteString => ByteString): GrpcProtocolWriter =
+      encodeDataToResponse: (ByteString, immutable.Seq[HttpHeader], Trailer) => HttpResponse): GrpcProtocolWriter =
     GrpcProtocolWriter(
       adjustCompressibility(protocol.contentType, codec),
       codec,
       encodeFrame,
-      encodeDataToFrameBytes,
+      encodeDataToResponse,
       Flow[Frame].map(encodeFrame))
 
   def reader(

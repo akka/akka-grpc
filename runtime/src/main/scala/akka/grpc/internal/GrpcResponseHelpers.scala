@@ -5,26 +5,16 @@
 package akka.grpc.internal
 
 import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.actor.ClassicActorSystemProvider
+import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
 import akka.annotation.InternalApi
-import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
-import akka.http.scaladsl.model.{
-  AttributeKey,
-  AttributeKeys,
-  HttpEntity,
-  HttpHeader,
-  HttpProtocols,
-  HttpResponse,
-  ResponseEntity,
-  StatusCodes,
-  Trailer
-}
+import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, Trailer }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import io.grpc.Status
 
 import scala.collection.immutable
@@ -56,32 +46,18 @@ object GrpcResponseHelpers {
   def responseForSingleElement[T](e: T, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(
       implicit m: ProtobufSerializer[T],
       writer: GrpcProtocolWriter,
-      system: ClassicActorSystemProvider): HttpResponse =
-    try {
-      val strictEntity = HttpEntity.Strict(writer.contentType, writer.encodeDataToFrameBytes((m.serialize(e))))
-      responseWithTrailers(
-        headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
-        strictEntity,
-        TrailerOkAttribute)
-    } catch {
+      system: ClassicActorSystemProvider): HttpResponse = {
+    val responseHeaders = headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil
+    try writer.encodeDataToResponse(m.serialize(e), responseHeaders, TrailerOkAttribute)
+    catch {
       case NonFatal(ex) =>
         val trailers = GrpcEntityHelpers.handleException(ex, eHandler)
-        responseWithTrailers(
-          headers.`Message-Encoding`(writer.messageEncoding.name) :: Nil,
-          HttpEntity.Empty,
+        writer.encodeDataToResponse(
+          ByteString.empty,
+          responseHeaders,
           Trailer(GrpcEntityHelpers.trailer(trailers.status, trailers.metadata).trailers))
     }
-
-  private def responseWithTrailers(
-      headers: immutable.Seq[HttpHeader],
-      entity: ResponseEntity,
-      trailer: Trailer): HttpResponse =
-    new HttpResponse(
-      status = StatusCodes.OK,
-      headers = headers,
-      entity = entity,
-      protocol = HttpProtocols.`HTTP/1.1`,
-      attributes = Map.empty[AttributeKey[_], Any].updated(AttributeKeys.trailer, trailer))
+  }
 
   def apply[T](e: Source[T, NotUsed], status: Future[Status])(
       implicit m: ProtobufSerializer[T],
