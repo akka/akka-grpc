@@ -1,0 +1,2 @@
+# Changes in classes marked as internal
+ProblemFilters.exclude[FinalMethodProblem]("io.grpc.StatusRuntimeException.getStatus")
