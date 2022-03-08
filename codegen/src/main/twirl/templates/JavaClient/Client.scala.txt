@@ -12,6 +12,7 @@ import akka.stream.Materializer;
 import akka.stream.SystemMaterializer;
 
 import akka.grpc.internal.*;
+import akka.grpc.GrpcChannel;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.AkkaGrpcClient;
 
@@ -28,26 +29,27 @@ import akka.grpc.AkkaGrpcGenerated;
 @@AkkaGrpcGenerated
 public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
-    return new Default@{service.name}Client(settings, sys);
+    return new Default@{service.name}Client(akka.grpc.GrpcChannel$.MODULE$.apply(settings, sys), sys);
+  }
+
+  public static final @{service.name}Client create(GrpcChannel channel, ClassicActorSystemProvider sys) {
+    return new Default@{service.name}Client(channel, sys);
   }
 
   @@AkkaGrpcGenerated
   protected final static class Default@{service.name}Client extends @{service.name}Client {
 
-      private final ClientState clientState;
+      private final GrpcChannel channel;
       private final GrpcClientSettings settings;
       private final io.grpc.CallOptions options;
       private final Materializer mat;
       private final ExecutionContext ec;
 
-      private Default@{service.name}Client(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
-        this.settings = settings;
+      private Default@{service.name}Client(GrpcChannel channel, ClassicActorSystemProvider sys) {
+        this.channel = channel;
+        this.settings = channel.settings();
         this.mat = SystemMaterializer.get(sys).materializer();
         this.ec = sys.classicSystem().dispatcher();
-        this.clientState = new ClientState(
-          settings,
-          akka.event.Logging$.MODULE$.apply(sys.classicSystem(), Default@{service.name}Client.class, akka.event.LogSource$.MODULE$.<Default@{service.name}Client>fromAnyClass()),
-          sys);
         this.options = NettyClientUtils.callOptions(settings);
 
         sys.classicSystem().getWhenTerminated().whenComplete((v, e) -> close());
@@ -101,7 +103,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
           public StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
         }
         {
-          return @{method.name}RequestBuilder(clientState.internalChannel());
+          return @{method.name}RequestBuilder(channel.internalChannel());
         }
       }
 
@@ -120,7 +122,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
        * Initiates a shutdown in which preexisting and new calls are cancelled.
        */
       public java.util.concurrent.CompletionStage<akka.Done> close() {
-        return clientState.closeCS() ;
+        return channel.closeCS() ;
       }
 
      /**
@@ -128,7 +130,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       * or exceptionally if a connection can not be established after maxConnectionAttempts.
       */
       public java.util.concurrent.CompletionStage<akka.Done> closed() {
-        return clientState.closedCS();
+        return channel.closedCS();
       }
   }
 

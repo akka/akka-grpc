@@ -10,9 +10,11 @@ import akka.Done
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import io.grpc.{ ConnectivityState, ManagedChannel }
-
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ Future, Promise }
+
+import akka.actor.ClassicActorSystemProvider
+import akka.grpc.GrpcClientSettings
 
 /**
  * Used to indicate that a gRPC client can not establish a connection
@@ -28,6 +30,21 @@ class ClientConnectionException(msg: String) extends RuntimeException(msg)
  */
 @InternalApi
 object ChannelUtils {
+
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  def create(settings: GrpcClientSettings, log: LoggingAdapter)(
+      implicit sys: ClassicActorSystemProvider): InternalChannel = {
+    settings.backend match {
+      case "netty" =>
+        NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher)
+      case "akka-http" =>
+        AkkaHttpClientUtils.createChannel(settings, log)
+      case _ => throw new IllegalArgumentException(s"Unexpected backend [${settings.backend}]")
+    }
+  }
 
   /**
    * INTERNAL API

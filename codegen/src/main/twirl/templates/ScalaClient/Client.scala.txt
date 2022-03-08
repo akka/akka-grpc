@@ -11,12 +11,12 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ClassicActorSystemProvider
 
+import akka.grpc.GrpcChannel
 import akka.grpc.GrpcClientSettings
 
 import akka.grpc.scaladsl.AkkaGrpcClient
 
 import akka.grpc.internal.NettyClientUtils
-import akka.grpc.internal.ClientState
 
 import akka.grpc.AkkaGrpcGenerated
 
@@ -43,16 +43,18 @@ trait @{service.name}Client extends @{service.name} with @{service.name}ClientPo
 @@AkkaGrpcGenerated
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
-    new Default@{service.name}Client(settings)
+    new Default@{service.name}Client(GrpcChannel(settings))
+  def apply(channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
+    new Default@{service.name}Client(channel)
 }
 
 @@AkkaGrpcGenerated
-final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
+final class Default@{service.name}Client(channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
   import @{service.name}.MethodDescriptors._
 
   private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
+  private val settings = channel.settings
   private val options = NettyClientUtils.callOptions(settings)
-  private val clientState = new ClientState(settings, akka.event.Logging(sys.classicSystem, classOf[Default@{service.name}Client]))
 
   @for(method <- service.methods) {
   private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) =
@@ -76,10 +78,10 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
    */
   @if(method.methodType == akka.grpc.gen.Unary || method.methodType == akka.grpc.gen.ClientStreaming) {
   override def @{method.nameSafe}(): SingleResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-    @{method.name}RequestBuilder(clientState.internalChannel)
+    @{method.name}RequestBuilder(channel.internalChannel)
   } else {
   override def @{method.nameSafe}(): StreamResponseRequestBuilder[@method.parameterType, @method.outputTypeUnboxed] =
-    @{method.name}RequestBuilder(clientState.internalChannel)
+    @{method.name}RequestBuilder(channel.internalChannel)
   }
 
   /**
@@ -89,8 +91,8 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
     @{method.nameSafe}().invoke(in)
   }
 
-  override def close(): scala.concurrent.Future[akka.Done] = clientState.close()
-  override def closed: scala.concurrent.Future[akka.Done] = clientState.closed()
+  override def close(): scala.concurrent.Future[akka.Done] = channel.close()
+  override def closed: scala.concurrent.Future[akka.Done] = channel.closed()
 
 }
 
@@ -98,7 +100,9 @@ final class Default@{service.name}Client(settings: GrpcClientSettings)(implicit 
 object Default@{service.name}Client {
 
   def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
-    new Default@{service.name}Client(settings)
+    new Default@{service.name}Client(GrpcChannel(settings))
+  def apply(channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
+    new Default@{service.name}Client(channel)
 }
 
 @@AkkaGrpcGenerated
