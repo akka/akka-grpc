@@ -35,7 +35,7 @@ object ChannelUtils {
    * INTERNAL API
    */
   @InternalApi
-  def create(settings: GrpcClientSettings, log: LoggingAdapter)(
+  private[akka] def create(settings: GrpcClientSettings, log: LoggingAdapter)(
       implicit sys: ClassicActorSystemProvider): InternalChannel = {
     settings.backend match {
       case "netty" =>

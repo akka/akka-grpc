@@ -15,7 +15,7 @@ import akka.annotation.InternalApi
 import akka.grpc.internal.{ ChannelUtils, InternalChannel }
 import akka.grpc.scaladsl.Grpc
 
-class GrpcChannel(val settings: GrpcClientSettings, @InternalApi val internalChannel: InternalChannel)(
+final class GrpcChannel private (val settings: GrpcClientSettings, @InternalApi val internalChannel: InternalChannel)(
     implicit sys: ClassicActorSystemProvider) {
 
   Grpc(sys).registerChannel(this)
