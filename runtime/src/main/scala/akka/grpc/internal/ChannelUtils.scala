@@ -4,17 +4,16 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.CompletionStage
-
 import akka.Done
-import akka.annotation.InternalApi
-import akka.event.LoggingAdapter
-import io.grpc.{ ConnectivityState, ManagedChannel }
-import scala.compat.java8.FutureConverters._
-import scala.concurrent.{ Future, Promise }
 
 import akka.actor.ClassicActorSystemProvider
+import akka.annotation.InternalApi
+import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
+
+import io.grpc.{ ConnectivityState, ManagedChannel }
+
+import scala.concurrent.{ Future, Promise }
 
 /**
  * Used to indicate that a gRPC client can not establish a connection
@@ -54,13 +53,6 @@ object ChannelUtils {
     internalChannel.shutdown()
     internalChannel.done
   }
-
-  /**
-   * INTERNAL API
-   */
-  @InternalApi
-  def closeCS(internalChannel: InternalChannel): CompletionStage[Done] =
-    close(internalChannel).toJava
 
   /**
    * INTERNAL API
