@@ -61,7 +61,7 @@ object Dependencies {
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
-    val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0"
+    val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0"
   }
 
   object Test {
