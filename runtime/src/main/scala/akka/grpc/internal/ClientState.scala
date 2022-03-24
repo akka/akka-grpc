@@ -21,7 +21,7 @@ import akka.grpc.{ GrpcChannel, GrpcClientSettings }
  */
 @deprecated("Kept for binary compatibility between generated code and runtime", "akka-grpc 2.1.5")
 @InternalApi
-final class ClientState(channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider) {
+final class ClientState private (channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider) {
 
   @InternalStableApi
   val internalChannel: InternalChannel =
