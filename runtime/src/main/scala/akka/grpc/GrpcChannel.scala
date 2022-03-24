@@ -11,12 +11,13 @@ import scala.concurrent.Future
 
 import akka.Done
 import akka.actor.ClassicActorSystemProvider
-import akka.annotation.InternalApi
+import akka.annotation.InternalStableApi
 import akka.grpc.internal.{ ChannelUtils, InternalChannel }
 import akka.grpc.scaladsl.Grpc
 
-final class GrpcChannel private (val settings: GrpcClientSettings, @InternalApi val internalChannel: InternalChannel)(
-    implicit sys: ClassicActorSystemProvider) {
+final class GrpcChannel private (
+    @InternalStableApi val settings: GrpcClientSettings,
+    @InternalStableApi val internalChannel: InternalChannel)(implicit sys: ClassicActorSystemProvider) {
 
   Grpc(sys).registerChannel(this)
 
