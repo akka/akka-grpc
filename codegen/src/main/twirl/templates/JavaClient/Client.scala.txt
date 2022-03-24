@@ -13,6 +13,7 @@ import akka.stream.SystemMaterializer;
 
 import akka.grpc.internal.*;
 import akka.grpc.GrpcChannel;
+import akka.grpc.GrpcClientCloseException;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.javadsl.AkkaGrpcClient;
 
@@ -29,24 +30,26 @@ import akka.grpc.AkkaGrpcGenerated;
 @@AkkaGrpcGenerated
 public abstract class @{service.name}Client extends @{service.name}ClientPowerApi implements @{service.name}, AkkaGrpcClient {
   public static final @{service.name}Client create(GrpcClientSettings settings, ClassicActorSystemProvider sys) {
-    return new Default@{service.name}Client(akka.grpc.GrpcChannel$.MODULE$.apply(settings, sys), sys);
+    return new Default@{service.name}Client(akka.grpc.GrpcChannel$.MODULE$.apply(settings, sys), true, sys);
   }
 
   public static final @{service.name}Client create(GrpcChannel channel, ClassicActorSystemProvider sys) {
-    return new Default@{service.name}Client(channel, sys);
+    return new Default@{service.name}Client(channel, false, sys);
   }
 
   @@AkkaGrpcGenerated
   protected final static class Default@{service.name}Client extends @{service.name}Client {
 
       private final GrpcChannel channel;
+      private final boolean isChannelOwned;
       private final GrpcClientSettings settings;
       private final io.grpc.CallOptions options;
       private final Materializer mat;
       private final ExecutionContext ec;
 
-      private Default@{service.name}Client(GrpcChannel channel, ClassicActorSystemProvider sys) {
+      private Default@{service.name}Client(GrpcChannel channel, boolean isChannelOwned, ClassicActorSystemProvider sys) {
         this.channel = channel;
+        this.isChannelOwned = isChannelOwned;
         this.settings = channel.settings();
         this.mat = SystemMaterializer.get(sys).materializer();
         this.ec = sys.classicSystem().dispatcher();
@@ -122,7 +125,11 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
        * Initiates a shutdown in which preexisting and new calls are cancelled.
        */
       public java.util.concurrent.CompletionStage<akka.Done> close() {
-        return channel.closeCS() ;
+        if (isChannelOwned) {
+          return channel.closeCS();
+        } else {
+          throw new GrpcClientCloseException();
+        }
       }
 
      /**
