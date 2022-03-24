@@ -10,5 +10,6 @@ ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ClientSta
 # internal: Removed ClientState object only used by ClientState auxiliary constructor.
 ProblemFilters.exclude[MissingClassProblem]("akka.grpc.internal.ClientState$")
 
-# Removed constructor from generated default client that should only be called by apply method of generated service client.
-ProblemFilters.exclude[IncompatibleMethTypeProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient.this")
+# Generated: Made default service client a private inner class of servie client object.
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient")
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient$")
