@@ -21,17 +21,31 @@ final class GrpcChannel private (
 
   Grpc(sys).registerChannel(this)
 
+  /**
+   * Java API: Initiates a shutdown in which preexisting and new calls are cancelled.
+   */
   def closeCS(): CompletionStage[Done] =
     close().toJava
 
+  /**
+   * Java API: Returns a CompletionStage that completes successfully when channel is shut down via close(),
+   * or exceptionally if connection cannot be established or reestablished after maxConnectionAttempts.
+   */
   def closedCS(): CompletionStage[Done] =
     closed().toJava
 
+  /**
+   * Scala API: Initiates a shutdown in which preexisting and new calls are cancelled.
+   */
   def close(): Future[akka.Done] = {
     Grpc(sys).deregisterChannel(this)
     ChannelUtils.close(internalChannel)
   }
 
+  /**
+   * Scala API: Returns a Future that completes successfully when channel is shut down via close()
+   * or exceptionally if a connection cannot be established or reestablished after maxConnectionAttempts.
+   */
   def closed(): Future[akka.Done] =
     internalChannel.done
 }
