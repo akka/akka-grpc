@@ -17,7 +17,22 @@ reconnect is infinite and configurable via `GrpcClientSettings`'s `connectionAtt
 
 The client offers a method `closed()` that returns a @scala[`Future`]@java[`CompletionStage`] 
 that will complete once the client is explicitly closed after invoking `close()`.  The returned @scala[`Future`]@java[`CompletionStage`]
-will complete with a failure when the maximum number of `connectionAttempts` (which causes a shutdown). 
+will complete with a failure when the maximum number of `connectionAttempts` (which causes a shutdown).
+
+## Shared Channels
+
+By default, each instance of a generated client creates a separate HTTP connection to the server. If the server
+supports multiple services, you may want to allow multiple generated clients to share a single connection.
+
+To do this, create a @apidoc[GrpcChannel] by passing @apidoc[GrpcClientSettings] to the apply method. You can then
+use the GrpcChannel instance to create multiple generated clients; each client will use the provided channel to 
+communicate with the server.
+
+When using a shared channel, the client lifecycle changes slightly. Like the generated client, `GrpcChannel` offers 
+`close` and `closed` methods; these can be used to explicitly close the connection to the server and detect when the
+connection has been closed or shutdown due to errors, respectively. When you are done communicating with the server,
+you should call `close` on the channel, rather than the individual clients. Calling `close` on a generated client 
+that was created with a shared channel will throw a @apidoc[GrpcClientCloseException].
 
 ## Load balancing
 
