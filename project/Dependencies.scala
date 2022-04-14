@@ -8,17 +8,19 @@ object Dependencies {
   object Versions {
     val scala212 = "2.12.15"
     val scala213 = "2.13.8"
+    val scala3 = "3.1.2"
 
     // the order in the list is important because the head will be considered the default.
-    val CrossScalaForLib = Seq(scala212, scala213)
+    val CrossScalaForLib = Seq(scala212, scala213, scala3)
     val CrossScalaForPlugin = Seq(scala212)
 
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.6.9"
+    val akka = "2.6.19"
     val akkaBinary = "2.6"
-    val akkaHttp = "10.2.8"
+    // with https://github.com/akka/akka-http/issues/3891
+    val akkaHttp = "10.2.9+59-85f343b0-SNAPSHOT"
     val akkaHttpBinary = "10.2"
 
     val grpc = "1.45.1" // checked synced by VersionSyncCheckPlugin
@@ -27,7 +29,7 @@ object Dependencies {
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.19.4" // checked synced by VersionSyncCheckPlugin
 
-    val scalaTest = "3.1.4"
+    val scalaTest = "3.2.11"
 
     val maven = "3.8.5"
   }
@@ -39,6 +41,7 @@ object Dependencies {
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
 
+    // FIXME with https://github.com/lomigmegard/akka-http-cors/issues/223
     val akkaHttpCors = "ch.megard" %% "akka-http-cors" % "1.1.3" // Apache v2
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
@@ -67,7 +70,7 @@ object Dependencies {
   object Test {
     final val Test = sbt.Test
     val scalaTest = "org.scalatest" %% "scalatest" % Versions.scalaTest % "test" // Apache V2
-    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-12" % (Versions.scalaTest + ".0") % "test" // Apache V2
+    val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-13" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
