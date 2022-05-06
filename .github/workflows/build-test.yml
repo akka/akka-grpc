@@ -89,7 +89,7 @@ jobs:
         uses: coursier/cache-action@v6.2
 
       - name: Compile and test for JDK ${{ matrix.JABBA_JDK }}, Scala ${{ matrix.SCALA_VERSION }}
-        run: sbt +~${{ matrix.SCALA_VERSION }} test
+        run: sbt "+~ ${{ matrix.SCALA_VERSION }} test"
 
 
   test-sbt:
@@ -120,7 +120,7 @@ jobs:
         uses: coursier/cache-action@v6.2
 
       - name: Scripted ${{ matrix.test-set }}
-        run: cp .jvmopts-ghactions .jvmopts && sbt +~${{ matrix.scala-version }} "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
+        run: cp .jvmopts-ghactions .jvmopts && sbt "+~ ${{ matrix.scala-version }} \"sbt-akka-grpc/scripted ${{ matrix.test-set }}/*\""
 
   test-gradle:
     name: Gradle tests

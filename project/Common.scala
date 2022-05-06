@@ -92,7 +92,7 @@ object Common extends AutoPlugin {
       val requestedVersion = Dependencies.Versions.CrossScalaForLib.filter(_.startsWith(requestedVersionPrefix)).head
 
       def run(state: State, command: String): State = {
-        val parsed = s"++ $requestedVersion $command".foldLeft(Cross.switchVersion.parser(state))((p, i) => p.derive(i))
+        val parsed = command.foldLeft(state.combinedParser)((p, i) => p.derive(i))
         parsed.resultEmpty match {
           case e: sbt.internal.util.complete.Parser.Failure =>
             throw new IllegalStateException(e.errors.mkString(", "))
@@ -100,7 +100,7 @@ object Common extends AutoPlugin {
             v()
         }
       }
-      val commands = args.tail
+      val commands = s"++$requestedVersion" +: args.tail
       commands.foldLeft(initialState)(run)
     }
   }
