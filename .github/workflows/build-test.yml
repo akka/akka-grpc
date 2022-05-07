@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        SCALA_VERSION: [2.12.15, 2.13.8]
+        SCALA_VERSION: [2.12, 2.13]
         # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
         JABBA_JDK: [1.8.0-275, 1.11]
     steps:
@@ -89,7 +89,7 @@ jobs:
         uses: coursier/cache-action@v6.2
 
       - name: Compile and test for JDK ${{ matrix.JABBA_JDK }}, Scala ${{ matrix.SCALA_VERSION }}
-        run: sbt ++${{ matrix.SCALA_VERSION }} test
+        run: sbt "+~ ${{ matrix.SCALA_VERSION }} test"
 
 
   test-sbt:
@@ -100,11 +100,11 @@ jobs:
       matrix:
         include:
           - test-set: gen-scala-server
-            scala-version: 2.12.15
+            scala-version: 2.12
           - test-set: gen-java
-            scala-version: 2.12.15
+            scala-version: 2.12
           - test-set: scala3
-            scala-version: 2.13.8
+            scala-version: 2.13
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -120,7 +120,7 @@ jobs:
         uses: coursier/cache-action@v6.2
 
       - name: Scripted ${{ matrix.test-set }}
-        run: cp .jvmopts-ghactions .jvmopts && sbt ++${{ matrix.scala-version }} "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
+        run: cp .jvmopts-ghactions .jvmopts && sbt "+~ ${{ matrix.scala-version }} \"sbt-akka-grpc/scripted ${{ matrix.test-set }}/*\""
 
   test-gradle:
     name: Gradle tests

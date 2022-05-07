@@ -20,6 +20,7 @@ object Common extends AutoPlugin {
 
   override def globalSettings =
     Seq(
+      commands += switchVersion,
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
@@ -77,4 +78,30 @@ object Common extends AutoPlugin {
     crossScalaVersions := Seq(scala212, scala213),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
+
+  // So we can `sbt "+~ 3 clean compile"`
+  //
+  // The advantage over `++` is twofold:
+  // * `++` also requires the patch version, `+~` finds the first supported Scala version that matches the prefix (if any)
+  // * When subprojects need to be excluded, ++ needs to be specified for each command
+  //
+  // So the `++` equivalent of the above example is `sbt "++ 3.1.1-RC1 clean" "++ 3.1.1-RC1 compile"`
+  val switchVersion: Command = Command.args("+~", "<version> <args>") { (initialState: State, args: Seq[String]) =>
+    {
+      val requestedVersionPrefix = args.head
+      val requestedVersion = Dependencies.Versions.CrossScalaForLib.filter(_.startsWith(requestedVersionPrefix)).head
+
+      def run(state: State, command: String): State = {
+        val parsed = command.foldLeft(state.combinedParser)((p, i) => p.derive(i))
+        parsed.resultEmpty match {
+          case e: sbt.internal.util.complete.Parser.Failure =>
+            throw new IllegalStateException(e.errors.mkString(", "))
+          case sbt.internal.util.complete.Parser.Value(v) =>
+            v()
+        }
+      }
+      val commands = s"++$requestedVersion" +: args.tail
+      commands.foldLeft(initialState)(run)
+    }
+  }
 }
