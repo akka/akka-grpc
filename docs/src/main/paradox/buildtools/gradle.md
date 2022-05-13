@@ -51,7 +51,7 @@ To additionally generate server "power APIs" that have access to request metadat
 
 ## Protoc version
 
-Default version of `protoc` compiler is 3.4.0.
+Default version of `protoc` compiler is @var[protobuf.version].
 The version and the location of `protoc` can be changed using `protobuf-gradle-plugin` [settings](https://github.com/google/protobuf-gradle-plugin#locate-external-executables).
 
 ## Proto source directory

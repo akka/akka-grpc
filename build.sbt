@@ -185,6 +185,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
       "akka.version" -> Dependencies.Versions.akka,
       "akka-http.version" -> Dependencies.Versions.akkaHttp,
       "grpc.version" -> Dependencies.Versions.grpc,
+      "protobuf.version" -> Dependencies.Versions.googleProtobuf,
       "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
       "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
       "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
