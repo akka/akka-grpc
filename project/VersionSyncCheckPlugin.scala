@@ -23,11 +23,12 @@ object VersionSyncCheckPlugin extends AutoPlugin {
     grpcVersionSyncCheck := versionSyncCheckImpl(
       "gRPC",
       Dependencies.Versions.grpc,
-      raw"""[Gg][Rr][Pp][Cc].?[Vv]ersion.{1,9}(\d+\.\d+\.\d+)""".r.unanchored,
+      raw"""(?i)grpc.?(?i)version.{1,9}(\d+\.\d+\.\d+)""".r.unanchored,
       Seq(
         Paths.get("plugin-tester-java/pom.xml"),
         Paths.get("plugin-tester-scala/pom.xml"),
-        Paths.get("sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt"))).value,
+        Paths.get("sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt"),
+        Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPluginExtension.groovy"))).value,
     googleProtobufVersionSyncCheck := versionSyncCheckImpl(
       "Google Protobuf",
       Dependencies.Versions.googleProtobuf,
