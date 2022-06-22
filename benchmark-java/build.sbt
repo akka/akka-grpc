@@ -5,7 +5,7 @@ run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+Prin
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.46.0" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.47.0" // checked synced by VersionSyncCheckPlugin
 
 val runtimeProject = ProjectRef(file("../"), "akka-grpc-runtime")
 
@@ -23,10 +23,10 @@ val root = project
   .settings(
     libraryDependencies ++= Seq(
       "io.grpc" % "grpc-testing" % grpcVersion,
-      "org.hdrhistogram" % "HdrHistogram" % "2.1.10",
-      "org.apache.commons" % "commons-math3" % "3.6",
-      "org.scalatest" %% "scalatest" % "3.1.2" % "test",
-      "org.scalatestplus" %% "junit-4-12" % "3.1.2.0" % "test"),
+      "org.hdrhistogram" % "HdrHistogram" % "2.1.12",
+      "org.apache.commons" % "commons-math3" % "3.6.1",
+      "org.scalatest" %% "scalatest" % "3.2.12" % "test",
+      "org.scalatestplus" %% "junit-4-12" % "3.2.2.0" % "test"),
     PB.artifactResolver := PB.artifactResolver.dependsOn(codeGenProject / Compile / publishLocal).value)
 
 compile / javacOptions += "-Xlint:deprecation"

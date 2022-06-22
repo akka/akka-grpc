@@ -16,16 +16,16 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.6.9"
+    val akka = "2.6.19"
     val akkaBinary = "2.6"
-    val akkaHttp = "10.2.8"
+    val akkaHttp = "10.2.9"
     val akkaHttpBinary = "10.2"
 
-    val grpc = "1.46.0" // checked synced by VersionSyncCheckPlugin
+    val grpc = "1.47.0" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "3.20.1" // checked synced by VersionSyncCheckPlugin
+    val googleProtobuf = "3.21.1" // checked synced by VersionSyncCheckPlugin
 
     val scalaTest = "3.1.4"
 

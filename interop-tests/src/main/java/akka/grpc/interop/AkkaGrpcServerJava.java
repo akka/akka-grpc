@@ -128,7 +128,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
     SSLContext context = SSLContext.getInstance("TLS");
     context.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
 
-    return HttpsConnectionContext.https(context);
+    return HttpsConnectionContext.httpsServer(context);
   }
 
 }
