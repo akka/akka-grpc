@@ -8,7 +8,7 @@ enablePlugins(AkkaGrpcPlugin)
 
 dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.6.5"
 
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy  := {
   // https://github.com/akka/akka/issues/29456
   case PathList("google", "protobuf", _) => MergeStrategy.discard
   case PathList("google", "protobuf", _, _) => MergeStrategy.discard
