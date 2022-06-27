@@ -48,7 +48,7 @@ object GrpcEntityHelpers {
   import scala.annotation.unchecked.uncheckedVariance
   //A faster implementation of concat that does not allocate so much
   private def concatCheap[U, Mat2](that: Graph[SourceShape[U], Mat2]): Graph[FlowShape[U @uncheckedVariance, U], Mat2] =
-    GraphDSL.create(that) { implicit b => r =>
+    GraphDSL.createGraph(that) { implicit b => r =>
       import GraphDSL.Implicits._
       val merge = b.add(new Concat[U](2))
       r ~> merge.in(1)
