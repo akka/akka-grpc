@@ -128,12 +128,17 @@ object @{serviceName}Handler {
           .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(system, writer))
       ).getOrElse(unsupportedMediaType)
 
-      Function.unlift((req: model.HttpRequest) => req.uri.path match {
+
+
+      val httpHandler = akka.grpc.HttpApi.serve(@{service.name}.descriptor, handle _)
+
+      val grpcHandler = Function.unlift((req: model.HttpRequest) => req.uri.path match {
         case model.Uri.Path.Slash(model.Uri.Path.Segment(`prefix`, model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)))) =>
           Some(handle(spi.onRequest(prefix, method, req), method))
         case _ =>
           None
       })
+      httpHandler orElse grpcHandler
     }
   }
 }

@@ -79,6 +79,7 @@ object Dependencies {
 
   object Protobuf {
     val protobufJava = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf
+    val protobufJavaUtil = "com.google.protobuf" % "protobuf-java-util" % Versions.googleProtobuf
     val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
   }
 
@@ -100,6 +101,8 @@ object Dependencies {
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+    Protobuf.protobufJavaUtil,
+    Protobuf.googleCommonProtos,
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,
