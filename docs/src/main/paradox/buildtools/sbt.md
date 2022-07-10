@@ -79,7 +79,7 @@ you can configure them like this:
 ```scala
   .settings(
     inConfig(Compile)(Seq(
-      excludeFilter in PB.generate := "descriptor.proto"
+      PB.generate / excludeFilter := "descriptor.proto"
     ))
   )
 ```
@@ -90,7 +90,7 @@ By default protobuf files are looked for in `src/main/protobuf` (and `src/main/p
 You can configure where your `.proto` files are located like this:
 
 ```scala
-// "sourceDirectory in Compile" is "src/main", so this adds "src/main/proto_custom":
+// "Compile / sourceDirectory" is "src/main", so this adds "src/main/proto_custom":
 inConfig(Compile)(Seq(
   PB.protoSources += sourceDirectory.value / "proto_custom"
 ))
