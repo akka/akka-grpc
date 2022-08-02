@@ -1,0 +1,3 @@
+> compile
+
+$ exists target/scala-2.12/akka-grpc/main/helloworld/Helloworld.java

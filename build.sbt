@@ -131,11 +131,11 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
-    PB.protocVersion := Dependencies.Versions.googleProtobuf
+    PB.protocVersion := Dependencies.Versions.googleProtobuf,
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
-    // sbt scripted test
-  )
+    // sbt scripted test. At least skip scaladoc generation though.
+    Compile / doc := (Compile / doc / target).value)
   .settings(inConfig(Test)(Seq(
     reStart / mainClass := (Test / run / mainClass).value, {
       import spray.revolver.Actions._

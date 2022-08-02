@@ -16,11 +16,12 @@ case class Method(
     outputType: Descriptor,
     outputStreaming: Boolean,
     options: com.google.protobuf.DescriptorProtos.MethodOptions,
-    comment: Option[String] = None)(implicit ops: DescriptorImplicits) {
+    comment: Option[String] = None,
+    methodDescriptor: MethodDescriptor)(implicit ops: DescriptorImplicits) {
   import Method._
 
-  def deserializer = Serializer(inputType)
-  def serializer = Serializer(outputType)
+  def deserializer = Serializer(methodDescriptor, inputType)
+  def serializer = Serializer(methodDescriptor, outputType)
 
   def unmarshal =
     if (inputStreaming) "GrpcMarshalling.unmarshalStream"
@@ -67,7 +68,8 @@ object Method {
       descriptor.getOutputType,
       descriptor.toProto.getServerStreaming,
       descriptor.getOptions,
-      descriptor.comment)
+      descriptor.comment,
+      descriptor)
   }
 
   private def methodName(name: String) =
