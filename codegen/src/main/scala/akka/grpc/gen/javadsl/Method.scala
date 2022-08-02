@@ -16,15 +16,16 @@ final case class Method(
     inputStreaming: Boolean,
     outputType: Descriptor,
     outputStreaming: Boolean,
-    comment: Option[String] = None) {
+    comment: Option[String] = None,
+    method: MethodDescriptor) {
   import Method._
 
   require(
     !ReservedWords.contains(name),
     s"The method name `$name` is a reserved word in Java, please change it in your proto")
 
-  def deserializer = Serializer(inputType)
-  def serializer = Serializer(outputType)
+  def deserializer = Serializer(method, inputType)
+  def serializer = Serializer(method, outputType)
 
   def unmarshal =
     if (inputStreaming) "GrpcMarshalling.unmarshalStream"
@@ -72,7 +73,8 @@ object Method {
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
       descriptor.toProto.getServerStreaming,
-      comment)
+      comment,
+      descriptor)
   }
 
   private def methodName(name: String) =
