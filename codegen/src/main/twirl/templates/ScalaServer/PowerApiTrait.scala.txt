@@ -7,7 +7,6 @@
 @akka.grpc.gen.Constants.DoNotEditComment
 package @service.packageName
 
-import akka.grpc.scaladsl.Metadata
 import akka.grpc.AkkaGrpcGenerated
 
 /*
@@ -16,6 +15,6 @@ import akka.grpc.AkkaGrpcGenerated
 @@AkkaGrpcGenerated
 trait @{service.name}PowerApi {
   @for(method <- service.methods) {
-  def @{method.nameSafe}(in: @method.parameterType, metadata: Metadata): @method.returnType
+  def @{method.nameSafe}(in: @method.parameterType, metadata: akka.grpc.scaladsl.Metadata): @method.returnType
   }
 }
