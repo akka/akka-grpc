@@ -4,23 +4,25 @@
 
 package akka.grpc.internal
 
+import akka.NotUsed
 import akka.grpc.GrpcProtocol._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, ChunkStreamPart }
+import akka.stream.scaladsl.Flow
 import akka.util.{ ByteString, ByteStringBuilder }
 import io.grpc.{ Status, StatusException }
-
 import scala.collection.immutable
 
 abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol(subType) {
   protected def postEncode(frame: ByteString): ByteString
-  protected def preDecode(frame: ByteString): ByteString
+  protected def preDecodeStrict(frame: ByteString): ByteString
+  protected def preDecodeFlow: Flow[ByteString, ByteString, NotUsed]
 
   override protected def writer(codec: Codec): GrpcProtocolWriter =
     AbstractGrpcProtocol.writer(this, codec, frame => encodeFrame(codec, frame), encodeDataToResponse(codec))
 
   override protected def reader(codec: Codec): GrpcProtocolReader =
-    AbstractGrpcProtocol.reader(codec, decodeFrame, preDecode)
+    AbstractGrpcProtocol.reader(codec, decodeFrame, preDecodeStrict, preDecodeFlow)
 
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =
     Chunk(postEncode(encodeFrameToBytes(codec, frame)))
@@ -81,10 +83,11 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
  */
 object GrpcProtocolWeb extends GrpcProtocolWebBase("grpc-web") {
 
-  override final def preDecode(frame: ByteString): ByteString = frame
-
   override final def postEncode(frame: ByteString): ByteString = frame
 
+  override final def preDecodeStrict(frame: ByteString): ByteString = frame
+
+  override final def preDecodeFlow: Flow[ByteString, ByteString, NotUsed] = Flow.apply
 }
 
 /**
@@ -96,5 +99,7 @@ object GrpcProtocolWebText extends GrpcProtocolWebBase("grpc-web-text") {
 
   override final def postEncode(framed: ByteString): ByteString = framed.encodeBase64
 
-  override final def preDecode(frame: ByteString): ByteString = frame.decodeBase64
+  override final def preDecodeStrict(frame: ByteString): ByteString = frame.decodeBase64
+
+  override final def preDecodeFlow: Flow[ByteString, ByteString, NotUsed] = DecodeBase64()
 }

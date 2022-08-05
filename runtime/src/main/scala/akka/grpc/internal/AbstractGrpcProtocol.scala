@@ -110,11 +110,12 @@ object AbstractGrpcProtocol {
   def reader(
       codec: Codec,
       decodeFrame: (Int, ByteString) => Frame,
-      flowAdapter: ByteString => ByteString = null): GrpcProtocolReader = {
-    val strictAdapter: ByteString => ByteString = if (flowAdapter eq null) identity else flowAdapter
+      preDecodeStrict: ByteString => ByteString = null,
+      preDecodeFlow: Flow[ByteString, ByteString, NotUsed] = null): GrpcProtocolReader = {
+    val strictAdapter: ByteString => ByteString = if (preDecodeStrict eq null) identity else preDecodeStrict
     val adapter: Flow[ByteString, Frame, NotUsed] => Flow[ByteString, Frame, NotUsed] =
-      if (flowAdapter eq null) identity
-      else x => Flow[ByteString].map(flowAdapter).via(x)
+      if (preDecodeFlow eq null) identity
+      else x => Flow[ByteString].via(preDecodeFlow).via(x)
 
     // strict decoder
     def decoder(bs: ByteString): ByteString = try {

@@ -114,6 +114,7 @@ object Dependencies {
     Compile.collectionCompat,
     Test.akkaDiscoveryConfig,
     Test.akkaTestkit,
+    Test.akkaStreamTestkit,
     Test.scalaTest,
     Test.scalaTestPlusJunit)
 
