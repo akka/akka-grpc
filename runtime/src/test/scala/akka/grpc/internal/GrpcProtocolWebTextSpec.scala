@@ -34,7 +34,7 @@ class GrpcProtocolWebTextSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
 
     "decode a fragmented frame" in {
       for (i <- Range(1, 8)) {
-        Source(chunk.data.grouped(i).to[scala.collection.immutable.Iterable])
+        Source(chunk.data.grouped(i).toList)
           .via(reader.frameDecoder)
           .runWith(TestSink[Frame]())
           .request(1)

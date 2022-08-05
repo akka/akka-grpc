@@ -29,7 +29,7 @@ class DecodeBase64Spec extends TestKit(ActorSystem()) with AnyWordSpecLike {
     "handle a chunked stream" in {
       val encodedData = data.encodeBase64
       for (i <- Range(1, 12)) {
-        val chunks = encodedData.grouped(i).to[scala.collection.immutable.Seq]
+        val chunks = encodedData.grouped(i).toList
         Source(chunks)
           .via(DecodeBase64())
           .fold(ByteString.empty)(_.concat(_))
@@ -42,7 +42,7 @@ class DecodeBase64Spec extends TestKit(ActorSystem()) with AnyWordSpecLike {
 
     "handle a chunked stream with mid-stream flushes" in {
       for (i <- Range(1, 9)) {
-        val chunks = data.grouped(i).to[scala.collection.immutable.Seq]
+        val chunks = data.grouped(i).toList
         Source(chunks.map(_.encodeBase64))
           .via(DecodeBase64())
           .runWith(TestSink[ByteString]())
