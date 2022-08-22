@@ -8,4 +8,4 @@ To try out Akka gRPC and understand how the development process might work out, 
 
 This short video on YouTube shows how easy it is to create a gRPC server with Akka gRPC.
 
-[![Introduction: Akka gRPC](assets/intro-video.png)](http://www.youtube.com/watch?v=kXN30ttsf-I "Watch video on YouTube")
+[![Introduction: Akka gRPC](assets/intro-video.png)](https://www.youtube.com/watch?v=kXN30ttsf-I "Watch video on YouTube")
