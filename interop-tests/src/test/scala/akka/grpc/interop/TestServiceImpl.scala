@@ -48,7 +48,7 @@ class TestServiceImpl(implicit sys: ActorSystem) extends TestService {
   override def unaryCall(req: SimpleRequest): Future[SimpleResponse] =
     req.responseStatus match {
       case None =>
-        Future.successful(SimpleResponse(Some(Payload(ByteString.copyFrom(new Array[Byte](req.responseSize))))))
+        Future.successful(SimpleResponse(Some(Payload(body = ByteString.copyFrom(new Array[Byte](req.responseSize))))))
       case Some(requestStatus) =>
         val responseStatus = Status.fromCodeValue(requestStatus.code).withDescription(requestStatus.message)
         //  - Either one of the following works
