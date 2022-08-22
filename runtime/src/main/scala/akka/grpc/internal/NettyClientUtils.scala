@@ -172,23 +172,23 @@ object NettyClientUtils {
    */
   @InternalApi
   private def createNettySslContext(javaSslContext: SSLContext): SslContext = {
-    import io.grpc.netty.shaded.io.netty.handler.ssl._
-    import java.lang.reflect.Field
-
-    // This is a hack for situations where the SSLContext is given.
-    // This approach forces using SslProvider.JDK, which is known not to work
-    // on JDK 1.8.0_252
-
-    // Create a Netty JdkSslContext object with all the correct ciphers, protocol settings, etc initialized.
-    val nettySslContext: JdkSslContext =
-      GrpcSslContexts.configure(GrpcSslContexts.forClient, SslProvider.JDK).build.asInstanceOf[JdkSslContext]
-
-    // Patch the SSLContext value inside the JdkSslContext object
-    val nettySslContextField: Field = classOf[JdkSslContext].getDeclaredField("sslContext")
-    nettySslContextField.setAccessible(true)
-    nettySslContextField.set(nettySslContext, javaSslContext)
-
-    nettySslContext
+    import io.grpc.netty.shaded.io.netty.handler.ssl.{
+      ApplicationProtocolConfig,
+      ClientAuth,
+      IdentityCipherSuiteFilter,
+      JdkSslContext
+    }
+    // See
+    // https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java#L229-L309
+    new JdkSslContext(
+      javaSslContext,
+      /* boolean isClient */ true,
+      /* Iterable<String> ciphers */ null, // use JDK defaults (null is accepted as indicated in constructor Javadoc)
+      IdentityCipherSuiteFilter.INSTANCE,
+      /* ApplicationProtocolConfig apn */ ApplicationProtocolConfig.DISABLED, // use JDK default (null would also be acceptable, DISABLED config will select the NONE protocol and thus the JdkDefaultApplicationProtocolNegotiator)
+      ClientAuth.NONE, // server-only option, which is ignored as isClient=true (as indicated in constructor Javadoc)
+      /* String[] protocols */ null, // use JDK defaults (null is accepted as indicated in constructor Javadoc)
+      /* boolean startTls */ false)
   }
 
   /**
