@@ -55,7 +55,7 @@ object Dependencies {
       .exclude("io.grpc", "grpc-alts")
       .exclude("io.grpc", "grpc-xds")
 
-    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.36"
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.0"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
