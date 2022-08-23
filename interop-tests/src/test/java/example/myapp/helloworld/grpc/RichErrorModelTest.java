@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.scalatestplus.junit.JUnitSuite;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static org.junit.Assert.assertEquals;
@@ -31,20 +30,16 @@ public class RichErrorModelTest extends JUnitSuite {
         return com.google.protobuf.any.Any.of(javaPbSource.getTypeUrl(), javaPbSource.getValue());
     }
 
-    private ServerBinding run(ActorSystem sys) throws Exception {
+    private CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
 
         GreeterService impl = new RichErrorImpl();
 
         akka.japi.function.Function<HttpRequest, CompletionStage<HttpResponse>> service = GreeterServiceHandlerFactory.create(impl, sys);
-        CompletionStage<ServerBinding> bound = Http
+
+        return Http
                 .get(sys)
                 .newServerAt("127.0.0.1", 8090)
                 .bind(service);
-
-        bound.thenAccept(binding -> {
-            System.out.println("gRPC server bound to: " + binding.localAddress());
-        });
-        return bound.toCompletableFuture().get();
     }
 
     @Test

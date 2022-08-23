@@ -6,7 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.GrpcClientSettings
+import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.scaladsl.{ Sink, Source }
@@ -27,7 +27,15 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
-class RichErrorModelSpec
+/**
+ * Shows how to use the 'rich error model'.
+ *
+ * This abstract class shows how to use it on the client side.
+ * The two implementations exercise it against a 'manually'
+ * implemented server and against a server that uses our nicer
+ * API's.
+ */
+abstract class RichErrorModelSpec
     extends TestKit(ActorSystem("RichErrorSpec"))
     with AnyWordSpecLike
     with Matchers
@@ -39,48 +47,10 @@ class RichErrorModelSpec
   implicit val sys: ActorSystem = system
   implicit val ec: ExecutionContext = sys.dispatcher
 
-  object RichErrorImpl extends GreeterService {
-
-    // #rich_error_model_unary
-    private def toJavaProto(scalaPbSource: com.google.protobuf.any.Any): com.google.protobuf.Any = {
-      val javaPbOut = com.google.protobuf.Any.newBuilder
-      javaPbOut.setTypeUrl(scalaPbSource.typeUrl)
-      javaPbOut.setValue(scalaPbSource.value)
-      javaPbOut.build
-    }
-
-    private def statusRuntimeEx = {
-      val status: Status = Status
-        .newBuilder()
-        .setCode(Code.INVALID_ARGUMENT.getNumber)
-        .setMessage("What is wrong?")
-        .addDetails(toJavaProto(Any.pack(new LocalizedMessage("EN", "The password!"))))
-        .build()
-      StatusProto.toStatusRuntimeException(status)
-    }
-
-    def sayHello(in: HelloRequest): Future[HelloReply] = {
-      Future.failed(statusRuntimeEx)
-    }
-    // #rich_error_model_unary
-
-    def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
-      Source.failed(statusRuntimeEx)
-    }
-
-    override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
-      in.runWith(Sink.seq).flatMap { _ =>
-        Future.failed(statusRuntimeEx)
-      }
-    }
-
-    override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = {
-      Source.failed(statusRuntimeEx)
-    }
-  }
+  def greeterServiceImpl(sys: ActorSystem): GreeterService
 
   val service: HttpRequest => Future[HttpResponse] =
-    GreeterServiceHandler(RichErrorImpl)
+    GreeterServiceHandler(greeterServiceImpl(sys))
 
   val bound =
     Http(system).newServerAt(interface = "127.0.0.1", port = 0).bind(service).futureValue
@@ -96,6 +66,7 @@ class RichErrorModelSpec
 
       // #client_request
       val richErrorResponse = client.sayHello(HelloRequest("Bob")).failed.futureValue
+
       richErrorResponse match {
         case ex: StatusRuntimeException =>
           val status: com.google.rpc.Status = StatusProto.fromStatusAndTrailers(ex.getStatus, ex.getTrailers)
@@ -205,4 +176,99 @@ class RichErrorModelSpec
   }
 
   override def afterAll(): Unit = system.terminate().futureValue
+}
+
+/**
+ * Test the rich error model implementing the rich errors 'manually'
+ */
+class ManualRichErrorModelSpec extends RichErrorModelSpec {
+  override def greeterServiceImpl(sys: ActorSystem): GreeterService = {
+    new GreeterService {
+      implicit val system: ActorSystem = sys
+
+      // #rich_error_model_unary
+      private def toJavaProto(scalaPbSource: com.google.protobuf.any.Any): com.google.protobuf.Any = {
+        val javaPbOut = com.google.protobuf.Any.newBuilder
+        javaPbOut.setTypeUrl(scalaPbSource.typeUrl)
+        javaPbOut.setValue(scalaPbSource.value)
+        javaPbOut.build
+      }
+
+      private def statusRuntimeEx = {
+        val status: Status = Status
+          .newBuilder()
+          .setCode(Code.INVALID_ARGUMENT.getNumber)
+          .setMessage("What is wrong?")
+          .addDetails(toJavaProto(Any.pack(new LocalizedMessage("EN", "The password!"))))
+          .build()
+        StatusProto.toStatusRuntimeException(status)
+      }
+
+      def sayHello(in: HelloRequest): Future[HelloReply] = {
+        Future.failed(statusRuntimeEx)
+      }
+      // #rich_error_model_unary
+
+      def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
+        Source.failed(statusRuntimeEx)
+      }
+
+      override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
+        in.runWith(Sink.seq).flatMap { _ =>
+          Future.failed(statusRuntimeEx)
+        }
+      }
+
+      override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = {
+        Source.failed(statusRuntimeEx)
+      }
+    }
+  }
+}
+
+/**
+ * Test the rich error model implementing the rich errors with the nicer API
+ */
+class NativeRichErrorModelSpec extends RichErrorModelSpec {
+  override def greeterServiceImpl(sys: ActorSystem): GreeterService = {
+    new GreeterService {
+      implicit val system: ActorSystem = sys
+
+      // #native_rich_error_model_unary
+      def sayHello(in: HelloRequest): Future[HelloReply] = {
+        Future.failed(
+          GrpcServiceException(
+            Code.INVALID_ARGUMENT,
+            "What is wrong?",
+            Seq(new LocalizedMessage("EN", "The password!"))))
+      }
+      // #native_rich_error_model_unary
+
+      def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
+        Source.failed(
+          GrpcServiceException(
+            Code.INVALID_ARGUMENT,
+            "What is wrong?",
+            Seq(new LocalizedMessage("EN", "The password!"))))
+      }
+
+      override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): Future[HelloReply] = {
+        in.runWith(Sink.seq).flatMap { _ =>
+          Future.failed(
+            GrpcServiceException(
+              Code.INVALID_ARGUMENT,
+              "What is wrong?",
+              Seq(new LocalizedMessage("EN", "The password!"))))
+        }
+      }
+
+      override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] = {
+        Source.failed(
+          GrpcServiceException(
+            Code.INVALID_ARGUMENT,
+            "What is wrong?",
+            Seq(new LocalizedMessage("EN", "The password!"))))
+      }
+    }
+  }
 }

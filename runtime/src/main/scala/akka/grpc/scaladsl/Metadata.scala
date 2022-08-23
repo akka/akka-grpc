@@ -4,7 +4,7 @@
 
 package akka.grpc.scaladsl
 
-import akka.annotation.{ ApiMayChange, DoNotInherit }
+import akka.annotation.{ ApiMayChange, DoNotInherit, InternalApi }
 import akka.util.ByteString
 
 /**
@@ -15,7 +15,11 @@ import akka.util.ByteString
 @ApiMayChange
 @DoNotInherit trait Metadata {
 
-  val raw: Option[io.grpc.Metadata] = None
+  /**
+   * INTERNAL API
+   */
+  @InternalApi
+  private[grpc] val raw: Option[io.grpc.Metadata] = None
 
   /**
    * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence

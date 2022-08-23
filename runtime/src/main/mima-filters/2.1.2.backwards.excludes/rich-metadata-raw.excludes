@@ -1,3 +1,0 @@
-# Changes in classes marked as internal
-ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.akka$grpc$scaladsl$Metadata$_setter_$raw_=")
-ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.raw")

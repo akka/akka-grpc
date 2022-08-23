@@ -10,7 +10,6 @@ import akka.stream.javadsl.Source;
 import com.google.rpc.Code;
 import com.google.rpc.error_details.LocalizedMessage;
 import scala.collection.JavaConverters;
-import scala.collection.SeqLike;
 import scalapb.GeneratedMessage;
 
 import java.util.ArrayList;
