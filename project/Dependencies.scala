@@ -104,6 +104,7 @@ object Dependencies {
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
     Test.akkaTestkit,
+    Test.akkaStreamTestkit,
     Test.scalaTest,
     Test.scalaTestPlusJunit)
 
