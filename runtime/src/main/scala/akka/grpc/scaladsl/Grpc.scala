@@ -10,28 +10,28 @@ import scala.jdk.CollectionConverters._
 import akka.Done
 import akka.actor.{ CoordinatedShutdown, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import akka.annotation.InternalApi
-import akka.grpc.internal.ClientState
 import java.util.concurrent.ConcurrentHashMap
 
 import akka.event.Logging
+import akka.grpc.GrpcChannel
 
 /** INTERNAL API */
 @InternalApi
 private[grpc] final class GrpcImpl(system: ExtendedActorSystem) extends Extension {
-  private val clients = new ConcurrentHashMap[ClientState, Unit]
+  private val channels = new ConcurrentHashMap[GrpcChannel, Unit]
 
-  CoordinatedShutdown(system).addTask("before-actor-system-terminate", "close-grpc-clients") { () =>
+  CoordinatedShutdown(system).addTask("before-actor-system-terminate", "close-grpc-channels") { () =>
     implicit val ec = system.dispatcher
     Future
       .sequence(
-        clients
+        channels
           .keySet()
           .asScala
-          .map(client =>
-            client.close().recover {
+          .map(channel =>
+            channel.close().recover {
               case e =>
                 val log = Logging(system, getClass)
-                log.warning("Failed to gracefully close {}, proceeding with shutdown anyway. {}", client, e)
+                log.warning("Failed to gracefully close {}, proceeding with shutdown anyway. {}", channel, e)
                 Done
             }))
       .map(_ => Done)
@@ -39,13 +39,14 @@ private[grpc] final class GrpcImpl(system: ExtendedActorSystem) extends Extensio
 
   /** INTERNAL API */
   @InternalApi
-  def registerClient(client: ClientState): Unit =
-    clients.put(client, ())
+  def registerChannel(channel: GrpcChannel): Unit =
+    channels.put(channel, ())
 
   /** INTERNAL API */
   @InternalApi
-  def deregisterClient(client: ClientState): Unit =
-    clients.remove(client)
+  def deregisterChannel(channel: GrpcChannel): Unit =
+    channels.remove(channel)
+
 }
 
 /** INTERNAL API */

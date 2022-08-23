@@ -1,0 +1,15 @@
+# InternalApi: Removed ChannelUtils.closeCS method, unused since 31bb602.
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ChannelUtils.closeCS")
+
+# InternalApi: Added private modifier to ClientState primary constructor only called by auxiliary constructor.
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ClientState.this")
+
+# internal: Removed createPool method only called by a ClientState auxiliary constructor.
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.ClientState.createPool")
+
+# internal: Removed ClientState object only used by ClientState auxiliary constructor.
+ProblemFilters.exclude[MissingClassProblem]("akka.grpc.internal.ClientState$")
+
+# Generated: Made default service client a private inner class of servie client object.
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient")
+ProblemFilters.exclude[MissingClassProblem]("grpc.reflection.v1alpha.reflection.DefaultServerReflectionClient$")

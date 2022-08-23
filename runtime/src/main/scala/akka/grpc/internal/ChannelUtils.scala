@@ -4,14 +4,15 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.CompletionStage
-
 import akka.Done
+
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
+import akka.grpc.GrpcClientSettings
+
 import io.grpc.{ ConnectivityState, ManagedChannel }
 
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.{ Future, Promise }
 
 /**
@@ -33,17 +34,25 @@ object ChannelUtils {
    * INTERNAL API
    */
   @InternalApi
-  def close(internalChannel: InternalChannel): Future[Done] = {
-    internalChannel.shutdown()
-    internalChannel.done
+  private[akka] def create(settings: GrpcClientSettings, log: LoggingAdapter)(
+      implicit sys: ClassicActorSystemProvider): InternalChannel = {
+    settings.backend match {
+      case "netty" =>
+        NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher)
+      case "akka-http" =>
+        AkkaHttpClientUtils.createChannel(settings, log)
+      case _ => throw new IllegalArgumentException(s"Unexpected backend [${settings.backend}]")
+    }
   }
 
   /**
    * INTERNAL API
    */
   @InternalApi
-  def closeCS(internalChannel: InternalChannel): CompletionStage[Done] =
-    close(internalChannel).toJava
+  def close(internalChannel: InternalChannel): Future[Done] = {
+    internalChannel.shutdown()
+    internalChannel.done
+  }
 
   /**
    * INTERNAL API
