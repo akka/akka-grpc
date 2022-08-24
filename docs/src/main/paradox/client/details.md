@@ -76,38 +76,9 @@ Java
 
 ## Rich error model
 
-Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no native support for this concept in Akka gRPC. However you can use the following manual approach.
+Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no particular support for consuming such error objects (such as the ones based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model), but you can obtain them 'manually'.
 
-Add the following dependency to receive required classes (that are based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model)):
-
-`sbt`
-:   @@@vars
-```sbt
-libraryDependencies += "io.grpc" % "grpc-protobuf" % "$grpc.version$"
-```
-@@@
-
-`gradle`
-:   @@@vars
-```gradle
-dependencies {
-     implementation 'io.grpc:grpc-protobuf:$grpc.version$'
-}
-```
-@@@
-
-`maven`
-:   @@@vars
-```maven
-<dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-protobuf</artifactId>
-      <version>$grpc.version$</version>
-</dependency>
-```
-@@@
-
-Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`.
+Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`. Then find the details you are looking for based on their `typeUrl` and unpack them:
 
 Scala
 :  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #client_request }
