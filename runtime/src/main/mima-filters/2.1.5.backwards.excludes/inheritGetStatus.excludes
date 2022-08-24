@@ -1,0 +1,2 @@
+# Changes in class marked ApiMayChange
+ProblemFilters.exclude[FinalMethodProblem]("io.grpc.StatusRuntimeException.getStatus")
