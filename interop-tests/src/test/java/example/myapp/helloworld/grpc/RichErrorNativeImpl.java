@@ -9,8 +9,6 @@ import akka.grpc.GrpcServiceException;
 import akka.stream.javadsl.Source;
 import com.google.rpc.Code;
 import com.google.rpc.error_details.LocalizedMessage;
-import scala.collection.JavaConverters;
-import scalapb.GeneratedMessage;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -25,10 +23,10 @@ public class RichErrorNativeImpl implements GreeterService {
         ArrayList<scalapb.GeneratedMessage> ar = new ArrayList<>();
         ar.add(LocalizedMessage.of("EN", "The password!"));
 
-        GrpcServiceException exception = GrpcServiceException.apply(
+        GrpcServiceException exception = GrpcServiceException.create(
                 Code.INVALID_ARGUMENT,
                 "What is wrong?",
-                JavaConverters.asScalaBuffer(ar).toSeq()
+                ar
         );
 
         CompletableFuture<HelloReply> future = new CompletableFuture<>();

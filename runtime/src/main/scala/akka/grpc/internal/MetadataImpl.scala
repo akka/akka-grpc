@@ -5,9 +5,8 @@
 package akka.grpc.internal
 
 import java.util.{ Locale, Optional, List => jList, Map => jMap }
-
 import scala.collection.JavaConverters._
-import scala.collection.immutable
+import scala.collection.{ immutable, mutable }
 import scala.compat.java8.OptionConverters._
 import akka.annotation.InternalApi
 import akka.http.scaladsl.model.HttpHeader
@@ -15,6 +14,7 @@ import akka.japi.Pair
 import akka.util.ByteString
 import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, StringEntry }
 import akka.grpc.javadsl
+import com.google.protobuf.any
 
 @InternalApi private[akka] object MetadataImpl {
   val BINARY_SUFFIX: String = io.grpc.Metadata.BINARY_HEADER_SUFFIX
@@ -84,6 +84,7 @@ import akka.grpc.javadsl
 
 /**
  * This class wraps a mutable Metadata from io.grpc with the Scala Metadata interface.
+ *
  * @param delegate The underlying mutable metadata.
  */
 @InternalApi
@@ -122,6 +123,7 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
 
 /**
  * This class represents metadata as a list of (key, entry) tuples.
+ *
  * @param entries The list of (key, entry) tuples.
  */
 @InternalApi
@@ -148,6 +150,7 @@ class EntryMetadataImpl(entries: List[(String, MetadataEntry)] = Nil) extends Me
 
 /**
  * This class wraps a list of headers from an HttpResponse with the Metadata interface.
+ *
  * @param headers The list of HTTP response headers.
  */
 @InternalApi
@@ -195,10 +198,11 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
 
 /**
  * This class wraps a scaladsl.Metadata instance with the javadsl.Metadata interface.
+ *
  * @param delegate The underlying Scala metadata instance.
  */
 @InternalApi
-class JavaMetadataImpl(delegate: Metadata) extends javadsl.Metadata {
+class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata {
   override def getText(key: String): Optional[String] =
     delegate.getText(key).asJava
 
@@ -221,4 +225,23 @@ class JavaMetadataImpl(delegate: Metadata) extends javadsl.Metadata {
 
   override def toString: String =
     delegate.toString
+}
+
+class RichGrpcMetadataImpl(delegate: io.grpc.Status, meta: io.grpc.Metadata) extends GrpcMetadataImpl(meta) {
+  override val raw: Option[io.grpc.Metadata] = Some(meta)
+  lazy val status: com.google.rpc.Status =
+    io.grpc.protobuf.StatusProto.fromStatusAndTrailers(delegate, meta)
+
+  lazy val code: Int = status.getCode
+  lazy val message: String = status.getMessage
+
+  lazy val details: mutable.Seq[any.Any] = status.getDetailsList.asScala.map { item =>
+    fromJavaProto(item)
+  }
+
+  def getDetails[K <: scalapb.GeneratedMessage](index: Int)(implicit msg: scalapb.GeneratedMessageCompanion[K]): K =
+    details(index).unpack
+
+  private def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
+    com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)
 }

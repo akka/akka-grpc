@@ -6,15 +6,18 @@ package example.myapp.helloworld.grpc;
 
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
+import akka.grpc.GrpcServiceException;
+import akka.grpc.internal.JavaMetadataImpl;
+import akka.grpc.internal.RichGrpcMetadataImpl;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
+import com.google.rpc.error_details.LocalizedMessage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.protobuf.StatusProto;
 import org.junit.Assert;
 import org.junit.Test;
 import org.scalatestplus.junit.JUnitSuite;
@@ -24,31 +27,32 @@ import java.util.concurrent.CompletionStage;
 import static org.junit.Assert.assertEquals;
 
 
-public class RichErrorModelTest extends JUnitSuite {
+public class RichErrorModelNativeTest extends JUnitSuite {
 
-    private com.google.protobuf.any.Any fromJavaProto(com.google.protobuf.Any javaPbSource) {
-        return com.google.protobuf.any.Any.of(javaPbSource.getTypeUrl(), javaPbSource.getValue());
-    }
+    private ServerBinding run(ActorSystem sys) throws Exception {
 
-    private CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
-
-        GreeterService impl = new RichErrorImpl();
+        GreeterService impl = new RichErrorNativeImpl();
 
         akka.japi.function.Function<HttpRequest, CompletionStage<HttpResponse>> service = GreeterServiceHandlerFactory.create(impl, sys);
-        return Http
+        CompletionStage<ServerBinding> bound = Http
                 .get(sys)
-                .newServerAt("127.0.0.1", 8090)
+                .newServerAt("127.0.0.1", 8091)
                 .bind(service);
+
+        bound.thenAccept(binding -> {
+            System.out.println("gRPC server bound to: " + binding.localAddress());
+        });
+        return bound.toCompletableFuture().get();
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testManualApproach() throws Exception {
+    public void testNativeApi() throws Exception {
         Config conf = ConfigFactory.load();
         ActorSystem sys = ActorSystem.create("HelloWorld", conf);
         run(sys);
 
-        GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8090, sys).withTls(false);
+        GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8091, sys).withTls(false);
 
         GreeterServiceClient client = null;
         try {
@@ -57,23 +61,25 @@ public class RichErrorModelTest extends JUnitSuite {
             // #client_request
             HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
             CompletionStage<HelloReply> response = client.sayHello(request);
-            StatusRuntimeException statusEx = response.toCompletableFuture().handle((res, ex) -> {
+            StatusRuntimeException statusRuntimeException = response.toCompletableFuture().handle((res, ex) -> {
                 return (StatusRuntimeException) ex;
             }).get();
 
-            com.google.rpc.Status status = StatusProto.fromStatusAndTrailers(statusEx.getStatus(), statusEx.getTrailers());
+            GrpcServiceException ex = GrpcServiceException.apply(statusRuntimeException);
+            JavaMetadataImpl javaMetadata = (JavaMetadataImpl) ex.getMetadata();
+            RichGrpcMetadataImpl meta = (RichGrpcMetadataImpl) javaMetadata.delegate();
+            assertEquals("type.googleapis.com/google.rpc.LocalizedMessage", meta.status().getDetails(0).getTypeUrl());
 
-            assertEquals("type.googleapis.com/google.rpc.LocalizedMessage", status.getDetails(0).getTypeUrl());
+            assertEquals(Status.INVALID_ARGUMENT.getCode().value(), meta.code());
+            assertEquals("What is wrong?", meta.message());
 
-            com.google.rpc.error_details.LocalizedMessage details = fromJavaProto(status.getDetails(0)).unpack(com.google.rpc.error_details.LocalizedMessage.messageCompanion());
-
-            assertEquals(Status.INVALID_ARGUMENT.getCode().value(), status.getCode());
-            assertEquals("What is wrong?", status.getMessage());
+            LocalizedMessage details = meta.getDetails(0, com.google.rpc.error_details.LocalizedMessage.messageCompanion());
             assertEquals("The password!", details.message());
             assertEquals("EN", details.locale());
             // #client_request
 
         } catch (Exception e) {
+            e.printStackTrace();
             Assert.fail("Got unexpected error " + e.getMessage());
         } finally {
             if (client != null) client.close();
