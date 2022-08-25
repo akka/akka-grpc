@@ -6,7 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.annotation.ApiMayChange
 import akka.grpc.GrpcProtocol
-import akka.grpc.internal.{ GrpcProtocolNative, GrpcProtocolWeb, GrpcProtocolWebText }
+import akka.grpc.internal.{ GrpcProtocolWeb, GrpcProtocolWebText }
 import akka.http.javadsl.{ model => jmodel }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 
@@ -23,7 +23,6 @@ object ServiceHandler {
   private def matchesVariant(variants: Set[GrpcProtocol])(request: jmodel.HttpRequest) =
     variants.exists(_.mediaTypes.contains(request.entity.getContentType.mediaType))
 
-  private[grpc] val isGrpcRequest: jmodel.HttpRequest => Boolean = matchesVariant(Set(GrpcProtocolNative))
   private[grpc] val isGrpcWebRequest: jmodel.HttpRequest => Boolean = matchesVariant(
     Set(GrpcProtocolWeb, GrpcProtocolWebText))
 

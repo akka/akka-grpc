@@ -8,7 +8,6 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import akka.annotation.ApiMayChange
 import akka.annotation.InternalApi
-import akka.grpc.scaladsl.{ ServiceHandler => sServiceHandler }
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.japi.function.{ Function => JFunction }
 
@@ -50,7 +49,7 @@ object ServiceHandler {
   def handler(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
     val servicesHandler = concat(handlers: _*)
-    (req: HttpRequest) => if (sServiceHandler.isGrpcRequest(req)) servicesHandler(req) else unsupportedMediaType
+    (req: HttpRequest) => servicesHandler(req)
   }
 
   private[javadsl] def concat(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
