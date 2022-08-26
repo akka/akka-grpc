@@ -41,9 +41,7 @@ object ServiceHandler {
   /**
    * Creates a `HttpRequest` to `HttpResponse` handler for gRPC services that can be used in
    * for example `Http().bindAndHandleAsync` for the generated partial function handlers:
-   *  - The generated handler supports the `application/grpc` media type.
-   *  - If the request is for an invalid media type, then a _415: Unsupported Media Type_ response is produced.
-   *  - Otherwise if the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
+   *  - If the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
    */
   @varargs
   def handler(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
