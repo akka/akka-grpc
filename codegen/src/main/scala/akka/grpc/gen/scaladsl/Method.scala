@@ -80,7 +80,7 @@ object Method {
     messageType.scalaType.fullName
   }
 
-  // https://github.com/scalapb/ScalaPB/blob/master/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1038
+  // https://github.com/scalapb/ScalaPB/blob/38845c0cf21173a2242a5d14ed48a7c33b981bae/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1115
   private val ReservedWords = Set(
     "abstract",
     "case",
@@ -90,21 +90,28 @@ object Method {
     "do",
     "else",
     "enum",
+    "export",
     "extends",
     "false",
     "final",
     "finally",
     "for",
     "forSome",
+    "given",
     "if",
     "implicit",
     "import",
+    "infix",
+    "inline",
     "lazy",
     "macro",
     "match",
+    "ne",
     "new",
     "null",
     "object",
+    "opaque",
+    "open",
     "override",
     "package",
     "private",
@@ -116,6 +123,7 @@ object Method {
     "this",
     "throw",
     "trait",
+    "transparent",
     "try",
     "true",
     "type",
@@ -123,6 +131,5 @@ object Method {
     "var",
     "while",
     "with",
-    "yield",
-    "ne")
+    "yield")
 }
