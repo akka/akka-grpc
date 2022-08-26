@@ -52,7 +52,8 @@ case class Method(
   }
 
   val nameSafe: String =
-    if (ReservedWords.contains(name)) s"""`$name`"""
+    if (ReservedScalaWords.contains(name)) s"""`$name`"""
+    else if (ReservedMethodNames.contains(name)) s"$name$ReservedMethodNameSuffix"
     else name
 
 }
@@ -80,8 +81,8 @@ object Method {
     messageType.scalaType.fullName
   }
 
-  // https://github.com/scalapb/ScalaPB/blob/master/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1038
-  private val ReservedWords = Set(
+  // https://github.com/scalapb/ScalaPB/blob/38845c0cf21173a2242a5d14ed48a7c33b981bae/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1115
+  private val ReservedScalaWords = Set(
     "abstract",
     "case",
     "catch",
@@ -90,21 +91,28 @@ object Method {
     "do",
     "else",
     "enum",
+    "export",
     "extends",
     "false",
     "final",
     "finally",
     "for",
     "forSome",
+    "given",
     "if",
     "implicit",
     "import",
+    "infix",
+    "inline",
     "lazy",
     "macro",
     "match",
+    "ne",
     "new",
     "null",
     "object",
+    "opaque",
+    "open",
     "override",
     "package",
     "private",
@@ -116,6 +124,7 @@ object Method {
     "this",
     "throw",
     "trait",
+    "transparent",
     "try",
     "true",
     "type",
@@ -123,6 +132,28 @@ object Method {
     "var",
     "while",
     "with",
-    "yield",
-    "ne")
+    "yield")
+
+  private val ReservedMethodNameSuffix = "Method"
+
+  private val ReservedMethodNames =
+    Set(
+      "close",
+      "closed",
+      "clone",
+      "clone",
+      "hashCode",
+      "toString",
+      "isInstanceOf",
+      "asInstanceOf",
+      "equals",
+      "eq",
+      "notify",
+      "notifyAll",
+      "wait",
+      "finalize",
+      "synchronized",
+      "ensuring",
+      "wait",
+      "formatted")
 }
