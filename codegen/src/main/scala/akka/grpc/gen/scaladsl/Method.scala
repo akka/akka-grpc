@@ -52,7 +52,8 @@ case class Method(
   }
 
   val nameSafe: String =
-    if (ReservedWords.contains(name)) s"""`$name`"""
+    if (ReservedScalaWords.contains(name)) s"""`$name`"""
+    else if (ReservedMethodNames.contains(name)) s"$name$ReservedMethodNameSuffix"
     else name
 
 }
@@ -81,7 +82,7 @@ object Method {
   }
 
   // https://github.com/scalapb/ScalaPB/blob/38845c0cf21173a2242a5d14ed48a7c33b981bae/compiler-plugin/src/main/scala/scalapb/compiler/DescriptorImplicits.scala#L1115
-  private val ReservedWords = Set(
+  private val ReservedScalaWords = Set(
     "abstract",
     "case",
     "catch",
@@ -132,4 +133,27 @@ object Method {
     "while",
     "with",
     "yield")
+
+  private val ReservedMethodNameSuffix = "Method"
+
+  private val ReservedMethodNames =
+    Set(
+      "close",
+      "closed",
+      "clone",
+      "clone",
+      "hashCode",
+      "toString",
+      "isInstanceOf",
+      "asInstanceOf",
+      "equals",
+      "eq",
+      "notify",
+      "notifyAll",
+      "wait",
+      "finalize",
+      "synchronized",
+      "ensuring",
+      "wait",
+      "formatted")
 }
