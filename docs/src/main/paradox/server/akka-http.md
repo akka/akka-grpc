@@ -86,7 +86,7 @@ The method takes three parameters.
 
 1. A function that takes a @apidoc[RequestContext] and returns a service implementation. This gives us the opportunity to use the context in the implementation. If we don't need it, we can just ignore the context and return a fixed implementation.
 2. A function that takes an @apidoc[ActorSystem] and returns a partial function from Throwable to gRPC @apidoc[Trailers].
-3. A function that takes the service implementation and an error handler and returns a request handler (a function from @apidoc[HttpRequest] to a Future of @apidoc[HttpResponse]). 
+3. A function that takes the service implementation and an error handler and returns a request handler (a function from @apidoc[HttpRequest] to a @scala[`Future`]@java[`CompletionStage`] of @apidoc[HttpResponse]). 
 
 The method first uses an existing directive to log requests and results.
 Then it wraps the given error handler into an error handler that also logs the error.
