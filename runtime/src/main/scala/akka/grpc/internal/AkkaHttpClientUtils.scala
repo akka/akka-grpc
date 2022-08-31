@@ -85,12 +85,14 @@ object AkkaHttpClientUtils {
       if (settings.useTls) {
         val connectionContext =
           ConnectionContext.httpsClient {
-            settings.trustManager match {
-              case None => SSLContext.getDefault
-              case Some(trustManager) =>
-                val sslContext: SSLContext = SSLContext.getInstance("TLS")
-                sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
-                sslContext
+            settings.sslContext.getOrElse {
+              settings.trustManager match {
+                case None => SSLContext.getDefault
+                case Some(trustManager) =>
+                  val sslContext: SSLContext = SSLContext.getInstance("TLS")
+                  sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
+                  sslContext
+              }
             }
           }
 
