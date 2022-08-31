@@ -212,15 +212,17 @@ final class GrpcClientSettings private (
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
   def withSslProvider(sslProvider: SslProvider): GrpcClientSettings =
-    copy(useTls = true, sslProvider = Option(sslProvider))
+    Option(sslProvider).fold(this)(sslProvider => copy(useTls = true, sslProvider = Some(sslProvider)))
 
   /**
    * Prefer using `withContextManager`: withSslContext forces the ssl-provider 'jdk', which is known
    * not to work on JDK 1.8.0_252.
    */
-  def withSslContext(sslContext: SSLContext): GrpcClientSettings = copy(useTls = true, sslContext = Option(sslContext))
+  def withSslContext(sslContext: SSLContext): GrpcClientSettings =
+    Option(sslContext).fold(this)(sslContext => copy(useTls = true, sslContext = Option(sslContext)))
   def withTrustManager(trustManager: TrustManager): GrpcClientSettings =
-    copy(useTls = true, trustManager = Option(trustManager))
+    Option(trustManager).fold(this)(trustManager => copy(useTls = true, trustManager = Option(trustManager)))
+
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
   /**
