@@ -54,7 +54,9 @@ public class LoggingErrorHandlingGreeterServer {
     @Override
     public CompletionStage<HelloReply> sayHello(HelloRequest in) {
       if (Character.isLowerCase(in.getName().charAt(0))) {
-        return CompletableFuture.failedFuture(new IllegalArgumentException("Name must be capitalized"));
+        CompletableFuture<HelloReply> reply = new CompletableFuture<>();
+        reply.completeExceptionally(new IllegalArgumentException("Name must be capitalized"));
+        return reply;
       } else {
         HelloReply reply = HelloReply.newBuilder()
           .setMessage("Hello, " + in.getName())
