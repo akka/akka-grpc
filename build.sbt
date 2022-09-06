@@ -7,6 +7,8 @@ import sbt.Keys.scalaVersion
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
+resolvers += "Staging Repo" at "https://oss.sonatype.org/content/repositories/staging"
+
 lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 
 // gradle plugin compatibility (avoid `+` in snapshot versions)
