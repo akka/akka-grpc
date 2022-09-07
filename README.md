@@ -58,4 +58,4 @@ Support for Akka gRPC is available via the [Lightbend Subscription](https://ligh
 
 ## License
 
-Akka gRPC is Open Source and available under the Apache 2 License.
+Akka gRPC is licensed under the Business Source License 1.1, see LICENSE.
