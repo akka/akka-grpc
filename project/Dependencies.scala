@@ -16,10 +16,10 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.6.19"
-    val akkaBinary = "2.6"
-    val akkaHttp = "10.2.9"
-    val akkaHttpBinary = "10.2"
+    val akka = "2.7.0-M1"
+    val akkaBinary = "2.7"
+    val akkaHttp = "10.4.0-M1"
+    val akkaHttpBinary = "10.4"
 
     val grpc = "1.48.1" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
@@ -89,35 +89,35 @@ object Dependencies {
   private val l = libraryDependencies
 
   val codegen = l ++= Seq(
-    Compile.scalapbCompilerPlugin,
-    Protobuf.protobufJava, // or else scalapb pulls older version in transitively
-    Compile.grpcProtobuf,
-    Test.scalaTest)
+        Compile.scalapbCompilerPlugin,
+        Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+        Compile.grpcProtobuf,
+        Test.scalaTest)
 
   val runtime = l ++= Seq(
-    Compile.scalapbRuntime,
-    Protobuf.protobufJava, // or else scalapb pulls older version in transitively
-    Compile.grpcProtobuf,
-    Compile.grpcCore,
-    Compile.grpcStub % "provided", // comes from the generators
-    Compile.grpcNettyShaded,
-    Compile.akkaStream,
-    Compile.akkaHttpCore,
-    Compile.akkaHttp,
-    Compile.akkaDiscovery,
-    Compile.akkaHttpCors % "provided",
-    Test.akkaTestkit,
-    Test.akkaStreamTestkit,
-    Test.scalaTest,
-    Test.scalaTestPlusJunit)
+        Compile.scalapbRuntime,
+        Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+        Compile.grpcProtobuf,
+        Compile.grpcCore,
+        Compile.grpcStub % "provided", // comes from the generators
+        Compile.grpcNettyShaded,
+        Compile.akkaStream,
+        Compile.akkaHttpCore,
+        Compile.akkaHttp,
+        Compile.akkaDiscovery,
+        Compile.akkaHttpCors % "provided",
+        Test.akkaTestkit,
+        Test.akkaStreamTestkit,
+        Test.scalaTest,
+        Test.scalaTestPlusJunit)
 
   val mavenPlugin = l ++= Seq(
-    Compile.slf4jApi,
-    Compile.mavenPluginApi,
-    Compile.mavenCore,
-    Compile.protocJar,
-    Compile.plexusBuildApi,
-    Test.scalaTest)
+        Compile.slf4jApi,
+        Compile.mavenPluginApi,
+        Compile.mavenCore,
+        Compile.protocJar,
+        Compile.plexusBuildApi,
+        Test.scalaTest)
 
   val sbtPlugin = Seq(
     l += Compile.scalapbCompilerPlugin,
@@ -125,21 +125,21 @@ object Dependencies {
     addSbtPlugin(Plugins.sbtProtoc))
 
   val interopTests = l ++= Seq(
-    Compile.grpcInteropTesting,
-    Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
-    Compile.akkaHttp,
-    Compile.akkaSlf4j,
-    Runtime.logback,
-    Test.scalaTest.withConfigurations(Some("compile")),
-    Test.scalaTestPlusJunit.withConfigurations(Some("compile")),
-    Test.akkaTestkit,
-    Test.akkaStreamTestkit)
+        Compile.grpcInteropTesting,
+        Compile.grpcInteropTesting % "protobuf", // gets the proto files for interop tests
+        Compile.akkaHttp,
+        Compile.akkaSlf4j,
+        Runtime.logback,
+        Test.scalaTest.withConfigurations(Some("compile")),
+        Test.scalaTestPlusJunit.withConfigurations(Some("compile")),
+        Test.akkaTestkit,
+        Test.akkaStreamTestkit)
 
   val pluginTester = l ++= Seq(
-    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
-    Compile.grpcStub,
-    Compile.akkaHttpCors,
-    Test.scalaTest,
-    Test.scalaTestPlusJunit,
-    Protobuf.googleCommonProtos)
+        // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
+        Compile.grpcStub,
+        Compile.akkaHttpCors,
+        Test.scalaTest,
+        Test.scalaTestPlusJunit,
+        Protobuf.googleCommonProtos)
 }
