@@ -23,6 +23,9 @@ jobs:
         with:
           java-version: adopt@1.8
 
+      - name: Cache Coursier cache
+        uses: coursier/cache-action@v6.2
+
       - name: Publish
         run: |-
           cp .jvmopts-ghactions .jvmopts
@@ -67,7 +70,7 @@ jobs:
       - name: Set up JDK 8
         uses: olafurpg/setup-scala@v10
         with:
-          java-version: adopt@1.8
+          java-version: adopt@1.11
 
       - name: Cache Coursier cache
         uses: coursier/cache-action@v6.2
