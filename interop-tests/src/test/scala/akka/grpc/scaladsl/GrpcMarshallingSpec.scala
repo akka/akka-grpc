@@ -51,12 +51,10 @@ class GrpcMarshallingSpec extends AnyWordSpec with Matchers {
         headers = immutable.Seq(`Message-Encoding`("gzip")),
         entity = HttpEntity.Chunked(
           GrpcProtocolNative.contentType,
-          TestSource
-            .probe[ChunkStreamPart]
-            .mapMaterializedValue((p: TestPublisher.Probe[ChunkStreamPart]) => {
-              sourceProbe.success(p)
-              NotUsed
-            })))
+          TestSource[ChunkStreamPart]().mapMaterializedValue((p: TestPublisher.Probe[ChunkStreamPart]) => {
+            sourceProbe.success(p)
+            NotUsed
+          })))
 
       val marshalledRequest = GrpcMarshalling.unmarshal(request)
 
