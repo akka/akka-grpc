@@ -6,7 +6,7 @@ resolvers += Resolver.sonatypeRepo("staging")
 
 enablePlugins(AkkaGrpcPlugin)
 
-dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.7.0-M1"
+dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.7.0-M3"
 
 assembly / assemblyMergeStrategy := {
   // https://github.com/akka/akka/issues/29456
