@@ -30,7 +30,7 @@ jobs:
         run: |-
           cp .jvmopts-ghactions .jvmopts
           sbt ci-release
-          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.8\! ci-release
+          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.x ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
