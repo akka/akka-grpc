@@ -53,6 +53,7 @@ object Common extends AutoPlugin {
       // deprecated in 2.13, but used as long as we support 2.12
       "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
       "-Wconf:msg=Use LazyList instead of Stream:silent",
+      "-Wconf:msg=never used:silent",
       // ignore imports in templates (FIXME why is that trailig .* needed?)
       "-Wconf:src=.*.txt.*:silent"),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
