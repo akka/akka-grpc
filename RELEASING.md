@@ -5,7 +5,7 @@
 Akka gRPC is released when there is a need for it.
 
 If you want to test an improvement that is not yet released, you can use a
-snapshot version: we release all commits to master to the snapshot repository
+snapshot version: we release all commits to main to the snapshot repository
 on [Sonatype](https://oss.sonatype.org/content/repositories/snapshots/com/lightbend/akka/grpc).
 
 ## How to release
@@ -14,12 +14,6 @@ Create a new issue from the [Release Train Issue Template](docs/release-train-is
 
 ```
 $ sh ./scripts/create-release-issue.sh 0.x.y
-```
-
-or:
-
-```
-$ sh ./scripts/create-release-issue.sh 0.x.y -patch
 ```
 
 ## Gradle plugin release details
