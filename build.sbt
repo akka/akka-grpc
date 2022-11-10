@@ -47,8 +47,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(Dependencies.runtime)
   .settings(VersionGenerator.settings)
   .settings(
-    crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
-    scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
+    crossScalaVersions := Dependencies.Versions.CrossScalaForLib)
   .settings(
     mimaFailOnNoPrevious := true,
     mimaPreviousArtifacts :=

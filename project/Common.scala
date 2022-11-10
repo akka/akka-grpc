@@ -3,7 +3,7 @@ package akka.grpc
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
-import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
+import akka.grpc.Dependencies.Versions.{scala212, scala213, scala3}
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -77,7 +77,7 @@ object Common extends AutoPlugin {
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
-    crossScalaVersions := Seq(scala212, scala213),
+    crossScalaVersions := Seq(scala212, scala213, scala3),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
 }
