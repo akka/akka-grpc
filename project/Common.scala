@@ -54,11 +54,17 @@ object Common extends AutoPlugin {
         "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
         "-Wconf:msg=Use LazyList instead of Stream:silent",
         "-Wconf:msg=never used:silent") ++
-      (if (scalaVersion.value.startsWith("2"))
+      (if (scalaVersion.value.startsWith("2.12"))
          Seq(
-           // ignore imports in templates (FIXME why is that trailig .* needed?)
+           // we need some nowarns for Scala 3, for things not deprecated yet in 2.12
+           "-Wconf:msg=@nowarn annotation does not suppress any warnings:s",
+           // ignore imports in templates (FIXME why is that trailing .* needed?)
            "-Wconf:src=.*.txt.*:silent")
-       else {
+      else if (scalaVersion.value.startsWith("2.13")) {
+        Seq(
+          // ignore imports in templates (FIXME why is that trailing .* needed?)
+          "-Wconf:src=.*.txt.*:silent")
+      } else {
          // Scala 3
          Seq.empty
        }),
