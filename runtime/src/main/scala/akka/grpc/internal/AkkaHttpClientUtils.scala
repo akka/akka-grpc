@@ -29,6 +29,7 @@ import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
 import akka.http.scaladsl.model.StatusCodes
+import scala.language.implicitConversions
 
 /**
  * INTERNAL API

@@ -116,7 +116,7 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
     if (key.endsWith(io.grpc.Metadata.BINARY_HEADER_SUFFIX)) {
       delegate.getAll(binaryKey(key)).asScala.map(b => BytesEntry(ByteString.fromArray(b))).toList
     } else {
-      delegate.getAll(textKey(key)).asScala.map(StringEntry).toList
+      delegate.getAll(textKey(key)).asScala.map(StringEntry.apply).toList
     }
 }
 

@@ -3,7 +3,7 @@ package akka.grpc
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
-import akka.grpc.Dependencies.Versions.{scala212, scala213, scala3}
+import akka.grpc.Dependencies.Versions.{ scala212, scala213, scala3 }
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -39,23 +39,26 @@ object Common extends AutoPlugin {
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     sonatypeProfileName := "com.lightbend",
-    scalacOptions ++= List(
-      "-unchecked",
-      "-deprecation",
-      "-language:_",
-      "-Xfatal-warnings",
-      "-Ywarn-unused",
-      "-encoding",
-      "UTF-8"),
-    Compile / scalacOptions ++= Seq(
-      // Generated code for methods/fields marked 'deprecated'
-      "-Wconf:msg=Marked as deprecated in proto file:silent",
-      // deprecated in 2.13, but used as long as we support 2.12
-      "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
-      "-Wconf:msg=Use LazyList instead of Stream:silent",
-      "-Wconf:msg=never used:silent",
-      // ignore imports in templates (FIXME why is that trailig .* needed?)
-      "-Wconf:src=.*.txt.*:silent"),
+    scalacOptions ++=
+      Seq("-unchecked", "-deprecation", "-language:_", "-Xfatal-warnings", "-feature", "-encoding", "UTF-8") ++ (if (scalaVersion.value
+                                                                                                                     .startsWith(
+                                                                                                                       "2"))
+                                                                                                                   Seq("-Ywarn-unused")
+                                                                                                                 else
+                                                                                                                   Seq.empty),
+    Compile / scalacOptions ++=
+      Seq(
+        // Generated code for methods/fields marked 'deprecated'
+        "-Wconf:msg=Marked as deprecated in proto file:silent",
+        // deprecated in 2.13, but used as long as we support 2.12
+        "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
+        "-Wconf:msg=Use LazyList instead of Stream:silent",
+        "-Wconf:msg=never used:silent") ++
+      (if (scalaVersion.value.startsWith("2"))
+         Seq(
+           // ignore imports in templates (FIXME why is that trailig .* needed?)
+           "-Wconf:src=.*.txt.*:silent")
+       else Seq.empty),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(

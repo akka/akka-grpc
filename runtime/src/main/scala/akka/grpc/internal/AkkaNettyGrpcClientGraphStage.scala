@@ -97,7 +97,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
               .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
               .toJava
             def trailers = sTrailers
-            def getTrailers = jTrailers
+            def getTrailers() = jTrailers
           })
         override def onMessage(message: O): Unit =
           callback.invoke(message)

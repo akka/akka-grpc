@@ -143,7 +143,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
             def headers = metadata.headers
             def getHeaders() = metadata.getHeaders()
             def trailers = metadata.trailers
-            def getTrailers = metadata.getTrailers()
+            def getTrailers() = metadata.getTrailers()
           }
       }(ExecutionContexts.parasitic)
   }

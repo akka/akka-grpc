@@ -47,8 +47,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(Dependencies.runtime)
   .settings(VersionGenerator.settings)
   .settings(
-    crossScalaVersions := Dependencies.Versions.CrossScalaForLib)
-  .settings(
+    crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     mimaFailOnNoPrevious := true,
     mimaPreviousArtifacts :=
       previousStableVersion.value.map(v => Set(organization.value %% "akka-grpc-runtime" % v)).getOrElse(Set.empty),

@@ -37,7 +37,7 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
     AbstractGrpcProtocol.reader(codec, decodeFrame)
 
   @inline
-  private def decodeFrame(@nowarn("cat=unused-params") frameType: Int, data: ByteString) = DataFrame(data)
+  private def decodeFrame(@nowarn("msg=unused") frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =
