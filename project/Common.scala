@@ -60,11 +60,11 @@ object Common extends AutoPlugin {
            "-Wconf:msg=@nowarn annotation does not suppress any warnings:s",
            // ignore imports in templates (FIXME why is that trailing .* needed?)
            "-Wconf:src=.*.txt.*:silent")
-      else if (scalaVersion.value.startsWith("2.13")) {
-        Seq(
-          // ignore imports in templates (FIXME why is that trailing .* needed?)
-          "-Wconf:src=.*.txt.*:silent")
-      } else {
+       else if (scalaVersion.value.startsWith("2.13")) {
+         Seq(
+           // ignore imports in templates (FIXME why is that trailing .* needed?)
+           "-Wconf:src=.*.txt.*:silent")
+       } else {
          // Scala 3
          Seq.empty
        }),
