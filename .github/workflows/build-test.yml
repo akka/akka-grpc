@@ -101,8 +101,6 @@ jobs:
         include:
           - test-set: gen-scala-server
             scala-version: 2.12
-          - test-set: gen-scala-server
-            scala-version: 2.13
           - test-set: gen-java
             scala-version: 2.12
           - test-set: scala3
