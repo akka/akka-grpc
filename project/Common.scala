@@ -23,7 +23,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers += Resolver.sonatypeRepo("staging"),
+      resolvers ++= Resolver.sonatypeOssRepos("staging"), // makes testing HTTP releases early easier
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -58,7 +58,10 @@ object Common extends AutoPlugin {
          Seq(
            // ignore imports in templates (FIXME why is that trailig .* needed?)
            "-Wconf:src=.*.txt.*:silent")
-       else Seq.empty),
+       else {
+         // Scala 3
+         Seq.empty
+       }),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
     Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
@@ -68,16 +71,22 @@ object Common extends AutoPlugin {
       version.value,
       "-sourcepath",
       (ThisBuild / baseDirectory).value.toString,
-      "-skip-packages",
-      "akka.pattern:" + // for some reason Scaladoc creates this
-      "templates",
       "-doc-source-url", {
         val branch = if (isSnapshot.value) "main" else s"v${version.value}"
         s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
       },
       "-doc-canonical-base-url",
-      "https://doc.akka.io/api/akka-grpc/current/"),
+      "https://doc.akka.io/api/akka-grpc/current/") ++ (if (scalaVersion.value.startsWith("2"))
+                                                          Seq(
+                                                            "-skip-packages",
+                                                            "akka.pattern:" + // for some reason Scaladoc creates this
+                                                            "templates")
+                                                        else {
+                                                          // Scala 3
+                                                          Seq.empty
+                                                        }),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
+    Compile / doc / javacOptions := Seq.empty,
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     crossScalaVersions := Seq(scala212, scala213, scala3),
