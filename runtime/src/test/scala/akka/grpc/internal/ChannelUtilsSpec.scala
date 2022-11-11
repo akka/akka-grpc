@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import java.util.concurrent.TimeUnit
-
 import akka.Done
 import akka.event.{ LoggingAdapter, NoLogging }
 import akka.grpc.internal.ChannelUtilsSpec.FakeChannel
@@ -15,10 +14,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+import scala.annotation.nowarn
 import scala.concurrent.Promise
 import scala.util.Failure
 
 object ChannelUtilsSpec {
+  @nowarn("msg=deprecated") // Stream -> LazyList
   class FakeChannel(stateResponses: Stream[ConnectivityState]) extends ManagedChannel {
     var closed = false
     var nextResponse = stateResponses

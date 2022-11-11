@@ -36,7 +36,7 @@ object NettyClientUtils {
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
       implicit ec: ExecutionContext): InternalChannel = {
 
-    @nowarn("cat=deprecation")
+    @nowarn("msg=deprecated")
     var builder =
       NettyChannelBuilder
         // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
@@ -64,12 +64,8 @@ object NettyClientUtils {
             case (None, None) =>
               builder
             case (tm, provider) =>
-              val context = provider match {
-                case None =>
-                  GrpcSslContexts.configure(SslContextBuilder.forClient())
-                case Some(sslProvider) =>
-                  GrpcSslContexts.configure(SslContextBuilder.forClient(), sslProvider)
-              }
+              val context = provider.fold(GrpcSslContexts.configure(SslContextBuilder.forClient()))(sslProvider =>
+                GrpcSslContexts.configure(SslContextBuilder.forClient(), sslProvider))
               builder.sslContext((tm match {
                 case None               => context
                 case Some(trustManager) => context.trustManager(trustManager)

@@ -99,14 +99,14 @@ class MetadataImplSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
     "return a list with repeated entries in correct order" in {
       val list = m.asList
-      list.collect { case (k, v) if k == DUPE_TEXT_KEY => v } shouldEqual DUPE_TEXT_VALUES.map(StringEntry)
-      list.collect { case (k, v) if k == DUPE_BINARY_KEY => v } shouldEqual DUPE_BINARY_VALUES.map(BytesEntry)
+      list.collect { case (k, v) if k == DUPE_TEXT_KEY => v } shouldEqual DUPE_TEXT_VALUES.map(StringEntry.apply)
+      list.collect { case (k, v) if k == DUPE_BINARY_KEY => v } shouldEqual DUPE_BINARY_VALUES.map(BytesEntry.apply)
     }
 
     "return a map repeated entries in correct order" in {
       val map = m.asMap
-      map(DUPE_TEXT_KEY) shouldEqual DUPE_TEXT_VALUES.map(StringEntry)
-      map(DUPE_BINARY_KEY) shouldEqual DUPE_BINARY_VALUES.map(BytesEntry)
+      map(DUPE_TEXT_KEY) shouldEqual DUPE_TEXT_VALUES.map(StringEntry.apply)
+      map(DUPE_BINARY_KEY) shouldEqual DUPE_BINARY_VALUES.map(BytesEntry.apply)
     }
   }
 

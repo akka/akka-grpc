@@ -6,13 +6,13 @@ package akka.grpc.scaladsl
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import akka.actor.ActorSystem
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.grpc.{ GrpcChannel, GrpcClientCloseException, GrpcClientSettings }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.RemoteAddress
 import akka.http.scaladsl.server.Directives
+import akka.stream.Materializer
 import akka.stream.SystemMaterializer
 import com.typesafe.config.{ Config, ConfigFactory }
 import example.myapp.helloworld.grpc.helloworld._
@@ -22,6 +22,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
+import scala.concurrent.ExecutionContext
+
 class GrpcClientSpecNetty extends GrpcChannelSpec()
 
 class GrpcChannelSpec(config: Config = ConfigFactory.load())
@@ -29,9 +31,9 @@ class GrpcChannelSpec(config: Config = ConfigFactory.load())
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-  implicit val system = ActorSystem("GrpcChannelSpec", config)
-  implicit val mat = SystemMaterializer(system).materializer
-  implicit val ec = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem("GrpcChannelSpec", config)
+  implicit val mat: Materializer = SystemMaterializer(system).materializer
+  implicit val ec: ExecutionContext = system.dispatcher
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 

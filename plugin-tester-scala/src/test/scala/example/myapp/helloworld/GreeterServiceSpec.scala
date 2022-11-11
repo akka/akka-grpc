@@ -18,12 +18,13 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.junit.JUnitRunner
 
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll with ScalaFutures {
 
-  implicit val patience = PatienceConfig(10.seconds, Span(100, org.scalatest.time.Millis))
+  implicit val patience: PatienceConfig = PatienceConfig(10.seconds, Span(100, org.scalatest.time.Millis))
 
   implicit val serverSystem: ActorSystem = {
     // important to enable HTTP/2 in server ActorSystem's config
@@ -39,7 +40,7 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  implicit val ec = clientSystem.dispatcher
+  implicit val ec: ExecutionContext = clientSystem.dispatcher
 
   val clients = Seq(8080, 8081).map { port =>
     GreeterServiceClient(

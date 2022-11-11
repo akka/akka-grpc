@@ -18,7 +18,6 @@ import akka.http.scaladsl.model.{
 }
 import akka.util.ByteString
 
-import scala.annotation.nowarn
 import scala.collection.immutable
 
 /**
@@ -37,7 +36,7 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
     AbstractGrpcProtocol.reader(codec, decodeFrame)
 
   @inline
-  private def decodeFrame(@nowarn("msg=unused") frameType: Int, data: ByteString) = DataFrame(data)
+  private def decodeFrame(frameType: Int, data: ByteString) = DataFrame(data)
 
   @inline
   private def encodeFrame(codec: Codec, frame: Frame): ChunkStreamPart =

@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import java.net.InetSocketAddress
-
 import akka.actor.ActorSystem
 import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.testkit.TestKit
@@ -16,13 +15,14 @@ import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 class AkkaDiscoveryNameResolverSpec
     extends TestKit(ActorSystem())
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
-  implicit val ex = system.dispatcher
+  implicit val ex: ExecutionContext = system.dispatcher
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
 

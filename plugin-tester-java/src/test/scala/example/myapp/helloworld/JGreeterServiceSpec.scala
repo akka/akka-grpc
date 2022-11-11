@@ -5,20 +5,20 @@
 package example.myapp.helloworld
 
 import scala.concurrent.Await
-
 import org.scalatest.BeforeAndAfterAll
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import com.google.protobuf.Timestamp
 import com.typesafe.config.ConfigFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.Span
-
 import example.myapp.helloworld.grpc._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
+
+import scala.concurrent.ExecutionContext
 
 class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll with ScalaFutures {
   implicit val patience: PatienceConfig =
@@ -38,7 +38,7 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
 
   val clientSystem = ActorSystem("GreeterClient")
 
-  implicit val ec = clientSystem.dispatcher
+  implicit val ec: ExecutionContext = clientSystem.dispatcher
 
   val clients = Seq(8090, 8091).map { port =>
     GreeterServiceClient.create(GrpcClientSettings.connectToServiceAt("127.0.0.1", port).withTls(false), clientSystem)

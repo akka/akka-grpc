@@ -17,6 +17,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 class GrpcExceptionHandlerSpec
@@ -24,7 +25,7 @@ class GrpcExceptionHandlerSpec
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatcher
 
   "The default ExceptionHandler" should {
     "produce an INVALID_ARGUMENT error when the expected parameter is not found" in {

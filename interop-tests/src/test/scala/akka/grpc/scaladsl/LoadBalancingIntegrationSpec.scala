@@ -5,7 +5,6 @@
 package akka.grpc.scaladsl
 
 import java.net.InetSocketAddress
-
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
@@ -24,6 +23,7 @@ import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class LoadBalancingIntegrationSpecNetty extends LoadBalancingIntegrationSpec()
@@ -40,9 +40,9 @@ class LoadBalancingIntegrationSpec(config: Config = ConfigFactory.load())
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-  implicit val system = ActorSystem("LoadBalancingIntegrationSpec", config)
-  implicit val mat = SystemMaterializer(system).materializer
-  implicit val ec = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem("LoadBalancingIntegrationSpec", config)
+  implicit val mat: Materializer = SystemMaterializer(system).materializer
+  implicit val ec: ExecutionContext = system.dispatcher
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 

@@ -35,7 +35,7 @@ class MetadataBuilderSpec extends AnyWordSpec with Matchers {
 
       m.getText(DUPE_TEXT_KEY) shouldBe Some(DUPE_TEXT_VALUES.last)
 
-      val dupeEntries = DUPE_TEXT_VALUES.map(StringEntry)
+      val dupeEntries = DUPE_TEXT_VALUES.map(StringEntry.apply)
       m.asMap(DUPE_TEXT_KEY) shouldBe dupeEntries
       m.asList.collect {
         case (k, e) if k == DUPE_TEXT_KEY => e
@@ -69,7 +69,7 @@ class MetadataBuilderSpec extends AnyWordSpec with Matchers {
 
       m.getBinary(DUPE_BINARY_KEY) shouldBe Some(DUPE_BINARY_VALUES.last)
 
-      val dupeEntries = DUPE_BINARY_VALUES.map(BytesEntry)
+      val dupeEntries = DUPE_BINARY_VALUES.map(BytesEntry.apply)
       m.asMap(DUPE_BINARY_KEY) shouldBe dupeEntries
       m.asList.collect {
         case (k, e) if k == DUPE_BINARY_KEY => e

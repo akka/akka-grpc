@@ -17,7 +17,6 @@ import akka.japi.{ Function => JFunction }
 import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
-import scala.annotation.nowarn
 
 object GrpcMarshalling {
 
@@ -49,7 +48,7 @@ object GrpcMarshalling {
   def unmarshalStream[T](
       data: Source[ByteString, AnyRef],
       u: ProtobufSerializer[T],
-      @nowarn("msg=unused") mat: Materializer,
+      mat: Materializer,
       reader: GrpcProtocolReader): CompletionStage[Source[T, NotUsed]] = {
     CompletableFuture.completedFuture[Source[T, NotUsed]](
       data
