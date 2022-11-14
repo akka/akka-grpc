@@ -39,13 +39,18 @@ object Common extends AutoPlugin {
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     sonatypeProfileName := "com.lightbend",
-    scalacOptions ++=
-      Seq("-unchecked", "-deprecation", "-language:_", "-Xfatal-warnings", "-feature", "-encoding", "UTF-8") ++ (if (scalaVersion.value
-                                                                                                                     .startsWith(
-                                                                                                                       "2"))
-                                                                                                                   Seq("-Ywarn-unused")
-                                                                                                                 else
-                                                                                                                   Seq.empty),
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-deprecation",
+      "-language:_",
+      "-Xfatal-warnings",
+      "-feature",
+      "-encoding",
+      "UTF-8") ++
+    (if (scalaVersion.value.startsWith("2"))
+       Seq("-Ywarn-unused")
+     else
+       Seq.empty),
     Compile / scalacOptions ++=
       Seq(
         // Generated code for methods/fields marked 'deprecated'
@@ -70,27 +75,30 @@ object Common extends AutoPlugin {
        }),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
-    Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
-      "-doc-title",
-      "Akka gRPC",
-      "-doc-version",
-      version.value,
-      "-sourcepath",
-      (ThisBuild / baseDirectory).value.toString,
-      "-doc-source-url", {
-        val branch = if (isSnapshot.value) "main" else s"v${version.value}"
-        s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
-      },
-      "-doc-canonical-base-url",
-      "https://doc.akka.io/api/akka-grpc/current/") ++ (if (scalaVersion.value.startsWith("2"))
-                                                          Seq(
-                                                            "-skip-packages",
-                                                            "akka.pattern:" + // for some reason Scaladoc creates this
-                                                            "templates")
-                                                        else {
-                                                          // Scala 3
-                                                          Seq.empty
-                                                        }),
+    Compile / doc / scalacOptions :=
+      scalacOptions.value ++
+      Seq(
+        "-doc-title",
+        "Akka gRPC",
+        "-doc-version",
+        version.value,
+        "-sourcepath",
+        (ThisBuild / baseDirectory).value.toString,
+        "-doc-source-url", {
+          val branch = if (isSnapshot.value) "main" else s"v${version.value}"
+          s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+        },
+        "-doc-canonical-base-url",
+        "https://doc.akka.io/api/akka-grpc/current/") ++
+      (if (scalaVersion.value.startsWith("2"))
+         Seq(
+           "-skip-packages",
+           "akka.pattern:" + // for some reason Scaladoc creates this
+           "templates")
+       else {
+         // Scala 3
+         Seq.empty
+       }),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     Compile / doc / javacOptions := Seq.empty,
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
