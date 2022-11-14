@@ -7,7 +7,7 @@ package akka.grpc.gen.scaladsl
 import com.google.protobuf.Descriptors.{ Descriptor, MethodDescriptor }
 import scalapb.compiler.DescriptorImplicits
 
-case class Serializer(name: String, init: String)
+case class Serializer(name: String, init: String, messageClass: String)
 
 object Serializer {
   def apply(method: MethodDescriptor, messageType: Descriptor)(implicit ops: DescriptorImplicits): Serializer = {
@@ -16,6 +16,7 @@ object Serializer {
     } else {
       messageType.getFile.getPackage.replace('.', '_') + "_" + messageType.getName + "Serializer"
     }
-    Serializer(name, s"new ScalapbProtobufSerializer(${Method.messageType(messageType)}.messageCompanion)")
+    val messageClass = Method.messageType(messageType)
+    Serializer(name, s"new ScalapbProtobufSerializer($messageClass.messageCompanion)", messageClass)
   }
 }

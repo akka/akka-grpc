@@ -30,7 +30,7 @@ private[grpc] final class GrpcImpl(system: ExtendedActorSystem) extends Extensio
           .map(channel =>
             channel.close().recover {
               case e =>
-                val log = Logging(system, getClass)
+                val log = Logging(system, classOf[GrpcImpl])
                 log.warning("Failed to gracefully close {}, proceeding with shutdown anyway. {}", channel, e)
                 Done
             }))

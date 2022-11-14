@@ -67,7 +67,7 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
         }
         """)
 
-  implicit val sys = ActorSystem(
+  implicit val sys: ActorSystem = ActorSystem(
     "test",
     ConfigFactory
       .parseString("""

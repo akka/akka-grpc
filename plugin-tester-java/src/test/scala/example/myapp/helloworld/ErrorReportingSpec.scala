@@ -27,8 +27,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
-  implicit val sys = ActorSystem()
-  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
+  implicit val sys: ActorSystem = ActorSystem()
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   "A gRPC server" should {
     val mat = implicitly[Materializer]

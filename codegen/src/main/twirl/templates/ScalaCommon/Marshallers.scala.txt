@@ -14,18 +14,18 @@ import akka.stream.Materializer
 import akka.grpc.GrpcProtocol.GrpcProtocolWriter
 import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.GrpcMarshalling
+import akka.grpc.scaladsl.ScalapbProtobufSerializer
 import akka.http.scaladsl.marshalling.Marshaller
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import akka.http.scaladsl.unmarshalling.Unmarshaller
-
 import akka.grpc.AkkaGrpcGenerated
 
 @@AkkaGrpcGenerated
 object @{service.name}Marshallers {
   @for(serializer <- service.serializers) {
-  implicit val @serializer.name = @{service.packageName}.@{service.name}.Serializers.@{serializer.name}
+  implicit val @serializer.name: ScalapbProtobufSerializer[@{serializer.messageClass}] = @{service.packageName}.@{service.name}.Serializers.@{serializer.name}
   }
 
   implicit def unmarshaller[T](implicit serializer: ProtobufSerializer[T], mat: Materializer): FromRequestUnmarshaller[T] =

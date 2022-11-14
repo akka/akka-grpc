@@ -8,7 +8,6 @@ import akka.http.scaladsl.server.{Directive0, Directives, Route}
 
 import io.grpc.testing.integration.TestServiceHandlerFactory
 import io.grpc.testing.integration.test.TestService
-import org.scalatest.WordSpec
 
 import scala.collection.immutable
 

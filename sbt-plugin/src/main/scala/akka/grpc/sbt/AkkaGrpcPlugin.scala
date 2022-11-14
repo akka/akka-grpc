@@ -116,9 +116,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
           generatorsFor(
             akkaGrpcGeneratedSources.value,
             akkaGrpcGeneratedLanguages.value,
-            generatorScalaBinaryVersion.value,
+            ScalaBinaryVersion(scalaBinaryVersion.value),
             generatorLogger) ++ akkaGrpcExtraGenerators.value.map(g =>
-            GeneratorBridge.plainGenerator(g, generatorScalaBinaryVersion.value, generatorLogger))
+            GeneratorBridge.plainGenerator(g, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger))
         },
         // configure the proto gen automatically by adding our codegen:
         PB.targets ++=
@@ -198,25 +198,15 @@ object AkkaGrpcPlugin extends AutoPlugin {
     else generators
   }
 
-  // workaround to allow using Scala 2.13 artifacts in Scala 3 projects
-  def generatorScalaBinaryVersion: Def.Initialize[ScalaBinaryVersion] = Def.setting {
-    ScalaBinaryVersion {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((3, _)) => "2.13"
-        case _            => scalaBinaryVersion.value
-      }
-    }
-  }
-
   /** Sandbox a CodeGenerator, to prepare it to be added to akkaGrpcGenerators */
   def sandboxedGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
-      GeneratorBridge.sandboxedGenerator(codeGenerator, generatorScalaBinaryVersion.value, generatorLogger)
+      GeneratorBridge.sandboxedGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
     }
 
   /** Convert a CodeGenerator, to prepare it to be added to akkaGrpcGenerators without sandboxing */
   def plainGenerator(codeGenerator: akka.grpc.gen.CodeGenerator): Def.Initialize[protocbridge.Generator] =
     Def.setting {
-      GeneratorBridge.plainGenerator(codeGenerator, generatorScalaBinaryVersion.value, generatorLogger)
+      GeneratorBridge.plainGenerator(codeGenerator, ScalaBinaryVersion(scalaBinaryVersion.value), generatorLogger)
     }
 }

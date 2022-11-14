@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class NettyClientUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
-  implicit val system = ActorSystem(
+  implicit val system: ActorSystem = ActorSystem(
     "test",
     ConfigFactory
       .parseString("""

@@ -10,6 +10,7 @@ import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
 import akka.grpc.scaladsl.tools.MutableServiceDiscovery
 import akka.http.scaladsl.Http
+import akka.stream.Materializer
 import akka.stream.SystemMaterializer
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc.helloworld._
@@ -22,6 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
@@ -33,11 +35,11 @@ class NonBalancingIntegrationSpec(backend: String)
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
-  implicit val system = ActorSystem(
+  implicit val system: ActorSystem = ActorSystem(
     s"NonBalancingIntegrationSpec-$backend",
     ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load()))
-  implicit val mat = SystemMaterializer(system).materializer
-  implicit val ec = system.dispatcher
+  implicit val mat: Materializer = SystemMaterializer(system).materializer
+  implicit val ec: ExecutionContext = system.dispatcher
 
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(10.seconds, Span(10, org.scalatest.time.Millis))
 

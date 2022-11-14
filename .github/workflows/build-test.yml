@@ -71,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        SCALA_VERSION: [2.12, 2.13]
+        SCALA_VERSION: [2.12, 2.13, 3.1]
         # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
         JABBA_JDK: [1.8.0-275, 1.11]
     steps:
@@ -104,7 +104,7 @@ jobs:
           - test-set: gen-java
             scala-version: 2.12
           - test-set: scala3
-            scala-version: 2.13
+            scala-version: 3.1
     steps:
       - name: Checkout
         uses: actions/checkout@v2

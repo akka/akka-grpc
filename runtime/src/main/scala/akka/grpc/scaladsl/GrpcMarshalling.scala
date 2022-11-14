@@ -6,7 +6,6 @@ package akka.grpc.scaladsl
 
 import io.grpc.Status
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
@@ -63,7 +62,7 @@ object GrpcMarshalling {
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
       implicit u: ProtobufSerializer[T],
-      @nowarn("cat=unused-params") mat: Materializer,
+      mat: Materializer,
       reader: GrpcProtocolReader): Future[Source[T, NotUsed]] = {
     Future.successful(
       data

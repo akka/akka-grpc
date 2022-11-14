@@ -5,9 +5,9 @@
 package akka.grpc.interop
 
 import java.io.InputStream
-
 import akka.actor.ActorSystem
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, SSLContextUtils }
+import akka.stream.Materializer
 import akka.stream.SystemMaterializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import com.google.protobuf.ByteString
@@ -17,7 +17,7 @@ import io.grpc.testing.integration.test.{ TestServiceClient, UnimplementedServic
 import io.grpc.testing.integration2.{ ClientTester, Settings }
 import io.grpc.{ Status, StatusRuntimeException }
 import org.junit.Assert._
-import org.scalatest.matchers.should.Matchers.{ a, convertToAnyShouldWrapper }
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -32,10 +32,11 @@ import scala.util.control.NoStackTrace
  * /sbt-plugin/src/sbt-test/gen-scala-server/00-interop/src/test/scala/akka/grpc/AkkaGrpcClientTester.scala
  */
 class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implicit system: ActorSystem)
-    extends ClientTester {
+    extends ClientTester
+    with Matchers {
   private var client: TestServiceClient = null
   private var clientUnimplementedService: UnimplementedServiceClient = null
-  private implicit val mat = SystemMaterializer(system).materializer
+  private implicit val mat: Materializer = SystemMaterializer(system).materializer
 
   private val awaitTimeout = 15.seconds
 

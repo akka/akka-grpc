@@ -28,8 +28,8 @@ import org.openjdk.jmh.annotations._
 import grpc.reflection.v1alpha.reflection._
 
 class HandlerProcessingBenchmark extends CommonBenchmark {
-  implicit val system = ActorSystem("bench")
-  implicit val writer = GrpcProtocolNative.newWriter(Identity)
+  implicit val system: ActorSystem = ActorSystem("bench")
+  implicit val writer: GrpcProtocol.GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
 
   val in = Source.repeat(ServerReflectionRequest()).take(10000)
   val request: HttpRequest = {

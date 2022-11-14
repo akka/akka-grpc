@@ -163,7 +163,7 @@ object AbstractGrpcProtocol {
             }
         }
 
-        final case object Failed extends Step {
+        case object Failed extends Step {
           override def parse(reader: ByteReader): ParseResult[Frame] = ParseResult(None, Failed)
         }
       }

@@ -3,7 +3,7 @@ package akka.grpc
 import sbt.Keys._
 import sbt._
 import sbt.plugins.JvmPlugin
-import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
+import akka.grpc.Dependencies.Versions.{ scala212, scala213, scala3 }
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -23,7 +23,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers += Resolver.sonatypeRepo("staging"),
+      resolvers += Resolver.sonatypeRepo("staging"), // makes testing HTTP releases early easier
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -39,45 +39,71 @@ object Common extends AutoPlugin {
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     sonatypeProfileName := "com.lightbend",
-    scalacOptions ++= List(
+    scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",
       "-language:_",
       "-Xfatal-warnings",
-      "-Ywarn-unused",
+      "-feature",
       "-encoding",
-      "UTF-8"),
-    Compile / scalacOptions ++= Seq(
-      // Generated code for methods/fields marked 'deprecated'
-      "-Wconf:msg=Marked as deprecated in proto file:silent",
-      // deprecated in 2.13, but used as long as we support 2.12
-      "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
-      "-Wconf:msg=Use LazyList instead of Stream:silent",
-      "-Wconf:msg=never used:silent",
-      // ignore imports in templates (FIXME why is that trailig .* needed?)
-      "-Wconf:src=.*.txt.*:silent"),
+      "UTF-8") ++
+    (if (scalaVersion.value.startsWith("2"))
+       Seq("-Ywarn-unused")
+     else
+       Seq.empty),
+    Compile / scalacOptions ++=
+      Seq(
+        // Generated code for methods/fields marked 'deprecated'
+        "-Wconf:msg=Marked as deprecated in proto file:silent",
+        // deprecated in 2.13, but used as long as we support 2.12
+        "-Wconf:msg=Use `scala.jdk.CollectionConverters` instead:silent",
+        "-Wconf:msg=Use LazyList instead of Stream:silent",
+        "-Wconf:msg=never used:silent") ++
+      (if (scalaVersion.value.startsWith("2.12"))
+         Seq(
+           // we need some nowarns for Scala 3, for things not deprecated yet in 2.12
+           "-Wconf:msg=@nowarn annotation does not suppress any warnings:s",
+           // ignore imports in templates (FIXME why is that trailing .* needed?)
+           "-Wconf:src=.*.txt.*:silent")
+       else if (scalaVersion.value.startsWith("2.13")) {
+         Seq(
+           // ignore imports in templates (FIXME why is that trailing .* needed?)
+           "-Wconf:src=.*.txt.*:silent")
+       } else {
+         // Scala 3
+         Seq.empty
+       }),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
     javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
-    Compile / doc / scalacOptions := scalacOptions.value ++ Seq(
-      "-doc-title",
-      "Akka gRPC",
-      "-doc-version",
-      version.value,
-      "-sourcepath",
-      (ThisBuild / baseDirectory).value.toString,
-      "-skip-packages",
-      "akka.pattern:" + // for some reason Scaladoc creates this
-      "templates",
-      "-doc-source-url", {
-        val branch = if (isSnapshot.value) "main" else s"v${version.value}"
-        s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
-      },
-      "-doc-canonical-base-url",
-      "https://doc.akka.io/api/akka-grpc/current/"),
+    Compile / doc / scalacOptions :=
+      scalacOptions.value ++
+      Seq(
+        "-doc-title",
+        "Akka gRPC",
+        "-doc-version",
+        version.value,
+        "-sourcepath",
+        (ThisBuild / baseDirectory).value.toString,
+        "-doc-source-url", {
+          val branch = if (isSnapshot.value) "main" else s"v${version.value}"
+          s"https://github.com/akka/akka-grpc/tree/${branch}€{FILE_PATH_EXT}#L€{FILE_LINE}"
+        },
+        "-doc-canonical-base-url",
+        "https://doc.akka.io/api/akka-grpc/current/") ++
+      (if (scalaVersion.value.startsWith("2"))
+         Seq(
+           "-skip-packages",
+           "akka.pattern:" + // for some reason Scaladoc creates this
+           "templates")
+       else {
+         // Scala 3
+         Seq.empty
+       }),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
+    Compile / doc / javacOptions := Seq.empty,
     apiURL := Some(url(s"https://doc.akka.io/api/akka-grpc/${projectInfoVersion.value}/akka/grpc/index.html")),
     (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
-    crossScalaVersions := Seq(scala212, scala213),
+    crossScalaVersions := Seq(scala212, scala213, scala3),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
 }

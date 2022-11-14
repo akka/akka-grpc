@@ -5,6 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
+import akka.grpc.GrpcProtocol
 import akka.grpc.GrpcServiceException
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcResponseHelpers, Identity }
 import akka.grpc.scaladsl.GrpcExceptionHandler.defaultMapper
@@ -20,10 +21,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.concurrent.{ ExecutionException, Future }
 
 class GrpcExceptionHandlerSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
-  implicit val system = ActorSystem("Test")
+  implicit val system: ActorSystem = ActorSystem("Test")
   implicit override val patienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
-  implicit val writer = GrpcProtocolNative.newWriter(Identity)
+  implicit val writer: GrpcProtocol.GrpcProtocolWriter = GrpcProtocolNative.newWriter(Identity)
 
   val expected: Function[Throwable, Status] = {
     case e: ExecutionException =>

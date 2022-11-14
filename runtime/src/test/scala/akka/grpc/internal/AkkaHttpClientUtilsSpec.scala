@@ -6,7 +6,6 @@ package akka.grpc.internal
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpResponse
@@ -20,8 +19,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpecLike
 
+import scala.concurrent.ExecutionContext
+
 class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLike with Matchers with ScalaFutures {
-  implicit val ec = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatcher
   implicit val patience: PatienceConfig =
     PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 

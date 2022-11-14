@@ -115,10 +115,10 @@ object AkkaHttpClientUtils {
       queue.offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p))).flatMap(_ => p.future)
     }
 
-    implicit def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
+    def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =
       descriptor.getRequestMarshaller.asInstanceOf[WithProtobufSerializer[I]].protobufSerializer
 
-    implicit def deserializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[O] =
+    def deserializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[O] =
       descriptor.getResponseMarshaller.asInstanceOf[WithProtobufSerializer[O]].protobufSerializer
 
     new InternalChannel() {
@@ -165,8 +165,8 @@ object AkkaHttpClientUtils {
           descriptor: MethodDescriptor[I, O],
           streamingResponse: Boolean,
           options: CallOptions): Source[O, Future[GrpcResponseMetadata]] = {
-        implicit val serializer: ProtobufSerializer[I] = descriptor
-        val deserializer: ProtobufSerializer[O] = descriptor
+        implicit val serializer: ProtobufSerializer[I] = serializerFromMethodDescriptor(descriptor)
+        val deserializer: ProtobufSerializer[O] = deserializerFromMethodDescriptor(descriptor)
         val scheme = if (settings.useTls) "https" else "http"
         val httpRequest = GrpcRequestHelpers(
           Uri(
