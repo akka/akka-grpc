@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package akka.grpc.internal;
+
+import "akka/grpc/internal/reflection_test_3.proto";
+
+message MyMessage2 {
+  MyMessage3 field1 = 2;
+}
