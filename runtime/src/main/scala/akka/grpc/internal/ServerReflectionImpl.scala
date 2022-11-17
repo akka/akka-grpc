@@ -22,41 +22,78 @@ import collection.JavaConverters._
 final class ServerReflectionImpl private (fileDescriptors: Map[String, FileDescriptor], services: List[String])
     extends ServerReflection {
   import ServerReflectionImpl._
+  import ServerReflectionResponse.{ MessageResponse => Out }
 
   private val protoBytesLocalCache: concurrent.Map[String, ByteString] =
     new ConcurrentHashMap[String, ByteString]().asScala
 
   def serverReflectionInfo(in: Source[ServerReflectionRequest, NotUsed]): Source[ServerReflectionResponse, NotUsed] = {
-    in.map(req => {
-      import ServerReflectionRequest.{ MessageRequest => In }
-      import ServerReflectionResponse.{ MessageResponse => Out }
+    // The server reflection spec requires sending transitive dependencies, but allows (and encourages) to only send
+    // transitive dependencies that haven't yet been sent on this stream. So, we track this with a stateful map.
+    in.statefulMap(() => Set.empty[String])(
+      (alreadySent, req) => {
 
-      val response = req.messageRequest match {
-        case In.Empty =>
-          Out.Empty
-        case In.FileByFilename(fileName) =>
-          val list = fileDescriptors.get(fileName).map(getProtoBytes).toList
-          Out.FileDescriptorResponse(FileDescriptorResponse(list))
-        case In.FileContainingSymbol(symbol) =>
-          val list = findFileDescForSymbol(symbol, fileDescriptors).map(getProtoBytes).toList
-          Out.FileDescriptorResponse(FileDescriptorResponse(list))
-        case In.FileContainingExtension(ExtensionRequest(container, number, _)) =>
-          val list = findFileDescForExtension(container, number, fileDescriptors).map(getProtoBytes).toList
-          Out.FileDescriptorResponse(FileDescriptorResponse(list))
-        case In.AllExtensionNumbersOfType(container) =>
-          val list =
-            findExtensionNumbersForContainingType(
-              container,
-              fileDescriptors
-            ) // TODO should we throw a NOT_FOUND if we don't know the container type at all?
-          Out.AllExtensionNumbersResponse(ExtensionNumberResponse(container, list))
-        case In.ListServices(_) =>
-          val list = services.map(s => ServiceResponse(s))
-          Out.ListServicesResponse(ListServiceResponse(list))
+        import ServerReflectionRequest.{ MessageRequest => In }
+
+        val (newAlreadySent, response) = req.messageRequest match {
+          case In.Empty =>
+            (alreadySent, Out.Empty)
+          case In.FileByFilename(fileName) =>
+            toFileDescriptorResponse(fileDescriptors.get(fileName), alreadySent)
+          case In.FileContainingSymbol(symbol) =>
+            toFileDescriptorResponse(findFileDescForSymbol(symbol, fileDescriptors), alreadySent)
+          case In.FileContainingExtension(ExtensionRequest(container, number, _)) =>
+            toFileDescriptorResponse(findFileDescForExtension(container, number, fileDescriptors), alreadySent)
+          case In.AllExtensionNumbersOfType(container) =>
+            val list =
+              findExtensionNumbersForContainingType(
+                container,
+                fileDescriptors
+              ) // TODO should we throw a NOT_FOUND if we don't know the container type at all?
+            (alreadySent, Out.AllExtensionNumbersResponse(ExtensionNumberResponse(container, list)))
+          case In.ListServices(_) =>
+            val list = services.map(s => ServiceResponse(s))
+            (alreadySent, Out.ListServicesResponse(ListServiceResponse(list)))
+        }
+        // TODO Validate assumptions here
+        (newAlreadySent, ServerReflectionResponse(req.host, Some(req), response))
+      },
+      _ => None)
+  }
+
+  private def toFileDescriptorResponse(
+      fileDescriptor: Option[FileDescriptor],
+      alreadySent: Set[String]): (Set[String], Out.FileDescriptorResponse) = {
+    fileDescriptor match {
+      case None =>
+        (alreadySent, Out.FileDescriptorResponse(FileDescriptorResponse()))
+      case Some(file) =>
+        val (newAlreadySent, files) = withTransitiveDeps(alreadySent, file)
+        (newAlreadySent, Out.FileDescriptorResponse(FileDescriptorResponse(files.map(getProtoBytes))))
+    }
+  }
+
+  private def withTransitiveDeps(
+      alreadySent: Set[String],
+      file: FileDescriptor): (Set[String], List[FileDescriptor]) = {
+    @annotation.tailrec
+    def iterate(
+        sent: Set[String],
+        results: List[FileDescriptor],
+        toAdd: List[FileDescriptor]): (Set[String], List[FileDescriptor]) = {
+      toAdd match {
+        case Nil => (sent, results)
+        case _   =>
+          // Need to compute the new set of files sent before working out which dependencies to send, to ensure
+          // we don't send any dependencies that are being sent in this iteration
+          val nowSent = sent ++ toAdd.map(_.getName)
+          val depsOfToAdd =
+            toAdd.flatMap(_.getDependencies.asScala).distinct.filterNot(dep => nowSent.contains(dep.getName))
+          iterate(nowSent, toAdd ::: results, depsOfToAdd)
       }
-      // TODO Validate assumptions here
-      ServerReflectionResponse(req.host, Some(req), response)
-    })
+    }
+
+    iterate(alreadySent, Nil, List(file))
   }
 
   private def getProtoBytes(fileDescriptor: FileDescriptor): ByteString =
