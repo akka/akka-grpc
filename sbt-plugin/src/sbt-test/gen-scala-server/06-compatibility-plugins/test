@@ -1,8 +1,10 @@
 > compile
 
-$ exists target/scala-2.12/resource_managed/main/js/hellorequest.js
+# Disabled for now because of: https://github.com/protocolbuffers/protobuf-javascript/issues/127
+# $ exists target/scala-2.12/resource_managed/main/js/hellorequest.js
 $ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloRequest.scala
 
 > test:compile
-$ exists target/scala-2.12/resource_managed/test/js/echomessage.js
+# Disabled for now because of: https://github.com/protocolbuffers/protobuf-javascript/issues/127
+# $ exists target/scala-2.12/resource_managed/test/js/echomessage.js
 $ exists target/scala-2.12/akka-grpc/test/example/myapp/echo/grpc/EchoMessage.scala
