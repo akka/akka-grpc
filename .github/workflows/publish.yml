@@ -9,22 +9,22 @@ on:
 jobs:
   sbt:
     name: sbt publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.repository == 'akka/akka-grpc'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
 
-      - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 8
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.8
 
       - name: Publish
         run: |-
@@ -39,41 +39,41 @@ jobs:
 
   gradle-plugin:
     name: Release gradle plugin
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.repository == 'akka/akka-grpc'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
 
       - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
+        uses: coursier/setup-action@v1.3.0
         with:
-          java-version: adopt@1.8
+          jvm: temurin:1.8
 
       - name: Publish Plugin to Gradle Plugin Repository
         run: cd gradle-plugin && ./gradlew publishPlugins -Pgradle.publish.key='${{ secrets.GRADLE_PUBLISH_KEY }}' -Pgradle.publish.secret='${{ secrets.GRADLE_SECRET }}'
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.repository == 'akka/akka-grpc'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
 
-      - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11
 
       - name: Publish
         run: |-
