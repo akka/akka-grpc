@@ -58,8 +58,8 @@ jobs:
 
       - name: Compile benchmarks
         run: |-
-          cd benchmark-java
           cp .jvmopts-ghactions .jvmopts
+          cd benchmark-java
           sbt Test/compile
 
 
