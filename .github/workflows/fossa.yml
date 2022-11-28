@@ -31,6 +31,8 @@ jobs:
       - name: FOSSA policy check
         run: |-
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
+          cp .jvmopts-ghactions .jvmopts
+          sbt "compile; makePom"
           fossa analyze && fossa test
         env:
           FOSSA_API_KEY: "${{secrets.FOSSA_API_KEY}}"
