@@ -23,7 +23,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers += Resolver.sonatypeRepo("staging"), // makes testing HTTP releases early easier
+      resolvers ++= Resolver.sonatypeOssRepos("staging"), // makes testing HTTP releases early easier
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -31,15 +31,15 @@ object Common extends AutoPlugin {
         "Contributors",
         "https://gitter.im/akka/dev",
         url("https://github.com/akka/akka-grpc/graphs/contributors")),
-      licenses := Seq(
-        ("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-grpc/main/LICENSE"))
-      ), // FIXME change s/main/v2.2.1/ when released
+      licenses := Seq(("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-grpc/v2.2.1/LICENSE"))),
       description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams.")
 
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
     sonatypeProfileName := "com.lightbend",
     scalacOptions ++= Seq(
+      "-release",
+      "8",
       "-unchecked",
       "-deprecation",
       "-language:_",
@@ -48,7 +48,7 @@ object Common extends AutoPlugin {
       "-encoding",
       "UTF-8") ++
     (if (scalaVersion.value.startsWith("2"))
-       Seq("-Ywarn-unused")
+       Seq("-Ywarn-unused", "-target:jvm-1.8")
      else
        Seq.empty),
     Compile / scalacOptions ++=
@@ -74,7 +74,10 @@ object Common extends AutoPlugin {
          Seq.empty
        }),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
-    javacOptions ++= List("-Xlint:unchecked", "-Xlint:deprecation"),
+    javacOptions ++= (
+      if (isJdk8) Seq("-Xlint:unchecked", "-Xlint:deprecation")
+      else Seq("-Xlint:unchecked", "-Xlint:deprecation", "--release", "8")
+    ),
     Compile / doc / scalacOptions :=
       scalacOptions.value ++
       Seq(
@@ -106,4 +109,7 @@ object Common extends AutoPlugin {
     crossScalaVersions := Seq(scala212, scala213, scala3),
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
+
+  private def isJdk8 =
+    VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(s"=1.8"))
 }
