@@ -31,7 +31,8 @@ object Common extends AutoPlugin {
         "Contributors",
         "https://gitter.im/akka/dev",
         url("https://github.com/akka/akka-grpc/graphs/contributors")),
-      licenses := Seq(("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-grpc/v2.2.1/LICENSE"))),
+      licenses := Seq( // branch in the URL to be updated when releasing
+        ("BUSL-1.1", url("https://raw.githubusercontent.com/akka/akka-grpc/main/LICENSE"))),
       description := "Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams.")
 
   override lazy val projectSettings = Seq(
