@@ -48,7 +48,7 @@ object Common extends AutoPlugin {
       "-encoding",
       "UTF-8") ++
     (if (scalaVersion.value.startsWith("2"))
-       Seq("-Ywarn-unused", "-target:jvm-1.8")
+       Seq("-Ywarn-unused")
      else
        Seq.empty),
     Compile / scalacOptions ++=
