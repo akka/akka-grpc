@@ -84,7 +84,7 @@ jobs:
         with:
           jvm: temurin:1.11.0
 
-      - name: Compile and test for JDK ${{ matrix.JDK_VERSION }}, Scala ${{ matrix.scalaVersion }}
+      - name: Compile and test for JDK 11, Scala ${{ matrix.scalaVersion }}
         run: |-
           cp .jvmopts-ghactions .jvmopts
           sbt ++${{ matrix.scalaVersion }}.* test
