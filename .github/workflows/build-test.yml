@@ -6,6 +6,9 @@ on:
     branches: [ main ]
     tags-ignore: [ v* ]
 
+permissions:
+  contents: read
+
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-${{ github.ref }}
@@ -14,29 +17,21 @@ concurrency:
 jobs:
   check-code-style:
     name: Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
 
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
 
-      - name: FOSSA policy check
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == 'akka/akka-grpc' }}
-        run: |-
-          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/spectrometer/master/install.sh | bash
-          fossa analyze && fossa test
-        env:
-          FOSSA_API_KEY: "${{secrets.FOSSA_API_KEY}}"
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11
 
       - name: Code style check and binary-compatibility check
         run: |-
@@ -45,56 +40,60 @@ jobs:
 
   compile-benchmarks:
     name: Compile Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
 
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11
+
       - name: Compile benchmarks
         run: |-
+          cp .jvmopts-ghactions .jvmopts
           cd benchmark-java
-          sbt test:compile
+          sbt Test/compile
 
 
   compile-and-test:
     name: Compile and test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        SCALA_VERSION: [2.12, 2.13, 3.1]
-        # use 1.8 when https://github.com/akka/akka-grpc/issues/1332 is fixed
-        JABBA_JDK: [1.8.0-275, 1.11]
+        SCALA_VERSION: [2.13, 2.13, 3.1]
+        JDK_VERSION: [1.8.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
-      - name: Set up JDK ${{ matrix.JABBA_JDK }}
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@${{ matrix.JABBA_JDK }}
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
 
-      - name: Compile and test for JDK ${{ matrix.JABBA_JDK }}, Scala ${{ matrix.SCALA_VERSION }}
-        run: sbt ++${{ matrix.SCALA_VERSION }}.* test
+      - name: Set up JDK ${{ matrix.JDK_VERSION }}
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:${{ matrix.JDK_VERSION }}
+
+      - name: Compile and test for JDK ${{ matrix.JDK_VERSION }}, Scala ${{ matrix.SCALA_VERSION }}
+        run: |-
+          cp .jvmopts-ghactions .jvmopts
+          sbt ++${{ matrix.SCALA_VERSION }}.* test
 
 
   test-sbt:
     name: sbt scripted tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -103,41 +102,45 @@ jobs:
             scala-version: 2.12
           - test-set: gen-java
             scala-version: 2.12
+          - test-set: scala-2_13
+            scala-version: 2.13
           - test-set: scala3
             scala-version: 3.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 8
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.8
 
       - name: Scripted ${{ matrix.test-set }}
-        run: cp .jvmopts-ghactions .jvmopts && sbt ++${{ matrix.scala-version }}.* "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
+        run: |-
+          cp .jvmopts-ghactions .jvmopts
+          sbt ++${{ matrix.scala-version }}.* "sbt-akka-grpc/scripted ${{ matrix.test-set }}/*"
 
   test-gradle:
     name: Gradle tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 8
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.8
 
       - name: Gather version
         run: |-
@@ -145,7 +148,7 @@ jobs:
           cat ~/.version
 
       - name: Cache local Gradle repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ~/.gradle/caches
@@ -179,20 +182,20 @@ jobs:
 
   test-maven:
     name: Maven tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 8
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.8
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 8
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.8
 
       - name: Gather version
         run: |-
@@ -200,7 +203,7 @@ jobs:
           cat ~/.version
 
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('plugin-tester-*/pom.xml') }}
@@ -224,19 +227,21 @@ jobs:
 
   test-docs:
     name: Docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11
+
       - name: Test Maven Java
         run: |-
           cp .jvmopts-ghactions .jvmopts

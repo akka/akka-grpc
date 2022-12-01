@@ -5,34 +5,33 @@ on:
   schedule:
     - cron:  '0 6 * * 1'
 
+permissions:
+  contents: read
+
 jobs:
   validate-links:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
         with:
-          # See https://github.com/actions/checkout/issues/299#issuecomment-677674415
-          ref: ${{ github.event.pull_request.head.sha }}
           # fetch everything https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
           fetch-depth: 0
 
-      - name: Set up JDK 11
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: adopt@1.11
-
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.2
+        uses: coursier/cache-action@v6.4.0
+
+      - name: Set up JDK 11
+        uses: coursier/setup-action@v1.3.0
+        with:
+          jvm: temurin:1.11
+          apps: cs
 
       - name: sbt site
         run: sbt akka-grpc-docs/makeSite
-
-      - name: Install Coursier command line tool
-        run: curl -fLo cs https://git.io/coursier-cli-linux && chmod +x cs && ./cs
 
       - name: Run Link Validator
         run: |
           VERSION=$(ls docs/target/site/docs/akka-grpc)
           sed -e "s/snapshot/$VERSION/" scripts/link-validator.conf > /tmp/link-validator.conf
-          ./cs launch net.runne::site-link-validator:0.2.0 -- /tmp/link-validator.conf
+          cs launch net.runne::site-link-validator:0.2.3 -- /tmp/link-validator.conf
