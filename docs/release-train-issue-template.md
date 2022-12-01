@@ -19,6 +19,8 @@ Variables to be expanded in this template:
 - [ ] Close the [$VERSION$ milestone](https://github.com/akka/akka-grpc/milestones?direction=asc&sort=due_date)
 - [ ] Make sure all important PRs have been merged
 - [ ] Wait until [main build finished](https://github.com/akka/akka-grpc/actions) after merging the latest PR
+- [ ] For recent dependency updates or changes on a minor release branch the Fossa validation can be triggered from the GitHub actions "Dependency License Scanning" (Manually choosing the release branch)
+ - [ ] Update the revision in Fossa in the Akka Group for the Akka umbrella version, e.g. `22.10`. Note that the revisions for the release is updated by Akka Group > Projects > Edit.
 - [ ] Update the [draft release](https://github.com/akka/akka-grpc/releases) with the next tag version `v$VERSION$`, title and release description. Use the `Publish release` button, which will create the tag.
 - [ ] Check that GitHub Actions release build has executed successfully (GitHub Actions will start a [CI build](https://github.com/akka/akka-grpc/actions) for the new tag and publish artifacts to Maven central via Sonatype)
 
