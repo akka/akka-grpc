@@ -28,7 +28,6 @@ jobs:
 
       - name: Publish
         run: |-
-          cp .jvmopts-ghactions .jvmopts
           sbt ci-release
           CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.10\! ci-release
         env:
@@ -81,7 +80,6 @@ jobs:
           echo $SCP_SECRET | base64 -d > /tmp/id_rsa
           chmod 600 /tmp/id_rsa
           ssh-add /tmp/id_rsa
-          cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-docs/publishRsync
         env:
           SCP_SECRET: ${{ secrets.SCP_SECRET }}
