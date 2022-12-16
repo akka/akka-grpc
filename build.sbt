@@ -39,7 +39,10 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := scala212)
+    scalaVersion := scala212,
+    // FIXME for forcing scala-xml 2.1.0, remove once bumped to Twirl 1.6
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
+  )
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
@@ -80,10 +83,12 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     },
     (assembly / mainClass) := Some("akka.grpc.scalapb.Main"),
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
-      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
-  .settings(
+      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head,
+    // FIXME for forcing scala-xml 2.1.0, remove once bumped to Twirl 1.6
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
+  )
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
@@ -97,7 +102,9 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
     publishMavenStyle := true,
     crossPaths := false,
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head,
+    // FIXME for forcing scala-xml 2.1.0, remove once bumped to Twirl 1.6
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .dependsOn(codegen)
 
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
@@ -115,10 +122,11 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
       val p3 = (runtime / publishLocal).value
       val p4 = (interopTests / publishLocal).value
     },
-    scriptedBufferLog := false)
-  .settings(
+    scriptedBufferLog := false,
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head,
+    // FIXME for forcing scala-xml 2.1.0, remove once bumped to Twirl 1.6
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
