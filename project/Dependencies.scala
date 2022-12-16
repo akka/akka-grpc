@@ -49,7 +49,6 @@ object Dependencies {
     // FIXME: overriding transitive from twirl 1.5, remove once bumped to Twirl 1.6
     val scalaXml = "org.scala-lang.modules" %% "scala-xml" % "2.1.0"
 
-
     val grpcCore = "io.grpc" % "grpc-core" % Versions.grpc
     val grpcStub = "io.grpc" % "grpc-stub" % Versions.grpc
     val grpcNettyShaded = "io.grpc" % "grpc-netty-shaded" % Versions.grpc
