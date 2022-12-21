@@ -95,7 +95,3 @@ Then, the server can then be started from the command line with:
 ```
 ./gradlew runServer
 ```
-
-## Play Framework support
-
-See the [Play gRPC documentation](https://developer.lightbend.com/docs/play-grpc/current/play/gradle-support.html) for details.

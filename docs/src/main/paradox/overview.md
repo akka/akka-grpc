@@ -22,8 +22,7 @@ It features:
  * gRPC Runtime implementation that uses 
     - @extref[Akka HTTP/2 support](akka-http:server-side/http2.html) for the server side and 
     - `grpc-netty-shaded` for the client side.
- * Support for @ref[sbt](buildtools/sbt.md), @ref[gradle](buildtools/gradle.md), @ref[Maven](buildtools/maven.md),
-   and the [Play Framework](https://developer.lightbend.com/docs/play-grpc/current/).
+ * Support for @ref[sbt](buildtools/sbt.md), @ref[gradle](buildtools/gradle.md), and @ref[Maven](buildtools/maven.md).
 
 ## Project Information
 
@@ -32,7 +31,7 @@ It features:
 ## Project Status
 
 Akka gRPC is [Supported](https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html)
-as part of a [Lightbend Subscription](https://www.lightbend.com/lightbend-subscription).
+for users with an [Akka license](https://www.lightbend.com/akka#pricing).
 
 Both client- and server-side APIs are based on Akka Streams.
 
