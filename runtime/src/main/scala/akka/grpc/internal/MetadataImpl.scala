@@ -12,9 +12,10 @@ import akka.annotation.InternalApi
 import akka.http.scaladsl.model.HttpHeader
 import akka.japi.Pair
 import akka.util.ByteString
-import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, RichMetadata, StringEntry }
+import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, MetadataStatus, StringEntry }
 import akka.grpc.javadsl
 import com.google.protobuf.any
+import com.google.rpc.Status
 import scalapb.{ GeneratedMessage, GeneratedMessageCompanion }
 
 @InternalApi private[akka] object MetadataImpl {
@@ -203,7 +204,7 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
  * @param delegate The underlying Scala metadata instance.
  */
 @InternalApi
-class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with javadsl.RichMetadata {
+class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with javadsl.MetadataStatus {
   override def getText(key: String): Optional[String] =
     delegate.getText(key).asJava
 
@@ -229,39 +230,42 @@ class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with jav
 
   private def richDelegate =
     delegate match {
-      case r: RichMetadata => r
-      case other           => throw new IllegalArgumentException(s"Delegate metadata is not RichMetadata but ${other.getClass}")
+      case r: MetadataStatus => r
+      case other             => throw new IllegalArgumentException(s"Delegate metadata is not RichMetadata but ${other.getClass}")
     }
+
+  override def getStatus(): Status = richDelegate.status
 
   override def getCode(): Int = richDelegate.code
 
-  def getMessage(): String = richDelegate.message
+  override def getMessage(): String = richDelegate.message
 
   private lazy val javaDetails: jList[com.google.protobuf.any.Any] = richDelegate.details.asJava
-
   def getDetails(): jList[com.google.protobuf.any.Any] = javaDetails
 
-  def getParsedDetails[K <: GeneratedMessage](index: Int, companion: GeneratedMessageCompanion[K]): K =
-    richDelegate.getParsedDetails(index)(companion)
+  def getParsedDetails[K <: GeneratedMessage](companion: GeneratedMessageCompanion[K]): jList[K] =
+    richDelegate.getParsedDetails(companion).asJava
 }
 
 class RichGrpcMetadataImpl(delegate: io.grpc.Status, meta: io.grpc.Metadata)
     extends GrpcMetadataImpl(meta)
-    with RichMetadata {
+    with MetadataStatus {
   override val raw: Option[io.grpc.Metadata] = Some(meta)
-  lazy val status: com.google.rpc.Status =
+  override lazy val status: com.google.rpc.Status =
     io.grpc.protobuf.StatusProto.fromStatusAndTrailers(delegate, meta)
 
-  lazy val code: Int = status.getCode
-  lazy val message: String = status.getMessage
+  override def code: Int = status.getCode
+  override def message: String = status.getMessage
 
-  lazy val details: Seq[any.Any] = status.getDetailsList.asScala.map { item =>
+  override lazy val details: Seq[any.Any] = status.getDetailsList.asScala.map { item =>
     fromJavaProto(item)
   }.toVector
 
-  def getParsedDetails[K <: scalapb.GeneratedMessage](index: Int)(
-      implicit msg: scalapb.GeneratedMessageCompanion[K]): K =
-    details(index).unpack
+  def getParsedDetails[K <: scalapb.GeneratedMessage](
+      implicit companion: scalapb.GeneratedMessageCompanion[K]): Seq[K] = {
+    val typeUrl = "type.googleapis.com/" + companion.scalaDescriptor.fullName
+    details.filter(_.typeUrl == typeUrl).map(_.unpack)
+  }
 
   private def fromJavaProto(javaPbSource: com.google.protobuf.Any): com.google.protobuf.any.Any =
     com.google.protobuf.any.Any(typeUrl = javaPbSource.getTypeUrl, value = javaPbSource.getValue)

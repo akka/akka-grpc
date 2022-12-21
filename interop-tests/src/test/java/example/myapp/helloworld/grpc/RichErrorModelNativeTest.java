@@ -7,9 +7,7 @@ package example.myapp.helloworld.grpc;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.GrpcServiceException;
-import akka.grpc.internal.JavaMetadataImpl;
-import akka.grpc.internal.RichGrpcMetadataImpl;
-import akka.grpc.javadsl.RichMetadata;
+import akka.grpc.javadsl.MetadataStatus;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
@@ -67,13 +65,13 @@ public class RichErrorModelNativeTest extends JUnitSuite {
             }).get();
 
             GrpcServiceException ex = GrpcServiceException.apply(statusRuntimeException);
-            RichMetadata meta = (RichMetadata) ex.getMetadata();
+            MetadataStatus meta = (MetadataStatus) ex.getMetadata();
             assertEquals("type.googleapis.com/google.rpc.LocalizedMessage", meta.getDetails().get(0).typeUrl());
 
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), meta.getCode());
             assertEquals("What is wrong?", meta.getMessage());
 
-            LocalizedMessage details = meta.getParsedDetails(0, com.google.rpc.error_details.LocalizedMessage.messageCompanion());
+            LocalizedMessage details = meta.getParsedDetails(LocalizedMessage.messageCompanion()).get(0);
             assertEquals("The password!", details.message());
             assertEquals("EN", details.locale());
             // #client_request
