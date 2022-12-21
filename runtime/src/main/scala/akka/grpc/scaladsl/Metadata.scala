@@ -6,6 +6,7 @@ package akka.grpc.scaladsl
 
 import akka.annotation.{ ApiMayChange, DoNotInherit, InternalApi }
 import akka.util.ByteString
+import com.google.protobuf.any
 
 /**
  * Immutable representation of the metadata in a call
@@ -44,4 +45,16 @@ import akka.util.ByteString
    */
   @ApiMayChange
   def asList: List[(String, MetadataEntry)]
+}
+
+/**
+ * Not for user extension
+ */
+@ApiMayChange
+@DoNotInherit
+trait RichMetadata extends Metadata {
+  def code: Int
+  def message: String
+  def details: Seq[any.Any]
+  def getParsedDetails[K <: scalapb.GeneratedMessage](index: Int)(implicit msg: scalapb.GeneratedMessageCompanion[K]): K
 }

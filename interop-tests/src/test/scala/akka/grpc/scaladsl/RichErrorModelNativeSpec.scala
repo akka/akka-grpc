@@ -6,7 +6,6 @@ package akka.grpc.scaladsl
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.grpc.internal.RichGrpcMetadataImpl
 import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
@@ -88,11 +87,11 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case richMetadata: RichGrpcMetadataImpl =>
+            case richMetadata: RichMetadata =>
               richMetadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
               import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = richMetadata.getDetails(0)
+              val localizedMessage: LocalizedMessage = richMetadata.getParsedDetails(0)
               localizedMessage.message should be("The password!")
               localizedMessage.locale should be("EN")
 
@@ -116,14 +115,14 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case ex: RichGrpcMetadataImpl =>
-              ex.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
+            case metadata: RichMetadata =>
+              metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
               import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = ex.getDetails(0)
+              val localizedMessage: LocalizedMessage = metadata.getParsedDetails(0)
 
-              ex.code should be(3)
-              ex.message should be("What is wrong?")
+              metadata.code should be(3)
+              metadata.message should be("What is wrong?")
               localizedMessage.message should be("The password!")
               localizedMessage.locale should be("EN")
 
@@ -143,14 +142,13 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case ex: RichGrpcMetadataImpl =>
-              ex.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
+            case metadata: RichMetadata =>
+              metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
-              import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = ex.getDetails(0)
+              val localizedMessage = metadata.getParsedDetails[LocalizedMessage](0)
 
-              ex.code should be(3)
-              ex.message should be("What is wrong?")
+              metadata.code should be(3)
+              metadata.message should be("What is wrong?")
               localizedMessage.message should be("The password!")
               localizedMessage.locale should be("EN")
 
@@ -171,14 +169,13 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case ex: RichGrpcMetadataImpl =>
-              ex.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
+            case metadata: RichMetadata =>
+              metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
-              import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = ex.getDetails(0)
+              val localizedMessage = metadata.getParsedDetails[LocalizedMessage](0)
 
-              ex.code should be(3)
-              ex.message should be("What is wrong?")
+              metadata.code should be(3)
+              metadata.message should be("What is wrong?")
               localizedMessage.message should be("The password!")
               localizedMessage.locale should be("EN")
 

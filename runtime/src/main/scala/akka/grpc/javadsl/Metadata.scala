@@ -5,7 +5,6 @@
 package akka.grpc.javadsl
 
 import java.util.{ List, Map, Optional }
-
 import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 import akka.japi.Pair
@@ -48,4 +47,16 @@ trait Metadata {
    * @return Returns the scaladsl.Metadata interface for this instance.
    */
   def asScala: scaladsl.Metadata
+}
+
+/**
+ * Not for user extension
+ */
+@ApiMayChange
+@DoNotInherit
+trait RichMetadata extends Metadata {
+  def getCode(): Int
+  def getMessage(): String
+  def getDetails(): List[com.google.protobuf.any.Any]
+  def getParsedDetails[K <: scalapb.GeneratedMessage](index: Int, companion: scalapb.GeneratedMessageCompanion[K]): K
 }
