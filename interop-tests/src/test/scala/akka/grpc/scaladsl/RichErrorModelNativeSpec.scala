@@ -87,11 +87,11 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case richMetadata: RichMetadata =>
+            case richMetadata: MetadataStatus =>
               richMetadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
               import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = richMetadata.getParsedDetails(0)
+              val localizedMessage = richMetadata.getParsedDetails[LocalizedMessage].head
               localizedMessage.message should be("The password!")
               localizedMessage.locale should be("EN")
 
@@ -115,11 +115,11 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case metadata: RichMetadata =>
+            case metadata: MetadataStatus =>
               metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
               import LocalizedMessage.messageCompanion
-              val localizedMessage: LocalizedMessage = metadata.getParsedDetails(0)
+              val localizedMessage = metadata.getParsedDetails[LocalizedMessage].head
 
               metadata.code should be(3)
               metadata.message should be("What is wrong?")
@@ -142,10 +142,10 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case metadata: RichMetadata =>
+            case metadata: MetadataStatus =>
               metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
-              val localizedMessage = metadata.getParsedDetails[LocalizedMessage](0)
+              val localizedMessage = metadata.getParsedDetails[LocalizedMessage].head
 
               metadata.code should be(3)
               metadata.message should be("What is wrong?")
@@ -169,10 +169,10 @@ class RichErrorModelNativeSpec
       richErrorResponse match {
         case status: GrpcServiceException =>
           status.metadata match {
-            case metadata: RichMetadata =>
+            case metadata: MetadataStatus =>
               metadata.details(0).typeUrl should be("type.googleapis.com/google.rpc.LocalizedMessage")
 
-              val localizedMessage = metadata.getParsedDetails[LocalizedMessage](0)
+              val localizedMessage = metadata.getParsedDetails[LocalizedMessage].head
 
               metadata.code should be(3)
               metadata.message should be("What is wrong?")

@@ -48,13 +48,17 @@ import com.google.protobuf.any
 }
 
 /**
+ * Provides access to details to more rich error details using the logical gRPC com.google.rpc.Status message, see
+ * [API Design Guide](https://cloud.google.com/apis/design/errors) for more details.
+ *
  * Not for user extension
  */
 @ApiMayChange
 @DoNotInherit
-trait RichMetadata extends Metadata {
+trait MetadataStatus extends Metadata {
+  def status: com.google.rpc.Status
   def code: Int
   def message: String
   def details: Seq[any.Any]
-  def getParsedDetails[K <: scalapb.GeneratedMessage](index: Int)(implicit msg: scalapb.GeneratedMessageCompanion[K]): K
+  def getParsedDetails[K <: scalapb.GeneratedMessage](implicit msg: scalapb.GeneratedMessageCompanion[K]): Seq[K]
 }
