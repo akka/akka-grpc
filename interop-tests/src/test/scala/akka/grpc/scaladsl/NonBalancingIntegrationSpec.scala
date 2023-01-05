@@ -110,7 +110,7 @@ class NonBalancingIntegrationSpec(backend: String)
                   r
                 })
 
-            val secondReplies = Future.sequence(requestsOnSecondConnection).futureValue(timeout(15.seconds))
+            val secondReplies = Await.result(Future.sequence(requestsOnSecondConnection), 15.seconds)
             log.info(s"endpoint instance 2: ${secondReplies.size} replied, counter: ${service1.greetings.get()}")
 
             service1.greetings.get should be(numberOfRequests)
