@@ -70,44 +70,55 @@ class NonBalancingIntegrationSpec(backend: String)
 
     "send requests to a single endpoint that is restarted in the middle" in {
       if (this.isInstanceOf[NonBalancingIntegrationSpecNetty]) pending // flaky
-      else {
-        val service1 = new CountingGreeterServiceImpl()
+      else
+        (0 to 30).foreach { n =>
+          log.info("Run {}", n)
+          val service1 = new CountingGreeterServiceImpl()
 
-        val server1 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service1)).futureValue
+          val server1 = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service1)).futureValue
 
-        val discovery = MutableServiceDiscovery(List(server1))
-        val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
+          val discovery = MutableServiceDiscovery(List(server1))
+          val client =
+            GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
-        val numberOfRequests = 100
-        val requestsPerConnection = numberOfRequests / 2
+          val numberOfRequests = 100
+          val requestsPerConnection = numberOfRequests / 2
 
-        val requestsOnFirstConnection =
-          List.tabulate(requestsPerConnection)(n =>
-            client.sayHello(HelloRequest(s"Hello instance 1 req $n")).map { r =>
-              log.info(s"Response from instance 1: {}", r.message)
-              r
-            })
+          val requestsOnFirstConnection =
+            List.tabulate(requestsPerConnection)(n =>
+              client.sayHello(HelloRequest(s"Hello instance 1 req $n")).map { r =>
+                log.info(s"Response from instance 1: {}", r.message)
+                r
+              })
 
-        Future.sequence(requestsOnFirstConnection).futureValue
-        log.info(
-          s"endpoint instance 1: ${requestsOnFirstConnection.size} replied, counter: ${service1.greetings.get()}")
-        server1.terminate(5.seconds).futureValue
+          Future.sequence(requestsOnFirstConnection).futureValue
+          log.info(
+            s"endpoint instance 1: ${requestsOnFirstConnection.size} replied, counter: ${service1.greetings.get()}")
+          server1.terminate(5.seconds).futureValue
 
-        // And restart
-        Http().newServerAt("127.0.0.1", server1.localAddress.getPort).bind(GreeterServiceHandler(service1)).futureValue
+          // And restart
+          val server2 = Http()
+            .newServerAt("127.0.0.1", server1.localAddress.getPort)
+            .bind(GreeterServiceHandler(service1))
+            .futureValue
 
-        val requestsOnSecondConnection =
-          List.tabulate(requestsPerConnection)(n =>
-            client.sayHello(HelloRequest(s"Hello instance 2 req $n")).map { r =>
-              log.info(s"Response from instance 2: {}", r.message)
-              r
-            })
+          try {
+            val requestsOnSecondConnection =
+              List.tabulate(requestsPerConnection)(n =>
+                client.sayHello(HelloRequest(s"Hello instance 2 req $n")).map { r =>
+                  log.info(s"Response from instance 2: {}", r.message)
+                  r
+                })
 
-        val secondReplies = Future.sequence(requestsOnSecondConnection).futureValue(timeout(15.seconds))
-        log.info(s"endpoint instance 2: ${secondReplies.size} replied, counter: ${service1.greetings.get()}")
+            val secondReplies = Future.sequence(requestsOnSecondConnection).futureValue(timeout(15.seconds))
+            log.info(s"endpoint instance 2: ${secondReplies.size} replied, counter: ${service1.greetings.get()}")
 
-        service1.greetings.get should be(numberOfRequests)
-      }
+            service1.greetings.get should be(numberOfRequests)
+
+          } finally {
+            server2.terminate(5.seconds).futureValue
+          }
+        }
     }
 
     "re-discover endpoints on failure" in {
