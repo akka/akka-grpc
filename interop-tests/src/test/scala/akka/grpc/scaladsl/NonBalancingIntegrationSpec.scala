@@ -22,6 +22,7 @@ import org.scalatest.exceptions.TestFailedException
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.{ Await, Future }
@@ -35,6 +36,8 @@ class NonBalancingIntegrationSpec(backend: String)
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures {
+  val log = LoggerFactory.getLogger(classOf[NonBalancingIntegrationSpec])
+
   implicit val system: ActorSystem = ActorSystem(
     s"NonBalancingIntegrationSpec-$backend",
     ConfigFactory.parseString(s"""akka.grpc.client."*".backend = "$backend" """).withFallback(ConfigFactory.load()))
@@ -76,24 +79,31 @@ class NonBalancingIntegrationSpec(backend: String)
       val numberOfRequests = 100
       val requestsPerConnection = numberOfRequests / 2
 
-      val requestsOnFirstConnection = List.fill(requestsPerConnection)(client.sayHello(HelloRequest(s"Hello")))
+      val requestsOnFirstConnection =
+        List.tabulate(requestsPerConnection)(n =>
+          client.sayHello(HelloRequest(s"Hello instance 1 req $n")).map { r =>
+            log.info(s"Response from instance 1: {}", r.message)
+            r
+          })
 
       Future.sequence(requestsOnFirstConnection).futureValue
+      log.info(s"endpoint instance 1: ${requestsOnFirstConnection.size} replied, counter: ${service1.greetings.get()}")
       server1.terminate(5.seconds).futureValue
+
       // And restart
       Http().newServerAt("127.0.0.1", server1.localAddress.getPort).bind(GreeterServiceHandler(service1)).futureValue
 
-      val requestsOnSecondConnection = List.fill(requestsPerConnection)(client.sayHello(HelloRequest(s"Hello")))
+      val requestsOnSecondConnection =
+        List.tabulate(requestsPerConnection)(n =>
+          client.sayHello(HelloRequest(s"Hello instance 2 req $n")).map { r =>
+            log.info(s"Response from instance 2: {}", r.message)
+            r
+          })
 
-      val replies = Future.sequence(requestsOnSecondConnection)
-      Await.ready(replies, 15.seconds)
+      val secondReplies = Future.sequence(requestsOnSecondConnection).futureValue(timeout(15.seconds))
+      log.info(s"endpoint instance 2: ${secondReplies.size} replied, counter: ${service1.greetings.get()}")
 
-      if (this.isInstanceOf[NonBalancingIntegrationSpecNetty] && service1.greetings.get != numberOfRequests) {
-        system.log.warning(
-          s"Found only ${service1.greetings.get} requests rather than $numberOfRequests, likely a flakey test")
-        pending
-      } else
-        service1.greetings.get should be(numberOfRequests)
+      service1.greetings.get should be(numberOfRequests)
     }
 
     "re-discover endpoints on failure" in {
@@ -152,8 +162,7 @@ class NonBalancingIntegrationSpec(backend: String)
       val client = GreeterServiceClient(GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false))
 
       for (i <- 1 to 100) {
-        println(s" Sending request [$i]")
-        client.sayHello(HelloRequest(s"Hello $i")).map(_ => println(s" Received response number [$i]")).futureValue
+        client.sayHello(HelloRequest(s"Hello $i")).futureValue
       }
 
       service.greetings.get should be(100)

@@ -5,19 +5,20 @@
 package akka.grpc.scaladsl
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import scala.concurrent.Future
-
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-
 import example.myapp.helloworld.grpc.helloworld._
+import org.slf4j.LoggerFactory
 
 class CountingGreeterServiceImpl extends GreeterService {
+
+  val log = LoggerFactory.getLogger(classOf[CountingGreeterServiceImpl])
   var greetings = new AtomicInteger(0);
 
   def sayHello(in: HelloRequest): Future[HelloReply] = {
-    greetings.incrementAndGet()
+    val count = greetings.incrementAndGet()
+    log.info("{}, counter: {}", in.name, count)
     Future.successful(HelloReply(s"Hi ${in.name}!"))
   }
 
