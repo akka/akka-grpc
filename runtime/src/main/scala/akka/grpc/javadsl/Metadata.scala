@@ -5,7 +5,6 @@
 package akka.grpc.javadsl
 
 import java.util.{ List, Map, Optional }
-
 import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 import akka.japi.Pair
@@ -48,4 +47,20 @@ trait Metadata {
    * @return Returns the scaladsl.Metadata interface for this instance.
    */
   def asScala: scaladsl.Metadata
+}
+
+/**
+ * Provides access to details to more rich error details using the logical gRPC com.google.rpc.Status message, see
+ * [API Design Guide](https://cloud.google.com/apis/design/errors) for more details.
+ *
+ * Not for user extension
+ */
+@ApiMayChange
+@DoNotInherit
+trait MetadataStatus extends Metadata {
+  def getStatus(): com.google.rpc.Status
+  def getCode(): Int
+  def getMessage(): String
+  def getDetails(): List[com.google.protobuf.any.Any]
+  def getParsedDetails[K <: scalapb.GeneratedMessage](companion: scalapb.GeneratedMessageCompanion[K]): List[K]
 }

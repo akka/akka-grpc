@@ -76,14 +76,14 @@ Java
 
 ## Rich error model
 
-Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model). Currently there is no particular support for consuming such error objects (such as the ones based on the [common protobuf](https://cloud.google.com/apis/design/errors#error_model), but you can obtain them 'manually'.
+Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model).
 
-Extract the `StatusRuntimeException` and parse the Rich error model to access `code`, `message` and `details`. Then find the details you are looking for based on their `typeUrl` and unpack them:
+Extract the `GrpcServiceException` to access `code`, `message` and `details`.
 
 Scala
-:  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala) { #client_request }
+:  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelNativeSpec.scala) { #client_request }
 
 Java
-:  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelTest.java) { #client_request }
+:  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelNativeTest.java) { #client_request }
 
 Please look @ref[here](../server/details.md) how to create errors with such details on the server side.
