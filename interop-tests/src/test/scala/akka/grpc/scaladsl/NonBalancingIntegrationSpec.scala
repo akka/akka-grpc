@@ -80,20 +80,15 @@ class NonBalancingIntegrationSpec(backend: String)
 
       Future.sequence(requestsOnFirstConnection).futureValue
       server1.terminate(5.seconds).futureValue
+      // Give it some time to complete unbind (suspected to cause test flakyness)
+      Thread.sleep(250)
       // And restart
       Http().newServerAt("127.0.0.1", server1.localAddress.getPort).bind(GreeterServiceHandler(service1)).futureValue
 
       val requestsOnSecondConnection = List.fill(requestsPerConnection)(client.sayHello(HelloRequest(s"Hello")))
 
-      val replies = Future.sequence(requestsOnSecondConnection)
-      Await.ready(replies, 15.seconds)
-
-      if (this.isInstanceOf[NonBalancingIntegrationSpecNetty] && service1.greetings.get != numberOfRequests) {
-        system.log.warning(
-          s"Found only ${service1.greetings.get} requests rather than $numberOfRequests, likely a flakey test")
-        pending
-      } else
-        service1.greetings.get should be(numberOfRequests)
+      Future.sequence(requestsOnSecondConnection).futureValue(timeout(15.seconds))
+      service1.greetings.get should be(numberOfRequests)
     }
 
     "re-discover endpoints on failure" in {
