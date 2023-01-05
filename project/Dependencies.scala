@@ -46,8 +46,6 @@ object Dependencies {
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
     val scalapbRuntime = ("com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion)
       .exclude("io.grpc", "grpc-netty")
-    // FIXME: overriding transitive from twirl 1.5, remove once bumped to Twirl 1.6
-    val scalaXml = "org.scala-lang.modules" %% "scala-xml" % "2.1.0"
 
     val grpcCore = "io.grpc" % "grpc-core" % Versions.grpc
     val grpcStub = "io.grpc" % "grpc-stub" % Versions.grpc
@@ -96,7 +94,6 @@ object Dependencies {
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Compile.grpcProtobuf,
-    Compile.scalaXml,
     Test.scalaTest)
 
   val runtime = l ++= Seq(
@@ -122,11 +119,10 @@ object Dependencies {
     Compile.mavenCore,
     Compile.protocJar,
     Compile.plexusBuildApi,
-    Compile.scalaXml,
     Test.scalaTest)
 
   val sbtPlugin = Seq(
-    l ++= Seq(Compile.scalapbCompilerPlugin, Compile.scalaXml),
+    l ++= Seq(Compile.scalapbCompilerPlugin),
     // we depend on it in the settings of the plugin since we set keys of the sbt-protoc plugin
     addSbtPlugin(Plugins.sbtProtoc))
 

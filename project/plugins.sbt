@@ -3,12 +3,12 @@ enablePlugins(BuildInfoPlugin)
 val sbtProtocV = "1.0.6"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
-
+evictionErrorLevel := sbt.util.Level.Warn
 addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.3")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.9.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.1")
+addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.5.2")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.0.0")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
@@ -31,7 +31,3 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.1.2022061
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
 libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11"
-
-// FIXME: overriding transitive from twirl 1.5, remove once bumped to Twirl 1.6
-libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.1.0"
-libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
