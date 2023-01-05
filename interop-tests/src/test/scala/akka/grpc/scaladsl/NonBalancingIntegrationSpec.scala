@@ -99,7 +99,10 @@ class NonBalancingIntegrationSpec(backend: String)
           // And restart
           val server2 = Http()
             .newServerAt("127.0.0.1", server1.localAddress.getPort)
-            .bind(GreeterServiceHandler(service1))
+            .bind(GreeterServiceHandler(service1).andThen { res =>
+              res.failed.foreach(ex => log.error("Error on the server side", ex))
+              res
+            })
             .futureValue
 
           try {
