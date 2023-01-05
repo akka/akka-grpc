@@ -271,8 +271,7 @@ object AkkaHttpClientUtils {
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case None =>
         new StatusRuntimeException(
-          mapHttpStatus(response).withDescription(
-            "No grpc-status found " + response.headers.map(_.unsafeToString).mkString(", ")))
+          mapHttpStatus(response).withDescription("No grpc-status found, response: " + response))
       case Some(statusCode) =>
         val description = allHeaders.find(_.name == "grpc-message").map(_.value)
         new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull))

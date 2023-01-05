@@ -104,6 +104,8 @@ class NonBalancingIntegrationSpec(backend: String)
               res
             })
             .futureValue
+          // is it that we hit it too soon after binding and it is not ready?
+          Thread.sleep(250)
 
           try {
             val requestsOnSecondConnection =
