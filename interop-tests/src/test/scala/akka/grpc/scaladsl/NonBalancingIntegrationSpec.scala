@@ -68,7 +68,7 @@ class NonBalancingIntegrationSpec(backend: String)
       service2.greetings.get should (be(0).or(be(numberOfRequests)))
     }
 
-    "send requests to a single endpoint that is restarted in the middle" in
+    "send requests to a single endpoint that is restarted in the middle" in {
       if (this.isInstanceOf[NonBalancingIntegrationSpecNetty]) pending // flaky
       else {
         val service1 = new CountingGreeterServiceImpl()
@@ -89,7 +89,8 @@ class NonBalancingIntegrationSpec(backend: String)
             })
 
         Future.sequence(requestsOnFirstConnection).futureValue
-        log.info(s"endpoint instance 1: ${requestsOnFirstConnection.size} replied, counter: ${service1.greetings.get()}")
+        log.info(
+          s"endpoint instance 1: ${requestsOnFirstConnection.size} replied, counter: ${service1.greetings.get()}")
         server1.terminate(5.seconds).futureValue
 
         // And restart
@@ -107,6 +108,7 @@ class NonBalancingIntegrationSpec(backend: String)
 
         service1.greetings.get should be(numberOfRequests)
       }
+    }
 
     "re-discover endpoints on failure" in {
       system.log.info("Starting test: re-discover endpoints on failure")
