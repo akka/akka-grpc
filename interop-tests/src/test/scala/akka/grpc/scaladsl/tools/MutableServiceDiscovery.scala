@@ -19,7 +19,7 @@ import scala.concurrent.duration.FiniteDuration
  * An In-Memory ServiceDiscovery that only can lookup "greeter"
  */
 final class MutableServiceDiscovery(targets: List[InetSocketAddress]) extends ServiceDiscovery {
-  var services: Future[Resolved] = _
+  @volatile var services: Future[Resolved] = _
 
   setServices(targets)
 
