@@ -169,7 +169,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
-  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
+  .enablePlugins(SitePreviewPlugin, AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
   .disablePlugins(MimaPlugin)
   .settings(
     name := "Akka gRPC",
