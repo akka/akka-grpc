@@ -80,8 +80,7 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
     },
     (assembly / mainClass) := Some("akka.grpc.scalapb.Main"),
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
-      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))))
-  .settings(
+      Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .settings(addArtifact((Compile / assembly / artifact), assembly))
@@ -115,8 +114,7 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
       val p3 = (runtime / publishLocal).value
       val p4 = (interopTests / publishLocal).value
     },
-    scriptedBufferLog := false)
-  .settings(
+    scriptedBufferLog := false,
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .dependsOn(codegen)
@@ -171,7 +169,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
-  .enablePlugins(AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
+  .enablePlugins(SitePreviewPlugin, AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
   .disablePlugins(MimaPlugin)
   .settings(
     name := "Akka gRPC",

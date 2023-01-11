@@ -28,7 +28,7 @@ object Dependencies {
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.21.9" // checked synced by VersionSyncCheckPlugin
 
-    val scalaTest = "3.2.9"
+    val scalaTest = "3.2.12"
 
     val maven = "3.8.6"
   }
@@ -122,7 +122,7 @@ object Dependencies {
     Test.scalaTest)
 
   val sbtPlugin = Seq(
-    l += Compile.scalapbCompilerPlugin,
+    l ++= Seq(Compile.scalapbCompilerPlugin),
     // we depend on it in the settings of the plugin since we set keys of the sbt-protoc plugin
     addSbtPlugin(Plugins.sbtProtoc))
 

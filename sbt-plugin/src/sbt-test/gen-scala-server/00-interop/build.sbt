@@ -7,7 +7,7 @@ val grpcVersion = "1.48.1" // checked synced by VersionSyncCheckPlugin
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",
   "com.lightbend.akka.grpc" %% "akka-grpc-interop-tests" % sys.props("project.version") % "test",
-  "org.scalatest" %% "scalatest" % "3.0.4" % "test" // ApacheV2
+  "org.scalatest" %% "scalatest" % "3.2.12" % "test" // ApacheV2
 )
 
 scalacOptions ++= List("-unchecked", "-deprecation", "-language:_", "-encoding", "UTF-8")
