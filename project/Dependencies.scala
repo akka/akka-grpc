@@ -30,7 +30,7 @@ object Dependencies {
 
     val scalaTest = "3.2.12"
 
-    val maven = "3.8.6"
+    val maven = "3.8.7"
   }
 
   object Compile {
