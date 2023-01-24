@@ -15,6 +15,7 @@ import io.grpc.{ Status, StatusRuntimeException }
 
 import scala.concurrent.{ ExecutionException, Future }
 import akka.event.Logging
+import akka.http.scaladsl.model.http2.PeerClosedStreamException
 
 @ApiMayChange
 object GrpcExceptionHandler {
@@ -22,20 +23,26 @@ object GrpcExceptionHandler {
   private val INVALID_ARGUMENT = Trailers(Status.INVALID_ARGUMENT)
 
   def defaultMapper(system: ActorSystem): PartialFunction[Throwable, Trailers] = {
-    case e: ExecutionException =>
-      if (e.getCause == null) INTERNAL
-      else defaultMapper(system)(e.getCause)
-    case grpcException: GrpcServiceException => Trailers(grpcException.status, grpcException.metadata)
-    case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
-    case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
-    case _: MissingParameterException        => INVALID_ARGUMENT
-    case e: StatusRuntimeException =>
-      val meta = Option(e.getTrailers).getOrElse(new io.grpc.Metadata())
-      Trailers(e.getStatus, new GrpcMetadataImpl(meta))
-    case other =>
-      val log = Logging(system, "akka.grpc.scaladsl.GrpcExceptionHandler")
-      log.error(other, "Unhandled error: [{}]", other.getMessage)
-      INTERNAL
+    val log = Logging(system, "akka.grpc.scaladsl.GrpcExceptionHandler")
+
+    {
+      case e: ExecutionException =>
+        if (e.getCause == null) INTERNAL
+        else defaultMapper(system)(e.getCause)
+      case grpcException: GrpcServiceException => Trailers(grpcException.status, grpcException.metadata)
+      case e: NotImplementedError              => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
+      case e: UnsupportedOperationException    => Trailers(Status.UNIMPLEMENTED.withDescription(e.getMessage))
+      case _: MissingParameterException        => INVALID_ARGUMENT
+      case e: StatusRuntimeException =>
+        val meta = Option(e.getTrailers).getOrElse(new io.grpc.Metadata())
+        Trailers(e.getStatus, new GrpcMetadataImpl(meta))
+      case ex: PeerClosedStreamException =>
+        log.warning("Peer closed stream unexpectedly: {}", ex.getMessage)
+        INTERNAL // nobody will receive it anyway
+      case other =>
+        log.error(other, "Unhandled error: [{}]", other.getMessage)
+        INTERNAL
+    }
   }
 
   @InternalStableApi
