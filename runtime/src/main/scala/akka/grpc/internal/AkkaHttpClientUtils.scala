@@ -173,7 +173,7 @@ object AkkaHttpClientUtils {
             s"${scheme}://${settings.overrideAuthority.getOrElse(settings.serviceName)}/" + descriptor.getFullMethodName),
           GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
-        responseToSource(singleRequest(httpRequest), deserializer)
+        responseToSource(httpRequest.uri, singleRequest(httpRequest), deserializer)
       }
     }
   }
@@ -182,7 +182,7 @@ object AkkaHttpClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def responseToSource[O](response: Future[HttpResponse], deserializer: ProtobufSerializer[O])(
+  def responseToSource[O](requestUri: Uri, response: Future[HttpResponse], deserializer: ProtobufSerializer[O])(
       implicit ec: ExecutionContext,
       mat: Materializer): Source[O, Future[GrpcResponseMetadata]] = {
     Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
@@ -190,7 +190,7 @@ object AkkaHttpClientUtils {
         {
           if (response.status != StatusCodes.OK) {
             response.entity.discardBytes()
-            val failure = mapToStatusException(response, immutable.Seq.empty)
+            val failure = mapToStatusException(requestUri, response, immutable.Seq.empty)
             Source.failed(failure).mapMaterializedValue(_ => Future.failed(failure))
           } else {
             Codecs.detect(response) match {
@@ -199,7 +199,7 @@ object AkkaHttpClientUtils {
                 val trailerPromise = Promise[immutable.Seq[HttpHeader]]()
                 // Completed with success or failure based on grpc-status and grpc-message trailing headers
                 val completionFuture: Future[Unit] =
-                  trailerPromise.future.flatMap(trailers => parseResponseStatus(response, trailers))
+                  trailerPromise.future.flatMap(trailers => parseResponseStatus(requestUri, response, trailers))
 
                 val responseData =
                   response.entity match {
@@ -219,7 +219,7 @@ object AkkaHttpClientUtils {
                       Source.single[ByteString](data)
                     case _ =>
                       response.entity.discardBytes()
-                      throw mapToStatusException(response, Seq.empty)
+                      throw mapToStatusException(requestUri, response, Seq.empty)
                   }
                 responseData
                   // This never adds any data to the stream, but makes sure it fails with the correct error code if applicable
@@ -256,24 +256,34 @@ object AkkaHttpClientUtils {
     })
   }.mapMaterializedValue(_.flatten)
 
-  private def parseResponseStatus(response: HttpResponse, trailers: Seq[HttpHeader]): Future[Unit] = {
+  private def parseResponseStatus(requestUri: Uri, response: HttpResponse, trailers: Seq[HttpHeader]): Future[Unit] = {
     val allHeaders = response.headers ++ trailers
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case Some("0") =>
         Future.successful(())
       case _ =>
-        Future.failed(mapToStatusException(response, trailers))
+        Future.failed(mapToStatusException(requestUri, response, trailers))
     }
   }
 
-  private def mapToStatusException(response: HttpResponse, trailers: Seq[HttpHeader]): StatusRuntimeException = {
+  private def mapToStatusException(
+      requestUri: Uri,
+      response: HttpResponse,
+      trailers: Seq[HttpHeader]): StatusRuntimeException = {
     val allHeaders = response.headers ++ trailers
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case None =>
-        new StatusRuntimeException(mapHttpStatus(response).withDescription("No grpc-status found"))
+        new StatusRuntimeException(
+          mapHttpStatus(response)
+            .withDescription("No grpc-status found")
+            .augmentDescription(s"When calling rpc service: ${requestUri.toString()}"))
       case Some(statusCode) =>
         val description = allHeaders.find(_.name == "grpc-message").map(_.value)
-        new StatusRuntimeException(Status.fromCodeValue(statusCode.toInt).withDescription(description.orNull))
+        new StatusRuntimeException(
+          Status
+            .fromCodeValue(statusCode.toInt)
+            .withDescription(description.orNull)
+            .augmentDescription(s"When calling rpc service: ${requestUri.toString()}"))
     }
   }
 
