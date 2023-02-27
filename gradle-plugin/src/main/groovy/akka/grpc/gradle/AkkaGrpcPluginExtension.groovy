@@ -9,7 +9,7 @@ class AkkaGrpcPluginExtension {
 
     static final String PROTOC_PLUGIN_SCALA_VERSION = "2.12"
 
-    static final String GRPC_VERSION = "1.49.1" // checked synced by VersionSyncCheckPlugin
+    static final String GRPC_VERSION = "1.53.0" // checked synced by VersionSyncCheckPlugin
 
     static final String PLUGIN_CODE = 'com.lightbend.akka.grpc.gradle'
 
