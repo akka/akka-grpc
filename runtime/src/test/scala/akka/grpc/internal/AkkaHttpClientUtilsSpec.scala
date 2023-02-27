@@ -10,6 +10,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.testkit.TestKit
 import akka.util.ByteString
@@ -28,9 +29,10 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
 
   "The conversion from HttpResponse to Source" should {
     "map a strict 404 response to a failed stream" in {
+      val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val response =
         Future.successful(HttpResponse(NotFound, entity = Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(response, null)
+      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null)
 
       val failure = source.run().failed.futureValue
       // https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
@@ -38,9 +40,10 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
     }
 
     "map a strict 200 response with non-0 gRPC error code to a failed stream" in {
+      val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val response = Future.successful(
         HttpResponse(OK, List(RawHeader("grpc-status", "9")), Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(response, null)
+      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null)
 
       val failure = source.run().failed.futureValue
       failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)

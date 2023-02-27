@@ -270,6 +270,7 @@ class AkkaGrpcScalaClientTester(val settings: Settings, backend: String)(implici
     throwable shouldBe a[StatusRuntimeException]
     val e = throwable.asInstanceOf[StatusRuntimeException]
     assertEquals(expectedStatus.getCode, e.getStatus.getCode)
-    assertEquals(expectedMessage, e.getStatus.getDescription)
+    // Note: message also includes what service was called
+    assertTrue(e.getStatus.getDescription.startsWith(expectedMessage))
   }
 }
