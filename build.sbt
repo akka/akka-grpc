@@ -133,8 +133,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
     // grpc-interop pulls in proto files with unfulfilled transitive deps it seems
     PB.generate / includeFilter := new SimpleFileFilter((f: File) =>
-      !f.getParent.contains("envoy") && f.name.endsWith(".proto")
-    ),
+      !f.getParent.contains("envoy") && f.name.endsWith(".proto")),
     PB.protocVersion := Dependencies.Versions.googleProtobuf,
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
