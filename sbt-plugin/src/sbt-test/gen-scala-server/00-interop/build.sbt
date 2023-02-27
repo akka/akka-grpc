@@ -25,7 +25,9 @@ enablePlugins(AkkaGrpcPlugin)
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
 PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
-  f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
+  f.getAbsolutePath.endsWith("google/protobuf/empty.proto") ||
+  // grpc-interop pulls in proto files with unfulfilled transitive deps it seems, so skip them as well
+  f.getParent.contains("envoy"))
 
 //#sources-both
 // This is the default - both client and server
