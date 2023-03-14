@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2016-2023 Lightbend Inc. <https://www.lightbend.com>
  */
 import sbt.Keys._
 import sbt.{ Def, _ }
