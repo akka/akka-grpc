@@ -40,6 +40,11 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
     val codeGenRequest = CodeGenRequest(request)
+
+    require(
+      codeGenRequest.allProtos.filter(_.getOptions.getJavaMultipleFiles).nonEmpty,
+      "Java codegen requires `option java_multiple_files = true;`.")
+
     val services = (for {
       fileDesc <- codeGenRequest.filesToGenerate
       serviceDesc <- fileDesc.getServices.asScala
