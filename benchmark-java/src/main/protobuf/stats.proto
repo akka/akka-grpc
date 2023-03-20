@@ -19,6 +19,7 @@ package grpc.testing;
 
 option java_package = "akka.grpc.benchmarks.proto";
 option java_outer_classname = "Stats";
+option java_multiple_files = true;
 
 message ServerStats {
   // wall clock time change in seconds since last reset

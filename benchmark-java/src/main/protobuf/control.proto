@@ -22,6 +22,7 @@ package grpc.testing;
 
 option java_package = "akka.grpc.benchmarks.proto";
 option java_outer_classname = "Control";
+option java_multiple_files = true;
 
 enum ClientType {
   // Many languages support a basic distinction between using

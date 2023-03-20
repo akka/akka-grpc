@@ -25,6 +25,7 @@ package grpc.testing;
 
 option java_package = "akka.grpc.benchmarks.proto";
 option java_outer_classname = "Services";
+option java_multiple_files = true;
 
 service BenchmarkService {
   // One request followed by one response.
