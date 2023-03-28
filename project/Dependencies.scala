@@ -76,7 +76,7 @@ object Dependencies {
   }
 
   object Runtime {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.2.11" % "runtime" // Eclipse 1.0
+    val logback = "ch.qos.logback" % "logback-classic" % "1.2.12" % "runtime" // Eclipse 1.0
   }
 
   object Protobuf {
