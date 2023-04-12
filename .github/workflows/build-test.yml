@@ -217,7 +217,7 @@ jobs:
       - name: Test Maven Java
         run: |-
           cd plugin-tester-java
-          mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate compile
+          mvn -Dakka.grpc.project.version=`cat ~/.version` compile
 
       - name: Test Maven Scala
         run: |-
