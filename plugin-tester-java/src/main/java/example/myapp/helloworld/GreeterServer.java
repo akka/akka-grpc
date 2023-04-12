@@ -6,9 +6,14 @@
 package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
-import akka.http.javadsl.ConnectHttp;
+import akka.grpc.javadsl.ServerReflection;
+import akka.grpc.javadsl.ServiceHandler;
+
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.japi.function.Function;
 import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 import com.typesafe.config.Config;
@@ -16,6 +21,7 @@ import com.typesafe.config.ConfigFactory;
 import example.myapp.helloworld.grpc.GreeterService;
 import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletionStage;
 
 class GreeterServer {
@@ -40,10 +46,17 @@ class GreeterServer {
     // Instantiate implementation
     GreeterService impl = new GreeterServiceImpl(mat);
 
+    // Create the reflection handler for multiple services
+    Function<HttpRequest, CompletionStage<HttpResponse>> reflectionPartial =
+      ServerReflection.create(Arrays.asList(GreeterService.description), sys);
+
+    Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
+      ServiceHandler.concatOrNotFound(GreeterServiceHandlerFactory.create(impl, sys), reflectionPartial);
+
     return Http
       .get(sys)
       .newServerAt("127.0.0.1", 8090)
-      .bind(GreeterServiceHandlerFactory.create(impl, sys));
+      .bind(serviceHandlers);
   }
 }
 //#full-server

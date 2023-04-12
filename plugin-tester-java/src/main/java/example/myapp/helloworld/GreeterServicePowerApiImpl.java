@@ -10,6 +10,8 @@ import akka.grpc.javadsl.Metadata;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
+import com.google.api.HttpBody;
+import com.google.protobuf.ByteString;
 import example.myapp.helloworld.grpc.GreeterServicePowerApi;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
@@ -31,6 +33,16 @@ public class GreeterServicePowerApiImpl implements GreeterServicePowerApi {
     String greetee = authTaggedName(in, metadata);
     System.out.println("sayHello to " + greetee);
     HelloReply reply = HelloReply.newBuilder().setMessage("Hello, " + greetee).build();
+    return CompletableFuture.completedFuture(reply);
+  }
+
+  @Override
+  public CompletionStage<HttpBody> sayHelloHttp(HelloRequest in, Metadata metadata) {
+    System.out.println("sayHelloHttp to " + in.getName());
+    HttpBody reply = HttpBody.newBuilder().setData(
+      com.google.protobuf.ByteString.copyFrom("test".getBytes())
+    ).build();
+
     return CompletableFuture.completedFuture(reply);
   }
 

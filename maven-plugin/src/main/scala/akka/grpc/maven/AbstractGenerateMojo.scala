@@ -125,21 +125,25 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
 
+  //https://maven.apache.org/plugin-developers/common-bugs.html#Resolving_Relative_Paths
+  def normalize(protoPath: String): File = {
+    val protoFile = new File(protoPath)
+    if (!protoFile.isAbsolute()) {
+      new File(project.getBasedir(), protoPath).toPath().normalize().toFile()
+    } else {
+      protoFile
+    }
+  }
+
+  lazy val normalizedProtoPaths = protoPaths.asScala.map(normalize)
+
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
 
     var directoryFound = false
-    protoPaths.forEach { protoPath =>
+
+    normalizedProtoPaths.foreach { protoDir =>
       // verify proto dir exists
-      //https://maven.apache.org/plugin-developers/common-bugs.html#Resolving_Relative_Paths
-      val protoDir = {
-        val protoFile = new File(protoPath)
-        if (!protoFile.isAbsolute()) {
-          new File(project.getBasedir(), protoPath).toPath().normalize().toFile()
-        } else {
-          protoFile
-        }
-      }
       if (protoDir.exists()) {
         directoryFound = true
         // generated sources should be compiled
@@ -213,15 +217,16 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   private[this] def executeProtoc(
       protocCommand: Seq[String] => Int,
       schemas: Set[File],
-      protoDir: File,
       protocOptions: Seq[String],
       targets: Seq[Target]): Int =
     try {
-      val incPath = "-I" + protoDir.getCanonicalPath
+      val protocIncludePaths = normalizedProtoPaths.map { includePath =>
+        "-I" + includePath.getCanonicalPath
+      }
       protocbridge.ProtocBridge.execute(
         ProtocRunner.fromFunction((args, _) => protocCommand(args)),
         targets,
-        Seq(incPath) ++ protocOptions ++ schemas.map(_.getCanonicalPath),
+        protocIncludePaths ++ protocOptions ++ schemas.map(_.getCanonicalPath),
         artifact =>
           throw new RuntimeException(
             s"The version of sbt-protoc you are using is incompatible with '${artifact}' code generator. Please update sbt-protoc to a version >= 0.99.33"))
@@ -256,7 +261,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
       getLog.info("Compiling protobuf")
       val (out, err, exitCode) = captureStdOutAnderr {
-        executeProtoc(protocCommand, schemas, protoDir, protocOptions, generatedTargets)
+        executeProtoc(protocCommand, schemas, protocOptions, generatedTargets)
       }
       if (exitCode != 0) {
         err.split("\n\r").map(_.trim).map(parseError).foreach {

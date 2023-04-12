@@ -14,7 +14,8 @@ import akka.NotUsed;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
-
+import com.google.api.HttpBody;
+import com.google.protobuf.BytesValue;
 import com.google.protobuf.Timestamp;
 import example.myapp.helloworld.grpc.*;
 
@@ -32,6 +33,16 @@ public class GreeterServiceImpl implements GreeterService {
       .setMessage("Hello, " + in.getName())
       .setTimestamp(Timestamp.newBuilder().setSeconds(1234567890).setNanos(12345).build())
       .build();
+    return CompletableFuture.completedFuture(reply);
+  }
+
+  @Override
+  public CompletionStage<HttpBody> sayHelloHttp(HelloRequest in) {
+    System.out.println("sayHelloHttp to " + in.getName());
+    HttpBody reply = HttpBody.newBuilder().setData(
+      com.google.protobuf.ByteString.copyFrom("test".getBytes())
+    ).build();
+
     return CompletableFuture.completedFuture(reply);
   }
 

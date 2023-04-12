@@ -18,6 +18,9 @@
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
     <grpc.version>1.48.1</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
+    <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
+    <protobuf-java.version>3.22.2</protobuf-java.version>
+    <proto-google-common-protos.version>2.15.0</proto-google-common-protos.version>
   </properties>
 
   <dependencies>
@@ -41,6 +44,56 @@
   </dependencies>
   <build>
     <plugins>
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven-dependency-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>getClasspathFilenames</id>
+            <goals>
+              <!-- provides the jars of the classpath as properties inside of maven
+                   so that we can refer to one of the jars in the exec plugin config below -->
+              <goal>properties</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>unpack</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <!-- to use protobuf java types -->
+                <artifactItem>
+                  <groupId>com.google.protobuf</groupId>
+                  <artifactId>protobuf-java</artifactId>
+                  <version>${protobuf-java.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                  <includes>**/*.proto</includes>
+                </artifactItem>
+
+                <!-- to use protobuf common types -->
+                <artifactItem>
+                  <groupId>com.google.api.grpc</groupId>
+                  <artifactId>proto-google-common-protos</artifactId>
+                  <version>${proto-google-common-protos.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                  <includes>**/*.proto</includes>
+                </artifactItem>
+              </artifactItems>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
@@ -57,23 +110,35 @@
             <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
           <includeStdTypes>true</includeStdTypes>
+          <language>Java</language>
+          <protoPaths>
+            <protoPath>target/proto</protoPath>
+            <protoPath>src/main/proto</protoPath>
+            <protoPath>src/main/protobuf</protoPath>
+          </protoPaths>
         </configuration>
       </plugin>
 
       <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven-dependency-plugin.version}</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin}</version>
         <executions>
           <execution>
-            <id>getClasspathFilenames</id>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
             <goals>
-              <!-- provides the jars of the classpath as properties inside of maven
-                   so that we can refer to one of the jars in the exec plugin config below -->
-              <goal>properties</goal>
+              <goal>add-source</goal>
             </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/akka-grpc-java/</source>
+              </sources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -87,6 +152,7 @@
           </arguments>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 
