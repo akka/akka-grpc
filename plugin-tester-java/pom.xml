@@ -57,6 +57,8 @@
               <goal>properties</goal>
             </goals>
           </execution>
+
+          <!--  #unpack-protos -->
           <execution>
             <id>unpack</id>
             <phase>generate-sources</phase>
@@ -65,7 +67,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <!-- to use protobuf java types -->
                 <artifactItem>
                   <groupId>com.google.protobuf</groupId>
                   <artifactId>protobuf-java</artifactId>
@@ -75,8 +76,6 @@
                   <outputDirectory>${project.build.directory}/proto</outputDirectory>
                   <includes>**/*.proto</includes>
                 </artifactItem>
-
-                <!-- to use protobuf common types -->
                 <artifactItem>
                   <groupId>com.google.api.grpc</groupId>
                   <artifactId>proto-google-common-protos</artifactId>
@@ -91,6 +90,8 @@
               <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </execution>
+          <!--  #unpack-protos -->
+
         </executions>
       </plugin>
 
@@ -111,32 +112,14 @@
           </generatorSettings>
           <includeStdTypes>true</includeStdTypes>
           <language>Java</language>
+          <!--  #all-proto-paths -->
           <protoPaths>
             <protoPath>target/proto</protoPath>
             <protoPath>src/main/proto</protoPath>
             <protoPath>src/main/protobuf</protoPath>
           </protoPaths>
+          <!--  #all-proto-paths -->
         </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${build-helper-maven-plugin}</version>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>${project.build.directory}/generated-sources/akka-grpc-java/</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
