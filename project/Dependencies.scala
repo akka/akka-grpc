@@ -27,7 +27,7 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.21.9" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.15.0" // checked synced by VersionSyncCheckPlugin
+    val googleApi = "2.15.0"
 
     val scalaTest = "3.2.12"
 
@@ -84,7 +84,9 @@ object Dependencies {
     val protobufJava = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf
     val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
 
-    val googleApi = "com.google.api.grpc" % "proto-google-common-protos" % Versions.googleApi
+  }
+
+  object GrpcApi {
     val googleApiProtos = "com.google.api.grpc" % "proto-google-common-protos" % Versions.googleApi % "protobuf"
   }
 
@@ -97,7 +99,6 @@ object Dependencies {
   val codegen = l ++= Seq(
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
-    Protobuf.googleApi, // or else scalapb pulls older version in transitively
     Compile.grpcProtobuf,
     Test.scalaTest)
 
@@ -149,5 +150,5 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit,
     Protobuf.googleCommonProtos,
-    Protobuf.googleApiProtos)
+    GrpcApi.googleApiProtos)
 }
