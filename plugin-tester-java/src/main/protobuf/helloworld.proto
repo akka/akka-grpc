@@ -8,8 +8,10 @@ option java_outer_classname = "HelloWorldProto";
 
 package helloworld;
 
+//#import-external-proto-files
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
+//#import-external-proto-files
 
 ////////////////////////////////////// The greeting service definition.
 service GreeterService {

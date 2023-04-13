@@ -77,10 +77,11 @@ which is a relative path to the project basedir. The below configuration overrid
 In gRPC it is common to make the version of the protocol you are supporting
 explicit by duplicating the proto definitions in your project.
 
-When using @ref[sbt](sbt.md) as a build system, we also support loading your
-proto definitions from a dependency classpath. This is not yet supported
-for Maven and @ref[Gradle](gradle.md). If you are interested in this feature
-it is tracked in issue [#152](https://github.com/akka/akka-grpc/issues/152).
+A full maven build definition can be found [here](https://github.com/akka/akka-grpc/blob/main/plugin-tester-java/pom.xml) which allows to import external like this:
+
+Java
+:  @@snip[proto definitions](/plugin-tester-java/src/main/protobuf/helloworld.proto) { #import-external-proto-files }
+
 
 ## JDK 8 support
 
