@@ -74,14 +74,22 @@ which is a relative path to the project basedir. The below configuration overrid
 
 ## Loading proto files from artifacts
 
-In gRPC it is common to make the version of the protocol you are supporting
-explicit by duplicating the proto definitions in your project.
+Instead of duplicating the `.proto` definitions between server and client projects, you can add artifacts that contain proto definitions to your build.
 
-A full maven build definition can be found [here](https://github.com/akka/akka-grpc/blob/main/plugin-tester-java/pom.xml) which allows to import external like this:
+A full example of a maven build definition can be found [here](https://github.com/akka/akka-grpc/blob/main/plugin-tester-java/pom.xml) which allows to import external protos like this:
 
 Java
-:  @@snip[proto definitions](/plugin-tester-java/src/main/protobuf/helloworld.proto) { #import-external-proto-files }
+:  @@snip[proto imports](/plugin-tester-java/src/main/protobuf/helloworld.proto) { #import-external-proto-files }
 
+The `pom.xml` has to be adjusted as follows. As a first step in the `<build>`, the `maven-dependency-plugin` needs to pull in the artifacts containing the protobuf file. The `<outputDirectory>` is the place where the protos from the dependencies are getting placed into (`target`):
+
+Java
+:  @@snip[unpack protos](/plugin-tester-java/pom.xml) { #unpack-protos }
+
+Finally, the `target/proto` directory has to be introduced to the `akka-grpc-maven-plugin` to be picket up during `protoc` compilation. Make sure to include all other folders from the project as well, since the definition of `<protoPaths>` overrides the default:
+
+Java
+:  @@snip[unpack protos](/plugin-tester-java/pom.xml) { #all-proto-paths }
 
 ## JDK 8 support
 
