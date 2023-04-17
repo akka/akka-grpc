@@ -8,6 +8,11 @@ option java_outer_classname = "HelloWorldProto";
 
 package helloworld;
 
+//#import-external-proto-files
+import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
+//#import-external-proto-files
+
 ////////////////////////////////////// The greeting service definition.
 service GreeterService {
     //////////////////////
@@ -16,6 +21,8 @@ service GreeterService {
     //      HELLO       //
     ////////*****/////////
     rpc SayHello (HelloRequest) returns (HelloReply) {}
+
+  rpc SayHelloHttp (HelloRequest) returns (google.api.HttpBody) {}
 
     // Comment spanning
     // on several lines

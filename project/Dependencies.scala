@@ -27,6 +27,7 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.21.9" // checked synced by VersionSyncCheckPlugin
+    val googleApi = "2.15.0"
 
     val scalaTest = "3.2.12"
 
@@ -82,6 +83,11 @@ object Dependencies {
   object Protobuf {
     val protobufJava = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf
     val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
+
+  }
+
+  object GrpcApi {
+    val googleApiProtos = "com.google.api.grpc" % "proto-google-common-protos" % Versions.googleApi % "protobuf"
   }
 
   object Plugins {
@@ -143,5 +149,6 @@ object Dependencies {
     Compile.akkaHttpCors,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
-    Protobuf.googleCommonProtos)
+    Protobuf.googleCommonProtos,
+    GrpcApi.googleApiProtos)
 }
