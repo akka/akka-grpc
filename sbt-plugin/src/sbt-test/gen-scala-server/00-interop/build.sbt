@@ -2,7 +2,7 @@ resolvers += Resolver.sonatypeRepo("staging")
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.48.1" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.53.0" // checked synced by VersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",
@@ -21,7 +21,9 @@ enablePlugins(AkkaGrpcPlugin)
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
 PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
-  f.getAbsolutePath.endsWith("google/protobuf/empty.proto"))
+  f.getAbsolutePath.endsWith("google/protobuf/empty.proto") ||
+  // grpc-interop pulls in proto files with unfulfilled transitive deps it seems, so skip them as well
+  f.getParent.contains("envoy"))
 
 //#sources-both
 // This is the default - both client and server
