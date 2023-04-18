@@ -1,4 +1,4 @@
-scalaVersion := "3.1.3"
+scalaVersion := "3.2.2"
 
 resolvers += Resolver.sonatypeRepo("staging")
 
@@ -9,5 +9,4 @@ enablePlugins(AkkaGrpcPlugin)
 libraryDependencies ++= Seq(
   // just to make sure it works with Scala 3 artifacts
   "com.typesafe.akka" %% "akka-http" % "10.5.0-M1",
-  "org.scalatest" %% "scalatest" % "3.2.12" % "test"
-)
+  "org.scalatest" %% "scalatest" % "3.2.12" % "test")

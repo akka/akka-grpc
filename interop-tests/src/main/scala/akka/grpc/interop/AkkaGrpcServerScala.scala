@@ -26,7 +26,7 @@ import scala.concurrent.{ Await, Future }
  */
 case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest => Future[HttpResponse])
     extends GrpcServer[(ActorSystem, ServerBinding)] {
-  override def start(args: Array[String]) = {
+  override def start(args: Array[String]): (ActorSystem, ServerBinding) = {
     implicit val sys = ActorSystem()
 
     val testService = serverHandlerFactory(sys)
