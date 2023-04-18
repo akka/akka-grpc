@@ -24,7 +24,7 @@ object AkkaHttpServerProviderScala extends AkkaHttpServerProvider with Directive
   val pendingCases =
     Set()
 
-  val server = AkkaGrpcServerScala(implicit sys => {
+  val server: AkkaGrpcServerScala = AkkaGrpcServerScala(implicit sys => {
     val testServiceImpl = new TestServiceImpl()
     val testServiceHandler = TestServiceHandler(testServiceImpl)
 
