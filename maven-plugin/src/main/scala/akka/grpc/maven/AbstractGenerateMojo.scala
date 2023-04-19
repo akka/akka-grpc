@@ -269,6 +269,12 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
               BuildContext.SEVERITY_ERROR,
               new RuntimeException("protoc compilation failed") with NoStackTrace)
           case Right(otherError) =>
+            if (otherError.contains("program not found or is not executable")) {
+              sys.error(
+                s"Could execute the automatically downloaded protoc to compile protobuf files, check that the filesystem of " +
+                s"[${sys.props("java.io.tmpdir")}] is not mounted with the 'noexec' option, or specify an alternative directory allowing executables using the Java " +
+                "system property java.io.tmpdir when executing maven.")
+            }
             sys.error(s"protoc exit code $exitCode: $otherError")
         }
       } else {
