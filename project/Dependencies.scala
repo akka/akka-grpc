@@ -36,6 +36,8 @@ object Dependencies {
 
   object Compile {
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
+    val akkaPki = "com.typesafe.akka" %% "akka-pki" % Versions.akka
+
     val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
@@ -146,7 +148,9 @@ object Dependencies {
   val pluginTester = l ++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.grpcStub,
+    Compile.akkaPki,
     Compile.akkaHttpCors,
+    Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
     Protobuf.googleCommonProtos,

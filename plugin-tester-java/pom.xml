@@ -16,6 +16,7 @@
     <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
+    <akka.version>2.7.0</akka.version>
     <grpc.version>1.54.1</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
@@ -28,6 +29,12 @@
       <groupId>com.lightbend.akka.grpc</groupId>
       <artifactId>akka-grpc-runtime_2.12</artifactId>
       <version>${akka.grpc.project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-pki_2.12</artifactId>
+      <version>${akka.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.megard</groupId>
