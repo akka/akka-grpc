@@ -20,7 +20,7 @@ object Dependencies {
     val akka = "2.7.0"
     val akkaBinary = "2.7"
     val akkaHttp = "10.5.0"
-    val akkaHttpBinary = "10.4"
+    val akkaHttpBinary = "10.5"
 
     val grpc = "1.54.1" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
