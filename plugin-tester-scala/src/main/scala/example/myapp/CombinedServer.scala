@@ -30,9 +30,8 @@ import akka.grpc.scaladsl.WebHandler
 object CombinedServer {
   def main(args: Array[String]): Unit = {
     // important to enable HTTP/2 in ActorSystem's config
-    val conf = ConfigFactory
-      .parseString("akka.http.server.preview.enable-http2 = on")
-      .withFallback(ConfigFactory.defaultApplication())
+    val conf =
+      ConfigFactory.parseString("akka.http.server.enable-http2 = on").withFallback(ConfigFactory.defaultApplication())
     implicit val sys: ActorSystem = ActorSystem("HelloWorld", conf)
     implicit val ec: ExecutionContext = sys.dispatcher
 

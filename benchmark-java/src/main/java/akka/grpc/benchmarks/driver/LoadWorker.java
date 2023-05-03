@@ -128,7 +128,7 @@ public class LoadWorker {
 
 
     // important to enable HTTP/2 in ActorSystem's config
-    Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+    Config conf = ConfigFactory.parseString("akka.http.server.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
     ActorSystem system = ActorSystem.create("LoadWorker", conf);
     new LoadWorker(system, driverPort, serverPort).start();

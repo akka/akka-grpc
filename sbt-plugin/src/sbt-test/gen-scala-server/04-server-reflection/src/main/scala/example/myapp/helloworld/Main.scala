@@ -21,7 +21,7 @@ import example.myapp.helloworld.grpc._
 
 object Main extends App {
     val conf = ConfigFactory
-      .parseString("akka.http.server.preview.enable-http2 = on")
+      .parseString("akka.http.server.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication())
     implicit val sys = ActorSystem("HelloWorld", conf)
 

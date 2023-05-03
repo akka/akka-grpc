@@ -33,7 +33,7 @@ import static akka.http.javadsl.server.Directives.*;
 public class LoggingErrorHandlingGreeterServer {
   public static void main(String[] args) throws Exception {
     // important to enable HTTP/2 in ActorSystem's config
-    Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+    Config conf = ConfigFactory.parseString("akka.http.server.enable-http2 = on")
       .withFallback(ConfigFactory.defaultApplication());
 
     // Akka ActorSystem Boot
