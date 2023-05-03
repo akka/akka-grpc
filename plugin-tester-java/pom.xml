@@ -34,7 +34,6 @@
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-pki_2.12</artifactId>
       <version>${akka.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.megard</groupId>

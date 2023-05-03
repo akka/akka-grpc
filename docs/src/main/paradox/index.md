@@ -14,6 +14,7 @@
  * [Binary Compatibility](binary-compatibility.md)
  * [gRPC API Design](apidesign.md)
  * [Deployment](deploy.md)
+ * [mTLS](mtls.md)
  * [Troubleshooting](troubleshooting.md)
 
 @@@
