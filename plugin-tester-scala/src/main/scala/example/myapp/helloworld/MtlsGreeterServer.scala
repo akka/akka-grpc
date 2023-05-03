@@ -9,12 +9,10 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
-import akka.http.scaladsl.model.AttributeKeys
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.pki.pem.DERPrivateKeyLoader
 import akka.pki.pem.PEMDecoder
-import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
 import org.slf4j.LoggerFactory
 
@@ -31,12 +29,7 @@ import scala.io.Source
 
 object MtlsGreeterServer {
   def main(args: Array[String]): Unit = {
-    // Important: enable HTTP/2 in ActorSystem's config
-    // We do it here programmatically, but you can also set it in the application.conf
-    val conf = ConfigFactory
-      .parseString("akka.http.server.preview.enable-http2 = on")
-      .withFallback(ConfigFactory.defaultApplication())
-    val system = ActorSystem("HelloWorld", conf)
+    val system = ActorSystem("MtlsHelloWorldServer")
     new MtlsGreeterServer(system).run()
     // ActorSystem threads will keep the app alive until `system.terminate()` is called
   }
@@ -55,19 +48,9 @@ class MtlsGreeterServer(system: ActorSystem) {
     val service: HttpRequest => Future[HttpResponse] =
       GreeterServiceHandler(new GreeterServiceImpl())
 
-    val serviceWithExtraCertInspection: HttpRequest => Future[HttpResponse] = { request =>
-      log.info("Client request for: {}", request.uri.path)
-      // we know it's present because requiring client auth in HTTPS setup
-      request.attribute(AttributeKeys.sslSession).foreach { sslSessionInfo =>
-        log.info("Client cert: {}", sslSessionInfo.session.getPeerCertificates.toList)
-      }
-      // we could deny the request here based on some property of the session/cert
-      service(request)
-    }
-
     // Bind service handler servers to localhost:8443
     val binding =
-      Http().newServerAt("127.0.0.1", 8443).enableHttps(serverHttpContext).bind(serviceWithExtraCertInspection)
+      Http().newServerAt("127.0.0.1", 8443).enableHttps(serverHttpContext).bind(service)
 
     // report successful binding
     binding.foreach { binding => log.info(s"gRPC server bound to: {}", binding.localAddress) }
@@ -76,24 +59,25 @@ class MtlsGreeterServer(system: ActorSystem) {
   }
 
   private def serverHttpContext: HttpsConnectionContext = {
-    val privateKey =
-      DERPrivateKeyLoader.load(PEMDecoder.decode(readPrivateKeyPem()))
     val certFactory = CertificateFactory.getInstance("X.509")
 
-    // keyStore is for the server cert and private key
+    // keyStore/keymanagers are for the server cert and private key
     val keyStore = KeyStore.getInstance("PKCS12")
     keyStore.load(null)
+    val serverCert = certFactory.generateCertificate(getClass.getResourceAsStream("/certs/localhost-server.crt"))
+    val serverPrivateKey =
+      DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString("certs/localhost-server.key")))
     keyStore.setKeyEntry(
       "private",
-      privateKey,
+      serverPrivateKey,
       // No password for our private key
       new Array[Char](0),
-      Array[Certificate](certFactory.generateCertificate(getClass.getResourceAsStream("/certs/localhost-server.pem"))))
+      Array[Certificate](serverCert))
     val keyManagerFactory = KeyManagerFactory.getInstance("SunX509")
     keyManagerFactory.init(keyStore, null)
     val keyManagers = keyManagerFactory.getKeyManagers
 
-    // trustStore is for what client certs the server trust
+    // trustStore/trustManagers are for what client certs the server trust
     val trustStore = KeyStore.getInstance("PKCS12")
     trustStore.load(null)
     // any client cert signed by this CA is allowed to connect
@@ -107,10 +91,9 @@ class MtlsGreeterServer(system: ActorSystem) {
     trustStore.setEntry(
       "client",
       new KeyStore.TrustedCertificateEntry(
-        certFactory.generateCertificate(getClass.getResourceAsStream("/certs/localhost-client.crt"))),
+        certFactory.generateCertificate(getClass.getResourceAsStream("/certs/client1.crt"))),
       null)
      */
-
     val tmf = TrustManagerFactory.getInstance("SunX509")
     tmf.init(trustStore)
     val trustManagers = tmf.getTrustManagers
@@ -129,6 +112,6 @@ class MtlsGreeterServer(system: ActorSystem) {
     }
   }
 
-  private def readPrivateKeyPem(): String =
-    Source.fromResource("certs/localhost-server.key").mkString
+  private def classPathFileAsString(path: String): String =
+    Source.fromResource(path).mkString
 }
