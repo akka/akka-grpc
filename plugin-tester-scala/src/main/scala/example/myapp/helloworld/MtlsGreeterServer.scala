@@ -115,3 +115,4 @@ class MtlsGreeterServer(system: ActorSystem) {
   private def classPathFileAsString(path: String): String =
     Source.fromResource(path).mkString
 }
+//#full-server

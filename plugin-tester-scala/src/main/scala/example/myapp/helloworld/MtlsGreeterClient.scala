@@ -2,6 +2,7 @@
  * Copyright (C) 2023 Lightbend Inc. <https://www.lightbend.com>
  */
 
+//#full-client
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
@@ -82,3 +83,4 @@ object MtlsGreeterClient {
     Source.fromResource(path).mkString
 
 }
+//#full-client
