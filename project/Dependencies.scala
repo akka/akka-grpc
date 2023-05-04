@@ -75,6 +75,7 @@ object Dependencies {
     val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-13" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
+    val akkaTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
   }
 
@@ -153,6 +154,7 @@ object Dependencies {
     Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
+    Test.akkaTestkitTyped,
     Protobuf.googleCommonProtos,
     GrpcApi.googleApiProtos)
 }

@@ -43,7 +43,7 @@ object MtlsGreeterClient {
     }
   }
 
-  private def sslContext(): SSLContext = {
+  def sslContext(): SSLContext = {
     val clientPrivateKey =
       DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString("certs/client1.key")))
     val certFactory = CertificateFactory.getInstance("X.509")
