@@ -67,7 +67,7 @@ public class AsyncServer {
   public void run(InetSocketAddress address, boolean useTls) throws Exception {
     // important to enable HTTP/2 in ActorSystem's config
 
-    Config conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+    Config conf = ConfigFactory.parseString("akka.http.server.enable-http2 = on")
         .withFallback(ConfigFactory.defaultApplication());
 
     system = ActorSystem.create("AsyncServer", conf);

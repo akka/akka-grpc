@@ -15,5 +15,5 @@ gRPC server with a client that is configured with TLS enabled.
 java.util.concurrent.ExecutionException: io.grpc.StatusRuntimeException: UNAVAILABLE: Failed ALPN negotiation: Unable to find compatible protocol
 ```
 
-This may happen when `akka.http.server.preview.enable-http2` is not enabled in
+This may happen when `akka.http.server.enable-http2` is not enabled in
 the configuration.

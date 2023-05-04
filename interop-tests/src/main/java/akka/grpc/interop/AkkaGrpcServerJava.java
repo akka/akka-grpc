@@ -53,7 +53,7 @@ public class AkkaGrpcServerJava extends GrpcServer<Tuple2<ActorSystem, ServerBin
   public Tuple2<ActorSystem, ServerBinding> start(String[] args) throws Exception {
     ActorSystem sys = ActorSystem.create(
       "akka-grpc-server-java",
-      ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on"));
+      ConfigFactory.parseString("akka.http.server.enable-http2 = on"));
     Materializer mat = SystemMaterializer.get(sys).materializer();
 
     Function<HttpRequest, CompletionStage<HttpResponse>> testService = handlerFactory.apply(mat, sys);
