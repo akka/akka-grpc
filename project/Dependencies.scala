@@ -36,6 +36,8 @@ object Dependencies {
 
   object Compile {
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
+    val akkaPki = "com.typesafe.akka" %% "akka-pki" % Versions.akka
+
     val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
@@ -73,6 +75,7 @@ object Dependencies {
     val scalaTestPlusJunit = "org.scalatestplus" %% "junit-4-13" % (Versions.scalaTest + ".0") % "test" // Apache V2
     val akkaDiscoveryConfig = "com.typesafe.akka" %% "akka-discovery" % Versions.akka % "test"
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
+    val akkaTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
   }
 
@@ -146,9 +149,12 @@ object Dependencies {
   val pluginTester = l ++= Seq(
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.grpcStub,
+    Compile.akkaPki,
     Compile.akkaHttpCors,
+    Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
+    Test.akkaTestkitTyped,
     Protobuf.googleCommonProtos,
     GrpcApi.googleApiProtos)
 }

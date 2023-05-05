@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import java.util.concurrent.TimeUnit
-
 import javax.net.ssl.SSLContext
 import akka.{ Done, NotUsed }
 import akka.annotation.InternalApi
@@ -16,7 +15,17 @@ import io.grpc.{ CallOptions, MethodDescriptor }
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext, SslContextBuilder }
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.{
+  Protocol,
+  SelectedListenerFailureBehavior,
+  SelectorFailureBehavior
+}
+import io.grpc.netty.shaded.io.netty.handler.ssl.{
+  ApplicationProtocolConfig,
+  ApplicationProtocolNames,
+  SslContext,
+  SslContextBuilder
+}
 
 import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
@@ -168,23 +177,24 @@ object NettyClientUtils {
    */
   @InternalApi
   private def createNettySslContext(javaSslContext: SSLContext): SslContext = {
-    import io.grpc.netty.shaded.io.netty.handler.ssl.{
-      ApplicationProtocolConfig,
-      ClientAuth,
-      IdentityCipherSuiteFilter,
-      JdkSslContext
-    }
+    import io.grpc.netty.shaded.io.netty.handler.ssl.{ ClientAuth, IdentityCipherSuiteFilter, JdkSslContext }
     // See
     // https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java#L229-L309
-    new JdkSslContext(
+    val apn = new ApplicationProtocolConfig(
+      Protocol.ALPN,
+      SelectorFailureBehavior.NO_ADVERTISE,
+      SelectedListenerFailureBehavior.ACCEPT,
+      ApplicationProtocolNames.HTTP_2)
+    val context = new JdkSslContext(
       javaSslContext,
       /* boolean isClient */ true,
       /* Iterable<String> ciphers */ null, // use JDK defaults (null is accepted as indicated in constructor Javadoc)
       IdentityCipherSuiteFilter.INSTANCE,
-      /* ApplicationProtocolConfig apn */ ApplicationProtocolConfig.DISABLED, // use JDK default (null would also be acceptable, DISABLED config will select the NONE protocol and thus the JdkDefaultApplicationProtocolNegotiator)
-      ClientAuth.NONE, // server-only option, which is ignored as isClient=true (as indicated in constructor Javadoc)
+      /* ApplicationProtocolConfig apn */ apn,
+      ClientAuth.OPTIONAL, // server-only option, which is ignored as isClient=true (as indicated in constructor Javadoc)
       /* String[] protocols */ null, // use JDK defaults (null is accepted as indicated in constructor Javadoc)
       /* boolean startTls */ false)
+    context
   }
 
   /**

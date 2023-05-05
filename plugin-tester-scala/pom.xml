@@ -13,7 +13,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.version>2.5.13</akka.version>
+    <akka.version>2.7.0</akka.version>
     <akka.http.cors.version>0.4.2</akka.http.cors.version>
     <grpc.version>1.54.1</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
@@ -36,6 +36,18 @@
       <artifactId>akka-stream-testkit_2.12</artifactId>
       <version>${akka.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-actor-testkit-typed_2.12</artifactId>
+      <version>${akka.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-pki_2.12</artifactId>
+      <version>${akka.version}</version>
     </dependency>
 
     <dependency>
