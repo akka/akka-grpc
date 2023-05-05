@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -34,6 +34,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 class MtlsGreeterServer {
 
@@ -127,13 +128,12 @@ class MtlsGreeterServer {
   }
 
   private static String classPathFileAsString(String path) {
-    try {
-      BufferedInputStream in = new BufferedInputStream(MtlsGreeterServer.class.getResourceAsStream(path));
-      ByteArrayOutputStream bao = new ByteArrayOutputStream();
-      for (int result = in.read(); result != -1; result = in.read()) {
-        bao.write((byte) result);
-      }
-      return bao.toString("UTF-8");
+    try (InputStream inputStream = MtlsGreeterServer.class.getResourceAsStream(path)) {
+      if (inputStream == null) throw new IllegalArgumentException("'" + path + "' is not present on the classpath");
+      return new BufferedReader(
+        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        .lines()
+        .collect(Collectors.joining("\n"));
     } catch (Exception ex) {
       throw new RuntimeException("Failed reading server key from classpath", ex);
     }
