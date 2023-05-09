@@ -8,7 +8,6 @@ import io.grpc.Status
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
-
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
@@ -21,7 +20,33 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
+import java.nio.ByteBuffer
+
 object GrpcMarshalling {
+
+  private object BufferPool {
+    private val size = 65536
+    private val threadLocalBuffer = new ThreadLocal[ByteBuffer] {
+      override def initialValue(): ByteBuffer = ByteBuffer.allocateDirect(size)
+    }
+
+    def acquire(length: Int): ByteBuffer =
+      if (length <= size) {
+        val buf = threadLocalBuffer.get()
+        require(buf ne null)
+        threadLocalBuffer.set(null)
+        buf.clear()
+        buf
+      } else ByteBuffer.allocate(length) // not direct
+
+    def release(buffer: ByteBuffer) =
+      if (buffer.isDirect) {
+        val buf = threadLocalBuffer.get()
+        require(buf eq null)
+        threadLocalBuffer.set(buffer)
+      }
+  }
+
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     negotiated(
       req,
@@ -56,8 +81,17 @@ object GrpcMarshalling {
   def unmarshal[T](
       entity: HttpEntity)(implicit u: ProtobufSerializer[T], mat: Materializer, reader: GrpcProtocolReader): Future[T] =
     entity match {
-      case HttpEntity.Strict(_, data) => Future.fromTry(Try(u.deserialize(reader.decodeSingleFrame(data))))
-      case _                          => unmarshal(entity.dataBytes)
+      case HttpEntity.Strict(_, data) =>
+        Future.fromTry(Try {
+          val frameData = reader.decodeSingleFrame(data)
+          val buf = BufferPool.acquire(frameData.size)
+          try {
+            frameData.copyToBuffer(buf)
+            buf.flip()
+            u.deserialize(buf)
+          } finally BufferPool.release(buf)
+        })
+      case _ => unmarshal(entity.dataBytes)
     }
 
   def unmarshalStream[T](data: Source[ByteString, Any])(
