@@ -35,6 +35,10 @@ object GrpcProtocolNative extends AbstractGrpcProtocol("grpc") {
   override protected def reader(codec: Codec): GrpcProtocolReader =
     AbstractGrpcProtocol.reader(codec, decodeFrame)
 
+  override def newWriter(codec: Codec): GrpcProtocolWriter = writer(codec)
+
+  override def newReader(codec: Codec): GrpcProtocolReader = reader(codec)
+
   @inline
   private def decodeFrame(frameType: Int, data: ByteString) = DataFrame(data)
 
