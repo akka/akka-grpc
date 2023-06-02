@@ -18,6 +18,8 @@ import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 
+import scala.util.control.NonFatal
+
 object GrpcMarshalling {
 
   def negotiated[T](
@@ -43,7 +45,15 @@ object GrpcMarshalling {
       u: ProtobufSerializer[T],
       mat: Materializer,
       reader: GrpcProtocolReader): CompletionStage[T] =
-    unmarshal(entity.getDataBytes, u, mat, reader)
+    entity match {
+      case strict: HttpEntity.Strict =>
+        try {
+          CompletableFuture.completedFuture(u.deserialize(reader.decodeSingleFrame(strict.getData)))
+        } catch {
+          case NonFatal(ex) => failure(ex)
+        }
+      case _ => unmarshal(entity.getDataBytes, u, mat, reader)
+    }
 
   def unmarshalStream[T](
       data: Source[ByteString, AnyRef],
