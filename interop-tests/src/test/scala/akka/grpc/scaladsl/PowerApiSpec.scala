@@ -52,7 +52,7 @@ abstract class PowerApiSpec(backend: String)
     with BeforeAndAfter
     with BeforeAndAfterAll {
 
-  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(10, org.scalatest.time.Millis))
 
   val server =
     Http().newServerAt("localhost", 0).bind(GreeterServicePowerApiHandler(new PowerGreeterServiceImpl())).futureValue
