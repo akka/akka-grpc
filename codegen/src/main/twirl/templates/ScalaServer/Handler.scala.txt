@@ -17,6 +17,7 @@ import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
 import akka.http.scaladsl.model
 import akka.stream.SystemMaterializer
+import akka.stream.Materializer
 
 import akka.grpc.internal.TelemetryExtension
 
@@ -107,7 +108,7 @@ object @{serviceName}Handler {
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
     def partial(implementation: @serviceName, prefix: String = @{service.name}.name, eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
-      implicit val mat = SystemMaterializer(system).materializer
+      implicit val mat: Materializer = SystemMaterializer(system).materializer
       implicit val ec: ExecutionContext = mat.executionContext
       val spi = TelemetryExtension(system).spi
 
