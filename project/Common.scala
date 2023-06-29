@@ -32,12 +32,13 @@ object Common extends AutoPlugin {
         "https://gitter.im/akka/dev",
         url("https://github.com/akka/akka-grpc/graphs/contributors")),
       releaseNotesURL := (
-        if ((ThisBuild / isSnapshot).value) None
+        // can't use isSnapshot for some reason related to the trixery we do with benchmark-java including modules from this project
+        if (version.value.endsWith("SNAPSHOT")) None
         else Some(url(s"https://github.com/akka/akka-grpc/releases/tag/v${version.value}"))
       ),
       licenses := {
         val tagOrBranch =
-          if ((ThisBuild / isSnapshot).value) "main"
+          if (version.value.endsWith("SNAPSHOT")) "main"
           else "v" + version.value
         Seq(("BUSL-1.1", url(s"https://raw.githubusercontent.com/akka/akka-grpc/${tagOrBranch}/LICENSE")))
       },
