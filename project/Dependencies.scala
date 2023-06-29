@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.17"
+    val scala212 = "2.12.18"
     val scala213 = "2.13.10"
     val scala3 = "3.2.2"
 
