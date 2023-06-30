@@ -6,7 +6,7 @@ buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
 addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.3")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.9.0")
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
 addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.5.2")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
@@ -14,7 +14,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.2")
 addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.30")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.4")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.5")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.12")
 
 // docs
@@ -25,7 +25,7 @@ addSbtPlugin("com.github.sbt" % "sbt-unidoc" % "0.5.0")
 addSbtPlugin("com.github.sbt" % "sbt-site-paradox" % "1.5.0")
 
 // For RawText
-libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.1.202206130422-r"
+libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.2.202306221912-r"
 
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value

@@ -27,7 +27,7 @@ import scala.concurrent.duration._
 @RunWith(classOf[JUnitRunner])
 class ErrorReportingSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
 
-  override implicit val patienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   implicit val system: ActorSystem = ActorSystem()
 

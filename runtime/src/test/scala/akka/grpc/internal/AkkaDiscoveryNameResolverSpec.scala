@@ -23,7 +23,7 @@ class AkkaDiscoveryNameResolverSpec
     with Matchers
     with ScalaFutures {
   implicit val ex: ExecutionContext = system.dispatcher
-  implicit override val patienceConfig =
+  implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
 
   "The AkkaDiscovery-backed NameResolver" should {

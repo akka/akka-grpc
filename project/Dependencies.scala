@@ -6,8 +6,8 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.17"
-    val scala213 = "2.13.10"
+    val scala212 = "2.12.18"
+    val scala213 = "2.13.11"
     val scala3 = "3.2.2"
 
     // the order in the list is important because the head will be considered the default.
@@ -27,11 +27,11 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.21.9" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.19.1"
+    val googleApi = "2.21.0"
 
     val scalaTest = "3.2.12"
 
-    val maven = "3.9.2"
+    val maven = "3.9.3"
   }
 
   object Compile {
