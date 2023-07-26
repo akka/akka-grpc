@@ -1,14 +1,10 @@
 version: 3
 # https://github.com/fossas/fossa-cli/blob/master/docs/references/files/fossa-yml.md
 
-targets:
+paths:
   # exclude non-distributed projects from dependency scanning
   exclude:
-    - type: scala
-      path: benchmarks
-    - type: scala
-      path: interop-tests
-    - type: scala
-      path: plugin-tester-java
-    - type: scala
-      path: plugin-tester-scala
+    - benchmarks
+    - interop-tests
+    - plugin-tester-java
+    - plugin-tester-scala
