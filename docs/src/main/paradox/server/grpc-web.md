@@ -34,7 +34,17 @@ native gRPC protocol on a different port than gRPC-Web, as the two protocols
 will likely require a different security story. You can use
 @apidoc[WebHandler.grpcWebHandler](WebHandler$) to serve your
 gRPC-Web endpoint with basic CORS infrastructure in place. To use CORS,
-you will need to add the akka-http-cors dependency to your project:
+you will need to add the akka-http-cors dependency to your project.
+
+The Akka dependencies are available from Akka's library repository. To access them there, you need to configure the URL for this repository.
+
+@@repository [sbt,Maven,Gradle] {
+id="akka-repository"
+name="Akka library repository"
+url="https://repo.akka.io/maven"
+}
+
+Additionally, add the dependency as below.
 
 @@dependency[sbt,Maven,Gradle] {
   group="ch.megard"
