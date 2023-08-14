@@ -135,7 +135,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     }
   }
 
-  lazy val normalizedProtoPaths = protoPaths.asScala.map(normalize)
+  def normalizedProtoPaths = protoPaths.asScala.map(normalize)
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
