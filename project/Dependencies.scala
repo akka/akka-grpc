@@ -43,7 +43,7 @@ object Dependencies {
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
 
-    val akkaHttpCors = ("ch.megard" %% "akka-http-cors" % "1.1.3") // Apache v2
+    val akkaHttpCors = ("ch.megard" %% "akka-http-cors" % "1.2.0") // Apache v2
       .excludeAll(ExclusionRule(organization = "com.typesafe.akka")) // needed to not pull in 2.13 deps for Scala 3
 
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
