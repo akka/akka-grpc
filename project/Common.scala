@@ -31,6 +31,11 @@ object Common extends AutoPlugin {
         "Contributors",
         "https://gitter.im/akka/dev",
         url("https://github.com/akka/akka-grpc/graphs/contributors")),
+      releaseNotesURL := (
+        // can't use isSnapshot for some reason related to the trixery we do with benchmark-java including modules from this project
+        if (version.value.endsWith("SNAPSHOT")) None
+        else Some(url(s"https://github.com/akka/akka-grpc/releases/tag/v${version.value}"))
+      ),
       licenses := {
         val tagOrBranch =
           if (version.value.endsWith("SNAPSHOT")) "main"
