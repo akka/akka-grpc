@@ -16,7 +16,7 @@ import org.scalatest.time.{ Span, Millis, Seconds }
 import org.scalatest.wordspec.AnyWordSpec
 
 class GreeterServiceSpec extends AnyWordSpec with Matchers with ScalaFutures {
-  implicit val system = ActorSystem("GreeterServiceSpec")
+  implicit val system: ActorSystem = ActorSystem("GreeterServiceSpec")
 
   val binding = Http()
     .newServerAt("localhost", 0)
