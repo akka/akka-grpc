@@ -4,7 +4,7 @@
 
 package akka.grpc.scaladsl
 
-import java.net.InetSocketAddress
+import java.net.{ InetAddress, InetSocketAddress }
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import akka.grpc.internal.ClientConnectionException
@@ -63,6 +63,27 @@ class NonBalancingIntegrationSpec(backend: String)
       service1.greetings.get + service2.greetings.get should be(numberOfRequests)
       service1.greetings.get should (be(0).or(be(numberOfRequests)))
       service2.greetings.get should (be(0).or(be(numberOfRequests)))
+    }
+
+    "retry failed requests if server is started after request was initially sent" in {
+      val port = 13337
+      val discovery = MutableServiceDiscovery(List())
+      discovery.setServices(List(new InetSocketAddress(InetAddress.getLoopbackAddress, port)))
+
+      val client = GreeterServiceClient(
+        GrpcClientSettings.usingServiceDiscovery("greeter", discovery).withTls(false).withConnectionAttempts(20))
+
+      val fut = client.sayHello(HelloRequest(s"Hello there")) // this fails for netty
+
+      Thread.sleep(2000)
+
+      val service1 = new CountingGreeterServiceImpl()
+      Http().newServerAt("127.0.0.1", port).bind(GreeterServiceHandler(service1)).futureValue
+
+      //val fut = client.sayHello(HelloRequest(s"Hello there")) // this works for both netty and akka-http
+      fut.futureValue
+
+      service1.greetings.get should be(1)
     }
 
     "send requests to a single endpoint that is restarted in the middle" in {
