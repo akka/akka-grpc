@@ -29,6 +29,7 @@ import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
 import akka.http.scaladsl.model.StatusCodes
+import akka.stream.impl.QueueSource
 
 /**
  * INTERNAL API
@@ -103,7 +104,16 @@ object AkkaHttpClientUtils {
 
     val (queue, doneFuture) =
       Source
-        .queue[HttpRequest](4242, OverflowStrategy.fail)
+        .fromGraph(
+          new QueueSource[HttpRequest](
+            4242,
+            OverflowStrategy.fail,
+            maxConcurrentOffers = 1,
+            onBufferedFailureOrCancel = { (error, request) =>
+              // Not completely water tight as requests may be further down the http infra
+              // but try fail any queued requests not yet gone downstream
+              request.attribute(ResponsePromise.Key).get.promise.tryFailure(error)
+            }))
         .via(http2client)
         .toMat(Sink.foreach { res =>
           res.attribute(ResponsePromise.Key).get.promise.trySuccess(res)

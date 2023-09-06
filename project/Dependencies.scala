@@ -17,8 +17,8 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.7.0"
-    val akkaBinary = "2.7"
+    val akka = "2.9.0-M1+3-09367f8c-SNAPSHOT"
+    val akkaBinary = "2.9"
     val akkaHttp = "10.5.0"
     val akkaHttpBinary = "10.5"
 
@@ -42,6 +42,9 @@ object Dependencies {
     val akkaHttpCore = "com.typesafe.akka" %% "akka-http-core" % Versions.akkaHttp
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
+
+    // FIXME remove when updating to AKka HTTP version without dependency to ssl-config-core
+    val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
     val akkaHttpCors = ("ch.megard" %% "akka-http-cors" % "1.2.0") // Apache v2
       .excludeAll(ExclusionRule(organization = "com.typesafe.akka")) // needed to not pull in 2.13 deps for Scala 3
@@ -77,6 +80,8 @@ object Dependencies {
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
     val akkaTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
+    val grpcStub = Compile.grpcStub % Test
+    val scalapbRuntime = Compile.scalapbRuntime % Test
   }
 
   object Runtime {
@@ -117,6 +122,7 @@ object Dependencies {
     Compile.akkaHttp,
     Compile.akkaDiscovery,
     Compile.akkaHttpCors % "provided",
+    Compile.sslConfig,
     Test.akkaTestkit,
     Test.akkaStreamTestkit,
     Test.scalaTest,
