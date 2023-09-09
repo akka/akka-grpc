@@ -173,7 +173,7 @@ object AkkaHttpClientUtils {
             s"${scheme}://${settings.overrideAuthority.getOrElse(settings.serviceName)}/" + descriptor.getFullMethodName),
           GrpcEntityHelpers.metadataHeaders(headers.entries),
           source)
-        responseToSource(httpRequest.uri, singleRequest(httpRequest), deserializer)
+        responseToSource(httpRequest.uri, singleRequest(httpRequest), deserializer, streamingResponse)
       }
     }
   }
@@ -182,7 +182,11 @@ object AkkaHttpClientUtils {
    * INTERNAL API
    */
   @InternalApi
-  def responseToSource[O](requestUri: Uri, response: Future[HttpResponse], deserializer: ProtobufSerializer[O])(
+  def responseToSource[O](
+      requestUri: Uri,
+      response: Future[HttpResponse],
+      deserializer: ProtobufSerializer[O],
+      streamingResponse: Boolean)(
       implicit ec: ExecutionContext,
       mat: Materializer): Source[O, Future[GrpcResponseMetadata]] = {
     Source.lazyFutureSource[O, Future[GrpcResponseMetadata]](() => {
@@ -221,14 +225,19 @@ object AkkaHttpClientUtils {
                       response.entity.discardBytes()
                       throw mapToStatusException(requestUri, response, Seq.empty)
                   }
-                responseData
+                val baseFlow = responseData
                   // This never adds any data to the stream, but makes sure it fails with the correct error code if applicable
                   .concat(
                     Source
                       .maybe[ByteString]
                       .mapMaterializedValue(promise => promise.completeWith(completionFuture.map(_ => None))))
+                val flow = if (streamingResponse) {
+                  baseFlow
+                } else {
                   // Make sure we continue reading to get the trailing header even if we're no longer interested in the rest of the body
-                  .via(new CancellationBarrierGraphStage)
+                  baseFlow.via(new CancellationBarrierGraphStage)
+                }
+                flow
                   .via(reader.dataFrameDecoder)
                   .map(deserializer.deserialize)
                   .mapMaterializedValue(_ =>
