@@ -66,7 +66,7 @@ class AkkaHttpClientCancelSpec
       })
 
       val binding =
-        Http(system).newServerAt("127.0.0.1", 0).bind(handler).futureValue
+        Http().newServerAt("127.0.0.1", 0).bind(handler).futureValue
 
       val client =
         GreeterServiceClient(GrpcClientSettings.connectToServiceAt("127.0.0.1", binding.localAddress.getPort))
