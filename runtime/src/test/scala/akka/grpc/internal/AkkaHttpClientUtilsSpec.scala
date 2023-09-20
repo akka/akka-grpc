@@ -32,7 +32,7 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val response =
         Future.successful(HttpResponse(NotFound, entity = Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null)
+      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null, false)
 
       val failure = source.run().failed.futureValue
       // https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
@@ -43,7 +43,7 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val response = Future.successful(
         HttpResponse(OK, List(RawHeader("grpc-status", "9")), Strict(GrpcProtocolNative.contentType, ByteString.empty)))
-      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null)
+      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null, false)
 
       val failure = source.run().failed.futureValue
       failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)
