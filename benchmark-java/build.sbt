@@ -1,3 +1,5 @@
+scalaVersion := "2.13.11"
+
 enablePlugins(AkkaGrpcPlugin)
 
 run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")

@@ -36,7 +36,7 @@ jobs:
       - name: Code style check and binary-compatibility check
         run: |-
           cp .jvmopts-ghactions .jvmopts
-          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck googleProtobufVersionSyncCheck +mimaReportBinaryIssues
+          sbt scalafmtCheckAll scalafmtSbtCheck headerCheckAll grpcVersionSyncCheck googleProtobufVersionSyncCheck mimaReportBinaryIssues
 
   compile-benchmarks:
     name: Compile Benchmarks
