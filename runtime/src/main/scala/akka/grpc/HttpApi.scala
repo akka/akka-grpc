@@ -4,7 +4,8 @@
 
 package akka.grpc
 
-import akka.grpc.internal.{ Codecs, GrpcProtocolNative, Identity }
+import akka.annotation.ApiMayChange
+import akka.grpc.internal.{Codecs, GrpcProtocolNative, Identity}
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling
@@ -15,41 +16,27 @@ import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.parboiled2.util.Base64
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.util.ByteString
-import akka.{ ConfigurationException, NotUsed }
-import com.google.api.{ AnnotationsProto, HttpRule }
+import akka.{ConfigurationException, NotUsed}
+import com.google.api.{AnnotationsProto, HttpRule}
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import com.google.protobuf.Descriptors._
-import com.google.protobuf.any.{ Any => ProtobufAny }
+import com.google.protobuf.any.{Any => ProtobufAny}
 import com.google.protobuf.util.JsonFormat
-import com.google.protobuf.{
-  DynamicMessage,
-  ListValue,
-  MessageOrBuilder,
-  Struct,
-  Value,
-  ByteString => ProtobufByteString
-}
+import com.google.protobuf.{DynamicMessage, ListValue, MessageOrBuilder, Struct, Value, ByteString => ProtobufByteString}
 
-import java.lang.{
-  Boolean => JBoolean,
-  Double => JDouble,
-  Float => JFloat,
-  Integer => JInteger,
-  Long => JLong,
-  Short => JShort
-}
+import java.lang.{Boolean => JBoolean, Double => JDouble, Float => JFloat, Integer => JInteger, Long => JLong, Short => JShort}
 import java.net.URLDecoder
-import java.util.regex.{ Matcher, Pattern }
+import java.util.regex.{Matcher, Pattern}
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.Parsers
-import scala.util.parsing.input.{ CharSequenceReader, Positional }
-import scala.util.{ Failure, Success }
+import scala.util.parsing.input.{CharSequenceReader, Positional}
+import scala.util.{Failure, Success}
 
 object HttpApi {
 
@@ -134,6 +121,8 @@ object HttpApi {
   private final val NEWLINE_BYTES = ByteString('\n')
   private final val NoMatch = PartialFunction.empty[HttpRequest, Future[HttpResponse]]
 
+
+  @ApiMayChange
   def serve(fileDescriptor: FileDescriptor, handler: (HttpRequest, String) => Future[HttpResponse])(
       implicit mat: Materializer,
       ec: ExecutionContext): PartialFunction[HttpRequest, Future[HttpResponse]] = {
