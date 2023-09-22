@@ -35,8 +35,8 @@ import akka.parboiled2.util.Base64
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
-import com.google.api.annotations.AnnotationsProto
-import com.google.api.http.HttpRule
+import com.google.api.AnnotationsProto
+import com.google.api.HttpRule
 import com.google.protobuf.any.{ Any => ProtobufAny }
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import com.google.protobuf.Descriptors.{
@@ -177,12 +177,9 @@ object HttpApi {
   }
 
   private def getRules(methDesc: MethodDescriptor) = {
-    AnnotationsProto.http.get(Options.convertMethodOptions(methDesc)) match {
-      case Some(rule) =>
-        rule +: rule.additionalBindings
-      case None =>
-        Seq.empty
-    }
+    // reference to https://github.com/dotnet/aspnetcore/blob/46562b1435bf111a7425b40f507b157b42a016a4/src/Grpc/JsonTranscoding/src/Shared/ServiceDescriptorHelpers.cs#L335
+    val rule = methDesc.getOptions.getExtension[HttpRule](AnnotationsProto.http)
+    rule +: rule.getAdditionalBindingsList.asScala
   }
 
   final class HttpHandler(methDesc: MethodDescriptor, rule: HttpRule, grpcHandler: HttpRequest => Future[HttpResponse])(
@@ -247,35 +244,36 @@ object HttpApi {
         Descriptor,
         Option[FieldDescriptor]) = {
       // Validate selector
-      if (rule.selector != "" && rule.selector != methDesc.getFullName)
-        configError(s"Rule selector [${rule.selector}] must be empty or [${methDesc.getFullName}]")
+      if (rule.getSelector != "" && rule.getSelector != methDesc.getFullName)
+        configError(s"Rule selector [${rule.getSelector}] must be empty or [${methDesc.getFullName}]")
 
       // Validate pattern
       val (mp, pattern) = {
-        import HttpRule.Pattern.{ Custom, Delete, Empty, Get, Patch, Post, Put }
+        import HttpRule.PatternCase
         import akka.http.scaladsl.model.HttpMethods.{ DELETE, GET, PATCH, POST, PUT }
 
-        rule.pattern match {
-          case Empty           => configError(s"Pattern missing for rule [$rule]!") // TODO improve error message
-          case Get(pattern)    => (GET, pattern)
-          case Put(pattern)    => (PUT, pattern)
-          case Post(pattern)   => (POST, pattern)
-          case Delete(pattern) => (DELETE, pattern)
-          case Patch(pattern)  => (PATCH, pattern)
-          case Custom(chp) =>
-            if (chp.kind == "*")
+        rule.getPatternCase match {
+          case PatternCase.PATTERN_NOT_SET =>
+            configError(s"Pattern missing for rule [$rule]!") // TODO improve error message
+          case PatternCase.GET    => (GET, rule.getGet)
+          case PatternCase.PUT    => (PUT, rule.getPut)
+          case PatternCase.POST   => (POST, rule.getPost)
+          case PatternCase.DELETE => (DELETE, rule.getDelete)
+          case PatternCase.PATCH  => (PATCH, rule.getPatch)
+          case PatternCase.CUSTOM =>
+            if (rule.getCustom.getKind == "*")
               (
                 ANY_METHOD,
-                chp.path
+                rule.getCustom.getPath
               ) // FIXME is "path" the same as "pattern" for the other kinds? Is an empty kind valid?
-            else configError(s"Only Custom patterns with [*] kind supported but [${chp.kind}] found!")
+            else configError(s"Only Custom patterns with [*] kind supported but [${rule.getCustom.getKind}] found!")
         }
       }
       val (template, extractor) = parsePathExtractor(pattern)
 
       // Validate body value
       val bd =
-        rule.body match {
+        rule.getBody match {
           case "" => methDesc.getInputType
           case "*" =>
             if (!mp.isEntityAccepted)
@@ -296,7 +294,7 @@ object HttpApi {
 
       // Validate response body value
       val rd =
-        rule.responseBody match {
+        rule.getResponseBody match {
           case "" => None
           case fieldName =>
             lookupFieldByName(methDesc.getOutputType, fieldName) match {
@@ -307,7 +305,7 @@ object HttpApi {
             }
         }
 
-      if (rule.additionalBindings.exists(_.additionalBindings.nonEmpty))
+      if (rule.getAdditionalBindingsList.asScala.exists(_.getAdditionalBindingsList.asScala.nonEmpty))
         configError(s"Only one level of additionalBindings supported, but [$rule] has more than one!")
 
       (mp, template, extractor, bd, rd)
@@ -457,11 +455,11 @@ object HttpApi {
     }
 
     final def transformRequest(req: HttpRequest, matcher: Matcher): Future[HttpRequest] =
-      if (rule.body.nonEmpty && req.entity.contentType != ContentTypes.`application/json`) {
+      if (rule.getBody.nonEmpty && req.entity.contentType != ContentTypes.`application/json`) {
         Future.failed(IllegalRequestException(StatusCodes.BadRequest, "Content-type must be application/json!"))
       } else {
         val inputBuilder = DynamicMessage.newBuilder(methDesc.getInputType)
-        rule.body match {
+        rule.getBody match {
           case "" => // Iff empty body rule, then only query parameters
             req.discardEntityBytes()
             parseRequestParametersInto(req.uri.query().toMultiMap, inputBuilder)
