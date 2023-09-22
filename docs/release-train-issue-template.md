@@ -28,7 +28,7 @@ Variables to be expanded in this template:
 
 - [ ] Check [API](https://doc.akka.io/api/akka-grpc/$VERSION$/) documentation
 - [ ] Check [reference](https://doc.akka.io/docs/akka-grpc/$VERSION$/) documentation. Check that the reference docs were deployed and show a version warning (see section below on how to fix the version warning).
-- [ ] Check the release on [Maven central](https://repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-scalapb-protoc-plugin_2.12/$VERSION$/)
+- [ ] Check the release on [Maven central](https://repo1.maven.org/maven2/com/lightbend/akka/grpc/akka-grpc-scalapb-protoc-plugin_2.13/$VERSION$/)
 
 ### When everything is on maven central
   - [ ] Log into `gustav.akka.io` as `akkarepo` 

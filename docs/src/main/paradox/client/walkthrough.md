@@ -58,7 +58,7 @@ Maven
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
-      <artifactId>akka-grpc-runtime_2.12</artifactId>
+      <artifactId>akka-grpc-runtime_2.13</artifactId>
       <version>${akka.grpc.version}</version>
     </dependency>
     <!-- for loading of cert, issue #89 -->
@@ -113,10 +113,10 @@ For example, this is the definition of a Hello World service:
 From this definition, Akka gRPC generates interfaces that look like this:
 
 Scala
-:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
+:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.13/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
 
 Java
-:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
+:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.13/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
 
 and model @scala[case ]classes for `HelloRequest` and `HelloResponse`.
 

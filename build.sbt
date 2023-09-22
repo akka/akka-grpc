@@ -39,7 +39,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := scala212)
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
@@ -48,6 +48,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(VersionGenerator.settings)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     mimaFailOnNoPrevious := true,
     mimaPreviousArtifacts :=
       (if (scalaVersion.value.startsWith("2"))
@@ -218,7 +219,7 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
     (publish / skip) := true,
     fork := true,
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
-    scalaVersion := scala212,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
   .pluginTestingSettings
 
@@ -230,7 +231,7 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
     fork := true,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
-    scalaVersion := scala212,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"))
   .pluginTestingSettings
 
