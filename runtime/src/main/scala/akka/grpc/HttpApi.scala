@@ -161,8 +161,8 @@ object HttpApi {
 
   def serve(fileDescriptor: FileDescriptor, handler: (HttpRequest, String) => Future[HttpResponse])(
       implicit mat: Materializer,
-      ec: ExecutionContext) = {
-    val handlers = for {
+      ec: ExecutionContext): PartialFunction[HttpRequest, Future[HttpResponse]] = {
+    val handlers: scala.collection.mutable.Buffer[HttpHandler] = for {
       service <- fileDescriptor.getServices.asScala
       method <- service.getMethods.asScala
       rules = getRules(method)
