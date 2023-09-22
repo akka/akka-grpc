@@ -6,56 +6,23 @@ package akka.grpc
 
 import akka.grpc.internal.{ Codecs, GrpcProtocolNative, Identity }
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
-import akka.{ ConfigurationException, NotUsed }
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling
 import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.model.sse.ServerSentEvent
-import akka.http.scaladsl.model.{
-  ContentType,
-  ContentTypes,
-  ErrorInfo,
-  HttpEntity,
-  HttpHeader,
-  HttpMethod,
-  HttpMethods,
-  HttpProtocols,
-  HttpRequest,
-  HttpResponse,
-  IllegalRequestException,
-  IllegalResponseException,
-  MediaTypes,
-  RequestEntityAcceptance,
-  StatusCodes,
-  Uri
-}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.parboiled2.util.Base64
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
-import com.google.api.AnnotationsProto
-import com.google.api.HttpRule
-import com.google.protobuf.any.{ Any => ProtobufAny }
+import akka.{ ConfigurationException, NotUsed }
+import com.google.api.{ AnnotationsProto, HttpRule }
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
-import com.google.protobuf.Descriptors.{
-  Descriptor,
-  EnumValueDescriptor,
-  FieldDescriptor,
-  FileDescriptor,
-  MethodDescriptor
-}
+import com.google.protobuf.Descriptors._
+import com.google.protobuf.any.{ Any => ProtobufAny }
 import com.google.protobuf.util.JsonFormat
-
-import java.lang.{
-  Boolean => JBoolean,
-  Double => JDouble,
-  Float => JFloat,
-  Integer => JInteger,
-  Long => JLong,
-  Short => JShort
-}
 import com.google.protobuf.{
   DynamicMessage,
   ListValue,
@@ -65,16 +32,24 @@ import com.google.protobuf.{
   ByteString => ProtobufByteString
 }
 
+import java.lang.{
+  Boolean => JBoolean,
+  Double => JDouble,
+  Float => JFloat,
+  Integer => JInteger,
+  Long => JLong,
+  Short => JShort
+}
 import java.net.URLDecoder
 import java.util.regex.{ Matcher, Pattern }
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{ CharSequenceReader, Positional }
-import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success }
-import scala.util.control.NonFatal
 
 object HttpApi {
 
@@ -176,10 +151,16 @@ object HttpApi {
     }
   }
 
-  private def getRules(methDesc: MethodDescriptor) = {
+  private def getRules(methDesc: MethodDescriptor): scala.collection.mutable.Buffer[HttpRule] = {
+    // TODO find a hacky way to get untyped Extension like they did in dotnet core
     // reference to https://github.com/dotnet/aspnetcore/blob/46562b1435bf111a7425b40f507b157b42a016a4/src/Grpc/JsonTranscoding/src/Shared/ServiceDescriptorHelpers.cs#L335
-    val rule = methDesc.getOptions.getExtension[HttpRule](AnnotationsProto.http)
-    rule +: rule.getAdditionalBindingsList.asScala
+    try {
+      val rule: HttpRule = methDesc.getOptions.getExtension[HttpRule](AnnotationsProto.http)
+      rule +: rule.getAdditionalBindingsList.asScala
+    } catch {
+      // expect NoSuchFieldError when method not using http extension
+      case _: Throwable => scala.collection.mutable.Buffer.empty
+    }
   }
 
   final class HttpHandler(methDesc: MethodDescriptor, rule: HttpRule, grpcHandler: HttpRequest => Future[HttpResponse])(
@@ -250,7 +231,7 @@ object HttpApi {
       // Validate pattern
       val (mp, pattern) = {
         import HttpRule.PatternCase
-        import akka.http.scaladsl.model.HttpMethods.{ DELETE, GET, PATCH, POST, PUT }
+        import akka.http.scaladsl.model.HttpMethods._
 
         rule.getPatternCase match {
           case PatternCase.PATTERN_NOT_SET =>
