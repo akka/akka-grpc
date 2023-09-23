@@ -140,18 +140,18 @@ object @{serviceName}Handler {
     }
 
     /**
-     * Creates a partial gRPC http transcoding handler that can be combined with handlers of normal gRPC or other
+     * Wrap a partial gRPC handler into a partial gRPC HTTP transcoding handler that can be combined with handlers of normal gRPC or other
      * services with `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` and then used in for example
      * `Http().bindAndHandleAsync`.
      *
      * Please reference https://cloud.google.com/endpoints/docs/grpc/transcoding#deploying_a_service_that_uses_transcoding
-     * for more detail on gRPC http transcoding
+     * for more detail on gRPC HTTP transcoding
      *
-     * Use @{service.name}Handler.apply if the server is only handling one service and only interest on gRPC.
+     * Use @{service.name}Handler.apply if the server is only handling one service and only interested on serving gRPC.
      *
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
-    def partialHttpTranscoding(implementation: @serviceName, prefix: String = @{service.name}.name, grpcHandler: PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]], eHandler: ActorSystem => PartialFunction[Throwable, Trailers] = GrpcExceptionHandler.defaultMapper)(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
+    def partialHttpTranscoding(grpcHandler: PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]])(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
           implicit val mat: Materializer = SystemMaterializer(system).materializer
           implicit val ec: ExecutionContext = mat.executionContext
           akka.grpc.HttpApi.serve(@{service.name}.descriptor, grpcHandler)
