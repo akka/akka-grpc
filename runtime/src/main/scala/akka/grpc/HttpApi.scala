@@ -147,8 +147,8 @@ object HttpApi {
       val rule: HttpRule = methDesc.getOptions.getExtension[HttpRule](AnnotationsProto.http)
       rule +: rule.getAdditionalBindingsList.asScala
     } catch {
-      // expect NoSuchFieldError when method not using http extension
-      case _: Throwable => scala.collection.mutable.Buffer.empty
+      // expect NoSuchFieldError when method doesn't using http extension
+      case _: NoSuchFieldError => scala.collection.mutable.Buffer.empty
     }
   }
 
