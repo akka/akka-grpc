@@ -18,6 +18,7 @@ case class Service(
     methods: immutable.Seq[Method],
     serverPowerApi: Boolean,
     usePlayActions: Boolean,
+    enableHttpTranscoding: Boolean,
     options: com.google.protobuf.DescriptorProtos.ServiceOptions,
     comment: Option[String] = None) {
   def serializers: Seq[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).distinct
@@ -31,7 +32,8 @@ object Service {
       fileDesc: FileDescriptor,
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
-      usePlayActions: Boolean): Service = {
+      usePlayActions: Boolean,
+      enableHttpTranscoding: Boolean): Service = {
     implicit val ops: DescriptorImplicits =
       DescriptorImplicits.fromCodeGenRequest(generatorParams, request)
     import ops._
@@ -46,6 +48,7 @@ object Service {
       serviceDescriptor.getMethods.asScala.map(method => Method(method)).toList,
       serverPowerApi,
       usePlayActions,
+      enableHttpTranscoding,
       serviceDescriptor.getOptions,
       serviceDescriptor.comment)
   }
