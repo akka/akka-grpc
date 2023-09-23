@@ -116,7 +116,8 @@ object HttpApi {
     name = "ANY",
     safe = false,
     idempotent = false,
-    requestEntityAcceptance = RequestEntityAcceptance.Tolerated)
+    requestEntityAcceptance = RequestEntityAcceptance.Tolerated,
+    contentLengthAllowed = true)
 
   private final val NEWLINE_BYTES = ByteString('\n')
   private final val NoMatch = PartialFunction.empty[HttpRequest, Future[HttpResponse]]
