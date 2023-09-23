@@ -137,7 +137,7 @@ object HttpApi {
   private final val NoMatch = PartialFunction.empty[HttpRequest, Future[HttpResponse]]
 
   @ApiMayChange
-  def serve(fileDescriptor: FileDescriptor, handler: (HttpRequest, String) => Future[HttpResponse])(
+  def serve(fileDescriptor: FileDescriptor, grpcHandler: PartialFunction[HttpRequest, Future[HttpResponse]])(
       implicit mat: Materializer,
       ec: ExecutionContext): PartialFunction[HttpRequest, Future[HttpResponse]] = {
     val handlers: scala.collection.mutable.Buffer[HttpHandler] = for {
@@ -146,7 +146,7 @@ object HttpApi {
       rules = getRules(method)
       binding <- rules
     } yield {
-      new HttpHandler(method, binding, req => handler(req, method.getName))
+      new HttpHandler(method, binding, grpcHandler)
     }
     handlers.foldLeft(NoMatch) {
       case (NoMatch, first)    => first
@@ -169,7 +169,7 @@ object HttpApi {
   private final class HttpHandler(
       methDesc: MethodDescriptor,
       rule: HttpRule,
-      grpcHandler: HttpRequest => Future[HttpResponse])(implicit ec: ExecutionContext, mat: Materializer)
+      grpcHandler: PartialFunction[HttpRequest, Future[HttpResponse]])(implicit ec: ExecutionContext, mat: Materializer)
       extends PartialFunction[HttpRequest, Future[HttpResponse]] {
 
     // For descriptive purposes so it's clear what these types do
@@ -568,14 +568,18 @@ object HttpApi {
       transformRequest(req, matcher)
         .transformWith {
           case Success(request) =>
-            val response = grpcHandler(request).map { resp =>
-              val headers = resp.headers
-              val grpcReader = GrpcProtocolNative.newReader(Codecs.detect(resp).get)
-              val body = resp.entity.dataBytes.viaMat(grpcReader.dataFrameDecoder)(Keep.none).map { payload =>
-                ProtobufAny(typeUrl = expectedReplyTypeUrl, value = ProtobufByteString.copyFrom(payload.asByteBuffer))
+            val response = grpcHandler
+              .applyOrElse(
+                request,
+                (_: HttpRequest) => Future.failed(new NotImplementedError(s"Not implemented: ${methDesc.getName}")))
+              .map { resp =>
+                val headers = resp.headers
+                val grpcReader = GrpcProtocolNative.newReader(Codecs.detect(resp).get)
+                val body = resp.entity.dataBytes.viaMat(grpcReader.dataFrameDecoder)(Keep.none).map { payload =>
+                  ProtobufAny(typeUrl = expectedReplyTypeUrl, value = ProtobufByteString.copyFrom(payload.asByteBuffer))
+                }
+                headers.toList -> body
               }
-              headers.toList -> body
-            }
 
             transformResponse(request, response)
           case Failure(_) =>
