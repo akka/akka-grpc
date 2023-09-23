@@ -47,41 +47,41 @@ object HttpApi {
         case _: NumberFormatException => None
       }
 
-  final val ParseInt: String => Option[JInteger] =
+  private final val ParseInt: String => Option[JInteger] =
     s =>
       try Option(JInteger.valueOf(s))
       catch {
         case _: NumberFormatException => None
       }
 
-  final val ParseLong: String => Option[JLong] =
+  private final val ParseLong: String => Option[JLong] =
     s =>
       try Option(JLong.valueOf(s))
       catch {
         case _: NumberFormatException => None
       }
 
-  final val ParseFloat: String => Option[JFloat] =
+  private final val ParseFloat: String => Option[JFloat] =
     s =>
       try Option(JFloat.valueOf(s))
       catch {
         case _: NumberFormatException => None
       }
 
-  final val ParseDouble: String => Option[JDouble] =
+  private final val ParseDouble: String => Option[JDouble] =
     s =>
       try Option(JDouble.valueOf(s))
       catch {
         case _: NumberFormatException => None
       }
 
-  final val ParseString: String => Option[String] =
+  private final val ParseString: String => Option[String] =
     s => Option(s)
 
   private[this] final val someJTrue = Some(JBoolean.TRUE)
   private[this] final val someJFalse = Some(JBoolean.FALSE)
 
-  final val ParseBoolean: String => Option[JBoolean] =
+  private final val ParseBoolean: String => Option[JBoolean] =
     _.toLowerCase match {
       case "true"  => someJTrue
       case "false" => someJFalse
@@ -89,10 +89,10 @@ object HttpApi {
     }
 
   // Reads a rfc2045 encoded Base64 string
-  final val ParseBytes: String => Option[ProtobufByteString] =
+  private final val ParseBytes: String => Option[ProtobufByteString] =
     s => Some(ProtobufByteString.copyFrom(Base64.rfc2045.decode(s))) // Make cheaper? Protobuf has a Base64 decoder?
 
-  final def suitableParserFor(field: FieldDescriptor)(whenIllegal: String => Nothing): String => Option[Any] =
+  private final def suitableParserFor(field: FieldDescriptor)(whenIllegal: String => Nothing): String => Option[Any] =
     field.getJavaType match {
       case JavaType.BOOLEAN     => ParseBoolean
       case JavaType.BYTE_STRING => ParseBytes
@@ -152,7 +152,7 @@ object HttpApi {
     }
   }
 
-  final class HttpHandler(methDesc: MethodDescriptor, rule: HttpRule, grpcHandler: HttpRequest => Future[HttpResponse])(
+  private final class HttpHandler(methDesc: MethodDescriptor, rule: HttpRule, grpcHandler: HttpRequest => Future[HttpResponse])(
       implicit ec: ExecutionContext,
       mat: Materializer)
       extends PartialFunction[HttpRequest, Future[HttpResponse]] {
@@ -162,12 +162,12 @@ object HttpApi {
     private type ExtractPathParameters = (Matcher, PathParameterEffect) => Unit
 
     // Question: Do we need to handle conversion from JSON names?
-    private[this] final def lookupFieldByName(desc: Descriptor, selector: String): FieldDescriptor =
+    private[this] def lookupFieldByName(desc: Descriptor, selector: String): FieldDescriptor =
       desc.findFieldByName(
         selector
       ) // TODO potentially start supporting path-like selectors with maximum nesting level?
 
-    private[this] final def parsePathExtractor(
+    private[this] def parsePathExtractor(
         pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
       val template = PathTemplateParser.parse(pattern)
       val pathFieldParsers = template.fields.iterator
@@ -207,7 +207,7 @@ object HttpApi {
     }
 
     // This method validates the configuration and returns values obtained by parsing the configuration
-    private[this] final def extractAndValidate(): (
+    private[this] def extractAndValidate(): (
         HttpMethod,
         PathTemplateParser.ParsedTemplate,
         ExtractPathParameters,
@@ -281,10 +281,10 @@ object HttpApi {
       (mp, template, extractor, bd, rd)
     }
 
-    private[this] final val (methodPattern, pathTemplate, pathExtractor, bodyDescriptor, responseBodyDescriptor) =
+    private[this] val (methodPattern, pathTemplate, pathExtractor, bodyDescriptor, responseBodyDescriptor) =
       extractAndValidate()
 
-    @tailrec private[this] final def lookupFieldByPath(desc: Descriptor, selector: String): FieldDescriptor =
+    @tailrec private[this] def lookupFieldByPath(desc: Descriptor, selector: String): FieldDescriptor =
       Names.splitNext(selector) match {
         case ("", "")        => null
         case (fieldName, "") => lookupFieldByName(desc, fieldName)
@@ -304,19 +304,19 @@ object HttpApi {
       .omittingInsignificantWhitespace()
 
     // Making this a method so we can ensure it's used the same way
-    final def matches(path: Uri.Path): Boolean =
+    private def matches(path: Uri.Path): Boolean =
       pathTemplate.regex.pattern
         .matcher(path.toString())
         .matches() // FIXME path.toString is costly, and using Regexes are too, switch to using a generated parser instead
 
-    private[this] final def parseRequestParametersInto(
+    private[this] def parseRequestParametersInto(
         query: Map[String, List[String]],
         inputBuilder: DynamicMessage.Builder): Unit =
       query.foreach {
         case (selector, values) =>
           if (values.nonEmpty) {
             lookupFieldByPath(methDesc.getInputType, selector) match {
-              case null => requestError("Query parameter [$selector] refers to non-existant field")
+              case null => requestError("Query parameter [$selector] refers to non-existent field")
               case field if field.getJavaType == FieldDescriptor.JavaType.MESSAGE =>
                 requestError(
                   "Query parameter [$selector] refers to a message type"
@@ -339,7 +339,7 @@ object HttpApi {
           } // Ignore empty values
       }
 
-    private[this] final def parsePathParametersInto(matcher: Matcher, inputBuilder: DynamicMessage.Builder): Unit =
+    private[this] def parsePathParametersInto(matcher: Matcher, inputBuilder: DynamicMessage.Builder): Unit =
       pathExtractor(
         matcher,
         (field, value) =>
@@ -369,7 +369,7 @@ object HttpApi {
 
     // FIXME Devise other way of supporting responseBody, this is waaay too costly and unproven
     // This method converts an arbitrary type to something which can be represented as JSON.
-    private[this] final def responseBody(
+    private[this] def responseBody(
         jType: JavaType,
         value: AnyRef,
         repeated: Boolean): com.google.protobuf.Value = {
@@ -377,7 +377,7 @@ object HttpApi {
         if (repeated) {
           Value.newBuilder.setListValue(
             ListValue.newBuilder.addAllValues(
-              value.asInstanceOf[java.lang.Iterable[AnyRef]].asScala.map(v => responseBody(jType, v, false)).asJava))
+              value.asInstanceOf[java.lang.Iterable[AnyRef]].asScala.map(v => responseBody(jType, v, repeated = false)).asJava))
         } else {
           val b = Value.newBuilder
           jType match {
@@ -412,7 +412,7 @@ object HttpApi {
     private final val IdentityHeader = new `Message-Accept-Encoding`("identity")
     private final val grpcWriter = GrpcProtocolNative.newWriter(Identity)
 
-    private[this] final def updateRequest(req: HttpRequest, message: DynamicMessage): HttpRequest = {
+    private[this] def updateRequest(req: HttpRequest, message: DynamicMessage): HttpRequest = {
       HttpRequest(
         method = HttpMethods.POST,
         uri = Uri(path = Path / methDesc.getService.getFullName / methDesc.getName),
@@ -424,7 +424,7 @@ object HttpApi {
         protocol = HttpProtocols.`HTTP/2.0`)
     }
 
-    final def transformRequest(req: HttpRequest, matcher: Matcher): Future[HttpRequest] =
+    private def transformRequest(req: HttpRequest, matcher: Matcher): Future[HttpRequest] =
       if (rule.getBody.nonEmpty && req.entity.contentType != ContentTypes.`application/json`) {
         Future.failed(IllegalRequestException(StatusCodes.BadRequest, "Content-type must be application/json!"))
       } else {
@@ -458,7 +458,7 @@ object HttpApi {
         }
       }
 
-    private[this] final def parseResponseBody(pbAny: ProtobufAny): MessageOrBuilder = {
+    private[this] def parseResponseBody(pbAny: ProtobufAny): MessageOrBuilder = {
       val bytes = ReplySerializer.serialize(pbAny)
       val message = DynamicMessage.parseFrom(methDesc.getOutputType, bytes.iterator.asInputStream)
       responseBodyDescriptor.fold(message: MessageOrBuilder) { field =>
@@ -469,7 +469,7 @@ object HttpApi {
       }
     }
 
-    final def transformResponse(
+    private def transformResponse(
         grpcRequest: HttpRequest,
         futureResponse: Future[(List[HttpHeader], Source[ProtobufAny, NotUsed])]): Future[HttpResponse] = {
       def extractContentTypeFromHttpBody(entityMessage: MessageOrBuilder): ContentType =
@@ -544,11 +544,11 @@ object HttpApi {
       }
     }
 
-    final val AnyTypeUrlHostName = "type.googleapis.com/"
+    private final val AnyTypeUrlHostName = "type.googleapis.com/"
 
-    final val expectedReplyTypeUrl: String = AnyTypeUrlHostName + methDesc.getOutputType.getFullName
+    private val expectedReplyTypeUrl: String = AnyTypeUrlHostName + methDesc.getOutputType.getFullName
 
-    private[this] final def processRequest(req: HttpRequest, matcher: Matcher): Future[HttpResponse] = {
+    private[this] def processRequest(req: HttpRequest, matcher: Matcher): Future[HttpResponse] = {
       transformRequest(req, matcher)
         .transformWith {
           case Success(request) =>
@@ -576,7 +576,7 @@ object HttpApi {
     }
 
     override def apply(req: HttpRequest): Future[HttpResponse] = {
-      assert((methodPattern == ANY_METHOD || req.method == methodPattern))
+      assert(methodPattern == ANY_METHOD || req.method == methodPattern)
       val matcher = pathTemplate.regex.pattern.matcher(req.uri.path.toString())
       assert(matcher.matches())
       processRequest(req, matcher)
@@ -584,11 +584,11 @@ object HttpApi {
   }
 
   private final object ReplySerializer extends ProtobufSerializer[ProtobufAny] {
-    override final def serialize(reply: ProtobufAny): ByteString =
+    override def serialize(reply: ProtobufAny): ByteString =
       if (reply.value.isEmpty) ByteString.empty
       else ByteString.fromArrayUnsafe(reply.value.toByteArray)
 
-    override final def deserialize(bytes: ByteString): ProtobufAny =
+    override def deserialize(bytes: ByteString): ProtobufAny =
       throw new UnsupportedOperationException("operation not supported")
   }
 
@@ -664,7 +664,7 @@ object HttpApi {
             TemplateVariable(
               fieldPath,
               segments.exists(_ match {
-                case ((_: MultiSegmentMatcher) :: _) | (_ :: _ :: _) => true
+                case (_: MultiSegmentMatcher) :: _ | _ :: _ :: _ => true
                 case _                                               => false
               }))
         }
@@ -673,7 +673,7 @@ object HttpApi {
 
     final case class TemplateVariable(fieldPath: List[String], multi: Boolean)
 
-    final case class PathTemplateParseException(msg: String, path: String, column: Int)
+    private final case class PathTemplateParseException(msg: String, path: String, column: Int)
         extends RuntimeException(
           s"$msg at ${if (column >= path.length) "end of input" else s"character $column"} of '$path'") {
 
@@ -699,12 +699,12 @@ object HttpApi {
         segments.flatMap {
           case variable: VariableSegment if !allowVariables =>
             throw PathTemplateParseException("Variable segments may not be nested", path, variable.pos.column)
-          case VariableSegment(_, Some(nested)) => flattenSegments(nested, false)
+          case VariableSegment(_, Some(nested)) => flattenSegments(nested, allowVariables = false)
           case other                            => List(other)
         }
 
       // Flatten, verifying that there are no nested variables
-      val flattened = flattenSegments(template.segments, true)
+      val flattened = flattenSegments(template.segments, allowVariables = true)
 
       // Verify there are no ** matchers that aren't the last matcher
       flattened.dropRight(1).foreach {
