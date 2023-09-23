@@ -571,7 +571,9 @@ object HttpApi {
             val response = grpcHandler
               .applyOrElse(
                 request,
-                (_: HttpRequest) => Future.failed(new NotImplementedError(s"Not implemented: ${methDesc.getName}")))
+                // actually, this should be impossible since only way to miss match transformed request with real gRPC server schema
+                // is either wrong transformation or wrong creation(mismatched implementation and gRPC handler)
+                (_: HttpRequest) => Future.failed(IllegalRequestException(StatusCodes.NotFound, s"Requested resource ${req.uri} not found!")))
               .map { resp =>
                 val headers = resp.headers
                 val grpcReader = GrpcProtocolNative.newReader(Codecs.detect(resp).get)
