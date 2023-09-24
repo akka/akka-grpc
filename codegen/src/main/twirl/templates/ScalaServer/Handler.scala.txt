@@ -148,13 +148,11 @@ object @{serviceName}Handler {
      * for more detail on gRPC HTTP transcoding
      *
      * Use @{service.name}Handler.apply if the server is only handling one service and only interested on serving gRPC.
-     *
-     * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
     def partialHttpTranscoding(grpcHandler: PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]])(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
           implicit val mat: Materializer = SystemMaterializer(system).materializer
           implicit val ec: ExecutionContext = mat.executionContext
-          akka.grpc.HttpApi.serve(@{service.name}.descriptor, grpcHandler)
+          akka.grpc.scaladsl.HttpTranscoding.partial(@{service.name}.descriptor, grpcHandler)
+       }
     }
-  }
 }

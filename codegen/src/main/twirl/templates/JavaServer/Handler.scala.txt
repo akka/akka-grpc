@@ -149,6 +149,21 @@ public class @{serviceName}HandlerFactory {
       });
     }
 
+   /**
+    * Wrap a partial gRPC handler into a partial gRPC HTTP transcoding handler that can be combined with handlers of normal gRPC or other
+    * services with {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} and then used in for example
+    * `Http().bindAndHandleAsync`.
+    *
+    * Please reference https://cloud.google.com/endpoints/docs/grpc/transcoding#deploying_a_service_that_uses_transcoding
+    * for more detail on gRPC HTTP transcoding
+    *
+    * Use @{service.name}Handler.apply if the server is only handling one service and only interested on serving gRPC.
+    */
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> partialHttpTranscoding(Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> grpcHandler, Materializer mat, ClassicActorSystemProvider system) {
+      return akka.grpc.javadsl.HttpTranscoding.partial(@{service.name}.description.descriptor(), grpcHandler, mat, system);
+    }
+
+
     public String getServiceName() {
       return @{service.name}.name;
     }
