@@ -78,6 +78,7 @@ object Dependencies {
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
     val akkaTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
+    val akkaHttpSprayJsonSupport = "com.typesafe.akka" %% "akka-http-spray-json" % Versions.akkaHttp % "test"
   }
 
   object Runtime {
@@ -159,5 +160,7 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit,
     Test.akkaTestkitTyped,
+    Test.akkaHttpSprayJsonSupport,
+    Protobuf.googleCommonProtos,
     GrpcApi.googleApiProtos)
 }
