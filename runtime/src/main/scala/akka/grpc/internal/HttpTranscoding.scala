@@ -6,12 +6,13 @@ package akka.grpc.internal
 
 import akka.ConfigurationException
 import akka.annotation.InternalApi
-import akka.grpc.ProtobufSerializer
+import akka.grpc.{ Options, ProtobufSerializer }
 import akka.http.scaladsl.model._
 import akka.parboiled2.util.Base64
 import akka.stream.Materializer
 import akka.util.ByteString
-import com.google.api.{ AnnotationsProto, HttpRule }
+import com.google.api.annotations.AnnotationsProto
+import com.google.api.http.HttpRule
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.any.{ Any => ProtobufAny }
@@ -130,15 +131,12 @@ private[grpc] object HttpTranscoding {
     }
   }
 
-  private def getRules(methDesc: MethodDescriptor): scala.collection.mutable.Buffer[HttpRule] = {
-    // TODO find a hacky way to get untyped Extension like they did in dotnet core
-    // reference to https://github.com/dotnet/aspnetcore/blob/46562b1435bf111a7425b40f507b157b42a016a4/src/Grpc/JsonTranscoding/src/Shared/ServiceDescriptorHelpers.cs#L335
-    try {
-      val rule: HttpRule = methDesc.getOptions.getExtension[HttpRule](AnnotationsProto.http)
-      rule +: rule.getAdditionalBindingsList.asScala
-    } catch {
-      // expect NoSuchFieldError when method doesn't use http extension
-      case _: NoSuchFieldError => scala.collection.mutable.Buffer.empty
+  private def getRules(methDesc: MethodDescriptor): Seq[HttpRule] = {
+    AnnotationsProto.http.get(Options.convertMethodOptions(methDesc)) match {
+      case Some(rule) =>
+        rule +: rule.additionalBindings
+      case None =>
+        Seq.empty
     }
   }
 

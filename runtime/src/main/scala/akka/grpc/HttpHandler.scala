@@ -9,7 +9,7 @@ import akka.grpc.internal.HttpTranscoding._
 import akka.grpc.internal.{ GrpcProtocolNative, Identity }
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
 import akka.http.scaladsl.model._
-import com.google.api.HttpRule
+import com.google.api.http.HttpRule
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.util.JsonFormat
@@ -83,36 +83,32 @@ private[grpc] object HttpHandler {
   def extractAndValidate(rule: HttpRule, methDesc: MethodDescriptor)
       : (HttpMethod, PathTemplateParser.ParsedTemplate, ExtractPathParameters, Descriptor, Option[FieldDescriptor]) = {
     // Validate selector
-    if (rule.getSelector != "" && rule.getSelector != methDesc.getFullName)
-      configError(s"Rule selector [${rule.getSelector}] must be empty or [${methDesc.getFullName}]")
+    if (rule.selector != "" && rule.selector != methDesc.getFullName)
+      configError(s"Rule selector [${rule.selector}] must be empty or [${methDesc.getFullName}]")
 
     // Validate pattern
     val (mp, pattern) = {
-      import HttpRule.PatternCase
-      import akka.http.scaladsl.model.HttpMethods._
+      import HttpRule.Pattern.{ Custom, Delete, Empty, Get, Patch, Post, Put }
+      import akka.http.scaladsl.model.HttpMethods.{ DELETE, GET, PATCH, POST, PUT }
 
-      rule.getPatternCase match {
-        case PatternCase.PATTERN_NOT_SET =>
-          configError(s"Pattern missing for rule [$rule]!") // TODO improve error message
-        case PatternCase.GET    => (GET, rule.getGet)
-        case PatternCase.PUT    => (PUT, rule.getPut)
-        case PatternCase.POST   => (POST, rule.getPost)
-        case PatternCase.DELETE => (DELETE, rule.getDelete)
-        case PatternCase.PATCH  => (PATCH, rule.getPatch)
-        case PatternCase.CUSTOM =>
-          if (rule.getCustom.getKind == "*")
-            (
-              ANY_METHOD,
-              rule.getCustom.getPath
-            ) // FIXME is "path" the same as "pattern" for the other kinds? Is an empty kind valid?
-          else configError(s"Only Custom patterns with [*] kind supported but [${rule.getCustom.getKind}] found!")
+      rule.pattern match {
+        case Empty           => configError(s"Pattern missing for rule [$rule]!") // TODO improve error message
+        case Get(pattern)    => (GET, pattern)
+        case Put(pattern)    => (PUT, pattern)
+        case Post(pattern)   => (POST, pattern)
+        case Delete(pattern) => (DELETE, pattern)
+        case Patch(pattern)  => (PATCH, pattern)
+        case Custom(chp) =>
+          if (chp.kind == "*")
+            (ANY_METHOD, chp.path) // FIXME is "path" the same as "pattern" for the other kinds? Is an empty kind valid?
+          else configError(s"Only Custom patterns with [*] kind supported but [${chp.kind}] found!")
       }
     }
     val (template, extractor) = parsePathExtractor(methDesc, pattern)
 
     // Validate body value
     val bd =
-      rule.getBody match {
+      rule.body match {
         case "" => methDesc.getInputType
         case "*" =>
           if (!mp.isEntityAccepted)
@@ -133,7 +129,7 @@ private[grpc] object HttpHandler {
 
     // Validate response body value
     val rd =
-      rule.getResponseBody match {
+      rule.responseBody match {
         case "" => None
         case fieldName =>
           lookupFieldByName(methDesc.getOutputType, fieldName) match {
@@ -144,7 +140,7 @@ private[grpc] object HttpHandler {
           }
       }
 
-    if (rule.getAdditionalBindingsList.asScala.exists(_.getAdditionalBindingsList.asScala.nonEmpty))
+    if (rule.additionalBindings.exists(_.additionalBindings.nonEmpty))
       configError(s"Only one level of additionalBindings supported, but [$rule] has more than one!")
 
     (mp, template, extractor, bd, rd)

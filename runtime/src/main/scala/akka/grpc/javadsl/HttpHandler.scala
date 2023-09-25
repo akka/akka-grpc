@@ -15,7 +15,7 @@ import akka.japi.function.{ Function => JFunction }
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.{ Materializer, javadsl => jstream }
 import akka.util.ByteString
-import com.google.api.HttpRule
+import com.google.api.http.HttpRule
 import com.google.protobuf.Descriptors._
 import com.google.protobuf.any.{ Any => ProtobufAny }
 import com.google.protobuf.{ DynamicMessage, MessageOrBuilder, ByteString => ProtobufByteString }
@@ -50,11 +50,11 @@ final class HttpHandler(
   }
 
   private def transformRequest(req: jm.HttpRequest, matcher: Matcher): CompletionStage[_ <: jm.HttpRequest] = {
-    if (rule.getBody.nonEmpty && req.entity.getContentType != ContentTypes.`application/json`) {
+    if (rule.body.nonEmpty && req.entity.getContentType != ContentTypes.`application/json`) {
       Future.failed(IllegalRequestException(StatusCodes.BadRequest, "Content-type must be application/json!")).toJava
     } else {
       val inputBuilder = DynamicMessage.newBuilder(methDesc.getInputType)
-      rule.getBody match {
+      rule.body match {
         case "" => // Iff empty body rule, then only query parameters
           req.discardEntityBytes(mat)
           parseRequestParametersInto(methDesc, req.getUri.asScala().query().toMultiMap, inputBuilder)
