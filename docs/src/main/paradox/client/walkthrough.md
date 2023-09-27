@@ -49,8 +49,6 @@ Maven
   <artifactId>my-grpc-app</artifactId>
   <version>0.1-SNAPSHOT</version>
   <properties>
-      <maven.compiler.source>1.8</maven.compiler.source>
-      <maven.compiler.target>1.8</maven.compiler.target>
       <akka.grpc.version>$project.version$</akka.grpc.version>
       <grpc.version>$grpc.version$</grpc.version>
       <project.encoding>UTF-8</project.encoding>
