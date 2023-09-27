@@ -271,6 +271,8 @@ abstract class HttpHandler {
   final val jsonParser: JsonFormat.Parser =
     JsonFormat.parser.usingTypeRegistry(JsonFormat.TypeRegistry.newBuilder().add(bodyDescriptor).build)
 
+  // TODO it's annoying that protobuf JSON printer format every Long to String in JSON, find a way to deal with it
+  // see https://stackoverflow.com/questions/53080136/protobuf-jsonformater-printer-convert-long-to-string-in-json
   final val jsonPrinter = JsonFormat.printer
     .usingTypeRegistry(JsonFormat.TypeRegistry.newBuilder.add(methDesc.getOutputType).build())
     .includingDefaultValueFields()
