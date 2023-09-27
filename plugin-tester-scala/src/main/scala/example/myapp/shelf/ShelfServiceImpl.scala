@@ -9,5 +9,5 @@ class ShelfServiceImpl extends ShelfService {
   /**
    * Returns a specific bookstore shelf.
    */
-  def getShelf(in: GetShelfRequest): Future[Shelf] = Future.successful(Shelf(1, "chris"))
+  def getShelf(in: GetShelfRequest): Future[Shelf] = Future.successful(Shelf(1, "halloween"))
 }
