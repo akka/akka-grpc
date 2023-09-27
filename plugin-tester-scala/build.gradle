@@ -10,7 +10,7 @@ repositories {
   mavenLocal()
 }
 
-def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.12")
+def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.7.0"
 
