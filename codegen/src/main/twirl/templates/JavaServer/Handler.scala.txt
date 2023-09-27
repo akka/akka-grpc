@@ -160,7 +160,7 @@ public class @{serviceName}HandlerFactory {
     * Use @{service.name}Handler.apply if the server is only handling one service and only interested on serving gRPC.
     */
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> partialHttpTranscoding(Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> grpcHandler, Materializer mat, ClassicActorSystemProvider system) {
-      return akka.grpc.javadsl.HttpTranscoding.partial(@{service.name}.description, grpcHandler, mat, system);
+      return akka.grpc.javadsl.HttpHandler.partial(@{service.name}.description, grpcHandler, mat, system);
     }
 
 

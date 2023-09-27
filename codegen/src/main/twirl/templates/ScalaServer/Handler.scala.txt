@@ -152,7 +152,7 @@ object @{serviceName}Handler {
     def partialHttpTranscoding(grpcHandler: PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]])(implicit system: ClassicActorSystemProvider): PartialFunction[model.HttpRequest, scala.concurrent.Future[model.HttpResponse]] = {
           implicit val mat: Materializer = SystemMaterializer(system).materializer
           implicit val ec: ExecutionContext = mat.executionContext
-          akka.grpc.scaladsl.HttpTranscoding.partial(@{service.name}.descriptor, grpcHandler)
+          akka.grpc.scaladsl.HttpHandler.partial(@{service.name}.descriptor, grpcHandler)
        }
     }
 }
