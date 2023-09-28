@@ -27,17 +27,17 @@
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
-      <artifactId>akka-grpc-runtime_2.12</artifactId>
+      <artifactId>akka-grpc-runtime_2.13</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-pki_2.12</artifactId>
+      <artifactId>akka-pki_2.13</artifactId>
       <version>${akka.version}</version>
     </dependency>
     <dependency>
       <groupId>ch.megard</groupId>
-      <artifactId>akka-http-cors_2.12</artifactId>
+      <artifactId>akka-http-cors_2.13</artifactId>
       <version>${akka.http.cors.version}</version>
     </dependency>
 

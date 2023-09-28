@@ -30,7 +30,7 @@ plugins {
   id '$PLUGIN_CODE'
 }
 project.dependencies {
-    implementation "com.typesafe.scala-logging:scala-logging_2.12:3.9.2"
+    implementation "com.typesafe.scala-logging:scala-logging_2.13:3.9.2"
 }
 """
     }

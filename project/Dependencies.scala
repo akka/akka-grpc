@@ -11,7 +11,7 @@ object Dependencies {
     val scala3 = "3.3.1"
 
     // the order in the list is important because the head will be considered the default.
-    val CrossScalaForLib = Seq(scala212, scala213, scala3)
+    val CrossScalaForLib = Seq(scala213, scala3)
     val CrossScalaForPlugin = Seq(scala212)
 
     // We don't force Akka updates because downstream projects can upgrade

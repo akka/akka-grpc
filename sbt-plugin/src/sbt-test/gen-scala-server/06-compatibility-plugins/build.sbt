@@ -1,3 +1,5 @@
+scalaVersion := "2.13.11"
+
 resolvers += Resolver.sonatypeRepo("staging")
 
 // Disable for now because of: https://github.com/protocolbuffers/protobuf-javascript/issues/127
