@@ -22,7 +22,7 @@ object Dependencies {
     val akkaHttp = "10.5.0"
     val akkaHttpBinary = "10.5"
 
-    val grpc = "1.54.2" // checked synced by VersionSyncCheckPlugin
+    val grpc = "1.58.0" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
