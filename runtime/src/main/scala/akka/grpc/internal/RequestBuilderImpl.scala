@@ -4,6 +4,7 @@
 
 package akka.grpc.internal
 
+import java.time.{ Duration => JDuration }
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 import akka.NotUsed
 import akka.annotation.{ InternalApi, InternalStableApi }
@@ -93,6 +94,14 @@ final class JavaUnaryRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): JavaUnaryRequestBuilder[I, O] =
     new JavaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: JDuration): JavaUnaryRequestBuilder[I, O] =
+    new JavaUnaryRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**
@@ -212,6 +221,14 @@ final class JavaClientStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingRequestBuilder[I, O] =
     new JavaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: JDuration): JavaClientStreamingRequestBuilder[I, O] =
+    new JavaClientStreamingRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**
@@ -310,6 +327,14 @@ final class JavaServerStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): JavaServerStreamingRequestBuilder[I, O] =
     new JavaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: JDuration): JavaServerStreamingRequestBuilder[I, O] =
+    new JavaServerStreamingRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**
@@ -410,6 +435,14 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): JavaBidirectionalStreamingRequestBuilder[I, O] =
     new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: JDuration): JavaBidirectionalStreamingRequestBuilder[I, O] =
+    new JavaBidirectionalStreamingRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**
