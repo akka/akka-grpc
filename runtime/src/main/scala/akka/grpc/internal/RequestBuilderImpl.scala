@@ -259,6 +259,14 @@ final class ScalaServerStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): ScalaServerStreamingRequestBuilder[I, O] =
     new ScalaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: Duration): ScalaServerStreamingRequestBuilder[I, O] =
+    new ScalaServerStreamingRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**
@@ -350,6 +358,14 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
 
   override def withHeaders(headers: MetadataImpl): ScalaBidirectionalStreamingRequestBuilder[I, O] =
     new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+
+  override def setDeadline(deadline: Duration): ScalaBidirectionalStreamingRequestBuilder[I, O] =
+    new ScalaBidirectionalStreamingRequestBuilder[I, O](
+      descriptor,
+      channel,
+      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      settings,
+      headers)
 }
 
 /**

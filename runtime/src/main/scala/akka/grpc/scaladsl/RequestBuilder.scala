@@ -95,4 +95,10 @@ trait StreamResponseRequestBuilder[Req, Res] {
    * Invoke the gRPC method with the additional metadata added and provide access to response metadata
    */
   def invokeWithMetadata(request: Req): Source[Res, Future[GrpcResponseMetadata]]
+
+  /**
+   * Set the deadline for this call
+   * @return A new request builder, that will use the supplied deadline when invoked
+   */
+  def setDeadline(deadline: Duration): StreamResponseRequestBuilder[Req, Res]
 }
