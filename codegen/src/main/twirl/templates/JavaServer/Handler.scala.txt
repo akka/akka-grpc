@@ -96,6 +96,26 @@ public class @{serviceName}HandlerFactory {
       return partial(implementation, prefix, SystemMaterializer.get(system).materializer(), eHandler, system);
     }
 
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler. The generated handler serves both HTTP and gRPC calls
+     * and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Please reference https://cloud.google.com/endpoints/docs/grpc/transcoding#deploying_a_service_that_uses_transcoding
+     * for more detail about gRPC HTTP transcoding
+     *
+     * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} with {@@link @{service.name}HandlerFactory#partial} when combining
+     * several services.
+     */
+    @@SuppressWarnings("unchecked")
+    public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> createWithHttpTranscoding(@serviceName implementation, ClassicActorSystemProvider system) {
+      Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> grpcHandler = @{serviceName}HandlerFactory.create(implementation, system);
+      Materializer mat = akka.stream.SystemMaterializer.get(system).materializer();
+      return akka.grpc.javadsl.ServiceHandler.concatOrNotFound(
+          @{serviceName}HandlerFactory.partialHttpTranscoding(grpcHandler, mat, system),
+          grpcHandler);
+    }
+
 @if(serviceName != "ServerReflection") {
 
     /**

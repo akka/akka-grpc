@@ -82,6 +82,23 @@ object @{serviceName}Handler {
     def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
       partial(implementation, prefix, eHandler).orElse { case _ => notFound }
 
+    /**
+     * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
+     * for the generated partial function handler. The generated handler serves both HTTP and gRPC calls
+     * and ends with `StatusCodes.NotFound` if the request is not matching.
+     *
+     * Please reference https://cloud.google.com/endpoints/docs/grpc/transcoding#deploying_a_service_that_uses_transcoding
+     * for more detail about gRPC HTTP transcoding
+     *
+     * Use `akka.grpc.scaladsl.ServiceHandler.concatOrNotFound` with `@{service.name}Handler.partial` when combining
+     * several services.
+     */
+    def withHttpTranscoding(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] = {
+      val grpcHandler = @{serviceName}Handler.partial(implementation)
+      val httpHandler = @{serviceName}Handler.partialHttpTranscoding(grpcHandler)
+      akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(httpHandler, grpcHandler)
+     }
+
 @if(serviceName != "ServerReflection") {
 
     /**
@@ -145,7 +162,7 @@ object @{serviceName}Handler {
      * `Http().bindAndHandleAsync`.
      *
      * Please reference https://cloud.google.com/endpoints/docs/grpc/transcoding#deploying_a_service_that_uses_transcoding
-     * for more detail on gRPC HTTP transcoding
+     * for more detail about gRPC HTTP transcoding
      *
      * Use @{service.name}Handler.apply if the server is only handling one service and only interested on serving gRPC.
      */

@@ -1,7 +1,6 @@
 package example.myapp.shelf
 
 import akka.actor.{ ActorSystem, ClassicActorSystemProvider }
-import akka.grpc.scaladsl.ServiceHandler
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import com.typesafe.config.ConfigFactory
@@ -20,12 +19,8 @@ object ShelfServer {
 }
 class ShelfServer(implicit system: ClassicActorSystemProvider) {
   def run(): Future[Http.ServerBinding] = {
-    val grpcHandler = ShelfServiceHandler.partial(new ShelfServiceImpl())
-    val httpTranscodingHandler = ShelfServiceHandler.partialHttpTranscoding(grpcHandler)
-
     val service: HttpRequest => Future[HttpResponse] =
-      ServiceHandler.concatOrNotFound(httpTranscodingHandler, grpcHandler)
-
+      ShelfServiceHandler.withHttpTranscoding(new ShelfServiceImpl())
     Http().newServerAt("127.0.0.1", 8080).bind(service)
   }
 }

@@ -33,14 +33,9 @@ public class ShelfServer {
   }
 
   public static CompletionStage<ServerBinding> run(ActorSystem sys) throws Exception {
-    Materializer mat = SystemMaterializer.get(sys).materializer();
-
     ShelfService impl = new ShelfServiceImpl();
 
-    Function<HttpRequest, CompletionStage<HttpResponse>> grpcHandlers = ShelfServiceHandlerFactory.create(impl, sys);
-    Function<HttpRequest, CompletionStage<HttpResponse>> httpTranscodingHandlers = ShelfServiceHandlerFactory.partialHttpTranscoding(grpcHandlers, mat, sys);
-
-    Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers = ServiceHandler.concatOrNotFound(httpTranscodingHandlers, grpcHandlers);
+    Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers = ShelfServiceHandlerFactory.createWithHttpTranscoding(impl, sys);
 
     return Http
       .get(sys)
