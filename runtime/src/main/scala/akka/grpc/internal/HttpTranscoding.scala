@@ -340,7 +340,8 @@ private[grpc] object HttpTranscoding {
               .applyOrElse(
                 request,
                 // actually, this should be impossible since only way to miss match transformed request with real gRPC server schema
-                // is either wrong transformation or wrong creation(mismatched implementation and gRPC handler)
+                // is either wrongly transform HTTP request to gRPC request
+                // or wrapping other service's gRPC handler
                 (_: HttpRequest) =>
                   Future.failed(
                     IllegalRequestException(StatusCodes.NotFound, s"Requested resource ${req.uri} not found!")))
