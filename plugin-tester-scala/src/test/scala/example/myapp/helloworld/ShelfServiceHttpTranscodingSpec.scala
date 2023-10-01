@@ -7,7 +7,7 @@ import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import example.myapp.shelf.ShelfServer
-import example.myapp.shelf.grpc.{ GetShelfRequest, ShelfServiceClient }
+import example.myapp.shelf.grpc.{ GetShelfRequest, Shelf, ShelfServiceClient }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
 import spray.json.DefaultJsonProtocol._
@@ -20,7 +20,18 @@ class ShelfServiceHttpTranscodingSpec
     with AnyWordSpecLike
     with BeforeAndAfterAll {
   implicit val ec: ExecutionContextExecutor = system.executionContext
-//  implicit val shelfFormat: RootJsonFormat[Shelf] = jsonFormat2(Shelf.of)
+  implicit val shelfFormat: RootJsonFormat[Shelf] = new RootJsonFormat[Shelf] {
+    def write(obj: Shelf): JsValue = {
+      JsObject("id" -> JsString(obj.id.toString), "theme" -> JsString(obj.theme))
+    }
+
+    def read(json: JsValue): Shelf = {
+      val jso = json.convertTo[JsObject]
+      val id = jso.fields("id").convertTo[String].toLong
+      val theme = jso.fields("theme").convertTo[String]
+      Shelf(id, theme)
+    }
+  }
 
   val serverWithHttpTranscoding = new ShelfServer().run().futureValue
   val clientConfig = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080).withTls(false)
@@ -37,9 +48,9 @@ class ShelfServiceHttpTranscodingSpec
       val shelf =
         Http()
           .singleRequest(Get("http://localhost:8080/v1/shelves/1"))
-          .flatMap(response => Unmarshal(response).to[JsObject])
+          .flatMap(response => Unmarshal(response).to[Shelf])
           .futureValue
-      1 shouldBe 1
+      shelf.id shouldBe 1
     }
 
   }
