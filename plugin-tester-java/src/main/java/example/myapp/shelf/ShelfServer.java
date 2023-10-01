@@ -1,14 +1,11 @@
 package example.myapp.shelf;
 
 import akka.actor.ActorSystem;
-import akka.grpc.javadsl.ServiceHandler;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.japi.function.Function;
-import akka.stream.Materializer;
-import akka.stream.SystemMaterializer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import example.myapp.shelf.grpc.ShelfService;
@@ -25,9 +22,7 @@ public class ShelfServer {
     // Akka ActorSystem Boot
     ActorSystem sys = ActorSystem.create("ShelfServer", conf);
 
-    run(sys).thenAccept(binding -> {
-      System.out.println("gRPC HTTP transcoding server bound to: " + binding.localAddress());
-    });
+    run(sys).thenAccept(binding -> System.out.println("gRPC HTTP transcoding server bound to: " + binding.localAddress()));
 
     // ActorSystem threads will keep the app alive until `system.terminate()` is called
   }
