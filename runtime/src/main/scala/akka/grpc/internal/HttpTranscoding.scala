@@ -4,10 +4,9 @@
 
 package akka.grpc.internal
 
-import akka.{ ConfigurationException, NotUsed }
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
-import akka.grpc.{ GrpcProtocol, Options, ProtobufSerializer }
+import akka.grpc.{ GrpcProtocol, ProtobufSerializer }
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling
 import akka.http.scaladsl.model.HttpMessage._
@@ -20,10 +19,17 @@ import akka.parboiled2.util.Base64
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
+import akka.{ ConfigurationException, NotUsed }
 import com.google.api.annotations.AnnotationsProto
 import com.google.api.http.HttpRule
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
-import com.google.protobuf.Descriptors._
+import com.google.protobuf.Descriptors.{
+  Descriptor,
+  EnumValueDescriptor,
+  FieldDescriptor,
+  FileDescriptor => JavaFileDescriptor,
+  MethodDescriptor
+}
 import com.google.protobuf.any.{ Any => ProtobufAny }
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.{
@@ -34,6 +40,7 @@ import com.google.protobuf.{
   Value,
   ByteString => ProtobufByteString
 }
+import scalapb.descriptors.{ FileDescriptor => PBFileDescriptor, MethodDescriptor => PBMethodDescriptor }
 
 import java.lang.{
   Boolean => JBoolean,
@@ -138,14 +145,16 @@ private[grpc] object HttpTranscoding {
 
   final val NEWLINE_BYTES = ByteString('\n')
 
-  def parseRules(fileDescriptor: FileDescriptor): Seq[(MethodDescriptor, HttpRule)] = {
+  def parseRules(
+      javaFileDescriptor: JavaFileDescriptor,
+      pbFileDescriptor: PBFileDescriptor): Seq[(MethodDescriptor, HttpRule)] = {
     for {
-      service <- fileDescriptor.getServices.asScala
-      method <- service.getMethods.asScala
-      rules = getRules(method)
+      (jService, sService) <- javaFileDescriptor.getServices.asScala.zip(pbFileDescriptor.services)
+      (jMethod, sMethod) <- jService.getMethods.asScala.zip(sService.methods)
+      rules = getRules(sMethod)
       binding <- rules
     } yield {
-      method -> binding
+      jMethod -> binding
     }
   }
 
@@ -368,8 +377,8 @@ private[grpc] object HttpTranscoding {
 
   }
 
-  private def getRules(methDesc: MethodDescriptor): Seq[HttpRule] = {
-    AnnotationsProto.http.get(Options.convertMethodOptions(methDesc)) match {
+  private def getRules(methDesc: PBMethodDescriptor): Seq[HttpRule] = {
+    AnnotationsProto.http.get(methDesc.getOptions) match {
       case Some(rule) =>
         rule +: rule.additionalBindings
       case None =>
