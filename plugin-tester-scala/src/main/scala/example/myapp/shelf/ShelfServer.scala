@@ -14,7 +14,10 @@ object ShelfServer {
       ConfigFactory.parseString("akka.http.server.enable-http2 = on").withFallback(ConfigFactory.defaultApplication())
     implicit val system: ClassicActorSystemProvider =
       ActorSystem("HelloWorld", conf).asInstanceOf[ClassicActorSystemProvider]
-    new ShelfServer().run()
+    new ShelfServer()
+      .run()
+      .foreach(binding => println(s"gRPC HTTP transcoding server bound to: ${binding.localAddress}"))(
+        system.classicSystem.dispatcher)
   }
 }
 class ShelfServer(implicit system: ClassicActorSystemProvider) {
