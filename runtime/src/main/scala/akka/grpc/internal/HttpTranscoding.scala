@@ -113,10 +113,10 @@ private[grpc] object HttpTranscoding {
     }
 
   // Reads a rfc2045 encoded Base64 string
-  final val ParseBytes: String => Option[ProtobufByteString] =
+  private final val ParseBytes: String => Option[ProtobufByteString] =
     s => Some(ProtobufByteString.copyFrom(Base64.rfc2045.decode(s))) // Make cheaper? Protobuf has a Base64 decoder?
 
-  final def suitableParserFor(field: FieldDescriptor)(whenIllegal: String => Nothing): String => Option[Any] =
+  private final def suitableParserFor(field: FieldDescriptor)(whenIllegal: String => Nothing): String => Option[Any] =
     field.getJavaType match {
       case JavaType.BOOLEAN     => ParseBoolean
       case JavaType.BYTE_STRING => ParseBytes
@@ -130,20 +130,20 @@ private[grpc] object HttpTranscoding {
     }
 
   // We use this to indicate problems with the configuration of the routes
-  final val configError: String => Nothing = s => throw new ConfigurationException("HTTP API Config: " + s)
+  private final val configError: String => Nothing = s => throw new ConfigurationException("HTTP API Config: " + s)
 
   // We use this to signal to the requestor that there's something wrong with the request
-  final val requestError: String => Nothing = s => throw IllegalRequestException(StatusCodes.BadRequest, s)
+  private final val requestError: String => Nothing = s => throw IllegalRequestException(StatusCodes.BadRequest, s)
 
   // This is used to support the "*" custom pattern
-  final val ANY_METHOD = HttpMethod.custom(
+  private final val ANY_METHOD = HttpMethod.custom(
     name = "ANY",
     safe = false,
     idempotent = false,
     requestEntityAcceptance = RequestEntityAcceptance.Tolerated,
     contentLengthAllowed = true)
 
-  final val NEWLINE_BYTES = ByteString('\n')
+  private final val NEWLINE_BYTES = ByteString('\n')
 
   def parseRules(
       javaFileDescriptor: JavaFileDescriptor,
