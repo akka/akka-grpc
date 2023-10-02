@@ -27,7 +27,7 @@ object Main extends App {
     .enableHttps(serverHttpContext())
     .bind(serviceHandler)
 
-  private def serverHttpContext() = {
+  private def serverHttpContext(): HttpsConnectionContext = {
     // never put passwords into code!
     val password = "abcdef".toCharArray
 
@@ -40,6 +40,6 @@ object Main extends App {
     val context = SSLContext.getInstance("TLS")
     context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
 
-    new HttpsConnectionContext(context)
+    HttpsConnectionContext.httpsServer(context)
   }
 }
