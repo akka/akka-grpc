@@ -16,7 +16,16 @@ import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
-import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
+import akka.http.scaladsl.model.{
+  AttributeKey,
+  AttributeKeys,
+  HttpHeader,
+  HttpRequest,
+  HttpResponse,
+  RequestResponseAssociation,
+  StatusCodes,
+  Uri
+}
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Keep, Sink, Source }
@@ -28,7 +37,6 @@ import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success }
-import akka.http.scaladsl.model.StatusCodes
 
 /**
  * INTERNAL API
@@ -220,7 +228,12 @@ object AkkaHttpClientUtils {
                         .watchTermination()((_, done) =>
                           done.onComplete(_ => trailerPromise.trySuccess(immutable.Seq.empty)))
                     case Strict(_, data) =>
-                      trailerPromise.success(immutable.Seq.empty)
+                      val trailer = response
+                        .attribute(AttributeKeys.trailer)
+                        .map(_.headers.map { case (key, value) => HttpHeader.parse(key, value) }.collect {
+                          case HttpHeader.ParsingResult.Ok(header, _) => header
+                        })
+                      trailerPromise.success(trailer.getOrElse(immutable.Seq.empty))
                       Source.single[ByteString](data)
                     case _ =>
                       response.entity.discardBytes()
