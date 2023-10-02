@@ -177,10 +177,8 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .settings(
     name := "Akka gRPC",
     publish / skip := true,
-    makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     previewPath := (Paradox / siteSubdirName).value,
     Preprocess / siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
-    Preprocess / sourceDirectory := (LocalRootProject / ScalaUnidoc / unidoc / target).value,
     Paradox / siteSubdirName := s"docs/akka-grpc/${projectInfoVersion.value}",
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
@@ -236,7 +234,6 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
   .pluginTestingSettings
 
 lazy val root = Project(id = "akka-grpc", base = file("."))
-  .enablePlugins(ScalaUnidocPlugin)
   .disablePlugins(SitePlugin, MimaPlugin)
   .aggregate(
     runtime,
@@ -252,13 +249,6 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
   .settings(
     (publish / skip) := true,
     (Compile / headerCreate / unmanagedSources) := (baseDirectory.value / "project").**("*.scala").get,
-    // unidoc combines sources and jars from all subprojects and that
-    // might include some incompatible ones. Depending on the
-    // classpath order that might lead to scaladoc compilation errors.
-    // the scalapb compilerplugin has a scalapb/package$.class that conflicts
-    // with the one from the scalapb runtime, so for that reason we don't produce
-    // unidoc for the codegen projects:
-    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(runtime),
     // https://github.com/sbt/sbt/issues/3465
     // Libs and plugins must share a version. The root project must use that
     // version (and set the crossScalaVersions as empty list) so each sub-project
