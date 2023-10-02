@@ -1,6 +1,6 @@
 # Akka HTTP interop
 
-Akka gRPC is built on top of [Akka HTTP](https://doc.akka.io/docs/akka-http).
+Akka gRPC is built on top of @extref[Akka HTTP](akka-http:).
 This means it is possible to leverage the Akka HTTP API's to create more
 complicated services, for example serving non-gRPC endpoints next to
 gRPC endpoints or adding additional behavior around your gRPC routes.
