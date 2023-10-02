@@ -4,9 +4,10 @@
 
 package akka.grpc.internal
 
+import akka.ConfigurationException
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
-import akka.grpc.{ GrpcProtocol, ProtobufSerializer }
+import akka.grpc.{ GrpcProtocol, GrpcResponseMetadata, ProtobufSerializer }
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling
 import akka.http.scaladsl.model.HttpMessage._
@@ -17,9 +18,8 @@ import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.parboiled2.util.Base64
 import akka.stream.Materializer
-import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
-import akka.{ ConfigurationException, NotUsed }
 import com.google.api.annotations.AnnotationsProto
 import com.google.api.http.HttpRule
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType
@@ -27,8 +27,8 @@ import com.google.protobuf.Descriptors.{
   Descriptor,
   EnumValueDescriptor,
   FieldDescriptor,
-  FileDescriptor => JavaFileDescriptor,
-  MethodDescriptor
+  MethodDescriptor,
+  FileDescriptor => JavaFileDescriptor
 }
 import com.google.protobuf.any.{ Any => ProtobufAny }
 import com.google.protobuf.util.JsonFormat
@@ -40,6 +40,7 @@ import com.google.protobuf.{
   Value,
   ByteString => ProtobufByteString
 }
+import io.grpc.{ Status, StatusRuntimeException }
 import scalapb.descriptors.{ FileDescriptor => PBFileDescriptor, MethodDescriptor => PBMethodDescriptor }
 
 import java.lang.{
@@ -255,7 +256,8 @@ private[grpc] object HttpTranscoding {
 
     def transformResponse(
         grpcRequest: HttpRequest,
-        futureResponse: Future[(List[HttpHeader], Source[ProtobufAny, NotUsed])]): Future[HttpResponse] = {
+        headers: List[HttpHeader],
+        responseSource: Source[ProtobufAny, Future[GrpcResponseMetadata]]): Future[HttpResponse] = {
       def extractContentTypeFromHttpBody(entityMessage: MessageOrBuilder): ContentType =
         entityMessage.getField(entityMessage.getDescriptorForType.findFieldByName("content_type")) match {
           case null | "" => ContentTypes.NoContentType
@@ -282,40 +284,33 @@ private[grpc] object HttpTranscoding {
             .header[Accept]
             .exists(_.mediaRanges.exists(_.value.startsWith(MediaTypes.`text/event-stream`.toString)))
 
-        futureResponse.flatMap {
-          case (headers, data) =>
-            if (sseAccepted) {
-              import EventStreamMarshalling._
-              Marshal(data.map(parseResponseBody).map { em =>
-                ServerSentEvent(jsonPrinter.print(em))
-              }).to[HttpResponse].map(response => response.withHeaders(headers))
-            } else if (isHttpBodyResponse) {
-              Future.successful(
-                HttpResponse(
-                  entity = HttpEntity.Chunked(
-                    headers
-                      .find(_.lowercaseName() == "content-type")
-                      .flatMap(ct => ContentType.parse(ct.value()).toOption)
-                      .getOrElse(ContentTypes.`application/octet-stream`),
-                    data.map(em => HttpEntity.Chunk(extractDataFromHttpBody(parseResponseBody(em))))),
-                  headers = headers.filterNot(_.lowercaseName() == "content-type")))
-            } else {
-              Future.successful(
-                HttpResponse(
-                  entity = HttpEntity.Chunked(
-                    ContentTypes.`application/json`,
-                    data
-                      .map(parseResponseBody)
-                      .map(em => HttpEntity.Chunk(ByteString(jsonPrinter.print(em)) ++ NEWLINE_BYTES))),
-                  headers = headers))
-            }
+        if (sseAccepted) {
+          import EventStreamMarshalling._
+          val sseSource = responseSource.map(parseResponseBody).map(em => ServerSentEvent(jsonPrinter.print(em)))
+          Marshal(sseSource).to[HttpResponse].map(_.withHeaders(headers))
+        } else if (isHttpBodyResponse) {
+          val contentTypeHeader = headers
+            .find(_.lowercaseName() == "content-type")
+            .flatMap(ct => ContentType.parse(ct.value()).toOption)
+            .getOrElse(ContentTypes.`application/octet-stream`)
+          Future.successful(
+            HttpResponse(
+              entity = HttpEntity.Chunked(
+                contentTypeHeader,
+                responseSource.map(em => HttpEntity.Chunk(extractDataFromHttpBody(parseResponseBody(em))))),
+              headers = headers.filterNot(_.lowercaseName() == "content-type")))
+        } else {
+          Future.successful(
+            HttpResponse(
+              entity = HttpEntity.Chunked(
+                ContentTypes.`application/json`,
+                responseSource
+                  .map(parseResponseBody)
+                  .map(em => HttpEntity.Chunk(ByteString(jsonPrinter.print(em)) ++ NEWLINE_BYTES))),
+              headers = headers))
         }
-
       } else {
-        for {
-          (headers, data) <- futureResponse
-          protobuf <- data.runWith(Sink.head)
-        } yield {
+        responseSource.runWith(Sink.head).map { protobuf =>
           val entityMessage = parseResponseBody(protobuf)
           HttpResponse(
             entity = if (isHttpBodyResponse) {
@@ -332,35 +327,41 @@ private[grpc] object HttpTranscoding {
 
     val expectedReplyTypeUrl: String = AnyTypeUrlHostName + methDesc.getOutputType.getFullName
 
+    val protobufAnyDeserialize: ProtobufSerializer[ProtobufAny] = new ProtobufSerializer[ProtobufAny] {
+      def serialize(t: ProtobufAny): ByteString = throw new UnsupportedOperationException("operation not supported")
+
+      def deserialize(bytes: ByteString): ProtobufAny =
+        ProtobufAny(typeUrl = expectedReplyTypeUrl, value = ProtobufByteString.copyFrom(bytes.asByteBuffer))
+    }
+
     def processRequest(req: HttpRequest, matcher: Matcher): Future[HttpResponse] = {
       transformRequest(req, matcher)
         .transformWith {
           case Success(request) =>
-            val response = grpcHandler
-              .applyOrElse(
-                request,
-                // actually, this should be impossible since only way to miss match transformed request with real gRPC server schema
-                // is either wrongly transform HTTP request to gRPC request
-                // or wrapping other service's gRPC handler
-                (_: HttpRequest) =>
-                  Future.failed(
-                    IllegalRequestException(StatusCodes.NotFound, s"Requested resource ${req.uri} not found!")))
-              .map { resp =>
-                val headers = resp.headers
-                val grpcReader = GrpcProtocolNative.newReader(Codecs.detect(resp).get)
-                val body = resp.entity.dataBytes.viaMat(grpcReader.dataFrameDecoder)(Keep.none).map { payload =>
-                  ProtobufAny(typeUrl = expectedReplyTypeUrl, value = ProtobufByteString.copyFrom(payload.asByteBuffer))
-                }
-                headers.toList -> body
-              }
+            val response = grpcHandler.applyOrElse(
+              request,
+              // actually, this should be impossible since only way to miss match transformed request with real gRPC server schema
+              // is either wrongly transform HTTP request to gRPC request
+              // or wrapping other service's gRPC handler
+              (_: HttpRequest) =>
+                Future.failed(
+                  IllegalRequestException(StatusCodes.NotFound, s"Requested resource ${req.uri} not found!")))
 
-            transformResponse(request, response)
+            val headers = response.map(_.headers.toList)
+            val responseSource = AkkaHttpClientUtils.responseToSource(
+              request.uri,
+              response,
+              protobufAnyDeserialize,
+              methDesc.isServerStreaming)
+
+            headers.flatMap(transformResponse(request, _, responseSource))
           case Failure(_) =>
             requestError("Malformed request")
         }
         .recover {
           case ire: IllegalRequestException => HttpResponse(ire.status.intValue, entity = ire.status.reason)
-          case NonFatal(error)              => HttpResponse(StatusCodes.InternalServerError, entity = error.getMessage)
+          case sre: StatusRuntimeException  => mapToHttpResponse(sre)
+          case NonFatal(err)                => HttpResponse(StatusCodes.InternalServerError, entity = err.getMessage)
         }
     }
 
@@ -376,6 +377,25 @@ private[grpc] object HttpTranscoding {
       }
     }
 
+  }
+
+  /**
+   * Since there is no standard for mapping gRPC status to HTTP status
+   * So we consider https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
+   * Also provide some extra mappings for convenience
+   */
+  private def mapToHttpResponse(sre: StatusRuntimeException): HttpResponse = {
+    val httpStatus = sre.getStatus.getCode match {
+      case Status.Code.INTERNAL          => StatusCodes.BadRequest
+      case Status.Code.UNAUTHENTICATED   => StatusCodes.Unauthorized
+      case Status.Code.PERMISSION_DENIED => StatusCodes.Forbidden
+      case Status.Code.UNIMPLEMENTED     => StatusCodes.NotFound
+      case Status.Code.NOT_FOUND         => StatusCodes.NotFound
+      case Status.Code.UNAVAILABLE       => StatusCodes.ServiceUnavailable
+      case Status.Code.UNKNOWN           => StatusCodes.InternalServerError
+      case _                             => StatusCodes.InternalServerError
+    }
+    HttpResponse(httpStatus, entity = sre.getStatus.getDescription)
   }
 
   private def getRules(methDesc: PBMethodDescriptor): Seq[HttpRule] = {
