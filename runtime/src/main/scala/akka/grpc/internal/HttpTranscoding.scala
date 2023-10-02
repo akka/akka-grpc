@@ -382,11 +382,13 @@ private[grpc] object HttpTranscoding {
   /**
    * Since there is no standard for mapping gRPC status to HTTP status
    * So we consider https://github.com/grpc/grpc/blob/master/doc/http-grpc-status-mapping.md
+   * And https://cloud.google.com/apis/design/standard_methods
    * Also provide some extra mappings for convenience
    */
   private def mapToHttpResponse(sre: StatusRuntimeException): HttpResponse = {
     val httpStatus = sre.getStatus.getCode match {
       case Status.Code.INTERNAL          => StatusCodes.BadRequest
+      case Status.Code.INVALID_ARGUMENT  => StatusCodes.BadRequest
       case Status.Code.UNAUTHENTICATED   => StatusCodes.Unauthorized
       case Status.Code.PERMISSION_DENIED => StatusCodes.Forbidden
       case Status.Code.UNIMPLEMENTED     => StatusCodes.NotFound
