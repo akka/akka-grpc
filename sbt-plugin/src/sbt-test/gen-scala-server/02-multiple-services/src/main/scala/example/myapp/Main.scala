@@ -7,7 +7,7 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.grpc.scaladsl.ServiceHandler
-import akka.http.scaladsl.{Http, HttpsConnectionContext}
+import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
 
 import example.myapp.echo.EchoServiceImpl
 import example.myapp.echo.grpc.EchoServiceHandler
@@ -40,6 +40,6 @@ object Main extends App {
     val context = SSLContext.getInstance("TLS")
     context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
 
-    HttpsConnectionContext.httpsServer(context)
+    ConnectionContext.httpsServer(context)
   }
 }
