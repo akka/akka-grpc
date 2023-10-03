@@ -5,6 +5,7 @@
 package akka.grpc.internal
 
 import akka.ConfigurationException
+import akka.parboiled2._
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
 import akka.grpc.{ GrpcProtocol, ProtobufSerializer }
@@ -58,8 +59,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
-import scala.util.parsing.combinator.Parsers
-import scala.util.parsing.input.{ CharSequenceReader, Positional }
 import scala.util.{ Failure, Success }
 
 @InternalApi
@@ -427,10 +426,11 @@ private[grpc] object HttpTranscoding {
     def parsePathExtractor(
         methDesc: MethodDescriptor,
         pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
-      val template = PathTemplateParser.parse(pattern)
+      val template = PathTemplateParser.parseToTemplate(pattern)
       val pathFieldParsers = template.fields.iterator
         .map {
-          case tv @ PathTemplateParser.TemplateVariable(fieldName :: Nil, _) =>
+          case tv @ PathTemplateParser.TemplateVariable(fields, _) if fields.length == 1 =>
+            val fieldName = fields.head
             lookupFieldByName(methDesc.getInputType, fieldName) match {
               case null =>
                 configError(
@@ -654,10 +654,55 @@ private[grpc] object HttpTranscoding {
     }
   }
 
-  private object PathTemplateParser extends Parsers {
+  object PathTemplateParser {
+    // AST for syntax described here:
+    // https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.description.subsection
+    final case class Template(segments: Seq[Segment], verb: Option[String]) {
+      private def printSegment(segment: Segment): String = segment match {
+        case LiteralSegment(literal) => literal
+        case VariableSegment(fieldPath, template) =>
+          s"{${fieldPath.fields.mkString(".")}${template.map(_.map(printSegment).mkString("/")).map(str => s"=$str").getOrElse("")}}"
+        case SingleSegmentMatcher => "*"
+        case MultiSegmentMatcher  => "**"
+      }
 
-    override type Elem = Char
+      override lazy val toString =
+        s"/${segments.map(printSegment).mkString("/")}${verb.map(str => s":$str").getOrElse("")}"
+    }
 
+    case class FieldPath(fields: Seq[String])
+
+    sealed trait Segment
+
+    final case class LiteralSegment(literal: String) extends Segment
+
+    final case class VariableSegment(fieldPath: FieldPath, template: Option[Seq[Segment]]) extends Segment
+
+    final case object SingleSegmentMatcher extends Segment
+
+    final case object MultiSegmentMatcher extends Segment
+
+    def parse(input: ParserInput): Either[String, Template] = {
+      import Parser.DeliveryScheme.Either
+      val parser = new PathTemplateParser(input)
+
+      parser.template.run().left.map(_.format(parser))
+    }
+
+    def parseToTemplate(input: String): ParsedTemplate = {
+      val parser = new PathTemplateParser(input)
+      import akka.parboiled2.Parser.DeliveryScheme.Either
+      val template =
+        parser.template
+          .run()
+          .left
+          .map(e => PathTemplateParser.PathTemplateParseException(e.format(parser), e))
+          .fold(throw _, identity)
+
+      new ParsedTemplate(input, template)
+    }
+
+    final case class PathTemplateParseException(message: String, cause: ParseError) extends RuntimeException
     final class ParsedTemplate(path: String, template: Template) {
       val regex: Regex = {
         def doToRegex(builder: StringBuilder, segments: List[Segment], matchSlash: Boolean): StringBuilder =
@@ -673,20 +718,20 @@ private[grpc] object HttpTranscoding {
                   builder.append(Pattern.quote(literal))
                 case SingleSegmentMatcher =>
                   builder.append("[^/:]*")
-                case MultiSegmentMatcher() =>
+                case MultiSegmentMatcher =>
                   builder.append(".*")
                 case VariableSegment(_, None) =>
                   builder.append("([^/:]*)")
                 case VariableSegment(_, Some(template)) =>
                   builder.append('(')
-                  doToRegex(builder, template, matchSlash = false)
+                  doToRegex(builder, template.toList, matchSlash = false)
                   builder.append(')')
               }
 
               doToRegex(builder, tail, matchSlash = true)
           }
 
-        val builder = doToRegex(new StringBuilder, template.segments, matchSlash = true)
+        val builder = doToRegex(new StringBuilder, template.segments.toList, matchSlash = true)
 
         template.verb
           .foldLeft(builder) { (builder, verb) =>
@@ -696,145 +741,91 @@ private[grpc] object HttpTranscoding {
           .r
       }
 
-      val fields: List[TemplateVariable] = {
-        var found = Set.empty[List[String]]
+      val fields: Seq[TemplateVariable] = {
+        val found = scala.collection.mutable.Set.empty[Seq[String]]
         template.segments.collect {
-          case v @ VariableSegment(fieldPath, _) if found(fieldPath) =>
-            throw PathTemplateParseException("Duplicate path in template", path, v.pos.column + 1)
+          case v @ VariableSegment(fieldPath, _) if found(fieldPath.fields) =>
+            throw new IllegalArgumentException("Duplicate path in template")
           case VariableSegment(fieldPath, segments) =>
-            found += fieldPath
+            found += fieldPath.fields
             TemplateVariable(
-              fieldPath,
+              fieldPath.fields,
               segments.exists(_ match {
-                case (_: MultiSegmentMatcher) :: _ | _ :: _ :: _ => true
-                case _                                           => false
+                case (_: MultiSegmentMatcher.type) :: _ | _ :: _ :: _ => true
+                case _                                                => false
               }))
         }
       }
     }
+    final case class TemplateVariable(fieldPath: Seq[String], multi: Boolean)
 
-    final case class TemplateVariable(fieldPath: List[String], multi: Boolean)
+  }
 
-    private final case class PathTemplateParseException(msg: String, path: String, column: Int)
-        extends RuntimeException(
-          s"$msg at ${if (column >= path.length) "end of input" else s"character $column"} of '$path'") {
+  private class PathTemplateParser(val input: ParserInput) extends Parser {
 
-      def prettyPrint: String = {
-        val caret =
-          if (column >= path.length) ""
-          else "\n" + path.take(column - 1).map { case '\t' => '\t'; case _ => ' ' } + "^"
+    import PathTemplateParser._
 
-        s"$msg at ${if (column >= path.length) "end of input" else s"character $column"}:${'\n'}$path$caret"
-      }
-    }
-
-    final def parse(path: String): ParsedTemplate =
-      template(new CharSequenceReader(path)) match {
-        case Success(template, _) =>
-          new ParsedTemplate(path, validate(path, template))
-        case NoSuccess(msg, next) =>
-          throw PathTemplateParseException(msg, path, next.pos.column)
-      }
-
-    private final def validate(path: String, template: Template): Template = {
-      def flattenSegments(segments: Segments, allowVariables: Boolean): Segments =
-        segments.flatMap {
-          case variable: VariableSegment if !allowVariables =>
-            throw PathTemplateParseException("Variable segments may not be nested", path, variable.pos.column)
-          case VariableSegment(_, Some(nested)) => flattenSegments(nested, allowVariables = false)
-          case other                            => List(other)
-        }
-
-      // Flatten, verifying that there are no nested variables
-      val flattened = flattenSegments(template.segments, allowVariables = true)
-
-      // Verify there are no ** matchers that aren't the last matcher
-      flattened.dropRight(1).foreach {
-        case m @ MultiSegmentMatcher() =>
-          throw PathTemplateParseException(
-            "Multi segment matchers (**) may only be in the last position of the template",
-            path,
-            m.pos.column)
-        case _ =>
-      }
-      template
-    }
-
-    // AST for syntax described here:
-    // https://cloud.google.com/endpoints/docs/grpc-service-config/reference/rpc/google.api#google.api.HttpRule.description.subsection
-    // Note that there are additional rules (eg variables cannot contain nested variables) that this AST doesn't enforce,
-    // these are validated elsewhere.
-    private final case class Template(segments: Segments, verb: Option[Verb])
-
-    private type Segments = List[Segment]
-    private type Verb = String
-
-    private sealed trait Segment
-
-    private final case class LiteralSegment(literal: Literal) extends Segment
-
-    private final case class VariableSegment(fieldPath: FieldPath, template: Option[Segments])
-        extends Segment
-        with Positional
-
-    private type FieldPath = List[Ident]
-
-    private case object SingleSegmentMatcher extends Segment
-
-    private final case class MultiSegmentMatcher() extends Segment with Positional
-
-    private type Literal = String
-    private type Ident = String
-
-    private final val NotLiteral = Set('*', '{', '}', '/', ':', '\n')
-
-    // Matches ident syntax from https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
-    private final val ident: Parser[Ident] = rep1(
-      acceptIf(ch => (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))(e =>
-        s"Expected identifier first letter, but got '$e'"),
-      acceptIf(ch => (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_')(_ =>
-        "identifier part")) ^^ (_.mkString)
+    private final val NotLiteral = Set('*', '{', '}', '/', ':', '\n').mkString
 
     // There is no description of this in the spec. It's not a URL segment, since the spec explicitly says that the value
     // must be URL encoded when expressed as a URL. Since all segments are delimited by a / character or a colon, and a
     // literal may only be a full segment, we could assume it's any non slash or colon character, but that would mean
     // syntax errors in variables for example would end up being parsed as literals, which wouldn't give nice error
     // messages at all. So we'll be a little more strict, and not allow *, { or } in any literals.
-    private final val literal: Parser[Literal] =
-      rep(acceptIf(ch => !NotLiteral(ch))(_ => "literal part")) ^^ (_.mkString)
-
-    private final val fieldPath: Parser[FieldPath] = rep1(ident, '.' ~> ident)
-
-    private final val literalSegment: Parser[LiteralSegment] = literal ^^ LiteralSegment
-
-    // After we see an open curly, we commit to erroring if we fail to parse the remainder.
-    private final def variable: Parser[VariableSegment] =
-      positioned(
-        '{' ~> commit(
-          fieldPath ~ ('=' ~> segments).? <~ '}'.withFailureMessage("Unclosed variable or unexpected character") ^^ {
-            case fieldPath ~ maybeTemplate => VariableSegment(fieldPath, maybeTemplate)
-          }))
-
-    private final val singleSegmentMatcher: Parser[SingleSegmentMatcher.type] = '*' ^^ (_ => SingleSegmentMatcher)
-    private final val multiSegmentMatcher: Parser[MultiSegmentMatcher] = positioned(
-      '*' ~ '*' ^^ (_ => MultiSegmentMatcher()))
-    private final val segment: Parser[Segment] = commit(
-      multiSegmentMatcher | singleSegmentMatcher | variable | literalSegment)
-
-    private final val verb: Parser[Verb] = ':' ~> literal
-    private final val segments: Parser[Segments] = rep1(segment, '/' ~> segment)
-    private final val endOfInput: Parser[None.type] = Parser { in =>
-      if (!in.atEnd) {
-        Error("Expected '/', ':', path literal character, or end of input", in)
-      } else {
-        Success(None, in)
-      }
+    def literal = rule {
+      capture(oneOrMore(noneOf(NotLiteral)))
     }
 
-    private final val template: Parser[Template] = '/'.withFailureMessage("Template must start with a slash") ~>
-      segments ~ verb.? <~ endOfInput ^^ {
-        case segments ~ maybeVerb => Template(segments, maybeVerb)
-      }
-  }
+    // Matches ident syntax from https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
+    def ident = rule {
+      CharPredicate.Alpha ~ oneOrMore(CharPredicate.AlphaNum | '_')
+    }
 
+    def fieldPath = rule {
+      (capture(ident) + '.') ~> FieldPath
+    }
+
+    def literalSegment = rule {
+      literal ~> LiteralSegment
+    }
+
+    def variable: Rule1[VariableSegment] = rule {
+      ('{' ~ (fieldPath ~ optional('=' ~ varSegments)) ~ '}') ~> VariableSegment
+    }
+
+    def singleSegmentMatcher = rule {
+      '*' ~ push(SingleSegmentMatcher)
+    }
+
+    def multiSegmentMatcher = rule {
+      2.times('*') ~ push(MultiSegmentMatcher)
+    }
+
+    def multiSegmentMatcherChecked = rule {
+      // ensure multiSegmentMatcher only occurs at the end of segments
+      multiSegmentMatcher ~!~ (&(('}' ~ optional(verb) ~ EOI) | (optional(verb) ~ EOI)) | fail(
+        "Multi segment matchers (**) may only be in the last position of the template"))
+    }
+
+    def segment: Rule1[Segment] = rule {
+      multiSegmentMatcherChecked | singleSegmentMatcher | variable | literalSegment
+    }
+
+    def segments = rule {
+      segment + '/'
+    }
+
+    def varSegments: Rule1[Seq[Segment]] = rule {
+      (multiSegmentMatcherChecked | singleSegmentMatcher | literalSegment) + '/'
+    }
+
+    def verb = rule {
+      ':' ~ literal
+    }
+
+    def template: Rule1[Template] = rule {
+      (('/' | fail("Template must start with a slash")) ~ segments ~ optional(verb) ~ EOI) ~> Template
+    }
+
+  }
 }
