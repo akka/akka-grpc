@@ -14,12 +14,33 @@ service ShelfService {
     //   curl http://DOMAIN_NAME/v1/shelves/1
     option (google.api.http) = {get: "/v1/shelves/{shelf}"};
   }
+
+  rpc CreateShelf(CreateShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      post: "/v1/shelves",
+      body: "shelf"
+    };
+  }
+
+  rpc DeleteShelf(DeleteShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      delete: "/v1/shelves/{shelf}"
+    };
+  }
 }
 
 
 // Request message for GetShelf method.
 message GetShelfRequest {
   // The ID of the shelf resource to retrieve.
+  int64 shelf = 1;
+}
+
+message CreateShelfRequest {
+  Shelf shelf = 1;
+}
+
+message DeleteShelfRequest {
   int64 shelf = 1;
 }
 

@@ -36,6 +36,8 @@ object Dependencies {
   }
 
   object Compile {
+    val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed" % Versions.akka
+
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
     val akkaPki = "com.typesafe.akka" %% "akka-pki" % Versions.akka
 
@@ -156,6 +158,7 @@ object Dependencies {
     Compile.grpcStub,
     Compile.akkaPki,
     Compile.akkaHttpCors,
+    Compile.akkaActorTyped,
     Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,

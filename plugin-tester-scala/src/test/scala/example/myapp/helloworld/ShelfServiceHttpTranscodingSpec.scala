@@ -3,11 +3,12 @@ package example.myapp.helloworld
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.grpc.GrpcClientSettings
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.client.RequestBuilding.Get
+import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import example.myapp.shelf.ShelfServer
-import example.myapp.shelf.grpc.{ GetShelfRequest, Shelf, ShelfServiceClient }
+import example.myapp.shelf.grpc._
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
 import spray.json.DefaultJsonProtocol._
@@ -33,24 +34,49 @@ class ShelfServiceHttpTranscodingSpec
     }
   }
 
-  val serverWithHttpTranscoding = new ShelfServer().run().futureValue
-  val clientConfig = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080).withTls(false)
+  val serverWithHttpTranscoding = ShelfServer.run(system).futureValue
+  val clientConfig = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8080).withTls(false).withBackend("akka-http")
   val client = ShelfServiceClient(clientConfig)
+
+  val HalloweenShelf = Shelf(1, "halloween")
 
   "a gRPC server with HTTP transcoding enabled should" should {
 
-    "able to answer normal gRPC call" in {
-      val shelf = client.getShelf(GetShelfRequest(1))
-      shelf.futureValue.id shouldBe 1
+    "able to handel gRPC call" in {
+      val createResponse = client.createShelf(CreateShelfRequest(Some(HalloweenShelf)))
+
+      createResponse.futureValue shouldBe HalloweenShelf
+
+      val deleteResponse = client.deleteShelf(DeleteShelfRequest(1))
+
+      deleteResponse.futureValue shouldBe HalloweenShelf
     }
 
-    "able to answer http call" in {
-      val shelf =
+    "able to handle http call" in {
+      val createResponse = Http()
+        .singleRequest(Post("http://localhost:8080/v1/shelves", HalloweenShelf))
+        .flatMap(response => Unmarshal(response).to[Shelf])
+
+      createResponse.futureValue shouldBe HalloweenShelf
+
+      val getResponse =
         Http()
           .singleRequest(Get("http://localhost:8080/v1/shelves/1"))
           .flatMap(response => Unmarshal(response).to[Shelf])
-          .futureValue
-      shelf.id shouldBe 1
+
+      getResponse.futureValue shouldBe HalloweenShelf
+
+      val deleteResponse = Http()
+        .singleRequest(Delete("http://localhost:8080/v1/shelves/1"))
+        .flatMap(response => Unmarshal(response).to[Shelf])
+
+      deleteResponse.futureValue shouldBe HalloweenShelf
+    }
+
+    "able to report error" in {
+      val response = Http().singleRequest(Get("http://localhost:8080/v1/shelves/1")).futureValue
+
+      response.status shouldBe StatusCodes.NotFound
     }
 
   }
