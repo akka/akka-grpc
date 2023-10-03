@@ -52,8 +52,6 @@ project in Java and Scala respectively, with both sbt and Gradle configurations.
 
 ## Compatibility & support
 
-If used with JDK 8 prior to version 1.8.0_251 you must add an [ALPN agent](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-).
-
 Support for Akka gRPC is available via the [Lightbend Subscription](https://lightbend.com/lightbend-subscription)
 
 ## License

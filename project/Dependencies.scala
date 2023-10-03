@@ -11,22 +11,22 @@ object Dependencies {
     val scala3 = "3.3.1"
 
     // the order in the list is important because the head will be considered the default.
-    val CrossScalaForLib = Seq(scala212, scala213, scala3)
+    val CrossScalaForLib = Seq(scala213, scala3)
     val CrossScalaForPlugin = Seq(scala212)
 
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.7.0"
-    val akkaBinary = "2.7"
-    val akkaHttp = "10.5.0"
-    val akkaHttpBinary = "10.5"
+    val akka = "2.9.0-M2"
+    val akkaBinary = "2.8"
+    val akkaHttp = "10.6.0-M1"
+    val akkaHttpBinary = "10.6"
 
     val grpc = "1.54.2" // checked synced by VersionSyncCheckPlugin
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "3.21.9" // checked synced by VersionSyncCheckPlugin
+    val googleProtobuf = "3.21.12" // checked synced by VersionSyncCheckPlugin
     val googleApi = "2.23.0"
 
     val scalaTest = "3.2.12"

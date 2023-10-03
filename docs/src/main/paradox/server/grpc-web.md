@@ -48,7 +48,7 @@ Additionally, add the dependency as below.
 
 @@dependency[sbt,Maven,Gradle] {
   group="ch.megard"
-  artifact="akka-http-cors_2.12"
+  artifact="akka-http-cors_2.13"
   version="0.4.2"
 }
 

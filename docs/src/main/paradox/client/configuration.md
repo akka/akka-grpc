@@ -41,7 +41,7 @@ Clients defined in configuration pick up defaults from `reference.conf`:
 The examples above all use a hard coded host and port for the location of the gRPC service which is the default if you do not configure a `service-discovery-mechanism`.
 Alternatively @extref[Akka Discovery](akka:discovery/index.html) can be used.
 This allows a gRPC client to switch between discovering services via DNS, config, Kubernetes and Consul and others by just changing
-the configuration (see [Discovery methods in Akka Management](https://doc.akka.io/docs/akka-management/current/discovery/index.html)).
+the configuration (see @extref[Discovery methods in Akka Management](akka-management:discovery/index.html)).
 
 To see how to config a particular service discovery mechanism see the @extref[Akka Discovery docs](akka:discovery/index.html).
 Once it is configured a service discovery mechanism name can either be passed into settings or put in the client's configuration.

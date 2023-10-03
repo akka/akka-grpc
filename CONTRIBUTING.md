@@ -39,8 +39,6 @@ Pull Request validation states:
 
 gRPC runs on HTTP/2 and connections commonly use HTTPS.
 
-If you are running on JDK 8, you will need to use at least version 1.8.0u251 to make sure ALPN protocol negotiation is available.  
-
 # Akka gRPC contributing guidelines
 
 These guidelines apply to all Akka projects, by which we mean both the `akka/akka` repository,
