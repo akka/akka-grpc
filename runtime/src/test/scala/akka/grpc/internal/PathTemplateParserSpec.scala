@@ -1,12 +1,12 @@
-package akka.grpc
+package akka.grpc.internal
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
 import akka.grpc.internal.HttpTranscoding.PathTemplateParser
 import akka.grpc.internal.HttpTranscoding.PathTemplateParser._
 import org.scalatest.EitherValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ParserSpec extends AnyWordSpec with Matchers with EitherValues {
+class PathTemplateParserSpec extends AnyWordSpec with Matchers with EitherValues {
 
   "http path template parser" should {
     "accept simple path" in {
