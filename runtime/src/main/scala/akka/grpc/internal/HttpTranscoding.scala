@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import akka.ConfigurationException
-import akka.parboiled2._
 import akka.annotation.InternalApi
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
 import akka.grpc.{ GrpcProtocol, ProtobufSerializer }
@@ -16,7 +15,11 @@ import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.model.sse.ServerSentEvent
+import akka.http.scaladsl.server.PathMatcher._
+import akka.http.scaladsl.server.{ PathMatcher, PathMatcher1 }
+import akka.http.scaladsl.server.PathMatchers
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.parboiled2._
 import akka.parboiled2.util.Base64
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
@@ -53,12 +56,10 @@ import java.lang.{
   Short => JShort
 }
 import java.net.URLDecoder
-import java.util.regex.{ Matcher, Pattern }
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.control.NonFatal
-import scala.util.matching.Regex
 import scala.util.{ Failure, Success }
 
 @InternalApi
@@ -171,14 +172,16 @@ private[grpc] object HttpTranscoding {
       extractAndValidate(rule, methDesc)
 
     // Making this a method so we can ensure it's used the same way
-    def matches(path: Uri.Path): Boolean =
-      pathTemplate.regex.pattern
-        .matcher(path.toString())
-        .matches() // FIXME path.toString is costly, and using Regexes are too, switch to using a generated parser instead
+    def matches(path: Uri.Path): Boolean = {
+      pathTemplate.matcher(path) match {
+        case PathMatcher.Matched(Path.Empty, _) => true
+        case _                                  => false
+      }
+    }
 
-    def parsePathParametersInto(matcher: Matcher, inputBuilder: DynamicMessage.Builder): Unit =
+    def parsePathParametersInto(capturedVariables: Map[String, String], inputBuilder: DynamicMessage.Builder): Unit =
       pathExtractor(
-        matcher,
+        capturedVariables,
         (field, value) =>
           inputBuilder.setField(field, value.getOrElse(requestError("Path contains value of wrong type!"))))
 
@@ -219,7 +222,7 @@ private[grpc] object HttpTranscoding {
         protocol = HttpProtocols.`HTTP/2.0`)
     }
 
-    def transformRequest(req: HttpRequest, matcher: Matcher): Future[HttpRequest] =
+    def transformRequest(req: HttpRequest, capturedVariables: Map[String, String]): Future[HttpRequest] =
       if (rule.body.nonEmpty && req.entity.contentType != ContentTypes.`application/json`) {
         Future.failed(IllegalRequestException(StatusCodes.BadRequest, "Content-type must be application/json!"))
       } else {
@@ -228,14 +231,14 @@ private[grpc] object HttpTranscoding {
           case "" => // Iff empty body rule, then only query parameters
             req.discardEntityBytes()
             parseRequestParametersInto(methDesc, req.uri.query().toMultiMap, inputBuilder)
-            parsePathParametersInto(matcher, inputBuilder)
+            parsePathParametersInto(capturedVariables, inputBuilder)
             Future.successful(updateRequest(req, inputBuilder.build))
           case "*" => // Iff * body rule, then no query parameters, and only fields not mapped in path variables
             Unmarshal(req.entity)
               .to[String]
               .map(str => {
                 jsonParser.merge(str, inputBuilder)
-                parsePathParametersInto(matcher, inputBuilder)
+                parsePathParametersInto(capturedVariables, inputBuilder)
                 updateRequest(req, inputBuilder.build)
               })
           case fieldName => // Iff fieldName body rule, then all parameters not mapped in path variables
@@ -246,7 +249,7 @@ private[grpc] object HttpTranscoding {
                 val subInputBuilder = DynamicMessage.newBuilder(subField.getMessageType)
                 jsonParser.merge(str, subInputBuilder)
                 parseRequestParametersInto(methDesc, req.uri.query().toMultiMap, inputBuilder)
-                parsePathParametersInto(matcher, inputBuilder)
+                parsePathParametersInto(capturedVariables, inputBuilder)
                 inputBuilder.setField(subField, subInputBuilder.build())
                 updateRequest(req, inputBuilder.build)
               })
@@ -344,8 +347,8 @@ private[grpc] object HttpTranscoding {
         ProtobufAny(typeUrl = expectedReplyTypeUrl, value = ProtobufByteString.copyFrom(bytes.asByteBuffer))
     }
 
-    def processRequest(req: HttpRequest, matcher: Matcher): Future[HttpResponse] = {
-      transformRequest(req, matcher)
+    def processRequest(req: HttpRequest, capturedVariables: Map[String, String]): Future[HttpResponse] = {
+      transformRequest(req, capturedVariables)
         .transformWith {
           case Success(request) =>
             val response = grpcHandler.applyOrElse(
@@ -374,9 +377,16 @@ private[grpc] object HttpTranscoding {
 
       def apply(req: HttpRequest): Future[HttpResponse] = {
         assert(methodPattern == ANY_METHOD || req.method == methodPattern)
-        val matcher = pathTemplate.regex.pattern.matcher(req.uri.path.toString())
-        assert(matcher.matches())
-        processRequest(req, matcher)
+        val capturedVariables = pathTemplate.matcher(req.uri.path) match {
+          case Matched(_, (variables, _)) =>
+            variables.map {
+              case (fieldPath, segments) => fieldPath.fields.mkString(".") -> segments
+            }.toMap
+
+          // impossible
+          case Unmatched => Map.empty[String, String]
+        }
+        processRequest(req, capturedVariables)
       }
     }
 
@@ -415,7 +425,7 @@ private[grpc] object HttpTranscoding {
   private object HttpHandler {
     // For descriptive purposes so it's clear what these types do
     private type PathParameterEffect = (FieldDescriptor, Option[Any]) => Unit
-    private type ExtractPathParameters = (Matcher, PathParameterEffect) => Unit
+    private type ExtractPathParameters = (Map[String, String], PathParameterEffect) => Unit
 
     // Question: Do we need to handle conversion from JSON names?
     def lookupFieldByName(desc: Descriptor, selector: String): FieldDescriptor =
@@ -427,34 +437,33 @@ private[grpc] object HttpTranscoding {
         methDesc: MethodDescriptor,
         pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
       val template = PathTemplateParser.parseToTemplate(pattern)
-      val pathFieldParsers = template.fields.iterator
-        .map {
-          case tv @ PathTemplateParser.TemplateVariable(fields, _) if fields.length == 1 =>
-            val fieldName = fields.head
-            lookupFieldByName(methDesc.getInputType, fieldName) match {
-              case null =>
-                configError(
-                  s"Unknown field name [$fieldName] in type [${methDesc.getInputType.getFullName}] reference in path template for method [${methDesc.getFullName}]")
-              case field =>
-                if (field.isRepeated)
-                  configError(s"Repeated parameters [${field.getFullName}] are not allowed as path variables")
-                else if (field.isMapField)
-                  configError(s"Map parameters [${field.getFullName}] are not allowed as path variables")
-                else (tv, field, suitableParserFor(field)(configError))
-            }
-          case multi =>
-            // todo implement field paths properly
-            configError("Multiple fields in field path not yet implemented: " + multi.fieldPath.mkString("."))
-        }
-        .zipWithIndex
-        .toList
+      val pathFieldParsers = template.fields.iterator.map {
+        case tv @ PathTemplateParser.TemplateVariable(fields, _) if fields.length == 1 =>
+          val fieldName = fields.head
+          lookupFieldByName(methDesc.getInputType, fieldName) match {
+            case null =>
+              configError(
+                s"Unknown field name [$fieldName] in type [${methDesc.getInputType.getFullName}] reference in path template for method [${methDesc.getFullName}]")
+            case field =>
+              if (field.isRepeated)
+                configError(s"Repeated parameters [${field.getFullName}] are not allowed as path variables")
+              else if (field.isMapField)
+                configError(s"Map parameters [${field.getFullName}] are not allowed as path variables")
+              else (tv, field, fieldName, suitableParserFor(field)(configError))
+          }
+        case multi =>
+          // todo implement field paths properly
+          configError("Multiple fields in field path not yet implemented: " + multi.fieldPath.mkString("."))
+      }.toList
 
       (
         template,
-        (matcher, effect) => {
+        (capturedVariables, effect) => {
           pathFieldParsers.foreach {
-            case ((_, field, parser), idx) =>
-              val rawValue = matcher.group(idx + 1)
+            case (_, field, fieldName, parser) =>
+              // since gRPC HTTP transcoding doesn't allow optional variable
+              // every variables has to be captured to match the route
+              val rawValue = capturedVariables(fieldName)
               // When encoding, we need to be careful to only encode / if it's a single segment variable. But when
               // decoding, it doesn't matter, we decode %2F if it's there regardless.
               val decoded = URLDecoder.decode(rawValue, "utf-8")
@@ -703,42 +712,99 @@ private[grpc] object HttpTranscoding {
     }
 
     final case class PathTemplateParseException(message: String, cause: ParseError) extends RuntimeException
+
+    private object ParsedTemplate {
+
+      import akka.http.scaladsl.server.util.TupleOps._
+
+      private def splitVerb(segmentWithVerb: String): (String, String) = {
+        val ss = segmentWithVerb.split(':')
+        val segment = ss(0)
+        val verb = ss(1)
+        segment -> verb
+      }
+
+      private object VerbAwareSegment extends PathMatcher[Tuple1[String]] {
+        def apply(path: Path): Matching[Tuple1[String]] = path match {
+          // verb can only occurs at the very end
+          case Path.Segment(head, Path.Empty) if head.contains(':') =>
+            val (segment, verb) = splitVerb(head)
+            Matched(Path(':' + verb), Tuple1(segment))
+          case Path.Segment(head, tail) =>
+            Matched(tail, Tuple1(head))
+          case _ => Unmatched
+        }
+      }
+
+      private val VerbAwareSegments = VerbAwareSegment.repeat(0, 128, separator = PathMatchers.Slash)
+
+      private def verbAwareLiteralSegmentMatcher(literal: String) = new PathMatcher[Tuple1[String]] {
+        def apply(path: Path): Matching[Tuple1[String]] = path match {
+          case Path.Segment(`literal`, tail) => Matched(tail, Tuple1(literal))
+          // verb can only occurs at the very end
+          case Path.Segment(head, Path.Empty) if head.contains(':') =>
+            val (segment, verb) = splitVerb(head)
+            if (segment == literal) Matched(Path(':' + verb), Tuple1(segment))
+            else Unmatched
+          case _ => Unmatched
+        }
+      }
+
+      private def literalSegmentMatcher(literal: String) = new PathMatcher[Tuple1[String]] {
+        def apply(path: Path): Matching[Tuple1[String]] = path match {
+          case Path.Segment(`literal`, tail) => Matched(tail, Tuple1(literal))
+          case _                             => Unmatched
+        }
+      }
+
+      implicit def appendList1[T1]: AppendOne.Aux[Tuple1[List[T1]], List[T1], Tuple1[List[T1]]] =
+        new AppendOne[Tuple1[List[T1]], List[T1]] {
+          type Out = Tuple1[List[T1]]
+
+          def apply(prefix: Tuple1[List[T1]], last: List[T1]): Tuple1[List[T1]] = Tuple1(prefix._1 ++ last)
+        }
+
+      implicit class MorePathMatcher1Ops[T](matcher: PathMatcher1[T]) {
+        def ignore[U]: PathMatcher1[List[U]] = matcher.map(_ => List.empty[U])
+
+        def capture: PathMatcher1[List[T]] = matcher.map(t => List(t))
+      }
+
+      // use List as Option here
+      private def segmentMatcher(segment: Segment): PathMatcher[Tuple1[List[(FieldPath, String)]]] = segment match {
+        case LiteralSegment(literal) => verbAwareLiteralSegmentMatcher(literal).ignore
+        case VariableSegment(fieldPath, template) => {
+          template
+            .flatMap(_.map {
+              case LiteralSegment(literal) => verbAwareLiteralSegmentMatcher(literal).capture
+              case SingleSegmentMatcher    => VerbAwareSegment.capture
+              case MultiSegmentMatcher     => VerbAwareSegments
+              // nested variable isn't allowed
+              case VariableSegment(_, _) => PathMatchers.nothingMatcher[Tuple1[List[String]]]
+            }.reduceOption(_ / _))
+            .getOrElse(VerbAwareSegment.capture)
+            .tmap {
+              case Tuple1(segments) => Tuple1(List(fieldPath -> segments.mkString("/")))
+            }
+        }
+        case SingleSegmentMatcher => VerbAwareSegment.ignore
+        case MultiSegmentMatcher  => VerbAwareSegments.ignore
+      }
+
+    }
     final class ParsedTemplate(path: String, template: Template) {
-      val regex: Regex = {
-        def doToRegex(builder: StringBuilder, segments: List[Segment], matchSlash: Boolean): StringBuilder =
-          segments match {
-            case Nil => builder // Do nothing
-            case head :: tail =>
-              if (matchSlash) {
-                builder.append('/')
-              }
 
-              head match {
-                case LiteralSegment(literal) =>
-                  builder.append(Pattern.quote(literal))
-                case SingleSegmentMatcher =>
-                  builder.append("[^/:]*")
-                case MultiSegmentMatcher =>
-                  builder.append(".*")
-                case VariableSegment(_, None) =>
-                  builder.append("([^/:]*)")
-                case VariableSegment(_, Some(template)) =>
-                  builder.append('(')
-                  doToRegex(builder, template.toList, matchSlash = false)
-                  builder.append(')')
-              }
+      import ParsedTemplate._
 
-              doToRegex(builder, tail, matchSlash = true)
-          }
+      val matcher: PathMatcher[(List[(FieldPath, String)], Option[String])] = {
+        val segmentsMatcher =
+          template.segments.map(segmentMatcher).foldLeft(provide(Tuple1(List.empty[(FieldPath, String)])))(_ / _)
+        val verbMatcher =
+          template.verb
+            .map(v => literalSegmentMatcher(":" + v).map(matched => Option(matched.drop(1))))
+            .getOrElse(provide(Tuple1(Option.empty[String])))
 
-        val builder = doToRegex(new StringBuilder, template.segments.toList, matchSlash = true)
-
-        template.verb
-          .foldLeft(builder) { (builder, verb) =>
-            builder.append(':').append(Pattern.quote(verb))
-          }
-          .toString()
-          .r
+        segmentsMatcher ~ verbMatcher ~ PathMatchers.PathEnd
       }
 
       val fields: Seq[TemplateVariable] = {
