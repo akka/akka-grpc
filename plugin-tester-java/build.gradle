@@ -12,6 +12,7 @@ akkaGrpc {
 }
 
 repositories {
+  mavenLocal()
   mavenCentral()
   maven {
     url "https://repo.akka.io/maven"
