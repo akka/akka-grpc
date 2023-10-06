@@ -28,13 +28,13 @@ jobs:
 
       - name: Publish
         run: |-
-          sbt ci-release
-          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.10\! ci-release
+          sbt +publishSigned
+          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.10\! publishSigned
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
+          PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
 
   gradle-plugin:
     name: Release gradle plugin

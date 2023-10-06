@@ -12,9 +12,11 @@ sbt
 :   @@@vars
     ```scala
     // in project/plugins.sbt:
+    resolvers += "Akka library repository".at("https://repo.akka.io/maven")
     addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
     //
     // in build.sbt:
+    resolvers += "Akka library repository".at("https://repo.akka.io/maven")
     enablePlugins(AkkaGrpcPlugin)
     ```
     @@@
@@ -26,6 +28,9 @@ Gradle
       repositories {
         mavenLocal()
         gradlePluginPortal()
+        maven {
+          url "https://repo.akka.io/maven"
+        }
       }
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
@@ -41,6 +46,9 @@ Gradle
     repositories {
       mavenLocal()
       mavenCentral()
+      maven {
+        url "https://repo.akka.io/maven"
+      }
     }
     ```
     @@@
@@ -59,6 +67,13 @@ Maven
         <grpc.version>$grpc.version$</grpc.version>
         <project.encoding>UTF-8</project.encoding>
       </properties>
+      <repositories>
+        <repository>
+          <id>akka-repository</id>
+          <name>Akka library repository</name>
+          <url>https://repo.akka.io/maven</url>
+        </repository>
+      </repositories>
       <dependencies>
         <dependency>
           <groupId>com.lightbend.akka.grpc</groupId>

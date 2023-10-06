@@ -4,6 +4,7 @@ import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 import com.typesafe.tools.mima.core._
 import sbt.Keys.scalaVersion
+import com.geirsson.CiReleasePlugin
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
@@ -16,7 +17,7 @@ val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.codegen)
   .settings(resolvers += Resolver.sbtPluginRepo("releases"))
   .settings(
@@ -63,6 +64,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     Test / PB.targets += (scalapb.gen() -> (Test / sourceManaged).value))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .disablePlugins(CiReleasePlugin)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
@@ -87,11 +89,12 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
+  .disablePlugins(CiReleasePlugin)
 
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
   .enablePlugins(akka.grpc.SbtMavenPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.mavenPlugin)
   .settings(
     publishMavenStyle := true,
@@ -103,7 +106,7 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .enablePlugins(SbtPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.sbtPlugin)
   .settings(
     /** And for scripted tests: */
@@ -121,7 +124,7 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.interopTests)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
@@ -162,7 +165,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
 lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(runtime)
   .enablePlugins(JmhPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
@@ -173,7 +176,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
   .enablePlugins(SitePreviewPlugin, AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(
     name := "Akka gRPC",
     publish / skip := true,
@@ -213,7 +216,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.pluginTester)
   .settings(
     (publish / skip) := true,
@@ -224,7 +227,7 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
   .pluginTestingSettings
 
 lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = file("plugin-tester-java"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.pluginTester)
   .settings(
     (publish / skip) := true,
@@ -236,7 +239,7 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
   .pluginTestingSettings
 
 lazy val root = Project(id = "akka-grpc", base = file("."))
-  .disablePlugins(SitePlugin, MimaPlugin)
+  .disablePlugins(SitePlugin, MimaPlugin, CiReleasePlugin)
   .aggregate(
     runtime,
     codegen,
