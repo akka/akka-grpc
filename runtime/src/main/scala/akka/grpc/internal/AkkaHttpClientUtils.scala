@@ -4,32 +4,61 @@
 
 package akka.grpc.internal
 
-import java.net.InetSocketAddress
-import java.security.SecureRandom
-import java.util.concurrent.CompletionStage
-import scala.concurrent.duration._
-import akka.{ Done, NotUsed }
+import akka.Done
+import akka.NotUsed
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
+import akka.grpc.GrpcClientSettings
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
+import akka.grpc.GrpcResponseMetadata
+import akka.grpc.GrpcSingleResponse
+import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.StringEntry
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
-import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.ClientTransport
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.AttributeKey
+import akka.http.scaladsl.model.AttributeKeys
+import akka.http.scaladsl.model.HttpEntity.Chunk
+import akka.http.scaladsl.model.HttpEntity.Chunked
+import akka.http.scaladsl.model.HttpEntity.LastChunk
+import akka.http.scaladsl.model.HttpEntity.Strict
+import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.RequestResponseAssociation
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.stream.{ Materializer, OverflowStrategy }
-import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.stream.FlowShape
+import akka.stream.Materializer
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.GraphDSL
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
+import io.grpc.CallOptions
+import io.grpc.MethodDescriptor
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 
-import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
+import java.net.InetSocketAddress
+import java.security.SecureRandom
+import java.util.concurrent.CompletionStage
+import javax.net.ssl.KeyManager
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Success }
-import akka.http.scaladsl.model.StatusCodes
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.duration._
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * INTERNAL API
@@ -103,9 +132,29 @@ object AkkaHttpClientUtils {
         builder.managedPersistentHttp2WithPriorKnowledge()
       }
 
+    // make sure we always fail all queued on http client fail to connect
+    val cancelFailed: Flow[HttpRequest, HttpRequest, NotUsed] = {
+      Flow.fromGraph(GraphDSL.create() { implicit b =>
+        import GraphDSL.Implicits._
+
+        val switch = b.add(new SwitchOnCancel[HttpRequest])
+
+        // when failed over
+        val failover = b.add(Sink.foreach[(Throwable, HttpRequest)] {
+          case (error, request) =>
+            request.entity.discardBytes()
+            request.getAttribute(ResponsePromise.Key).get().promise.tryFailure(error)
+        })
+        switch.out1 ~> failover.in
+
+        FlowShape[HttpRequest, HttpRequest](switch.in, switch.out0)
+      })
+    }
+
     val (queue, doneFuture) =
       Source
         .queue[HttpRequest](4242, OverflowStrategy.fail)
+        .via(cancelFailed)
         .via(http2client)
         .toMat(Sink.foreach { res =>
           res.attribute(ResponsePromise.Key).get.promise.trySuccess(res)
