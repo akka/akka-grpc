@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009-2023 Lightbend Inc. <https://www.lightbend.com>
  */
+
 package akka.grpc.internal
 
 import akka.stream.Attributes
