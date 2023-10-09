@@ -29,7 +29,7 @@ jobs:
       - name: Publish
         run: |-
           sbt +publishSigned
-          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish sbt ++2.13.10\! publishSigned
+          CI_RELEASE=akka-grpc-codegen/publishSigned CI_SNAPSHOT_RELEASE=akka-grpc-codegen/publish
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
