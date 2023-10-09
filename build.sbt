@@ -11,7 +11,9 @@ val akkaGrpcRuntimeName = "akka-grpc-runtime"
 lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 
 // gradle plugin compatibility (avoid `+` in snapshot versions)
-(ThisBuild / dynverSeparator) := "-"
+ThisBuild / dynverSeparator := "-"
+// append -SNAPSHOT to version when isSnapshot
+ThisBuild / dynverSonatypeSnapshots := true
 
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
