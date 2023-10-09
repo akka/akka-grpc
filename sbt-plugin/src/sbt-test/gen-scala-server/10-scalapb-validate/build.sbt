@@ -1,6 +1,6 @@
 scalaVersion := "2.13.11"
 
-resolvers += Resolver.sonatypeRepo("staging")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 //#setup
 import scalapb.GeneratorOption._

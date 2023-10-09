@@ -1,10 +1,10 @@
 scalaVersion := "2.13.11"
 
-resolvers += Resolver.sonatypeRepo("staging")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 enablePlugins(AkkaGrpcPlugin)
 
-dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.9.0-M2"
+dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.9.0-M3"
 
 assembly / assemblyMergeStrategy := {
   // https://github.com/akka/akka/issues/29456

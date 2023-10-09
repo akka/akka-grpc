@@ -9,7 +9,6 @@ import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtprotoc.ProtocPlugin.autoImport.PB
 import xerial.sbt.Sonatype
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
@@ -23,7 +22,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers ++= Resolver.sonatypeOssRepos("staging"), // makes testing HTTP releases early easier
+      resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -46,7 +45,6 @@ object Common extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
-    sonatypeProfileName := "com.lightbend",
     scalacOptions ++= Seq(
       "-release",
       "11",
