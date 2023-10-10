@@ -22,6 +22,12 @@ service ShelfService {
     };
   }
 
+  rpc UpdateShelf(UpdateShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      put: "/v1/shelves/{shelf.id}/{shelf.theme}"
+    };
+  }
+
   rpc DeleteShelf(DeleteShelfRequest) returns (Shelf) {
     option (google.api.http) = {
       delete: "/v1/shelves/{shelf}"
@@ -42,6 +48,10 @@ message CreateShelfRequest {
 
 message DeleteShelfRequest {
   int64 shelf = 1;
+}
+
+message UpdateShelfRequest {
+  Shelf shelf = 1;
 }
 
 // A shelf resource.

@@ -6,6 +6,7 @@ package akka.grpc.internal
 
 import akka.ConfigurationException
 import akka.annotation.InternalApi
+import akka.grpc.internal.HttpTranscoding.PathTemplateParser.TemplateVariable
 import akka.grpc.scaladsl.headers.`Message-Accept-Encoding`
 import akka.grpc.{ GrpcProtocol, ProtobufSerializer }
 import akka.http.scaladsl.marshalling.Marshal
@@ -182,8 +183,9 @@ private[grpc] object HttpTranscoding {
     def parsePathParametersInto(capturedVariables: Map[String, String], inputBuilder: DynamicMessage.Builder): Unit =
       pathExtractor(
         capturedVariables,
-        (field, value) =>
-          inputBuilder.setField(field, value.getOrElse(requestError("Path contains value of wrong type!"))))
+        (field, value) => {
+          inputBuilder.setField(field, value.getOrElse(requestError("Path contains value of wrong type!")))
+        })
 
     def parseResponseBody(pbAny: ProtobufAny): MessageOrBuilder = {
       val bytes = ReplySerializer.serialize(pbAny)
@@ -433,44 +435,203 @@ private[grpc] object HttpTranscoding {
         selector
       ) // TODO potentially start supporting path-like selectors with maximum nesting level?
 
-    def parsePathExtractor(
-        methDesc: MethodDescriptor,
-        pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
-      val template = PathTemplateParser.parseToTemplate(pattern)
-      val pathFieldParsers = template.fields.iterator.map {
-        case tv @ PathTemplateParser.TemplateVariable(fields, _) if fields.length == 1 =>
-          val fieldName = fields.head
-          lookupFieldByName(methDesc.getInputType, fieldName) match {
+    def scalarValueParser(fieldDescriptor: FieldDescriptor): String => Option[Any] = {
+      val valueParser = suitableParserFor(fieldDescriptor)(configError)
+
+      { value: String =>
+        {
+          // When encoding, we need to be careful to only encode / if it's a single segment variable. But when
+          // decoding, it doesn't matter, we decode %2F if it's there regardless.
+          val decoded = URLDecoder.decode(value, "utf-8")
+          valueParser(decoded)
+        }
+      }
+    }
+
+    // TODO make this method less messy
+    def complexSelectorBuilder(
+        methodDesc: MethodDescriptor,
+        rootDesc: Descriptor,
+        selectors: Seq[TemplateVariable]): (Map[String, String], PathParameterEffect) => Unit = {
+      import scala.collection.mutable.{ Map => MutableMap }
+
+      val startStage = selectors.map(_.fieldPath.length).max
+
+      val fullSelectors: Seq[Seq[(FieldDescriptor, Option[String => Option[Any]], String)]] = selectors.map {
+        case TemplateVariable(fieldPath, _) => {
+          var previousDesc = rootDesc
+          var previousFieldDesc: FieldDescriptor = null
+          fieldPath.zipWithIndex.map {
+            case (field, i) => {
+              val fieldDescriptor = previousDesc.findFieldByName(field)
+              if (fieldDescriptor == null) configError(s"Unknown field ${field} in method ${methodDesc.getFullName}")
+              previousFieldDesc = fieldDescriptor
+              // every last field has to be scalar field
+              val valueParser =
+                if (i == fieldPath.length - 1) Option(suitableParserFor(fieldDescriptor)(configError))
+                else {
+                  previousDesc = fieldDescriptor.getMessageType
+                  Option.empty
+                }
+              (fieldDescriptor, valueParser, field)
+            }
+          }
+        }
+      }
+
+      (variables, updater) => {
+
+        val stages = {
+          val stagedSelectors = MutableMap(
+            fullSelectors
+              .map(_ -> Option.empty[DynamicMessage.Builder])
+              .groupBy(_._1.length)
+              .mapValues(vs => MutableMap(vs: _*))
+              .toList: _*)
+
+          // fill the gaps
+          (1 to startStage).foreach(n => {
+            if (!stagedSelectors.contains(n)) {
+              stagedSelectors.update(n, MutableMap.empty)
+            }
+          })
+
+          stagedSelectors
+        }
+
+        def buildStage(stage: Int): Unit = {
+          val currentStage = stages(stage)
+          val nextStage = stages(stage - 1)
+          currentStage.foreach {
+            case (fullSelector, builderOpt) => {
+              val selector = fullSelector.map(_._3)
+              nextStage.find(stg => selector.startsWith(stg._1.map(_._3))) match {
+                case Some((_, Some(parentBuilder))) => {
+                  builderOpt match {
+                    case Some(builder) => {
+                      // completed message builder
+                      val descriptor = fullSelector.last._1
+                      val message = builder.build()
+                      parentBuilder.setField(descriptor, message)
+                      currentStage.remove(fullSelector)
+                    }
+                    case None => {
+                      // scalar field
+                      val scalarDescriptor = fullSelector.last._1
+                      val scalarValue = variables.getOrElse(
+                        selector.mkString("."),
+                        requestError(
+                          s"Value of field ${fullSelector.last._3} not found in method ${methodDesc.getFullName}"))
+                      val valueParser = fullSelector.last._2.get
+                      val parsedValue = valueParser(scalarValue).getOrElse(
+                        requestError(
+                          s"Invalid value for field ${fullSelector.last._3} in method ${methodDesc.getFullName}"))
+                      parentBuilder.setField(scalarDescriptor, parsedValue)
+                      currentStage.remove(fullSelector)
+                    }
+                  }
+                }
+                case Some((_, None)) =>
+                  requestError(s"Invalid selector $selector, reference directly to message type field")
+                case None =>
+                  builderOpt match {
+                    case Some(builder) => {
+                      // completed message builder
+                      val parent = fullSelector.dropRight(1)
+                      val parentDescriptor = parent.last._1.getMessageType
+                      val parentBuilder = DynamicMessage.newBuilder(parentDescriptor)
+                      val message = builder.build()
+                      val descriptor = fullSelector.last._1
+                      parentBuilder.setField(descriptor, message)
+                      currentStage.remove(fullSelector)
+                      nextStage.update(parent, Some(parentBuilder))
+                    }
+                    case None => {
+                      // scalar field
+                      val parent = fullSelector.dropRight(1)
+                      val parentDescriptor = parent.last._1.getMessageType
+                      val parentBuilder = DynamicMessage.newBuilder(parentDescriptor)
+                      val scalarDescriptor = fullSelector.last._1
+                      val scalarValue = variables.getOrElse(
+                        selector.mkString("."),
+                        requestError(
+                          s"Value of field ${fullSelector.last._3} not found in method ${methodDesc.getFullName}"))
+                      val valueParser = fullSelector.last._2.get
+                      val parsedValue = valueParser(scalarValue).getOrElse(
+                        requestError(
+                          s"Invalid value for field ${fullSelector.last._3} in method ${methodDesc.getFullName}"))
+                      parentBuilder.setField(scalarDescriptor, parsedValue)
+                      currentStage.remove(fullSelector)
+                      nextStage.update(parent, Some(parentBuilder))
+                    }
+                  }
+              }
+            }
+          }
+        }
+
+        (2 to startStage).reverse.foreach(buildStage)
+
+        stages(1).toList.collect { case (selector, Some(builder)) => selector -> builder.build() }.foreach {
+          case (selector, message) => {
+            updater(selector.last._1, Some(message))
+          }
+        }
+      }
+
+    }
+
+    def scalarSelectorBuilder(methDesc: MethodDescriptor, desc: Descriptor, selectors: Seq[TemplateVariable]) = {
+      val parsers = selectors.map {
+        case TemplateVariable(selector, multi) => {
+          val fieldName = selector.head
+          lookupFieldByName(desc, fieldName) match {
             case null =>
               configError(
-                s"Unknown field name [$fieldName] in type [${methDesc.getInputType.getFullName}] reference in path template for method [${methDesc.getFullName}]")
+                s"Unknown field name [$fieldName] in type [${desc.getFullName}] reference in path template for method [${methDesc.getFullName}]")
             case field =>
               if (field.isRepeated)
                 configError(s"Repeated parameters [${field.getFullName}] are not allowed as path variables")
               else if (field.isMapField)
                 configError(s"Map parameters [${field.getFullName}] are not allowed as path variables")
-              else (tv, field, fieldName, suitableParserFor(field)(configError))
+              else {
+                val valueParser = scalarValueParser(field)
+                (field, fieldName, valueParser)
+              }
           }
-        case multi =>
-          // todo implement field paths properly
-          configError("Multiple fields in field path not yet implemented: " + multi.fieldPath.mkString("."))
-      }.toList
+        }
+      }
 
-      (
-        template,
-        (capturedVariables, effect) => {
-          pathFieldParsers.foreach {
-            case (_, field, fieldName, parser) =>
-              // since gRPC HTTP transcoding doesn't allow optional variable
-              // every variables has to be captured to match the route
-              val rawValue = capturedVariables(fieldName)
-              // When encoding, we need to be careful to only encode / if it's a single segment variable. But when
-              // decoding, it doesn't matter, we decode %2F if it's there regardless.
-              val decoded = URLDecoder.decode(rawValue, "utf-8")
-              val value = parser(decoded)
-              effect(field, value)
+      (variables: Map[String, String], updater: PathParameterEffect) => {
+        parsers.foreach {
+          case (field, fieldName, valueParser) => {
+            val rawValue = variables.getOrElse(fieldName, requestError("todo"))
+            updater(field, valueParser(rawValue))
           }
-        })
+        }
+      }
+
+    }
+
+    val emptyBuilder: ExtractPathParameters = (_, _) => {}
+    def parsePathExtractor(
+        methDesc: MethodDescriptor,
+        pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
+      val template = PathTemplateParser.parseToTemplate(pattern)
+      val requestMessageDesc = methDesc.getInputType
+      val (scalarSelectors, complexSelectors) = template.fields.view.partition(_.fieldPath.length == 1)
+
+      val complexMessageBuilder =
+        if (complexSelectors.nonEmpty) complexSelectorBuilder(methDesc, requestMessageDesc, complexSelectors)
+        else emptyBuilder
+      val scalarBuilder = scalarSelectorBuilder(methDesc, requestMessageDesc, scalarSelectors)
+
+      val extractor: ExtractPathParameters = (variables, updater) => {
+        complexMessageBuilder(variables, updater)
+        scalarBuilder(variables, updater)
+      }
+
+      (template, extractor)
     }
 
     // This method validates the configuration and returns values obtained by parsing the configuration

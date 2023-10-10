@@ -49,4 +49,8 @@ class ShelfServiceImpl(storage: ActorRef[KVStoreCommand[Long, Shelf]])(implicit 
       case None        => Future.failed(new GrpcServiceException(Status.NOT_FOUND))
     }
   }
+
+  def updateShelf(in: UpdateShelfRequest): Future[Shelf] = {
+    Future.successful(in.shelf.get)
+  }
 }

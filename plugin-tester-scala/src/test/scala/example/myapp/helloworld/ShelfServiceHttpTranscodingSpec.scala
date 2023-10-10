@@ -73,6 +73,14 @@ class ShelfServiceHttpTranscodingSpec
       deleteResponse.futureValue shouldBe HalloweenShelf
     }
 
+    "able to handle path like selector" in {
+      val updateResponse = Http()
+        .singleRequest(Put("http://localhost:8080/v1/shelves/9/fiction"))
+        .flatMap(response => Unmarshal(response).to[Shelf])
+
+      updateResponse.futureValue shouldBe Shelf(9, "fiction")
+    }
+
     "able to report error" in {
       val response = Http().singleRequest(Get("http://localhost:8080/v1/shelves/1")).futureValue
 
