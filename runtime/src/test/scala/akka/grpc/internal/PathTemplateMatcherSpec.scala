@@ -61,6 +61,13 @@ class PathTemplateMatcherSpec extends AnyWordSpec with Matchers with Inside {
       success(template, path, List(FieldPath(Seq("id")) -> "1"))
     }
 
+    "match complex variable" in {
+      val template = "/v1/shelves/{shelf.id}/{shelf.theme}"
+      val path = Path("/v1/shelves/1/fiction")
+
+      success(template, path, List(FieldPath(Seq("shelf", "id")) -> "1", FieldPath(Seq("shelf", "theme")) -> "fiction"))
+    }
+
     "match simple singleSegmentMatcher inside variable" in {
       val template = "/v1/shelves/{id=*}"
       val path = Path("/v1/shelves/1")
