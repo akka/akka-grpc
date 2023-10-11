@@ -39,7 +39,11 @@ object GrpcServiceException {
 
     val statusRuntimeException = StatusProto.toStatusRuntimeException(status.build)
 
-    new GrpcServiceException(statusRuntimeException.getStatus, new GrpcMetadataImpl(statusRuntimeException.getTrailers))
+    new GrpcServiceException(
+      statusRuntimeException.getStatus,
+      new GrpcMetadataImpl(
+        // might not be present
+        Option(statusRuntimeException.getTrailers).getOrElse(new io.grpc.Metadata())))
   }
 
   private def toJavaProto(scalaPbSource: com.google.protobuf.any.Any): com.google.protobuf.Any = {
@@ -50,7 +54,12 @@ object GrpcServiceException {
   }
 
   def apply(ex: StatusRuntimeException): GrpcServiceException = {
-    new GrpcServiceException(ex.getStatus, new RichGrpcMetadataImpl(ex.getStatus, ex.getTrailers))
+    new GrpcServiceException(
+      ex.getStatus,
+      new RichGrpcMetadataImpl(
+        ex.getStatus,
+        // might not be present
+        Option(ex.getTrailers).getOrElse(new io.grpc.Metadata())))
   }
 }
 
