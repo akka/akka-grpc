@@ -63,6 +63,13 @@ Maven
       <url>https://repo.akka.io/maven</url>
     </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
