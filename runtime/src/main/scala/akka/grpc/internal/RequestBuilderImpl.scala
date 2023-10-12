@@ -59,7 +59,8 @@ final class ScalaUnaryRequestBuilder[I, O](
     new ScalaUnaryRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (!deadline.isFinite) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -99,7 +100,8 @@ final class JavaUnaryRequestBuilder[I, O](
     new JavaUnaryRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (deadline == null) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -175,7 +177,8 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     new ScalaClientStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (!deadline.isFinite) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -226,7 +229,8 @@ final class JavaClientStreamingRequestBuilder[I, O](
     new JavaClientStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (deadline == null) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -281,7 +285,8 @@ final class ScalaServerStreamingRequestBuilder[I, O](
     new ScalaServerStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (!deadline.isFinite) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -332,7 +337,8 @@ final class JavaServerStreamingRequestBuilder[I, O](
     new JavaServerStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (deadline == null) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -388,7 +394,8 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
     new ScalaBidirectionalStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (!deadline.isFinite) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
@@ -440,7 +447,8 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
     new JavaBidirectionalStreamingRequestBuilder[I, O](
       descriptor,
       channel,
-      defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
+      if (deadline == null) defaultOptions.withDeadline(null)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
       settings,
       headers)
 }
