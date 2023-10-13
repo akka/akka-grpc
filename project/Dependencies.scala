@@ -23,6 +23,10 @@ object Dependencies {
     val akkaHttpBinary = "10.6"
 
     val grpc = "1.58.0" // checked synced by VersionSyncCheckPlugin
+    // FIXME should be same as `grpc` but due to https://github.com/scalapb/ScalaPB/issues/1557
+    // we are testing with an older version that doesn't expose that problem.
+    val grpcInterop = "1.54.2"
+
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
@@ -57,7 +61,7 @@ object Dependencies {
 
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
-    val grpcInteropTesting = ("io.grpc" % "grpc-interop-testing" % Versions.grpc)
+    val grpcInteropTesting = ("io.grpc" % "grpc-interop-testing" % Versions.grpcInterop)
       .exclude("io.grpc", "grpc-alts")
       .exclude("io.grpc", "grpc-xds")
 
@@ -155,6 +159,5 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit,
     Test.akkaTestkitTyped,
-    Protobuf.googleCommonProtos,
     GrpcApi.googleApiProtos)
 }
