@@ -442,14 +442,10 @@ private[grpc] object HttpTranscoding {
     def scalarValueParser(fieldDescriptor: FieldDescriptor): String => Option[Any] = {
       val valueParser = suitableParserFor(fieldDescriptor)(configError)
 
-      { value: String =>
-        {
-          // When encoding, we need to be careful to only encode / if it's a single segment variable. But when
-          // decoding, it doesn't matter, we decode %2F if it's there regardless.
-          val decoded = URLDecoder.decode(value, "utf-8")
-          valueParser(decoded)
-        }
-      }
+      valueParser.compose[String](value => {
+        URLDecoder.decode(value, "utf-8")
+      })
+
     }
 
     // for descriptive purpose
@@ -784,15 +780,13 @@ private[grpc] object HttpTranscoding {
             case JavaType.LONG  => b.setNumberValue(value.asInstanceOf[JLong].toDouble)
             case JavaType.MESSAGE =>
               val sb = Struct.newBuilder
-              value
-                .asInstanceOf[MessageOrBuilder]
-                .getAllFields
-                .forEach((k, v) =>
+              value.asInstanceOf[MessageOrBuilder].getAllFields.asScala.foreach {
+                case (k, v) =>
                   sb.putFields(
                     k.getJsonName,
                     responseBody(k.getJavaType, v, k.isRepeated)
                   ) //Switch to getName if enabling preservingProtoFieldNames in the JSON Printer
-                )
+              }
               b.setStructValue(sb)
             case JavaType.STRING => b.setStringValue(value.asInstanceOf[String])
           }
@@ -855,9 +849,9 @@ private[grpc] object HttpTranscoding {
 
     final case class VariableSegment(fieldPath: FieldPath, template: Option[Seq[Segment]]) extends Segment
 
-    final case object SingleSegmentMatcher extends Segment
+    case object SingleSegmentMatcher extends Segment
 
-    final case object MultiSegmentMatcher extends Segment
+    case object MultiSegmentMatcher extends Segment
 
     def parse(input: ParserInput): Either[String, Template] = {
       import Parser.DeliveryScheme.Either
@@ -1015,16 +1009,19 @@ private[grpc] object HttpTranscoding {
       CharPredicate.Alpha ~ oneOrMore(CharPredicate.AlphaNum | '_')
     }
 
+    def fieldPathRule = rule {
+      capture(ident) + '.'
+    }
     def fieldPath = rule {
-      (capture(ident) + '.') ~> FieldPath
+      fieldPathRule ~> FieldPath.apply
     }
 
     def literalSegment = rule {
-      literal ~> LiteralSegment
+      literal ~> LiteralSegment.apply
     }
 
     def variable: Rule1[VariableSegment] = rule {
-      ('{' ~ (fieldPath ~ optional('=' ~ varSegments)) ~ '}') ~> VariableSegment
+      ('{' ~ (fieldPath ~ optional('=' ~ varSegments)) ~ '}') ~> VariableSegment.apply
     }
 
     def singleSegmentMatcher = rule {
@@ -1057,8 +1054,11 @@ private[grpc] object HttpTranscoding {
       ':' ~ literal
     }
 
+    def templateRule = rule {
+      ('/' | fail("Template must start with a slash")) ~ segments ~ optional(verb) ~ EOI
+    }
     def template: Rule1[Template] = rule {
-      (('/' | fail("Template must start with a slash")) ~ segments ~ optional(verb) ~ EOI) ~> Template
+      templateRule ~> Template.apply
     }
 
   }
