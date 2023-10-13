@@ -20,7 +20,7 @@
     <project.encoding>UTF-8</project.encoding>
     <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
     <protobuf-java.version>3.22.2</protobuf-java.version>
-    <proto-google-common-protos.version>2.16.0</proto-google-common-protos.version>
+    <proto-google-common-protos.version>2.23.0</proto-google-common-protos.version>
   </properties>
 
   <repositories>
