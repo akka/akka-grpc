@@ -448,95 +448,106 @@ private[grpc] object HttpTranscoding {
       }
     }
 
-    // TODO make this method less messy
+    // for descriptive purpose
+    type FieldName = String
+    type ScalarValueParser = Option[String => Option[Any]]
+    type SelectorField = (FieldDescriptor, ScalarValueParser, FieldName)
+    type Selector = Seq[SelectorField]
+
+    //   1     2      3      4   stages
+    // <------------------------ building direction
+    // book.author.location.address
+    // book.author.name
+    // book.title
+    //
+    // at each stage we first lookup if it's any exist(by selector prefix) message builder in the next stage
+    // if it exists, we added whatever we have now(message or scalar field) into it
+    // and if it isn't, we first construct a new message builder from it's parent selector then added itself into it and update next stage
     def complexSelectorBuilder(
         methodDesc: MethodDescriptor,
         rootDesc: Descriptor,
         selectors: Seq[TemplateVariable]): (Map[String, String], PathParameterEffect) => Unit = {
       import scala.collection.mutable.{ Map => MutableMap }
 
+      def getScalarValue(fullSelector: Selector, variables: Map[String, String]): (FieldDescriptor, Any) = {
+        val scalarDescriptor = fullSelector.last._1
+        val fieldPath = fullSelector.map(_._3)
+        val scalarValue = variables.getOrElse(
+          fieldPath.mkString("."),
+          requestError(s"Value of field ${fullSelector.last._3} not found in method ${methodDesc.getFullName}"))
+        val valueParser = fullSelector.last._2.get
+        val parsedValue = valueParser(scalarValue).getOrElse(
+          requestError(s"Invalid value for field ${fullSelector.last._3} in method ${methodDesc.getFullName}"))
+        scalarDescriptor -> parsedValue
+      }
+
       val startStage = selectors.map(_.fieldPath.length).max
 
-      val fullSelectors: Seq[Seq[(FieldDescriptor, Option[String => Option[Any]], String)]] = selectors.map {
-        case TemplateVariable(fieldPath, _) => {
-          var previousDesc = rootDesc
-          var previousFieldDesc: FieldDescriptor = null
-          fieldPath.zipWithIndex.map {
-            case (field, i) => {
-              val fieldDescriptor = previousDesc.findFieldByName(field)
-              if (fieldDescriptor == null) configError(s"Unknown field ${field} in method ${methodDesc.getFullName}")
-              previousFieldDesc = fieldDescriptor
-              // every last field has to be scalar field
-              val valueParser =
-                if (i == fieldPath.length - 1) Option(suitableParserFor(fieldDescriptor)(configError))
-                else {
-                  previousDesc = fieldDescriptor.getMessageType
-                  Option.empty
-                }
-              (fieldDescriptor, valueParser, field)
+      val fullSelectors: Map[Int, Seq[(Selector, Option[DynamicMessage.Builder])]] = selectors.view
+        .map {
+          case TemplateVariable(fieldPath, _) => {
+            var previousDesc = rootDesc
+            var previousFieldDesc: FieldDescriptor = null
+            fieldPath.zipWithIndex.map {
+              case (field, i) => {
+                val fieldDescriptor = previousDesc.findFieldByName(field)
+                if (fieldDescriptor == null) configError(s"Unknown field ${field} in method ${methodDesc.getFullName}")
+                previousFieldDesc = fieldDescriptor
+                // every last field has to be scalar field
+                val valueParser =
+                  if (i == fieldPath.length - 1) Option(suitableParserFor(fieldDescriptor)(configError))
+                  else {
+                    previousDesc = fieldDescriptor.getMessageType
+                    Option.empty
+                  }
+                (fieldDescriptor, valueParser, field)
+              }
             }
           }
         }
-      }
+        .map(_ -> Option.empty[DynamicMessage.Builder])
+        .groupBy(_._1.length)
 
       (variables, updater) => {
-
-        val stages = {
-          val stagedSelectors = MutableMap(
-            fullSelectors
-              .map(_ -> Option.empty[DynamicMessage.Builder])
-              .groupBy(_._1.length)
-              .mapValues(vs => MutableMap(vs: _*))
-              .toList: _*)
-
-          // fill the gaps
-          (1 to startStage).foreach(n => {
-            if (!stagedSelectors.contains(n)) {
-              stagedSelectors.update(n, MutableMap.empty)
-            }
-          })
-
-          stagedSelectors
-        }
+        val stages =
+          MutableMap(fullSelectors.mapValues(vs => MutableMap(vs: _*)).toList: _*).withDefaultValue(MutableMap.empty)
 
         def buildStage(stage: Int): Unit = {
           val currentStage = stages(stage)
           val nextStage = stages(stage - 1)
           currentStage.foreach {
             case (fullSelector, builderOpt) => {
-              val selector = fullSelector.map(_._3)
-              nextStage.find(stg => selector.startsWith(stg._1.map(_._3))) match {
+              val fieldPath = fullSelector.map(_._3)
+              val existBuilder = nextStage.find(stg => fieldPath.startsWith(stg._1.map(_._3)))
+              existBuilder match {
+                // there is already a builder
                 case Some((_, Some(parentBuilder))) => {
                   builderOpt match {
                     case Some(builder) => {
-                      // completed message builder
+                      // at current stage we have a message type
+                      // note: this means we've collect all of its fields
+                      // since the fact one's field cannot at the same stage with itself
                       val descriptor = fullSelector.last._1
                       val message = builder.build()
                       parentBuilder.setField(descriptor, message)
                       currentStage.remove(fullSelector)
                     }
                     case None => {
-                      // scalar field
-                      val scalarDescriptor = fullSelector.last._1
-                      val scalarValue = variables.getOrElse(
-                        selector.mkString("."),
-                        requestError(
-                          s"Value of field ${fullSelector.last._3} not found in method ${methodDesc.getFullName}"))
-                      val valueParser = fullSelector.last._2.get
-                      val parsedValue = valueParser(scalarValue).getOrElse(
-                        requestError(
-                          s"Invalid value for field ${fullSelector.last._3} in method ${methodDesc.getFullName}"))
+                      // at current stage we have a scalar type
+                      val (scalarDescriptor, parsedValue) = getScalarValue(fullSelector, variables)
                       parentBuilder.setField(scalarDescriptor, parsedValue)
                       currentStage.remove(fullSelector)
                     }
                   }
                 }
                 case Some((_, None)) =>
-                  requestError(s"Invalid selector $selector, reference directly to message type field")
+                  // impossible
+                  requestError(s"Invalid selector ${fieldPath.mkString(".")}, reference directly to message type field")
+                // there isn't, so we have to build one and update stage
                 case None =>
                   builderOpt match {
                     case Some(builder) => {
-                      // completed message builder
+                      // at current stage we have a message type
                       val parent = fullSelector.dropRight(1)
                       val parentDescriptor = parent.last._1.getMessageType
                       val parentBuilder = DynamicMessage.newBuilder(parentDescriptor)
@@ -547,19 +558,11 @@ private[grpc] object HttpTranscoding {
                       nextStage.update(parent, Some(parentBuilder))
                     }
                     case None => {
-                      // scalar field
+                      // at current stage we have a scalar type
                       val parent = fullSelector.dropRight(1)
                       val parentDescriptor = parent.last._1.getMessageType
                       val parentBuilder = DynamicMessage.newBuilder(parentDescriptor)
-                      val scalarDescriptor = fullSelector.last._1
-                      val scalarValue = variables.getOrElse(
-                        selector.mkString("."),
-                        requestError(
-                          s"Value of field ${fullSelector.last._3} not found in method ${methodDesc.getFullName}"))
-                      val valueParser = fullSelector.last._2.get
-                      val parsedValue = valueParser(scalarValue).getOrElse(
-                        requestError(
-                          s"Invalid value for field ${fullSelector.last._3} in method ${methodDesc.getFullName}"))
+                      val (scalarDescriptor, parsedValue) = getScalarValue(fullSelector, variables)
                       parentBuilder.setField(scalarDescriptor, parsedValue)
                       currentStage.remove(fullSelector)
                       nextStage.update(parent, Some(parentBuilder))
