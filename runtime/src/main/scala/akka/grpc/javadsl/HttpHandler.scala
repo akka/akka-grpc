@@ -29,7 +29,7 @@ object HttpHandler {
       val futureResponse = f.apply(request).toScala
       futureResponse.value match {
         case Some(Success(response)) if response.status == StatusCodes.NOT_FOUND => None
-        case None                                                                => Some(futureResponse.map(_.asInstanceOf[sm.HttpResponse]))
+        case _                                                                   => Some(futureResponse.map(_.asInstanceOf[sm.HttpResponse]))
       }
     }
   }

@@ -116,7 +116,7 @@ private[grpc] object HttpTranscoding {
 
   // Reads a rfc2045 encoded Base64 string
   private final val ParseBytes: String => Option[ProtobufByteString] =
-    s => Some(ProtobufByteString.copyFrom(Base64.rfc2045.decode(s))) // Make cheaper? Protobuf has a Base64 decoder?
+    s => Some(ProtobufByteString.copyFrom(Base64.rfc2045().decode(s))) // Make cheaper? Protobuf has a Base64 decoder?
 
   private final def suitableParserFor(field: FieldDescriptor)(whenIllegal: String => Nothing): String => Option[Any] =
     field.getJavaType match {
@@ -151,8 +151,8 @@ private[grpc] object HttpTranscoding {
       javaFileDescriptor: JavaFileDescriptor,
       pbFileDescriptor: PBFileDescriptor): Seq[(MethodDescriptor, HttpRule)] = {
     for {
-      (jService, sService) <- javaFileDescriptor.getServices.asScala.zip(pbFileDescriptor.services)
-      (jMethod, sMethod) <- jService.getMethods.asScala.zip(sService.methods)
+      (jService, sService) <- javaFileDescriptor.getServices.asScala.toVector.zip(pbFileDescriptor.services)
+      (jMethod, sMethod) <- jService.getMethods.asScala.toVector.zip(sService.methods)
       rules = getRules(sMethod)
       binding <- rules
     } yield {
@@ -323,6 +323,9 @@ private[grpc] object HttpTranscoding {
           }
         } else {
           responseSource.runWith(Sink.head).map { protobuf =>
+            val bytes = ReplySerializer.serialize(protobuf)
+            val message = DynamicMessage.parseFrom(methDesc.getOutputType, bytes.iterator.asInputStream)
+            jsonPrinter.print(message)
             val entityMessage = parseResponseBody(protobuf)
             HttpResponse(
               entity = if (isHttpBodyResponse) {
@@ -484,7 +487,7 @@ private[grpc] object HttpTranscoding {
 
       val startStage = selectors.map(_.fieldPath.length).max
 
-      val fullSelectors: Map[Int, Seq[(Selector, Option[DynamicMessage.Builder])]] = selectors.view
+      val fullSelectors: Map[Int, Seq[(Selector, Option[DynamicMessage.Builder])]] = selectors
         .map {
           case TemplateVariable(fieldPath, _) => {
             var previousDesc = rootDesc
@@ -503,15 +506,15 @@ private[grpc] object HttpTranscoding {
                   }
                 (fieldDescriptor, valueParser, field)
               }
-            }
+            } -> Option.empty[DynamicMessage.Builder]
           }
         }
-        .map(_ -> Option.empty[DynamicMessage.Builder])
         .groupBy(_._1.length)
 
       (variables, updater) => {
         val stages =
-          MutableMap(fullSelectors.mapValues(vs => MutableMap(vs: _*)).toList: _*).withDefaultValue(MutableMap.empty)
+          MutableMap(fullSelectors.map { case (k, vs) => k -> MutableMap(vs: _*) }.toList: _*)
+            .withDefaultValue(MutableMap.empty)
 
         def buildStage(stage: Int): Unit = {
           val currentStage = stages(stage)
@@ -623,7 +626,7 @@ private[grpc] object HttpTranscoding {
         pattern: String): (PathTemplateParser.ParsedTemplate, ExtractPathParameters) = {
       val template = PathTemplateParser.parseToTemplate(pattern)
       val requestMessageDesc = methDesc.getInputType
-      val (scalarSelectors, complexSelectors) = template.fields.view.partition(_.fieldPath.length == 1)
+      val (scalarSelectors, complexSelectors) = template.fields.partition(_.fieldPath.length == 1)
 
       val complexMessageBuilder =
         if (complexSelectors.nonEmpty) complexSelectorBuilder(methDesc, requestMessageDesc, complexSelectors)
@@ -894,7 +897,7 @@ private[grpc] object HttpTranscoding {
           // verb can only occurs at the very end
           case Path.Segment(head, Path.Empty) if head.contains(':') =>
             val (segment, verb) = splitVerb(head)
-            Matched(Path(':' + verb), Tuple1(segment))
+            Matched(Path(s":${verb}"), Tuple1(segment))
           case Path.Segment(head, tail) =>
             Matched(tail, Tuple1(head))
           case _ => Unmatched
@@ -909,7 +912,7 @@ private[grpc] object HttpTranscoding {
           // verb can only occurs at the very end
           case Path.Segment(head, Path.Empty) if head.contains(':') =>
             val (segment, verb) = splitVerb(head)
-            if (segment == literal) Matched(Path(':' + verb), Tuple1(segment))
+            if (segment == literal) Matched(Path(s":${verb}"), Tuple1(segment))
             else Unmatched
           case _ => Unmatched
         }
