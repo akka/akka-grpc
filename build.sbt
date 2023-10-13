@@ -234,6 +234,7 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
   .settings(
     (publish / skip) := true,
     fork := true,
+    PB.protocVersion := Dependencies.Versions.googleProtobuf,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
