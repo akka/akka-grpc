@@ -408,6 +408,7 @@ private[grpc] object HttpTranscoding {
       case Status.Code.PERMISSION_DENIED => StatusCodes.Forbidden
       case Status.Code.UNIMPLEMENTED     => StatusCodes.NotFound
       case Status.Code.NOT_FOUND         => StatusCodes.NotFound
+      case Status.Code.ALREADY_EXISTS    => StatusCodes.Conflict
       case Status.Code.UNAVAILABLE       => StatusCodes.ServiceUnavailable
       case Status.Code.UNKNOWN           => StatusCodes.InternalServerError
       case _                             => StatusCodes.InternalServerError
