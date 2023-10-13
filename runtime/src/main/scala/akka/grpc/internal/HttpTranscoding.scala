@@ -415,7 +415,6 @@ private[grpc] object HttpTranscoding {
     HttpResponse(httpStatus, entity = sre.getStatus.getDescription)
   }
 
-  com.google.api.HttpRule.newBuilder().build().getPostBytes
   private def getRules(methDesc: PBMethodDescriptor): Seq[HttpRule] = {
     AnnotationsProto.http.get(methDesc.getOptions) match {
       case Some(rule) =>
