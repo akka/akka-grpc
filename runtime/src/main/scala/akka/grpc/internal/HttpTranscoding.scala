@@ -1013,15 +1013,16 @@ private[grpc] object HttpTranscoding {
       capture(ident) + '.'
     }
     def fieldPath = rule {
-      fieldPathRule ~> FieldPath.apply
+      fieldPathRule ~> ((strs: Seq[String]) => FieldPath.apply(strs))
     }
 
     def literalSegment = rule {
-      literal ~> LiteralSegment.apply
+      literal ~> ((str: String) => LiteralSegment.apply(str))
     }
 
     def variable: Rule1[VariableSegment] = rule {
-      ('{' ~ (fieldPath ~ optional('=' ~ varSegments)) ~ '}') ~> VariableSegment.apply
+      ('{' ~ (fieldPath ~ optional('=' ~ varSegments)) ~ '}') ~> (
+        (fieldPath: FieldPath, template: Option[Seq[Segment]]) => VariableSegment.apply(fieldPath, template))
     }
 
     def singleSegmentMatcher = rule {
@@ -1058,7 +1059,7 @@ private[grpc] object HttpTranscoding {
       ('/' | fail("Template must start with a slash")) ~ segments ~ optional(verb) ~ EOI
     }
     def template: Rule1[Template] = rule {
-      templateRule ~> Template.apply
+      templateRule ~> ((segments: Seq[Segment], verb: Option[String]) => Template.apply(segments, verb))
     }
 
   }
