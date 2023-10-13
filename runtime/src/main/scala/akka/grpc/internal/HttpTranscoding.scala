@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2021 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2020-2023 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc.internal
@@ -415,6 +415,7 @@ private[grpc] object HttpTranscoding {
     HttpResponse(httpStatus, entity = sre.getStatus.getDescription)
   }
 
+  com.google.api.HttpRule.newBuilder().build().getPostBytes
   private def getRules(methDesc: PBMethodDescriptor): Seq[HttpRule] = {
     AnnotationsProto.http.get(methDesc.getOptions) match {
       case Some(rule) =>
