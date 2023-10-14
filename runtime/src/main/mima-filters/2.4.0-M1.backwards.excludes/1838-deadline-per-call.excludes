@@ -1,0 +1,6 @@
+# New APIs for setting deadline per call
+
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.SingleResponseRequestBuilder.setDeadline")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.StreamResponseRequestBuilder.setDeadline")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.SingleResponseRequestBuilder.setDeadline")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.StreamResponseRequestBuilder.setDeadline")
