@@ -138,9 +138,16 @@ class NonBalancingIntegrationSpec(backend: String)
       val service = new CountingGreeterServiceImpl()
       val server = Http().newServerAt("127.0.0.1", 0).bind(GreeterServiceHandler(service)).futureValue
 
+      // FIXME
+
       val discovery =
         new MutableServiceDiscovery(
           List(
+            new InetSocketAddress("example.invalid", 80),
+            new InetSocketAddress("example.invalid", 80),
+            new InetSocketAddress("example.invalid", 80),
+            new InetSocketAddress("example.invalid", 80),
+            new InetSocketAddress("example.invalid", 80),
             new InetSocketAddress("example.invalid", 80),
             server.localAddress,
             new InetSocketAddress("example.invalid", 80)))
