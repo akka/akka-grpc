@@ -22,10 +22,13 @@ enablePlugins(AkkaGrpcPlugin)
 // They have different "java_outer_classname" options, but scalapb does not look at it:
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
+// FIXME descriptor.proto is excluded because of EnumType issue https://github.com/scalapb/ScalaPB/issues/1557
 PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
+  f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto") ||
   f.getAbsolutePath.endsWith("google/protobuf/empty.proto") ||
-  // grpc-interop pulls in proto files with unfulfilled transitive deps it seems, so skip them as well
-  f.getParent.contains("envoy"))
+    // grpc-interop pulls in proto files with unfulfilled transitive deps it seems, so skip them as well
+    f.getParent.contains("envoy")
+)
 
 //#sources-both
 // This is the default - both client and server

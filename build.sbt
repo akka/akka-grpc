@@ -139,7 +139,10 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
     // grpc-interop pulls in proto files with unfulfilled transitive deps it seems
-    PB.generate / excludeFilter := new SimpleFileFilter((f: File) => f.getParent.contains("envoy")),
+    // FIXME descriptor.proto is excluded because of EnumType issue https://github.com/scalapb/ScalaPB/issues/1557
+    PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
+      f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto") ||
+      f.getParent.contains("envoy")),
     PB.protocVersion := Dependencies.Versions.googleProtobuf,
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
