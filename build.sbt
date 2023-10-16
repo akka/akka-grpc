@@ -134,7 +134,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
   .pluginTestingSettings
   .settings(
     // All io.grpc servers want to bind to port :8080
-    parallelExecution := false,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
@@ -228,6 +228,7 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
     fork := true,
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
   .pluginTestingSettings
 
@@ -241,6 +242,7 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"))
   .pluginTestingSettings
 
