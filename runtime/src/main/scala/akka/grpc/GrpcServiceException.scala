@@ -7,7 +7,7 @@ package akka.grpc
 import io.grpc.{ Status, StatusRuntimeException }
 import akka.annotation.ApiMayChange
 import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
-import akka.grpc.internal.{ GrpcMetadataImpl, JavaMetadataImpl, RichGrpcMetadataImpl }
+import akka.grpc.internal.{ JavaMetadataImpl, RichGrpcMetadataImpl }
 import com.google.protobuf.any.Any
 import io.grpc.protobuf.StatusProto
 
@@ -39,7 +39,9 @@ object GrpcServiceException {
 
     val statusRuntimeException = StatusProto.toStatusRuntimeException(status.build)
 
-    new GrpcServiceException(statusRuntimeException.getStatus, new GrpcMetadataImpl(statusRuntimeException.getTrailers))
+    new GrpcServiceException(
+      statusRuntimeException.getStatus,
+      new RichGrpcMetadataImpl(statusRuntimeException.getStatus, statusRuntimeException.getTrailers))
   }
 
   private def toJavaProto(scalaPbSource: com.google.protobuf.any.Any): com.google.protobuf.Any = {
@@ -50,7 +52,13 @@ object GrpcServiceException {
   }
 
   def apply(ex: StatusRuntimeException): GrpcServiceException = {
-    new GrpcServiceException(ex.getStatus, new RichGrpcMetadataImpl(ex.getStatus, ex.getTrailers))
+    ex.getTrailers match {
+      case null =>
+        new GrpcServiceException(ex.getStatus)
+      case trailers =>
+        new GrpcServiceException(ex.getStatus, new RichGrpcMetadataImpl(ex.getStatus, trailers))
+    }
+
   }
 }
 

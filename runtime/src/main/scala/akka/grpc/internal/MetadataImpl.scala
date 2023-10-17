@@ -91,6 +91,7 @@ import scalapb.{ GeneratedMessage, GeneratedMessageCompanion }
  */
 @InternalApi
 class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
+  require(delegate != null, "Metadata delegate must be present")
   private lazy val map = delegate.keys.iterator.asScala.map(key => key -> getEntries(key)).toMap
 
   override def getText(key: String): Option[String] =
