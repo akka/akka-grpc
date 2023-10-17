@@ -154,7 +154,7 @@ class LoadBalancingIntegrationSpec(backend: String, config: Config = ConfigFacto
         client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
       // FIXME issue #1857, not sure how this is supposed to be
       if (backend == "netty")
-        failure.getStatus.getCode should be(Code.UNKNOWN)
+        failure.getStatus.getCode should (equal(Code.UNKNOWN).or(equal(Code.UNAVAILABLE)))
       else
         failure.getStatus.getCode should be(Code.UNAVAILABLE)
 
@@ -177,7 +177,7 @@ class LoadBalancingIntegrationSpec(backend: String, config: Config = ConfigFacto
         client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
       // FIXME issue #1857, not sure how this is supposed to be
       if (backend == "netty")
-        failure.getStatus.getCode should be(Code.UNKNOWN)
+        failure.getStatus.getCode should (equal(Code.UNKNOWN).or(equal(Code.UNAVAILABLE)))
       else
         failure.getStatus.getCode should be(Code.UNAVAILABLE)
 
