@@ -4,6 +4,7 @@
 
 package akka.grpc.javadsl
 
+import java.time.Duration
 import java.util.concurrent.CompletionStage
 
 import akka.NotUsed
@@ -48,6 +49,12 @@ trait SingleResponseRequestBuilder[Req, Res] {
    * Invoke the gRPC method with the additional metadata added and provide access to response metadata
    */
   def invokeWithMetadata(request: Req): CompletionStage[GrpcSingleResponse[Res]]
+
+  /**
+   * Set the deadline for this call
+   * @return A new request builder, that will use the supplied deadline when invoked
+   */
+  def setDeadline(deadline: Duration): SingleResponseRequestBuilder[Req, Res]
 }
 
 /**
@@ -86,4 +93,10 @@ trait StreamResponseRequestBuilder[Req, Res] {
    * Invoke the gRPC method with the additional metadata added and provide access to response metadata
    */
   def invokeWithMetadata(request: Req): Source[Res, CompletionStage[GrpcResponseMetadata]]
+
+  /**
+   * Set the deadline for this call
+   * @return A new request builder, that will use the supplied deadline when invoked
+   */
+  def setDeadline(deadline: Duration): StreamResponseRequestBuilder[Req, Res]
 }

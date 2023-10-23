@@ -13,11 +13,15 @@ akkaGrpc {
 
 repositories {
   mavenLocal()
+  mavenCentral()
+  maven {
+    url "https://repo.akka.io/maven"
+  }
 }
 
-def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.12")
+def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
-def akkaVersion = "2.7.0"
+def akkaVersion = "2.9.0-M3"
 
 dependencies {
   implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '1.1.3'

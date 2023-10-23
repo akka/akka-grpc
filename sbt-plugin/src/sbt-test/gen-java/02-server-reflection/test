@@ -1,7 +1,7 @@
 > compile
 
-$ exists target/scala-2.12/akka-grpc
-$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloRequest.java
-$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/HelloReply.java
-$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.java
-$ exists target/scala-2.12/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClient.java
+$ exists target/scala-2.13/akka-grpc
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/HelloRequest.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/HelloReply.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClient.java

@@ -4,19 +4,22 @@ import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 import com.typesafe.tools.mima.core._
 import sbt.Keys.scalaVersion
+import com.geirsson.CiReleasePlugin
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
 lazy val mkBatAssemblyTask = taskKey[File]("Create a Windows bat assembly")
 
 // gradle plugin compatibility (avoid `+` in snapshot versions)
-(ThisBuild / dynverSeparator) := "-"
+ThisBuild / dynverSeparator := "-"
+// append -SNAPSHOT to version when isSnapshot
+ThisBuild / dynverSonatypeSnapshots := true
 
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.codegen)
   .settings(resolvers += Resolver.sbtPluginRepo("releases"))
   .settings(
@@ -39,7 +42,7 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
-    scalaVersion := scala212)
+    scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
@@ -48,6 +51,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(VersionGenerator.settings)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     mimaFailOnNoPrevious := true,
     mimaPreviousArtifacts :=
       (if (scalaVersion.value.startsWith("2"))
@@ -62,6 +66,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     Test / PB.targets += (scalapb.gen() -> (Test / sourceManaged).value))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .disablePlugins(CiReleasePlugin)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
@@ -86,11 +91,12 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
+  .disablePlugins(CiReleasePlugin)
 
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
   .enablePlugins(akka.grpc.SbtMavenPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.mavenPlugin)
   .settings(
     publishMavenStyle := true,
@@ -102,7 +108,7 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .enablePlugins(SbtPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.sbtPlugin)
   .settings(
     /** And for scripted tests: */
@@ -120,7 +126,7 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.interopTests)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
@@ -128,12 +134,15 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
   .pluginTestingSettings
   .settings(
     // All io.grpc servers want to bind to port :8080
-    parallelExecution := false,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
     // grpc-interop pulls in proto files with unfulfilled transitive deps it seems
-    PB.generate / excludeFilter := new SimpleFileFilter((f: File) => f.getParent.contains("envoy")),
+    // FIXME descriptor.proto is excluded because of EnumType issue https://github.com/scalapb/ScalaPB/issues/1557
+    PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
+      f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto") ||
+      f.getParent.contains("envoy")),
     PB.protocVersion := Dependencies.Versions.googleProtobuf,
     // This project should use 'publish/skip := true', but we need
     // to be able to `publishLocal` to run the interop tests as an
@@ -161,7 +170,7 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
 lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(runtime)
   .enablePlugins(JmhPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
@@ -172,14 +181,12 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
   .enablePlugins(SitePreviewPlugin, AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(
     name := "Akka gRPC",
     publish / skip := true,
-    makeSite := makeSite.dependsOn(LocalRootProject / ScalaUnidoc / doc).value,
     previewPath := (Paradox / siteSubdirName).value,
     Preprocess / siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
-    Preprocess / sourceDirectory := (LocalRootProject / ScalaUnidoc / unidoc / target).value,
     Paradox / siteSubdirName := s"docs/akka-grpc/${projectInfoVersion.value}",
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
@@ -199,6 +206,8 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
       "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
       "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
       "javadoc.akka.http.base_url" -> s"https://doc.akka.io/japi/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
+      // Akka Management
+      "extref.akka-management.base_url" -> s"https://doc.akka.io/docs/akka-management/current/%s",
       // Akka gRPC
       "scaladoc.akka.grpc.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
       "javadoc.akka.grpc.base_url" -> "" // @apidoc links to Scaladoc
@@ -212,31 +221,33 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.pluginTester)
   .settings(
     (publish / skip) := true,
     fork := true,
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
-    scalaVersion := scala212,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
   .pluginTestingSettings
 
 lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = file("plugin-tester-java"))
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.pluginTester)
   .settings(
     (publish / skip) := true,
     fork := true,
+    PB.protocVersion := Dependencies.Versions.googleProtobuf,
     ReflectiveCodeGen.generatedLanguages := Seq("Java"),
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
-    scalaVersion := scala212,
+    scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+    Test / parallelExecution := false,
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"))
   .pluginTestingSettings
 
 lazy val root = Project(id = "akka-grpc", base = file("."))
-  .enablePlugins(ScalaUnidocPlugin)
-  .disablePlugins(SitePlugin, MimaPlugin)
+  .disablePlugins(SitePlugin, MimaPlugin, CiReleasePlugin)
   .aggregate(
     runtime,
     codegen,
@@ -251,13 +262,6 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
   .settings(
     (publish / skip) := true,
     (Compile / headerCreate / unmanagedSources) := (baseDirectory.value / "project").**("*.scala").get,
-    // unidoc combines sources and jars from all subprojects and that
-    // might include some incompatible ones. Depending on the
-    // classpath order that might lead to scaladoc compilation errors.
-    // the scalapb compilerplugin has a scalapb/package$.class that conflicts
-    // with the one from the scalapb runtime, so for that reason we don't produce
-    // unidoc for the codegen projects:
-    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(runtime),
     // https://github.com/sbt/sbt/issues/3465
     // Libs and plugins must share a version. The root project must use that
     // version (and set the crossScalaVersions as empty list) so each sub-project

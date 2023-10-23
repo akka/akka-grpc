@@ -1,6 +1,6 @@
 scalaVersion := "3.3.1"
 
-resolvers += Resolver.sonatypeRepo("staging")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 scalacOptions += "-Xfatal-warnings"
 
@@ -8,5 +8,5 @@ enablePlugins(AkkaGrpcPlugin)
 
 libraryDependencies ++= Seq(
   // just to make sure it works with Scala 3 artifacts
-  "com.typesafe.akka" %% "akka-http" % "10.5.0",
+  "com.typesafe.akka" %% "akka-http" % "10.6.0-M2",
   "org.scalatest" %% "scalatest" % "3.2.12" % "test")

@@ -64,7 +64,7 @@ object Main extends App {
       ServiceHandler.concatOrNotFound(
         greeterPartial,
         echoPartial,
-        reflection),
+        reflection)
     //#server-reflection-manual-concat
 
 }

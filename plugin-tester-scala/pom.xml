@@ -11,48 +11,62 @@
   <version>0.1-SNAPSHOT</version>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.version>2.7.0</akka.version>
+    <maven.compiler.release>11</maven.compiler.release>
+    <akka.version>2.9.0-M3</akka.version>
     <akka.http.cors.version>0.4.2</akka.http.cors.version>
-    <grpc.version>1.54.2</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
+    <grpc.version>1.58.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>
-      <artifactId>akka-grpc-runtime_2.12</artifactId>
+      <artifactId>akka-grpc-runtime_2.13</artifactId>
       <version>${akka.grpc.project.version}</version>
     </dependency>
     <dependency>
       <groupId>ch.megard</groupId>
-      <artifactId>akka-http-cors_2.12</artifactId>
+      <artifactId>akka-http-cors_2.13</artifactId>
       <version>${akka.http.cors.version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-stream-testkit_2.12</artifactId>
+      <artifactId>akka-stream-testkit_2.13</artifactId>
       <version>${akka.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-actor-testkit-typed_2.12</artifactId>
+      <artifactId>akka-actor-testkit-typed_2.13</artifactId>
       <version>${akka.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-pki_2.12</artifactId>
+      <artifactId>akka-pki_2.13</artifactId>
       <version>${akka.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_2.12</artifactId>
+      <artifactId>scalatest_2.13</artifactId>
       <version>3.0.5</version>
       <scope>test</scope>
     </dependency>
@@ -67,6 +81,15 @@
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>

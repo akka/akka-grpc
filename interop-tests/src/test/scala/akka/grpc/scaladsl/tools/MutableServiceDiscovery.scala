@@ -27,7 +27,7 @@ final class MutableServiceDiscovery(targets: List[InetSocketAddress]) extends Se
     services = Future.successful(
       Resolved(
         "greeter",
-        targets.map(target => ResolvedTarget(target.getHostString, Some(target.getPort), Some(target.getAddress)))))
+        targets.map(target => ResolvedTarget(target.getHostString, Some(target.getPort), Option(target.getAddress)))))
 
   override def lookup(query: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = {
     require(query.serviceName == "greeter")

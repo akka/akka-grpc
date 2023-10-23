@@ -61,7 +61,8 @@ object AkkaHttpClientUtils {
     val clientConnectionSettings =
       ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, _) => {
         settings.overrideAuthority.foreach { authority =>
-          assert(host == authority)
+          if (host != authority)
+            throw new IllegalArgumentException(s"Unexpected host [$host], expected authority [$authority]")
         }
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
           // quasi-roundrobin is nicer than random selection: somewhat lower chance of making

@@ -12,9 +12,11 @@ sbt
 :   @@@vars
     ```scala
     // in project/plugins.sbt:
+    resolvers += "Akka library repository".at("https://repo.akka.io/maven")
     addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
     //
     // in build.sbt:
+    resolvers += "Akka library repository".at("https://repo.akka.io/maven")
     enablePlugins(AkkaGrpcPlugin)
     ```
     @@@
@@ -26,6 +28,9 @@ Gradle
       repositories {
         mavenLocal()
         gradlePluginPortal()
+        maven {
+          url "https://repo.akka.io/maven"
+        }
       }
       dependencies {
         // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
@@ -41,6 +46,9 @@ Gradle
     repositories {
       mavenLocal()
       mavenCentral()
+      maven {
+        url "https://repo.akka.io/maven"
+      }
     }
     ```
     @@@
@@ -55,16 +63,28 @@ Maven
       <artifactId>my-grpc-app</artifactId>
       <version>0.1-SNAPSHOT</version>
       <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <akka.grpc.version>$project.version$</akka.grpc.version>
         <grpc.version>$grpc.version$</grpc.version>
         <project.encoding>UTF-8</project.encoding>
       </properties>
+      <repositories>
+        <repository>
+          <id>akka-repository</id>
+          <name>Akka library repository</name>
+          <url>https://repo.akka.io/maven</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>akka-repository</id>
+          <name>Akka library repository</name>
+          <url>https://repo.akka.io/maven</url>
+        </pluginRepository>
+      </pluginRepositories>
       <dependencies>
         <dependency>
           <groupId>com.lightbend.akka.grpc</groupId>
-          <artifactId>akka-grpc-runtime_2.12</artifactId>
+          <artifactId>akka-grpc-runtime_2.13</artifactId>
           <version>${akka.grpc.version}</version>
         </dependency>
       </dependencies>
@@ -129,10 +149,10 @@ mvn akka-grpc:generate
 From the above definition, Akka gRPC generates interfaces that look like this:
 
 Scala
-:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
+:  @@snip [helloworld.proto](/plugin-tester-scala/target/scala-2.13/src_managed/main/example/myapp/helloworld/grpc/GreeterService.scala)
 
 Java
-:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.12/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
+:  @@snip [helloworld.proto](/plugin-tester-java/target/scala-2.13/src_managed/main/example/myapp/helloworld/grpc/GreeterService.java)
 
 and model @scala[case ]classes for `HelloRequest` and `HelloResponse`.
 
@@ -220,9 +240,6 @@ Java
 methods to create partial functions that are combined by `concatOrNotFound`.]
 
 ## Running the server
-
-To run the server with HTTP/2 using HTTPS on a JVM prior to version 1.8.0_251, you will likely have to configure the Jetty ALPN
-agent as described [in the Akka HTTP documentation](https://doc.akka.io/docs/akka-http/10.1/server-side/http2.html#application-layer-protocol-negotiation-alpn-). Later JVM versions have this support built-in.
 
 See the detailed chapters on @ref[sbt](../buildtools/sbt.md#starting-your-akka-grpc-server-from-sbt), @ref[Gradle](../buildtools/gradle.md#starting-your-akka-grpc-server-from-gradle)
 and @ref[Maven](../buildtools/maven.md#starting-your-akka-grpc-server-from-maven) for details on adding the agent.

@@ -9,7 +9,6 @@ import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtprotoc.ProtocPlugin.autoImport.PB
 import xerial.sbt.Sonatype
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
@@ -23,7 +22,7 @@ object Common extends AutoPlugin {
       organization := "com.lightbend.akka.grpc",
       organizationName := "Lightbend Inc.",
       organizationHomepage := Some(url("https://www.lightbend.com/")),
-      resolvers ++= Resolver.sonatypeOssRepos("staging"), // makes testing HTTP releases early easier
+      resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
       homepage := Some(url("https://akka.io/")),
       scmInfo := Some(ScmInfo(url("https://github.com/akka/akka-grpc"), "git@github.com:akka/akka-grpc")),
       developers += Developer(
@@ -46,10 +45,9 @@ object Common extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     projectInfoVersion := (if (isSnapshot.value) "snapshot" else version.value),
-    sonatypeProfileName := "com.lightbend",
     scalacOptions ++= Seq(
       "-release",
-      "8",
+      "11",
       "-unchecked",
       "-deprecation",
       "-language:_",
@@ -84,10 +82,7 @@ object Common extends AutoPlugin {
          Seq.empty
        }),
     Compile / console / scalacOptions ~= (_.filterNot(consoleDisabledOptions.contains)),
-    javacOptions ++= (
-      if (isJdk8) Seq("-Xlint:unchecked", "-Xlint:deprecation")
-      else Seq("-Xlint:unchecked", "-Xlint:deprecation", "--release", "8")
-    ),
+    javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "--release", "11"),
     Compile / doc / scalacOptions :=
       scalacOptions.value ++
       Seq(
@@ -120,6 +115,10 @@ object Common extends AutoPlugin {
     mimaReportSignatureProblems := true,
     scalafmtOnCompile := true)
 
-  private def isJdk8 =
-    VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(s"=1.8"))
+  val isJdk11orHigher: Boolean = {
+    val result = VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(">=11"))
+    if (!result)
+      throw new IllegalArgumentException("JDK 11 or higher is required")
+    result
+  }
 }
