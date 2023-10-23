@@ -14,7 +14,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.3")
 addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.31")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.5")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.6")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.12")
 
 // docs
