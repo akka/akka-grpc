@@ -12,7 +12,7 @@
 
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
-    <akka.version>2.9.0-M3</akka.version>
+    <akka.version>2.9.0</akka.version>
     <akka.http.cors.version>0.4.2</akka.http.cors.version>
     <grpc.version>1.58.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
