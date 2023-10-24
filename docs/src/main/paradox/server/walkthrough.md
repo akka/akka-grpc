@@ -24,27 +24,34 @@ sbt
 Gradle
 :   @@@vars
     ```gradle
-    buildscript {
+    // settings.gradle
+    pluginManagement {
       repositories {
-        mavenLocal()
         gradlePluginPortal()
         maven {
           url "https://repo.akka.io/maven"
         }
       }
-      dependencies {
-        // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
-        // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
+      plugins {
+        id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
+      }
+    }
+    
+    // build.gradle
+    buildscript {
+      repositories {
+        gradlePluginPortal()
+        maven {
+          url "https://repo.akka.io/maven"
+        }
       }
     }
     plugins {
       id 'java'
       id 'application'
+      id 'com.lightbend.akka.grpc.gradle'
     }
-    apply plugin: 'com.lightbend.akka.grpc.gradle'
     repositories {
-      mavenLocal()
       mavenCentral()
       maven {
         url "https://repo.akka.io/maven"
