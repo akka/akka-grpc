@@ -13,7 +13,7 @@ By default both client and server are generated and Java or Scala is autodetecte
 
 ### Installation
 
-Follow the initial instructions in [client walkthrough](../client/walkthrough.md) or [server walkthrough](../client/walkthrough.md) to set the plugin up.
+Follow the initial instructions in [client walkthrough](../client/walkthrough.md) or [server walkthrough](../server/walkthrough.md) to set the plugin up.
 
 ### Available plugin options
 
