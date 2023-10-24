@@ -26,19 +26,39 @@ enablePlugins(AkkaGrpcPlugin)
 Gradle
 :  @@@vars
 ```gradle
+// settings.gradle
+pluginManagement {
+  repositories {
+    gradlePluginPortal()
+    maven {
+      url "https://repo.akka.io/maven"
+    }
+  }
+  plugins {
+    id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
+  }
+}
+
+// build.gradle
 buildscript {
-  dependencies {
-    // version here is a placeholder,
-    // it is replaced with a project dependency during integration tests
-    // by adding --include-build <path> to gradlew
-    classpath 'com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
+  repositories {
+    gradlePluginPortal()
+    maven {
+      url "https://repo.akka.io/maven"
+    }
   }
 }
 plugins {
   id 'java'
   id 'application'
+  id 'com.lightbend.akka.grpc.gradle'
 }
-apply plugin: 'com.lightbend.akka.grpc.gradle'
+repositories {
+  mavenCentral()
+  maven {
+    url "https://repo.akka.io/maven"
+  }
+}
 ```
 @@@
 
