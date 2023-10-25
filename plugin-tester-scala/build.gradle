@@ -1,5 +1,5 @@
 // Note: this setup is special to be able to run in CI using the akka-grpc build
-//       for a regulad gradle config for consumer projects look at docs and quickstarts
+//       for a regular gradle config for consumer projects look at docs and quickstarts
 buildscript {
   ext {
     if (!System.getProperty('akka.grpc.project.version')) {
