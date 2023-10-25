@@ -26,20 +26,6 @@ enablePlugins(AkkaGrpcPlugin)
 Gradle
 :  @@@vars
 ```gradle
-// settings.gradle
-pluginManagement {
-  repositories {
-    gradlePluginPortal()
-    maven {
-      url "https://repo.akka.io/maven"
-    }
-  }
-  plugins {
-    id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
-  }
-}
-
-// build.gradle
 buildscript {
   repositories {
     gradlePluginPortal()
@@ -51,7 +37,7 @@ buildscript {
 plugins {
   id 'java'
   id 'application'
-  id 'com.lightbend.akka.grpc.gradle'
+  id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
 }
 repositories {
   mavenCentral()
