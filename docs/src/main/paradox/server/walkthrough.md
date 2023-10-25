@@ -26,25 +26,18 @@ Gradle
     ```gradle
     buildscript {
       repositories {
-        mavenLocal()
         gradlePluginPortal()
         maven {
           url "https://repo.akka.io/maven"
         }
       }
-      dependencies {
-        // see https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle
-        // for the currently latest version.
-        classpath 'gradle.plugin.com.lightbend.akka.grpc:akka-grpc-gradle-plugin:$project.version$'
-      }
     }
     plugins {
       id 'java'
       id 'application'
+      id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
     }
-    apply plugin: 'com.lightbend.akka.grpc.gradle'
     repositories {
-      mavenLocal()
       mavenCentral()
       maven {
         url "https://repo.akka.io/maven"

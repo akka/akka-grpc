@@ -13,7 +13,7 @@ By default both client and server are generated and Java or Scala is autodetecte
 
 ### Installation
 
-Follow instructions at [Gradle plugin portal](https://plugins.gradle.org/plugin/com.lightbend.akka.grpc.gradle) to apply plugin.
+Follow the initial instructions in @ref[client walkthrough](../client/walkthrough.md) or @ref[server walkthrough](../server/walkthrough.md) to set the plugin up.
 
 ### Available plugin options
 
