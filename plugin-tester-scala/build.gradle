@@ -1,5 +1,22 @@
+// Note: this setup is special to be able to run in CI using the akka-grpc build
+//       for a regulad gradle config for consumer projects look at docs and quickstarts
+buildscript {
+  ext {
+    if (!System.getProperty('akka.grpc.project.version')) {
+      throw new GradleException("System property `akka.grpc.project.version` is not provided. Use -Dakka.grpc.project.version=\$VERSION.")
+    }
+    akkaGrpcVersion = System.getProperty('akka.grpc.project.version')
+  }
+  repositories {
+    mavenLocal()
+    gradlePluginPortal()
+    maven {
+      url "https://repo.akka.io/maven"
+    }
+  }
+}
 plugins {
-  id 'com.lightbend.akka.grpc.gradle'
+  id 'com.lightbend.akka.grpc.gradle' version "${akkaGrpcVersion}"
 }
 
 akkaGrpc {
