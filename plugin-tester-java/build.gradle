@@ -17,9 +17,8 @@ buildscript {
 }
 plugins {
   id 'scala'
-  id 'com.lightbend.akka.grpc.gradle'
+  id 'com.lightbend.akka.grpc.gradle' version "${akkaGrpcVersion}"
 }
-
 akkaGrpc {
   generateClient = true
   generateServer = true
