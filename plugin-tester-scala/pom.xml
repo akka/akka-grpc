@@ -17,7 +17,7 @@
     <grpc.version>1.60.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <protobuf-java.version>3.22.2</protobuf-java.version>
-    <proto-google-common-protos.version>2.16.0</proto-google-common-protos.version>
+    <proto-google-common-protos.version>2.23.0</proto-google-common-protos.version>
   </properties>
 
   <repositories>
@@ -48,7 +48,7 @@
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-actor-typed_2.12</artifactId>
+      <artifactId>akka-actor-typed_2.13</artifactId>
       <version>${akka.version}</version>
     </dependency>
 
