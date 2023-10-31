@@ -2,7 +2,6 @@ import akka.grpc.Dependencies
 import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions.*
 import akka.grpc.build.ReflectiveCodeGen
-import com.typesafe.tools.mima.core.*
 import sbt.Keys.scalaVersion
 import com.geirsson.CiReleasePlugin
 import com.typesafe.sbt.site.util.SiteHelpers
@@ -178,7 +177,7 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     (publish / skip) := true)
 
 // Config to allow only building scaladocs for runtime module but in/from the docs module
-val Runtime = config("runtime")
+val AkkaGrpcRuntime = config("akkaGrpcRuntime")
 
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
@@ -232,11 +231,11 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .settings(
     // only the publish API docs for the runtime, inlined instead of using SiteScaladocPlugin.scaladocSettings
     // to be able to reference the `projectInfoVersion` in the sub dir path
-    inConfig(Runtime)(
+    inConfig(AkkaGrpcRuntime)(
       Seq(
         siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
         mappings := (runtime / Compile / packageDoc / mappings).value)) ++
-    SiteHelpers.addMappingsToSiteDir(Runtime / mappings, Runtime / siteSubdirName))
+    SiteHelpers.addMappingsToSiteDir(AkkaGrpcRuntime / mappings, AkkaGrpcRuntime / siteSubdirName))
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
   .disablePlugins(MimaPlugin, CiReleasePlugin)
