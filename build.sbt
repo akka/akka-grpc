@@ -2,9 +2,9 @@ import akka.grpc.Dependencies
 import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
-import com.typesafe.tools.mima.core._
 import sbt.Keys.scalaVersion
 import com.geirsson.CiReleasePlugin
+import com.typesafe.sbt.site.util.SiteHelpers
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
@@ -176,11 +176,20 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     (publish / skip) := true)
 
+// Config to allow only building scaladocs for runtime module but in/from the docs module
+val AkkaGrpcRuntime = config("akkaGrpcRuntime")
+
 lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
 // Make sure code generation is ran:
   .dependsOn(pluginTesterScala)
   .dependsOn(pluginTesterJava)
-  .enablePlugins(SitePreviewPlugin, AkkaParadoxPlugin, ParadoxSitePlugin, PreprocessPlugin, PublishRsyncPlugin)
+  .enablePlugins(
+    SitePreviewPlugin,
+    AkkaParadoxPlugin,
+    ParadoxSitePlugin,
+    PreprocessPlugin,
+    PublishRsyncPlugin,
+    SiteScaladocPlugin)
   .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(
     name := "Akka gRPC",
@@ -219,6 +228,14 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
   .settings(
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head)
+  .settings(
+    // only the publish API docs for the runtime, inlined instead of using SiteScaladocPlugin.scaladocSettings
+    // to be able to reference the `projectInfoVersion` in the sub dir path
+    inConfig(AkkaGrpcRuntime)(
+      Seq(
+        siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
+        mappings := (runtime / Compile / packageDoc / mappings).value)) ++
+    SiteHelpers.addMappingsToSiteDir(AkkaGrpcRuntime / mappings, AkkaGrpcRuntime / siteSubdirName))
 
 lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base = file("plugin-tester-scala"))
   .disablePlugins(MimaPlugin, CiReleasePlugin)
