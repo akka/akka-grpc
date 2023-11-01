@@ -61,4 +61,8 @@ For minor or major releases:
 - [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies)
 - [ ] Update [Akka Guide samples](https://github.com/akka/akka-platform-guide)
 - [ ] Update [Akka Projection gRPC samples](https://github.com/akka/akka-projection/tree/main/samples/grpc)
+- [ ] Update quickstarts:
+  - [ ] [Akka gRPC Java](https://github.com/akka/akka-grpc-quickstart-java.g8/blob/main/src/main/g8/default.properties)
+  - [ ] [Akka gRPC Scala](https://github.com/akka/akka-grpc-quickstart-scala.g8/blob/main/src/main/g8/default.properties)
+
 - Close this issue
