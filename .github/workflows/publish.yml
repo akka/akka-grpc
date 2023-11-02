@@ -10,7 +10,7 @@ jobs:
   sbt:
     name: sbt publish
     runs-on: ubuntu-22.04
-    if: github.repository == 'akka/akka-grpc'
+    if: github.event.repository.fork == false
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
@@ -58,16 +58,13 @@ jobs:
   documentation:
     name: Documentation
     runs-on: ubuntu-22.04
-    if: github.repository == 'akka/akka-grpc'
+    if: github.event.repository.fork == false
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
-
-      - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.4.0
 
       - name: Set up JDK 11
         uses: coursier/setup-action@v1.3.0
@@ -77,9 +74,10 @@ jobs:
       - name: Publish
         run: |-
           eval "$(ssh-agent -s)"
-          echo $SCP_SECRET | base64 -d > /tmp/id_rsa
-          chmod 600 /tmp/id_rsa
-          ssh-add /tmp/id_rsa
-          sbt akka-grpc-docs/publishRsync
+          echo $AKKA_RSYNC_GUSTAV | base64 -d > .github/id_rsa
+          chmod 600 .github/id_rsa
+          ssh-add .github/id_rsa
+          # using Scala 2.13 here to avoid the infamous problem with missing AskSupport in classpath
+          sbt -Dakka.genjavadoc.enabled=true publishRsync
         env:
-          SCP_SECRET: ${{ secrets.SCP_SECRET }}
+          AKKA_RSYNC_GUSTAV: ${{ secrets.AKKA_RSYNC_GUSTAV }}
