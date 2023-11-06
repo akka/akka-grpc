@@ -29,4 +29,4 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.2.2023062
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.13"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.14"
