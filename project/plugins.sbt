@@ -8,7 +8,7 @@ addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.3")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
-addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.5.2")
+addSbtPlugin("com.typesafe.play" % "sbt-twirl" % "1.6.2")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.4")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
@@ -29,4 +29,4 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.2.2023062
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.13"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.14"
