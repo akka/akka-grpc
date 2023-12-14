@@ -12,6 +12,7 @@ import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.GrpcResponseMetadata
+import akka.grpc.GrpcServiceException
 import akka.grpc.GrpcSingleResponse
 import akka.grpc.ProtobufSerializer
 import akka.grpc.scaladsl.StringEntry
@@ -163,7 +164,13 @@ object AkkaHttpClientUtils {
 
     def singleRequest(request: HttpRequest): Future[HttpResponse] = {
       val p = Promise[HttpResponse]()
-      queue.offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p))).flatMap(_ => p.future)
+      queue.offer(request.addAttribute(ResponsePromise.Key, ResponsePromise(p))).flatMap(_ => p.future).recover {
+        case ex: RuntimeException if ex.getMessage.contains("Connection failed") =>
+          throw new GrpcServiceException(
+            Status.UNAVAILABLE
+              .withCause(ex)
+              .withDescription(s"Connection to ${settings.serviceName}:${settings.defaultPort} failed"))
+      }
     }
 
     def serializerFromMethodDescriptor[I, O](descriptor: MethodDescriptor[I, O]): ProtobufSerializer[I] =

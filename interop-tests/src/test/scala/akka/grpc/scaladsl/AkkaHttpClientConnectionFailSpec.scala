@@ -5,11 +5,12 @@
 package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
-import akka.grpc.GrpcClientSettings
+import akka.grpc.{ GrpcClientSettings, GrpcServiceException }
 import akka.http.scaladsl.model.HttpResponse
 import akka.testkit.TestKit
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc.helloworld.{ GreeterServiceClient, HelloRequest }
+import io.grpc.Status
 import org.scalatest.Inspectors.forAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -45,13 +46,19 @@ class AkkaHttpClientConnectionFailSpec
       }
       // all should be failed
       import system.dispatcher
-      // FIXME the first one in the pipe is still not failed :/ needs a fix in Akka HTTP
-      val lifted = Future.sequence(futures.tail.map(_.map(Success(_)).recover {
+      val lifted = Future.sequence(futures.map(_.map(Success(_)).recover {
         case th: Throwable => Failure[HttpResponse](th)
       }))
       val results = lifted.futureValue(timeout(5.seconds))
       forAll(results) { it =>
         it.isFailure should be(true)
+        it.failed.get match {
+          case ex: GrpcServiceException =>
+            ex.status.getCode shouldBe (Status.Code.UNAVAILABLE)
+          case unexpected =>
+            unexpected.printStackTrace()
+            fail(s"Exception ${unexpected} was not a GrpcServiceException")
+        }
       }
     }
   }
