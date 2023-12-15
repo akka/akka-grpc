@@ -14,6 +14,7 @@ import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Source
 import akka.Done
 import akka.NotUsed
+import akka.actor.ActorSystem
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
@@ -48,7 +49,8 @@ object NettyClientUtils {
    */
   @InternalApi
   def createChannel(settings: GrpcClientSettings, log: LoggingAdapter)(
-      implicit ec: ExecutionContext): InternalChannel = {
+      implicit ec: ExecutionContext,
+      system: ActorSystem): InternalChannel = {
 
     @nowarn("msg=deprecated")
     var builder =
@@ -66,7 +68,8 @@ object NettyClientUtils {
             settings.serviceName,
             settings.servicePortName,
             settings.serviceProtocol,
-            settings.resolveTimeout))
+            settings.resolveTimeout,
+            settings.discoveryRefreshInterval))
 
     if (!settings.useTls)
       builder = builder.usePlaintext()

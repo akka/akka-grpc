@@ -15,10 +15,12 @@ import com.typesafe.config.{ Config, ConfigValueFactory }
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
-import javax.net.ssl.{ SSLContext, TrustManager }
 
+import java.util.Optional
+import javax.net.ssl.{ SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
+import scala.jdk.OptionConverters.RichOptional
 
 object GrpcClientSettings {
 
@@ -148,7 +150,9 @@ object GrpcClientSettings {
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
       getOptionalString(clientConfiguration, "load-balancing-policy"),
-      clientConfiguration.getString("backend"))
+      clientConfiguration.getString("backend"),
+      identity,
+      getOptionalDuration(clientConfiguration, "discovery.refresh-interval"))
 
   private def getOptionalString(config: Config, path: String): Option[String] =
     config.getString(path) match {
@@ -160,6 +164,12 @@ object GrpcClientSettings {
     config.getInt(path) match {
       case -1    => None // retry forever
       case other => Some(other)
+    }
+
+  private def getOptionalDuration(config: Config, path: String): Option[FiniteDuration] =
+    config.getString(path) match {
+      case "off" => None
+      case _     => Some(config.getDuration(path).asScala)
     }
 
   private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration =
@@ -196,7 +206,8 @@ final class GrpcClientSettings private (
     val useTls: Boolean,
     val loadBalancingPolicy: Option[String],
     val backend: String,
-    val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity) {
+    val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity,
+    val discoveryRefreshInterval: Option[FiniteDuration]) {
   require(
     sslContext.isEmpty || trustManager.isEmpty,
     "Configuring the sslContext or the trustManager is mutually exclusive")
@@ -284,6 +295,28 @@ final class GrpcClientSettings private (
   def withBackend(value: String): GrpcClientSettings =
     copy(backend = value)
 
+  /**
+   * Scala API: Set this to a duration to trigger periodic refresh of the resolved endpoints, evicting cached entries
+   * if the discovery mechanism supports that. The default value `None` disables periodic refresh and instead
+   * only does refresh when the client implementation decides to.
+   *
+   * Currently only supported by the Netty client backend.
+   */
+  @ApiMayChange
+  def withDiscoveryRefreshInterval(refreshInterval: Option[FiniteDuration]): GrpcClientSettings =
+    copy(discoveryRefreshInterval = refreshInterval)
+
+  /**
+   * Java API: Set this to a duration to trigger periodic refresh of the resolved endpoints, evicting cached entries
+   * if the discovery mechanism supports that. The default value `None` disables periodic refresh and instead
+   * only does refresh when the client implementation decides to.
+   *
+   * Currently only supported by the Netty client backend.
+   */
+  @ApiMayChange
+  def withDiscoveryRefreshInterval(refreshInterval: Optional[java.time.Duration]): GrpcClientSettings =
+    copy(discoveryRefreshInterval = refreshInterval.map(_.asScala).toScala)
+
   private def copy(
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
@@ -301,8 +334,8 @@ final class GrpcClientSettings private (
       connectionAttempts: Option[Int] = connectionAttempts,
       loadBalancingPolicy: Option[String] = loadBalancingPolicy,
       backend: String = backend,
-      channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides)
-      : GrpcClientSettings =
+      channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides,
+      discoveryRefreshInterval: Option[FiniteDuration] = discoveryRefreshInterval): GrpcClientSettings =
     new GrpcClientSettings(
       callCredentials = callCredentials,
       serviceDiscovery = serviceDiscovery,
@@ -321,5 +354,6 @@ final class GrpcClientSettings private (
       connectionAttempts = connectionAttempts,
       loadBalancingPolicy = loadBalancingPolicy,
       backend = backend,
-      channelBuilderOverrides = channelBuilderOverrides)
+      channelBuilderOverrides = channelBuilderOverrides,
+      discoveryRefreshInterval = discoveryRefreshInterval)
 }
