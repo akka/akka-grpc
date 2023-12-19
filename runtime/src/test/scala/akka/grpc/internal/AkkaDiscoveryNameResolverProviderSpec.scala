@@ -54,7 +54,8 @@ class AkkaDiscoveryNameResolverProviderSpec
         serviceName = serviceName,
         portName = None,
         protocol = None,
-        resolveTimeout = 3.seconds)
+        resolveTimeout = 3.seconds,
+        None)
 
       val resolver = provider.newNameResolver(new URI("//" + serviceName), null)
 
