@@ -152,7 +152,7 @@ object GrpcClientSettings {
       getOptionalString(clientConfiguration, "load-balancing-policy"),
       clientConfiguration.getString("backend"),
       identity,
-      getOptionalDuration(clientConfiguration, "discovery.refresh-interval"))
+      getOptionalDuration(clientConfiguration, "service-discovery.refresh-interval"))
 
   private def getOptionalString(config: Config, path: String): Option[String] =
     config.getString(path) match {
