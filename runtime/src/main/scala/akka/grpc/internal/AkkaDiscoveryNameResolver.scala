@@ -35,7 +35,7 @@ private[akka] final class AkkaDiscoveryNameResolver(
     refreshInterval: Option[FiniteDuration])(implicit val ec: ExecutionContext, system: ActorSystem)
     extends NameResolver {
 
-  private final val log = Logging(system, getClass)
+  private final val log = Logging(system, "akka.grpc.internal.AkkaDiscoveryNameResolver")
 
   override def getServiceAuthority: String = serviceName
 
