@@ -217,12 +217,12 @@ jobs:
       - name: Test Maven Java
         run: |-
           cd plugin-tester-java
-          mvn -Dakka.grpc.project.version=`cat ~/.version` compile
+          mvn -nsu -ntp -Dakka.grpc.project.version=`cat ~/.version` compile
 
       - name: Test Maven Scala
         run: |-
           cd plugin-tester-scala
-          mvn -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate scala:compile
+          mvn -nsu -ntp -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate scala:compile
 
   test-docs:
     name: Docs
