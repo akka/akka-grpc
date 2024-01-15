@@ -55,8 +55,8 @@ object NettyClientUtils {
       NettyChannelBuilder
         // Used to be the way to pass the service name to the name resolver but
         // Since grpc-core 1.60.0 Netty does no longer seem to pass the authority along, so we do that
-        // ourselves below (channel builder is not shared between different clients anyway)
-        .forTarget("///placeholder-not-actually-used")
+        // ourselves below (channel builder is not shared between different clients anyway).
+        .forTarget(s"//${settings.serviceName}")
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
         // TODO avoid nameResolverFactory #1092, then 'nowarn' can be removed above
         .nameResolverFactory(
