@@ -4,33 +4,38 @@
 
 package akka.grpc.internal
 
-import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
-import akka.{ Done, NotUsed }
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
-import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse }
-import akka.stream.scaladsl.{ Flow, Keep, Source }
-import io.grpc.{ CallOptions, MethodDescriptor }
+import akka.grpc.GrpcClientSettings
+import akka.grpc.GrpcResponseMetadata
+import akka.grpc.GrpcSingleResponse
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Source
+import akka.Done
+import akka.NotUsed
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.{
-  Protocol,
-  SelectedListenerFailureBehavior,
-  SelectorFailureBehavior
-}
-import io.grpc.netty.shaded.io.netty.handler.ssl.{
-  ApplicationProtocolConfig,
-  ApplicationProtocolNames,
-  SslContext,
-  SslContextBuilder
-}
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.Protocol
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectedListenerFailureBehavior
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectorFailureBehavior
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNames
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
+import io.grpc.CallOptions
+import io.grpc.MethodDescriptor
 
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
 import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future, Promise }
-import scala.util.{ Failure, Success }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * INTERNAL API
@@ -48,15 +53,17 @@ object NettyClientUtils {
     @nowarn("msg=deprecated")
     var builder =
       NettyChannelBuilder
-        // Not sure why netty wants to be able to shoe-horn the target into a URI... but ok,
-        // we follow their lead and encode the service name as the 'authority' of the URI.
-        .forTarget("//" + settings.serviceName)
+        // Used to be the way to pass the service name to the name resolver but
+        // Since grpc-core 1.60.0 Netty does no longer seem to pass the authority along, so we do that
+        // ourselves below (channel builder is not shared between different clients anyway)
+        .forTarget("///placeholder-not-actually-used")
         .flowControlWindow(NettyChannelBuilder.DEFAULT_FLOW_CONTROL_WINDOW)
         // TODO avoid nameResolverFactory #1092, then 'nowarn' can be removed above
         .nameResolverFactory(
           new AkkaDiscoveryNameResolverProvider(
             settings.serviceDiscovery,
             settings.defaultPort,
+            settings.serviceName,
             settings.servicePortName,
             settings.serviceProtocol,
             settings.resolveTimeout))
@@ -177,7 +184,9 @@ object NettyClientUtils {
    */
   @InternalApi
   private def createNettySslContext(javaSslContext: SSLContext): SslContext = {
-    import io.grpc.netty.shaded.io.netty.handler.ssl.{ ClientAuth, IdentityCipherSuiteFilter, JdkSslContext }
+    import io.grpc.netty.shaded.io.netty.handler.ssl.ClientAuth
+    import io.grpc.netty.shaded.io.netty.handler.ssl.IdentityCipherSuiteFilter
+    import io.grpc.netty.shaded.io.netty.handler.ssl.JdkSslContext
     // See
     // https://github.com/netty/netty/blob/4.1/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java#L229-L309
     val apn = new ApplicationProtocolConfig(
