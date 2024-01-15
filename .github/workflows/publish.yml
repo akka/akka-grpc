@@ -39,7 +39,8 @@ jobs:
   gradle-plugin:
     name: Release gradle plugin
     runs-on: ubuntu-22.04
-    if: github.repository == 'akka/akka-grpc'
+    # only on tagged release, not snapshot
+    if: github.repository == 'akka/akka-grpc' && startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0

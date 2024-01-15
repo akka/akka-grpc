@@ -28,11 +28,11 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.24.0" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.23.0"
+    val googleApi = "2.30.0"
 
     val scalaTest = "3.2.12"
 
-    val maven = "3.9.5"
+    val maven = "3.9.6"
   }
 
   object Compile {
@@ -81,7 +81,7 @@ object Dependencies {
   }
 
   object Runtime {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.2.12" % "runtime" // Eclipse 1.0
+    val logback = "ch.qos.logback" % "logback-classic" % "1.2.13" % "runtime" // Eclipse 1.0
   }
 
   object Protobuf {
