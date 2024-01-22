@@ -1,0 +1,2 @@
+# internal API
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.AkkaDiscoveryNameResolverProvider.this")

@@ -51,6 +51,7 @@ class AkkaDiscoveryNameResolverProviderSpec
       val provider = new AkkaDiscoveryNameResolverProvider(
         discovery,
         443,
+        serviceName = serviceName,
         portName = None,
         protocol = None,
         resolveTimeout = 3.seconds)

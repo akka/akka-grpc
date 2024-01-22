@@ -15,6 +15,7 @@ import scala.concurrent.duration.FiniteDuration
 class AkkaDiscoveryNameResolverProvider(
     discovery: ServiceDiscovery,
     defaultPort: Int,
+    serviceName: String,
     portName: Option[String],
     protocol: Option[String],
     resolveTimeout: FiniteDuration)(implicit ec: ExecutionContext)
@@ -26,7 +27,6 @@ class AkkaDiscoveryNameResolverProvider(
   override def getDefaultScheme: String = "http"
 
   override def newNameResolver(targetUri: URI, args: NameResolver.Args): AkkaDiscoveryNameResolver = {
-    require(targetUri.getAuthority != null, s"target uri should not have null authority, got [$targetUri]")
-    new AkkaDiscoveryNameResolver(discovery, defaultPort, targetUri.getAuthority, portName, protocol, resolveTimeout)
+    new AkkaDiscoveryNameResolver(discovery, defaultPort, serviceName, portName, protocol, resolveTimeout)
   }
 }
