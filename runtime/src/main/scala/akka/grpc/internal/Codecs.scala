@@ -25,11 +25,8 @@ object Codecs {
    * @return a codec to compress data frame bodies with, which will be [[Identity]] unless the client specifies support for another supported encoding.
    */
   def negotiate(request: jm.HttpRequest): Codec = {
-    val accepted: Array[String] =
-      request.asInstanceOf[sm.HttpMessage].header[`Message-Accept-Encoding`] match {
-        case Some(h) => h.values
-        case None    => Array.empty
-      }
+    // DO NOT USE request.header[`Message-Accept-Encoding`], as that doesn't work for custom headers
+    val accepted = `Message-Accept-Encoding`.findIn(request.asInstanceOf[sm.HttpMessage].headers)
 
     if (accepted.length == 0) {
       Identity
