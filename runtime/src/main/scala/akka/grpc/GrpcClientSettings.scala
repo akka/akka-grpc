@@ -16,11 +16,9 @@ import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 
-import java.util.Optional
 import javax.net.ssl.{ SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
-import scala.jdk.OptionConverters.RichOptional
 
 object GrpcClientSettings {
 
@@ -167,7 +165,7 @@ object GrpcClientSettings {
     }
 
   private def getOptionalDuration(config: Config, path: String): Option[FiniteDuration] =
-    config.getString(path) match {
+    Helpers.toRootLowerCase(config.getString(path)) match {
       case "off" => None
       case _     => Some(config.getDuration(path).asScala)
     }
@@ -297,25 +295,25 @@ final class GrpcClientSettings private (
 
   /**
    * Scala API: Set this to a duration to trigger periodic refresh of the resolved endpoints, evicting cached entries
-   * if the discovery mechanism supports that. The default value `None` disables periodic refresh and instead
-   * only does refresh when the client implementation decides to.
+   * if the discovery mechanism supports that. The default is no periodic refresh and instead
+   * * only does refresh when the client implementation decides to.
    *
    * Currently only supported by the Netty client backend.
    */
   @ApiMayChange
-  def withDiscoveryRefreshInterval(refreshInterval: Option[FiniteDuration]): GrpcClientSettings =
-    copy(discoveryRefreshInterval = refreshInterval)
+  def withDiscoveryRefreshInterval(refreshInterval: FiniteDuration): GrpcClientSettings =
+    copy(discoveryRefreshInterval = Some(refreshInterval))
 
   /**
    * Java API: Set this to a duration to trigger periodic refresh of the resolved endpoints, evicting cached entries
-   * if the discovery mechanism supports that. The default value `None` disables periodic refresh and instead
+   * if the discovery mechanism supports that. The default is no periodic refresh and instead
    * only does refresh when the client implementation decides to.
    *
    * Currently only supported by the Netty client backend.
    */
   @ApiMayChange
-  def withDiscoveryRefreshInterval(refreshInterval: Optional[java.time.Duration]): GrpcClientSettings =
-    copy(discoveryRefreshInterval = refreshInterval.map(_.asScala).toScala)
+  def withDiscoveryRefreshInterval(refreshInterval: java.time.Duration): GrpcClientSettings =
+    copy(discoveryRefreshInterval = Some(refreshInterval.asScala))
 
   private def copy(
       serviceName: String = serviceName,
