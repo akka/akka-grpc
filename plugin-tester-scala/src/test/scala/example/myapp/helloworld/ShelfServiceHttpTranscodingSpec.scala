@@ -13,13 +13,16 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import example.myapp.shelf.ShelfServer
 import example.myapp.shelf.grpc._
+import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatestplus.junit.JUnitRunner
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
 import scala.concurrent.ExecutionContextExecutor
 
+@RunWith(classOf[JUnitRunner])
 class ShelfServiceHttpTranscodingSpec
     extends ScalaTestWithActorTestKit(config = "akka.http.server.enable-http2 = on")
     with AnyWordSpecLike

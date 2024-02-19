@@ -23,6 +23,7 @@ object Dependencies {
     val akkaHttpBinary = "10.6"
 
     val grpc = "1.60.0" // checked synced by VersionSyncCheckPlugin
+    val grpcGoogleProto = "2.22.0"
 
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
@@ -108,13 +109,15 @@ object Dependencies {
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Compile.grpcProtobuf,
+    GrpcApi.googleApiProtos,
     Test.scalaTest)
 
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
+    Compile.scalapbRuntime % "protobuf",
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Protobuf.protobufJavaUtil,
-    Protobuf.googleCommonProtos,
+    GrpcApi.googleApiProtos.intransitive(),
     Compile.grpcProtobuf,
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators

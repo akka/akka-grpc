@@ -1,6 +1,8 @@
 syntax = "proto3";
 
+//#import-external-proto-files
 import "google/api/annotations.proto";
+//#import-external-proto-files
 
 option java_multiple_files = true;
 option java_package = "example.myapp.shelf.grpc";
