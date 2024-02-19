@@ -4,6 +4,9 @@
 
 package akka.grpc.internal
 
+import akka.Done
+import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcClientSettings
@@ -12,29 +15,26 @@ import akka.grpc.GrpcSingleResponse
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Source
-import akka.Done
-import akka.NotUsed
-import akka.actor.ActorSystem
+import io.grpc.CallOptions
+import io.grpc.MethodDescriptor
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.Protocol
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectedListenerFailureBehavior
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectorFailureBehavior
-import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNames
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
-import io.grpc.CallOptions
-import io.grpc.MethodDescriptor
 
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import scala.annotation.nowarn
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.Promise
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Failure
 import scala.util.Success
 
