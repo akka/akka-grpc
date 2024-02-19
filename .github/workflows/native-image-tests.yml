@@ -43,6 +43,13 @@ jobs:
         run: |-
           sbt "publishLocal; publishM2"
 
+      - name: Akka gRPC Scala native image test app build
+        run: |-
+          cd native-image-tests/grpc-scala
+          sbt nativeImage -Dakka.grpc.version=`cat ~/.version`
+          # run the binary
+          target/native-image/grpc-scala          
+
       - name: Email on failure
         if: ${{ failure() }}
         uses: dawidd6/action-send-mail@6063705cefe50cb915fc53bb06d4049cae2953b2

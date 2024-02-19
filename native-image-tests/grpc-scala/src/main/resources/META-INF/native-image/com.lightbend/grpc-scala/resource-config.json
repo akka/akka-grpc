@@ -1,0 +1,10 @@
+{
+  "resources":{
+    "includes":[{
+      "pattern":"certs/.*"
+    },{
+      "pattern":"\\Qlogback.xml\\E"
+    }]
+  },
+  "bundles":[]
+}
