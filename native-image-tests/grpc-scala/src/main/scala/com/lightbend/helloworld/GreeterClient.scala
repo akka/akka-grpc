@@ -16,10 +16,11 @@ object GreeterClient {
   def runTests()(implicit system: ActorSystem[_]): Future[Done] = {
     import system.executionContext
 
-    val client = GreeterServiceClient(GrpcClientSettings.fromConfig("helloworld.GreeterService"))
+    val clientSettings = GrpcClientSettings.fromConfig("helloworld.GreeterService")
+    println(s"Using client backend: ${clientSettings.backend}")
+    val client = GreeterServiceClient(clientSettings)
 
     val names = List("Alice", "Bob")
-
 
     def singleRequestReply(name: String): Future[Done] = {
       println(s"Performing request: $name")

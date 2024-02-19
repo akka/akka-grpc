@@ -47,8 +47,10 @@ jobs:
         run: |-
           cd native-image-tests/grpc-scala
           sbt nativeImage -Dakka.grpc.version=`cat ~/.version`
-          # run the binary
-          target/native-image/grpc-scala          
+          # run the binary, netty client backend
+          target/native-image/grpc-scala     
+          # akka-http client backend
+          target/native-image/grpc-scala akka-http-client
 
       - name: Email on failure
         if: ${{ failure() }}

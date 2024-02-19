@@ -14,15 +14,20 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
+    val akkaHttpClientBackend = args.contains("akka-http-client")
+
     // important to enable HTTP/2 in ActorSystem's config
     val conf =
-      ConfigFactory.parseString("akka.http.server.enable-http2 = on").withFallback(ConfigFactory.defaultApplication())
+      ConfigFactory
+        .parseString(s"""
+      akka.http.server.enable-http2 = on
+      akka.grpc.client."*".backend = "${if (akkaHttpClientBackend) "akka-http" else "netty"}"
+    """).withFallback(ConfigFactory.defaultApplication())
     val system = ActorSystem[Nothing](Behaviors.empty[Nothing], "GrpcNativeTest", conf)
 
     new GreeterServer(system).run()
 
     import system.executionContext
-
 
     GreeterClient.runTests()(system).onComplete {
       case Failure(exception) =>
