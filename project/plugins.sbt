@@ -1,6 +1,6 @@
 enablePlugins(BuildInfoPlugin)
 
-val sbtProtocV = "1.0.6"
+val sbtProtocV = "1.0.7"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
