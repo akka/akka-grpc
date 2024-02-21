@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+//#import-external-proto-files
+import "google/api/annotations.proto";
+//#import-external-proto-files
+
+option java_multiple_files = true;
+option java_package = "example.myapp.shelf.grpc";
+
+package shelf;
+
+service ShelfService {
+  // Returns a specific bookstore shelf.
+  rpc GetShelf(GetShelfRequest) returns (Shelf) {
+    // Client example - returns the first shelf:
+    //   curl http://DOMAIN_NAME/v1/shelves/1
+    option (google.api.http) = {get: "/v1/shelves/{shelf}"};
+  }
+
+  rpc CreateShelf(CreateShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      post: "/v1/shelves",
+      body: "shelf"
+    };
+  }
+
+  rpc UpdateShelf(UpdateShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      put: "/v1/shelves/{shelf.id}/{shelf.theme}"
+    };
+  }
+
+  rpc DeleteShelf(DeleteShelfRequest) returns (Shelf) {
+    option (google.api.http) = {
+      delete: "/v1/shelves/{shelf}"
+    };
+  }
+}
+
+
+// Request message for GetShelf method.
+message GetShelfRequest {
+  // The ID of the shelf resource to retrieve.
+  int64 shelf = 1;
+}
+
+message CreateShelfRequest {
+  Shelf shelf = 1;
+}
+
+message DeleteShelfRequest {
+  int64 shelf = 1;
+}
+
+message UpdateShelfRequest {
+  Shelf shelf = 1;
+}
+
+// A shelf resource.
+message Shelf {
+  // A unique shelf id.
+  int64 id = 1;
+  // A theme of the shelf (fiction, poetry, etc).
+  string theme = 2;
+}

@@ -23,6 +23,7 @@ object Dependencies {
     val akkaHttpBinary = "10.6"
 
     val grpc = "1.60.0" // checked synced by VersionSyncCheckPlugin
+    val grpcGoogleProto = "2.22.0"
 
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
@@ -36,6 +37,8 @@ object Dependencies {
   }
 
   object Compile {
+    val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed" % Versions.akka
+
     val akkaStream = "com.typesafe.akka" %% "akka-stream" % Versions.akka
     val akkaPki = "com.typesafe.akka" %% "akka-pki" % Versions.akka
 
@@ -78,6 +81,7 @@ object Dependencies {
     val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
     val akkaTestkitTyped = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Versions.akka % "test"
     val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Versions.akka % "test"
+    val akkaHttpSprayJsonSupport = "com.typesafe.akka" %% "akka-http-spray-json" % Versions.akkaHttp % "test"
   }
 
   object Runtime {
@@ -86,6 +90,7 @@ object Dependencies {
 
   object Protobuf {
     val protobufJava = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf
+    val protobufJavaUtil = "com.google.protobuf" % "protobuf-java-util" % Versions.googleProtobuf
     val googleCommonProtos = "com.google.protobuf" % "protobuf-java" % Versions.googleProtobuf % "protobuf"
 
   }
@@ -104,11 +109,15 @@ object Dependencies {
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Compile.grpcProtobuf,
+    GrpcApi.googleApiProtos,
     Test.scalaTest)
 
   val runtime = l ++= Seq(
     Compile.scalapbRuntime,
+    Compile.scalapbRuntime % "protobuf",
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+    Protobuf.protobufJavaUtil,
+    GrpcApi.googleApiProtos.intransitive(),
     Compile.grpcProtobuf,
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
@@ -152,9 +161,12 @@ object Dependencies {
     Compile.grpcStub,
     Compile.akkaPki,
     Compile.akkaHttpCors,
+    Compile.akkaActorTyped,
     Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
     Test.akkaTestkitTyped,
+    Test.akkaHttpSprayJsonSupport,
+    Protobuf.googleCommonProtos,
     GrpcApi.googleApiProtos)
 }

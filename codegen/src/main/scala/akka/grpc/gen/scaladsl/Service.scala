@@ -12,6 +12,7 @@ import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 case class Service(
     descriptor: String,
+    scalaDescriptor: String,
     packageName: String,
     name: String,
     grpcName: String,
@@ -40,6 +41,7 @@ object Service {
 
     Service(
       fileDesc.fileDescriptorObject.fullName + ".javaDescriptor",
+      fileDesc.fileDescriptorObject.fullName + ".scalaDescriptor",
       fileDesc.scalaPackage.fullName,
       serviceClassName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,

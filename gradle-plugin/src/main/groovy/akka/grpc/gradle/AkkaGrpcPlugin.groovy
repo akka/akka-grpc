@@ -73,6 +73,11 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                     // Play conventions:
                     srcDir 'app/protobuf'
                     srcDir 'app/proto'
+                    if (akkaGrpcExt.scala) {
+                        // TODO inject this into scalapb-protoc' option, also make sure generated scalapb proto file not depends on java proto file
+                        // library protos
+                        srcDir 'build/extracted-include-protos/main'
+                    }
                 }
             }
         }

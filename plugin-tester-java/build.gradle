@@ -37,11 +37,13 @@ repositories {
 
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
-def akkaVersion = "2.9.0"
+def akkaVersion = "2.9.0-M3"
+def akkaHttpVersion = "10.5.0"
 
 dependencies {
   implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '1.1.3'
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:${akkaVersion}"
+  testImplementation "com.typesafe.akka:akka-http-spray-json_${scalaBinaryVersion}:${akkaHttpVersion}"
   implementation "com.typesafe.akka:akka-pki_${scalaBinaryVersion}:${akkaVersion}"
   testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.2.12"
   testImplementation "org.scalatestplus:junit-4-12_${scalaBinaryVersion}:3.2.2.0"

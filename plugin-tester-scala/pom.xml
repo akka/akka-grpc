@@ -16,6 +16,8 @@
     <akka.http.cors.version>0.4.2</akka.http.cors.version>
     <grpc.version>1.60.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
+    <protobuf-java.version>3.22.2</protobuf-java.version>
+    <proto-google-common-protos.version>2.23.0</proto-google-common-protos.version>
   </properties>
 
   <repositories>
@@ -43,6 +45,11 @@
       <groupId>ch.megard</groupId>
       <artifactId>akka-http-cors_2.13</artifactId>
       <version>${akka.http.cors.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-actor-typed_2.13</artifactId>
+      <version>${akka.version}</version>
     </dependency>
 
     <dependency>
@@ -105,6 +112,56 @@
       </plugin>
 
       <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.5.1</version>
+        <executions>
+          <execution>
+            <id>getClasspathFilenames</id>
+            <goals>
+              <!-- provides the jars of the classpath as properties inside of maven
+                   so that we can refer to one of the jars in the exec plugin config below -->
+              <goal>properties</goal>
+            </goals>
+          </execution>
+
+          <!--  #unpack-protos -->
+          <execution>
+            <id>unpack</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.protobuf</groupId>
+                  <artifactId>protobuf-java</artifactId>
+                  <version>${protobuf-java.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                  <includes>**/*.proto</includes>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.api.grpc</groupId>
+                  <artifactId>proto-google-common-protos</artifactId>
+                  <version>${proto-google-common-protos.version}</version>
+                  <type>jar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                  <includes>**/*.proto</includes>
+                </artifactItem>
+              </artifactItems>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
+          </execution>
+          <!--  #unpack-protos -->
+
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>com.lightbend.akka.grpc</groupId>
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.project.version}</version>
@@ -114,6 +171,13 @@
             <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
           <includeStdTypes>true</includeStdTypes>
+          <!--  #all-proto-paths -->
+          <protoPaths>
+            <protoPath>target/proto</protoPath>
+            <protoPath>src/main/proto</protoPath>
+            <protoPath>src/main/protobuf</protoPath>
+          </protoPaths>
+          <!--  #all-proto-paths -->
         </configuration>
         <executions>
           <execution>
@@ -153,21 +217,6 @@
       </plugin>
 
       <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.5.1</version>
-        <executions>
-          <execution>
-            <id>getClasspathFilenames</id>
-            <goals>
-              <!-- provides the jars of the classpath as properties inside of maven
-                   so that we can refer to one of the jars in the exec plugin config below -->
-              <goal>properties</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.6.0</version>
@@ -175,7 +224,7 @@
           <executable>java</executable>
           <arguments>
             <argument>-classpath</argument>
-            <classpath />
+            <classpath/>
             <argument>example.myapp.helloworld.GreeterServer</argument>
           </arguments>
         </configuration>

@@ -36,6 +36,9 @@ object @{service.name} extends akka.grpc.ServiceDescription {
   val descriptor: com.google.protobuf.Descriptors.FileDescriptor =
     @service.descriptor;
 
+  val scalaDescriptor: scalapb.descriptors.FileDescriptor =
+    @service.scalaDescriptor
+
   object Serializers {
     import akka.grpc.scaladsl.ScalapbProtobufSerializer
     @for(serializer <- service.serializers) {
