@@ -17,7 +17,7 @@ import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse,
 import akka.grpc.scaladsl.StringEntry
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
-import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.{ Materializer, OverflowStrategy }
 import akka.stream.scaladsl.{ Keep, Sink, Source }
@@ -221,7 +221,11 @@ object AkkaHttpClientUtils {
                         .watchTermination()((_, done) =>
                           done.onComplete(_ => trailerPromise.trySuccess(immutable.Seq.empty)))
                     case Strict(_, data) =>
-                      trailerPromise.success(immutable.Seq.empty)
+                      val rawTrailers = response.attribute(AttributeKeys.trailer).map(_.headers).getOrElse(Seq.empty)
+                      val trailers = rawTrailers.map(h => HttpHeader.parse(h._1, h._2)).collect {
+                        case HttpHeader.ParsingResult.Ok(header, _) => header
+                      }
+                      trailerPromise.success(trailers)
                       Source.single[ByteString](data)
                     case _ =>
                       response.entity.discardBytes()
