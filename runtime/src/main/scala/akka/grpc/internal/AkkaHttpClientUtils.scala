@@ -14,6 +14,7 @@ import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcSingleResponse, ProtobufSerializer }
+import akka.grpc.scaladsl.StringEntry
 import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
 import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http }
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpRequest, HttpResponse, RequestResponseAssociation, Uri }
@@ -281,19 +282,21 @@ object AkkaHttpClientUtils {
       response: HttpResponse,
       trailers: Seq[HttpHeader]): StatusRuntimeException = {
     val allHeaders = response.headers ++ trailers
+    val metadata: io.grpc.Metadata =
+      new MetadataImpl(allHeaders.map(h => (h.name, StringEntry(h.value))).toList).toGoogleGrpcMetadata()
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case None =>
-        new StatusRuntimeException(
-          mapHttpStatus(response)
-            .withDescription("No grpc-status found")
-            .augmentDescription(s"When calling rpc service: ${requestUri.toString()}"))
+        val status = mapHttpStatus(response)
+          .withDescription("No grpc-status found")
+          .augmentDescription(s"When calling rpc service: ${requestUri.toString()}")
+        new StatusRuntimeException(status, metadata)
       case Some(statusCode) =>
         val description = allHeaders.find(_.name == "grpc-message").map(_.value)
-        new StatusRuntimeException(
-          Status
-            .fromCodeValue(statusCode.toInt)
-            .withDescription(description.orNull)
-            .augmentDescription(s"When calling rpc service: ${requestUri.toString()}"))
+        val status = Status
+          .fromCodeValue(statusCode.toInt)
+          .withDescription(description.orNull)
+          .augmentDescription(s"When calling rpc service: ${requestUri.toString()}")
+        new StatusRuntimeException(status, metadata)
     }
   }
 
