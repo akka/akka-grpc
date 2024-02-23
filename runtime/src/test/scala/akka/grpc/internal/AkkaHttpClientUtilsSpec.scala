@@ -7,14 +7,13 @@ package akka.grpc.internal
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.Strict
-import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.testkit.TestKit
 import akka.util.ByteString
-import io.grpc.{ Status, StatusRuntimeException }
+import io.grpc.{ Metadata, Status, StatusRuntimeException }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
@@ -41,12 +40,35 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
 
     "map a strict 200 response with non-0 gRPC error code to a failed stream" in {
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
-      val response = Future.successful(
-        HttpResponse(OK, List(RawHeader("grpc-status", "9")), Strict(GrpcProtocolNative.contentType, ByteString.empty)))
+      val responseHeaders = List(RawHeader("grpc-status", "9"), RawHeader("custom-key", "custom-value-in-header"))
+      val response =
+        Future.successful(HttpResponse(OK, responseHeaders, Strict(GrpcProtocolNative.contentType, ByteString.empty)))
       val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null, false)
 
       val failure = source.run().failed.futureValue
       failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)
+      failure.asInstanceOf[StatusRuntimeException].getTrailers.get(key) should be("custom-value-in-header")
     }
+
+    "map a strict 200 response with non-0 gRPC error code with a trailer to a failed stream with trailer metadata" in {
+      val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
+      val responseHeaders = List(RawHeader("grpc-status", "9"))
+      val responseTrailers = Trailer(RawHeader("custom-key", "custom-trailer-value") :: Nil)
+      val response = Future.successful(
+        new HttpResponse(
+          OK,
+          responseHeaders,
+          Map.empty[AttributeKey[_], Any].updated(AttributeKeys.trailer, responseTrailers),
+          Strict(GrpcProtocolNative.contentType, ByteString.empty),
+          HttpProtocols.`HTTP/1.1`))
+      val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null, false)
+
+      val failure = source.run().failed.futureValue
+      failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)
+      failure.asInstanceOf[StatusRuntimeException].getTrailers should not be null
+      failure.asInstanceOf[StatusRuntimeException].getTrailers.get(key) should be("custom-trailer-value")
+    }
+
+    lazy val key = Metadata.Key.of("custom-key", Metadata.ASCII_STRING_MARSHALLER)
   }
 }
