@@ -14,7 +14,7 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.testkit.TestKit
 import akka.util.ByteString
-import io.grpc.{ Status, StatusRuntimeException }
+import io.grpc.{ Metadata, Status, StatusRuntimeException }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
@@ -41,12 +41,16 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
 
     "map a strict 200 response with non-0 gRPC error code to a failed stream" in {
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
-      val response = Future.successful(
-        HttpResponse(OK, List(RawHeader("grpc-status", "9")), Strict(GrpcProtocolNative.contentType, ByteString.empty)))
+      val responseHeaders = List(RawHeader("grpc-status", "9"), RawHeader("custom-key", "custom-value-in-header"))
+      val response =
+        Future.successful(HttpResponse(OK, responseHeaders, Strict(GrpcProtocolNative.contentType, ByteString.empty)))
       val source = AkkaHttpClientUtils.responseToSource(requestUri, response, null, false)
 
       val failure = source.run().failed.futureValue
       failure.asInstanceOf[StatusRuntimeException].getStatus.getCode should be(Status.Code.FAILED_PRECONDITION)
+      failure.asInstanceOf[StatusRuntimeException].getTrailers.get(key) should be("custom-value-in-header")
     }
+
+    lazy val key = Metadata.Key.of("custom-key", Metadata.ASCII_STRING_MARSHALLER)
   }
 }
