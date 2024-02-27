@@ -5,7 +5,7 @@ version := "1.0"
 scalaVersion := "2.13.12"
 
 lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.9.1")
-lazy val akkaGrpcVersion = sys.props.getOrElse("akka.grpc.version", "2.4.1")
+lazy val akkaGrpcVersion = sys.props.getOrElse("akka.grpc.version", "2.4.0")
 
 enablePlugins(AkkaGrpcPlugin)
 // GraalVM native image build
