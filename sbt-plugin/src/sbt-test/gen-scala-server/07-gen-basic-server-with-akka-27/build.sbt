@@ -4,7 +4,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 enablePlugins(AkkaGrpcPlugin)
 
-dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.9.1"
+dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.9.2"
 
 assembly / assemblyMergeStrategy := {
   // https://github.com/akka/akka/issues/29456
