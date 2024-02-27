@@ -30,6 +30,9 @@ object VersionSyncCheckPlugin extends AutoPlugin {
         Paths.get("sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt"),
         Paths.get("gradle-plugin/src/main/groovy/akka/grpc/gradle/AkkaGrpcPluginExtension.groovy"),
         Paths.get("native-image-tests/grpc-scala/build.sbt"),
+        Paths.get("native-image-tests/grpc-scala/project/plugins.sbt")),
+      Set(
+        Paths.get("native-image-tests/grpc-scala/build.sbt"),
         Paths.get("native-image-tests/grpc-scala/project/plugins.sbt"))).value,
     googleProtobufVersionSyncCheck := versionSyncCheckImpl(
       "Google Protobuf",
@@ -43,7 +46,8 @@ object VersionSyncCheckPlugin extends AutoPlugin {
       name: String,
       expectedVersion: String,
       VersionRegex: UnanchoredRegex,
-      knownFiles: Seq[Path]) =
+      knownFiles: Seq[Path],
+      ignoredFiles: Set[Path] = Set.empty) =
     Def.task[Unit] {
       val log = state.value.log
       log.info(s"Running $name version sync check, expecting version $expectedVersion")
@@ -61,7 +65,8 @@ object VersionSyncCheckPlugin extends AutoPlugin {
             .toSeq)
 
       log.info("Sanity checking regex extraction against known files")
-      val mismatchVersions = knownFiles.map(versions).filterNot(_._2.toSet == Set(expectedVersion)).toVector
+      val mismatchVersions =
+        knownFiles.filterNot(ignoredFiles).map(versions).filterNot(_._2.toSet == Set(expectedVersion)).toVector
       if (mismatchVersions.isEmpty) {
         log.info("Sanity check passed")
       } else {
@@ -79,6 +84,7 @@ object VersionSyncCheckPlugin extends AutoPlugin {
         .iterator
         .map(path => Paths.get(path))
         .filter(Files.exists(_))
+        .filterNot(ignoredFiles)
         .filterNot(path => RawText.isBinary(Files.newInputStream(path)))
         .filterNot(path => path.toString.endsWith(".enc")) // encrypted blob
 
