@@ -11,3 +11,10 @@ To deploy your gRPC service over a HTTPS connection you will have to use an @api
 ## Example: Kubernetes
 
 As an example, [here](https://developer.lightbend.com/start/?group=akka&project=akka-grpc-sample-kubernetes-scala) is a complete project consisting of two applications (a gRPC service and an HTTP service that consumes the gRPC service) that can be deployed together in Kubernetes.
+
+## Building Native Images
+
+Building native images with Akka gRPC is supported. None of the functionality requires any special concerns, metadata
+for the libraries Akka gRPC uses are provided out of the box.
+
+For details about building native images with Akka in general see the @extref[Akka Documentation](akka:additional/native-image.html)
