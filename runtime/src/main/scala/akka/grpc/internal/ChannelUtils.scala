@@ -38,7 +38,7 @@ object ChannelUtils {
       implicit sys: ClassicActorSystemProvider): InternalChannel = {
     settings.backend match {
       case "netty" =>
-        NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher)
+        NettyClientUtils.createChannel(settings, log)(sys.classicSystem.dispatcher, sys.classicSystem)
       case "akka-http" =>
         AkkaHttpClientUtils.createChannel(settings, log)
       case _ => throw new IllegalArgumentException(s"Unexpected backend [${settings.backend}]")
