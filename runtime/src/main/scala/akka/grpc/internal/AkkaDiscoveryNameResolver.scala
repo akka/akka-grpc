@@ -79,11 +79,11 @@ private[akka] final class AkkaDiscoveryNameResolver(
           listener.onAddresses(addresses(result.addresses), Attributes.EMPTY)
         } catch {
           case e: UnknownHostException =>
-            log.warning(e, s"Unknown host for service $serviceName")
+            log.warning(e, "Unknown host for service {}", serviceName)
             listener.onError(Status.UNKNOWN.withDescription(e.getMessage))
         }
       case Failure(e) =>
-        log.warning(e, s"Service discovery failed for service $serviceName")
+        log.warning(e, "Service discovery failed for service {}", serviceName)
         listener.onError(Status.UNKNOWN.withDescription(e.getMessage))
     }
 
