@@ -125,8 +125,7 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head,
     publishConfiguration := publishConfiguration.value.withArtifacts(
       // avoid publishing the plugin jar twice
-      publishConfiguration.value.artifacts.filter(_._1.name.contains("2.12_1.0"))
-    ))
+      publishConfiguration.value.artifacts.filter(_._1.name.contains("2.12_1.0"))))
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
