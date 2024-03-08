@@ -9,20 +9,14 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.common.SSLContextFactory
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
-import akka.pki.pem.DERPrivateKeyLoader
-import akka.pki.pem.PEMDecoder
 import example.myapp.helloworld.grpc._
 import org.slf4j.LoggerFactory
 
-import java.security.KeyStore
+import java.nio.file.Paths
 import java.security.SecureRandom
-import java.security.cert.Certificate
-import java.security.cert.CertificateFactory
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManagerFactory
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.io.Source
@@ -59,47 +53,13 @@ class MtlsGreeterServer(system: ActorSystem) {
   }
 
   private def serverHttpContext: HttpsConnectionContext = {
-    val certFactory = CertificateFactory.getInstance("X.509")
-
-    // keyStore/keymanagers are for the server cert and private key
-    val keyStore = KeyStore.getInstance("PKCS12")
-    keyStore.load(null)
-    val serverCert = certFactory.generateCertificate(getClass.getResourceAsStream("/certs/localhost-server.crt"))
-    val serverPrivateKey =
-      DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString("certs/localhost-server.key")))
-    keyStore.setKeyEntry(
-      "private",
-      serverPrivateKey,
-      // No password for our private key
-      new Array[Char](0),
-      Array[Certificate](serverCert))
-    val keyManagerFactory = KeyManagerFactory.getInstance("SunX509")
-    keyManagerFactory.init(keyStore, null)
-    val keyManagers = keyManagerFactory.getKeyManagers
-
-    // trustStore/trustManagers are for what client certs the server trust
-    val trustStore = KeyStore.getInstance("PKCS12")
-    trustStore.load(null)
-    // any client cert signed by this CA is allowed to connect
-    trustStore.setEntry(
-      "rootCA",
-      new KeyStore.TrustedCertificateEntry(
-        certFactory.generateCertificate(getClass.getResourceAsStream("/certs/rootCA.crt"))),
-      null)
-    /*
-    // or specific client cert (probably less useful)
-    trustStore.setEntry(
-      "client",
-      new KeyStore.TrustedCertificateEntry(
-        certFactory.generateCertificate(getClass.getResourceAsStream("/certs/client1.crt"))),
-      null)
-     */
-    val tmf = TrustManagerFactory.getInstance("SunX509")
-    tmf.init(trustStore)
-    val trustManagers = tmf.getTrustManagers
-
     ConnectionContext.httpsServer { () =>
-      val context = SSLContext.getInstance("TLS")
+      val context = SSLContextFactory.createSSLContextFromPem(
+        // Note: these are filesystem paths, not classpath
+        certificatePath = Paths.get("plugin-tester-scala/src/main/resources/certs/localhost-server.crt"),
+        privateKeyPath = Paths.get("plugin-tester-scala/src/main/resources/certs/localhost-server.key"),
+        // client certs are issued by this CA
+        trustedCaCertificatePaths = Seq(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt")))
       context.init(keyManagers, trustManagers, new SecureRandom)
 
       val engine = context.createSSLEngine()

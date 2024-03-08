@@ -14,8 +14,10 @@ than a normal public one like what you use for a public web server.
 
 ## Setting the server up
 
-A JSK store can be prepared with the right contents, or created on the fly from cert files in some location the server can access for reading, 
-in this sample we use cert files available on the classpath. The server is set up with its own private key and cert as well as a trust 
+A JSK store can be prepared with the right contents, or we can create it the fly from cert files in some location the server can access for reading, 
+in this sample we use cert and key files in PEM format available from the file system and use the Akka HTTP convenience factories to load them.
+
+The server is set up with its own private key and cert as well as a trust 
 store with a CA to trust client certificates from:
 
 Scala
@@ -31,7 +33,7 @@ and fail with a TLS protocol error.
 ## Setting the client up
 
 In the client, the trust store must be set up to trust the server cert, in our sample it is signed with the same CA as the
-server. The key store contains the public and private key for the client:
+server:
 
 Scala
 :  @@snip [MtlsGreeterClient.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/MtlsGreeterClient.scala) { #full-client }
@@ -41,3 +43,14 @@ Java
 
 A client presenting a keypair will be able to connect to both servers requiring regular HTTPS gRPC services and mTLS servers that
 accept the client certificate.
+
+## Further limiting of access using client certificate identities
+
+In addition to requiring a trusted certificate it is possible to further limit access based on the identity present in
+the trusted client certificate ip or dns SAN (Subject Alternative Names) or CN (Common Name).
+
+This is done by wrapping the service handler in the `requireClientCertificateIdentity`:
+
+FIXME provide sample snippets
+
+

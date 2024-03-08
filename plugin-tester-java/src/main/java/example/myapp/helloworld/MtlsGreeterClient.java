@@ -7,22 +7,15 @@ package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
-import akka.pki.pem.DERPrivateKeyLoader;
-import akka.pki.pem.PEMDecoder;
+import akka.http.javadsl.common.SSLContextFactory;
 import example.myapp.helloworld.grpc.GreeterServiceClient;
 import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
 
 import javax.net.ssl.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 public class MtlsGreeterClient {
 
@@ -50,54 +43,15 @@ public class MtlsGreeterClient {
 
   private static SSLContext sslContext() {
     try {
-      PrivateKey clientPrivateKey =
-        DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString("/certs/client1.key")));
-      CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-
-      // keyStore is for the client cert and private key
-      KeyStore keyStore = KeyStore.getInstance("PKCS12");
-      keyStore.load(null);
-      Certificate clientCertificate = certFactory.generateCertificate(MtlsGreeterClient.class.getResourceAsStream("/certs/client1.crt"));
-      keyStore.setKeyEntry(
-        "private",
-        clientPrivateKey,
-        // No password for our private client key
-        new char[0],
-        new Certificate[]{clientCertificate});
-      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-      keyManagerFactory.init(keyStore, null);
-      KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
-
-      // trustStore is for what server certs the client trust
-      KeyStore trustStore = KeyStore.getInstance("PKCS12");
-      trustStore.load(null);
-      // accept any server cert signed by this CA
-      trustStore.setEntry(
-        "rootCA",
-        new KeyStore.TrustedCertificateEntry(
-          certFactory.generateCertificate(MtlsGreeterClient.class.getResourceAsStream("/certs/rootCA.crt"))),
-        null);
-      TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-      tmf.init(trustStore);
-      TrustManager[] trustManagers = tmf.getTrustManagers();
-
-      SSLContext context = SSLContext.getInstance("TLS");
-      context.init(keyManagers, trustManagers, new SecureRandom());
-      return context;
+      return SSLContextFactory.createSSLContextFromPem(
+        // Note: these are filesystem paths, not classpath
+        Paths.get("plugin-tester-java/src/main/resources/certs/client1.crt"),
+        Paths.get("plugin-tester-java/src/main/resources/certs/client1.key"),
+        // server cert is issued by this CA
+        List.of(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt"))
+      );
     } catch (Exception ex) {
       throw new RuntimeException("Failed to set up SSL context for the client", ex);
-    }
-  }
-
-  private static String classPathFileAsString(String path) {
-    try (InputStream inputStream = MtlsGreeterServer.class.getResourceAsStream(path)) {
-      if (inputStream == null) throw new IllegalArgumentException("'" + path + "' is not present on the classpath");
-      return new BufferedReader(
-        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-        .lines()
-        .collect(Collectors.joining("\n"));
-    } catch (Exception ex) {
-      throw new RuntimeException("Failed reading server key from classpath", ex);
     }
   }
 }
