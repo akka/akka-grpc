@@ -1,10 +1,11 @@
 import akka.grpc.Dependencies
-import akka.grpc.Dependencies.Versions.{ scala212, scala213 }
+import akka.grpc.Dependencies.Versions.scala212
 import akka.grpc.ProjectExtensions._
 import akka.grpc.build.ReflectiveCodeGen
 import sbt.Keys.scalaVersion
 import com.geirsson.CiReleasePlugin
 import com.typesafe.sbt.site.util.SiteHelpers
+import com.jsuereth.sbtpgp.PgpKeys.publishSignedConfiguration
 
 val akkaGrpcRuntimeName = "akka-grpc-runtime"
 
@@ -123,9 +124,9 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
     scriptedBufferLog := false,
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head,
-    publishConfiguration := publishConfiguration.value.withArtifacts(
+    publishSignedConfiguration := publishSignedConfiguration.value.withArtifacts(
       // avoid publishing the plugin jar twice
-      publishConfiguration.value.artifacts.filter(_._1.name.contains("2.12_1.0"))))
+      publishSignedConfiguration.value.artifacts.filter(_._1.name.contains("2.12_1.0"))))
   .dependsOn(codegen)
 
 lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("interop-tests"))
