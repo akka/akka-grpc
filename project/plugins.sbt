@@ -4,7 +4,7 @@ val sbtProtocV = "1.0.7"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
-addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.3")
+addSbtPlugin("lt.dvim.authors" % "sbt-authors" % "1.4")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
