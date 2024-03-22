@@ -1,10 +1,12 @@
-# akka-grpc
+# Akka gRPC
 
 Support for building streaming gRPC servers and clients on top
 of Akka Streams.
 
 This library is meant to be used as a building block in projects using the Akka
 toolkit.
+
+The Akka family of projects is managed by teams at [Lightbend](https://lightbend.com/) with help from the community.
 
 ## Documentation
 
@@ -50,10 +52,6 @@ The project is split up in a number of subprojects:
 Additionally, 'plugin-tester-java' and 'plugin-tester-scala' contain an example
 project in Java and Scala respectively, with both sbt and Gradle configurations.
 
-## Compatibility & support
-
-Support for Akka gRPC is available via the [Lightbend Subscription](https://lightbend.com/lightbend-subscription)
-
 ## License
 
-Akka gRPC is licensed under the Business Source License 1.1, see LICENSE.
+Akka gRPC is licensed under the Business Source License 1.1, please see the [Akka License FAQ](https://www.lightbend.com/akka/license-faq).

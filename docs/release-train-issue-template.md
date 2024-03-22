@@ -47,9 +47,6 @@ Variables to be expanded in this template:
 For important patch releases, and only if critical issues have been fixed:
 
 - [ ] Send a release notification to [Lightbend discuss](https://discuss.akka.io)
-- [ ] Tweet using the [@akkateam](https://twitter.com/akkateam/) account (or ask someone to) about the new release
-- [ ] Announce on [Gitter akka/akka](https://gitter.im/akka/akka)
-- [ ] Announce internally (with links to Tweet, discuss)
 
 For minor or major releases:
 
@@ -57,9 +54,8 @@ For minor or major releases:
 
 ### Afterwards
 
-- [ ] Update version for [Lightbend Supported Modules](https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-help/build-dependencies.html) in [private project](https://github.com/lightbend/lightbend-technology-intro-doc/blob/master/docs/modules/getting-help/examples/build.sbt)
-- [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies)
-- [ ] Update [Akka Guide samples](https://github.com/akka/akka-platform-guide)
+- [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies) and version for [Akka module versions](https://doc.akka.io/docs/akka-dependencies/current/) in [akka-dependencies repo](https://github.com/akka/akka-dependencies)
+- [ ] Update [Akka Guide samples](https://github.com/lightbend/akka-guide)
 - [ ] Update [Akka Projection gRPC samples](https://github.com/akka/akka-projection/tree/main/samples/grpc)
 - [ ] Update quickstarts:
   - [ ] [Akka gRPC Java](https://github.com/akka/akka-grpc-quickstart-java.g8/blob/main/src/main/g8/default.properties)

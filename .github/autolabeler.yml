@@ -1,5 +1,0 @@
-update: ['/project/Dependencies.scala', '/project/plugins.sbt', '/project/build.properties']
-gradle: ['/gradle-plugin']
-maven: ['/maven-plugin']
-sbt: ['/sbt-plugin']
-codegen: ['/codegen']
