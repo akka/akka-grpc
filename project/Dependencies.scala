@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
   object Versions {
-    val scala212 = "2.12.18"
+    val scala212 = "2.12.19"
     val scala213 = "2.13.13"
     val scala3 = "3.3.3"
 
@@ -28,7 +28,7 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.24.0" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.34.0"
+    val googleApi = "2.37.1"
 
     val scalaTest = "3.2.12"
 
