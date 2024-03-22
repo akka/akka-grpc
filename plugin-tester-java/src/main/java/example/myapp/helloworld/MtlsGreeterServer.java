@@ -27,12 +27,14 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
@@ -68,76 +70,16 @@ class MtlsGreeterServer {
 
   private static HttpsConnectionContext serverHttpContext() {
     try {
-      CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-
-      // keyStore is for the server cert and private key
-      KeyStore keyStore = KeyStore.getInstance("PKCS12");
-      keyStore.load(null);
-      PrivateKey serverPrivateKey =
-        DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString("/certs/localhost-server.key")));
-      Certificate serverCert = certFactory.generateCertificate(
-        MtlsGreeterServer.class.getResourceAsStream("/certs/localhost-server.crt"));
-      keyStore.setKeyEntry(
-        "private",
-        serverPrivateKey,
-        // No password for our private key
-        new char[0],
-        new Certificate[]{ serverCert });
-      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-      keyManagerFactory.init(keyStore, null);
-      final KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
-
-      // trustStore is for what client certs the server trust
-      KeyStore trustStore = KeyStore.getInstance("PKCS12");
-      trustStore.load(null);
-      // any client cert signed by this CA is allowed to connect
-      trustStore.setEntry(
-        "rootCA",
-        new KeyStore.TrustedCertificateEntry(
-          certFactory.generateCertificate(MtlsGreeterServer.class.getResourceAsStream("/certs/rootCA.crt"))),
-        null);
-      /*
-      // or specific client certs (less likely to be useful)
-      trustStore.setEntry(
-        "client1",
-        new KeyStore.TrustedCertificateEntry(
-          certFactory.generateCertificate(getClass().getResourceAsStream("/certs/localhost-client.crt"))),
-        null)
-       */
-      TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-      tmf.init(trustStore);
-      final TrustManager[] trustManagers = tmf.getTrustManagers();
-
-      HttpsConnectionContext httpsContext = ConnectionContext.httpsServer(() -> {
-        SSLContext context = SSLContext.getInstance("TLS");
-        context.init(keyManagers, trustManagers, new SecureRandom());
-
-        SSLEngine engine = context.createSSLEngine();
-        engine.setUseClientMode(false);
-
-        // require client certs
-        engine.setNeedClientAuth(true);
-
-        return engine;
-      });
-      return httpsContext;
-
+      return SSLContextFactory.createSSLContextFromPem(
+        // Note: these are filesystem paths, not classpath
+        Paths.get("plugin-tester-java/src/main/resources/certs/localhost-server.crt"),
+        Paths.get("plugin-tester-java/src/main/resources/certs/localhost-server.key"),
+        // client certs to trust are issued by this CA
+        List.of(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt"))
+      );
     } catch (Exception ex) {
       throw new RuntimeException("Failed setting up the server HTTPS context", ex);
     }
   }
-
-  private static String classPathFileAsString(String path) {
-    try (InputStream inputStream = MtlsGreeterServer.class.getResourceAsStream(path)) {
-      if (inputStream == null) throw new IllegalArgumentException("'" + path + "' is not present on the classpath");
-      return new BufferedReader(
-        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-        .lines()
-        .collect(Collectors.joining("\n"));
-    } catch (Exception ex) {
-      throw new RuntimeException("Failed reading server key from classpath", ex);
-    }
-  }
-
 }
 //#full-server
