@@ -12,7 +12,7 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-22.04
-    if: github.repository == 'akka/akka-grpc'
+    if: github.event.repository.fork == false
     strategy:
       fail-fast: false
       matrix:
@@ -26,15 +26,21 @@ jobs:
           - { scalaVersion: "3.3",  jdkVersion: "1.17.0", jvmName: "temurin:1.17.0", extraOpts: '' }
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        # https://github.com/actions/checkout/releases
+        # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           fetch-depth: 0
 
       - name: Cache Coursier cache
-        uses: coursier/cache-action@v6.4.0
+        # https://github.com/coursier/cache-action/releases
+        # v6.4.5
+        uses: coursier/cache-action@1ff273bff02a8787bc9f1877d347948af647956d
 
       - name: Set up JDK ${{ matrix.jdkVersion }}
-        uses: coursier/setup-action@v1.3.4
+        # https://github.com/coursier/setup-action/releases
+        # v1.3.5
+        uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
         with:
           jvm: ${{ matrix.jvmName }}
 

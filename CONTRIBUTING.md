@@ -6,8 +6,6 @@ You're always welcome to submit your PR straight away and start the discussion (
 
 # The Akka Community
 
-In case of questions about the contribution process or for discussion of specific issues please visit the [akka/dev gitter chat](https://gitter.im/akka/dev).
-
 You may also check out these [other resources](https://akka.io/get-involved/).
 
 # Navigating around the project & codebase

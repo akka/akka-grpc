@@ -1,0 +1,21 @@
+# https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes#configuring-automatically-generated-release-notes
+changelog:
+  categories:
+    - title: 'Client side'
+      labels:
+        - 'client'
+    - title: 'Server side'
+      labels:
+        - 'server'
+    - title: 'Gradle'
+      labels:
+        - 'gradle'
+    - title: 'Maven'
+      labels:
+        - 'maven'
+    - title: 'sbt'
+      labels:
+        - 'sbt'
+    - title: 'Other'
+      labels:
+        - "*"
