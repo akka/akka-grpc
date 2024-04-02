@@ -1,0 +1,6 @@
+# Use akka-http native CORS
+
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.WebHandler.grpcWebHandler")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.WebHandler.grpcWebHandler$default$3")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.WebHandler.grpcWebHandler")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.WebHandler.defaultCorsSettings")
