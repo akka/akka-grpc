@@ -13,26 +13,19 @@ import akka.http.scaladsl.model.{ HttpMethods, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MarshallingDirectives.handleWith
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
-import ch.megard.akka.http.cors.scaladsl.model.HttpHeaderRange
-import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
+import akka.http.scaladsl.settings.CorsSettings
+import akka.http.scaladsl.server.Directives.cors
 
 @ApiMayChange
 object WebHandler {
 
   /** Default CORS settings to use for grpc-web */
-  val defaultCorsSettings: CorsSettings = CorsSettings.defaultSettings
+  def defaultCorsSettings(as: ClassicActorSystemProvider): CorsSettings = CorsSettings(as)
     .withAllowCredentials(true)
-    .withAllowedMethods(immutable.Seq(HttpMethods.POST, HttpMethods.OPTIONS))
-    .withExposedHeaders(immutable.Seq(headers.`Status`.name, headers.`Status-Message`.name, `Content-Encoding`.name))
-    .withAllowedHeaders(
-      HttpHeaderRange(
-        "x-user-agent",
-        "x-grpc-web",
-        `Content-Type`.name,
-        Accept.name,
-        "grpc-timeout",
-        `Accept-Encoding`.name))
+    .withAllowedMethods(immutable.Set(HttpMethods.POST, HttpMethods.OPTIONS))
+    .withExposedHeaders(immutable.Set(headers.`Status`.name, headers.`Status-Message`.name, `Content-Encoding`.name))
+    .withAllowedHeaders(immutable
+      .Set("x-user-agent", "x-grpc-web", `Content-Type`.name, Accept.name, "grpc-timeout", `Accept-Encoding`.name))
 
   private[grpc] def isCorsPreflightRequest(r: jmodel.HttpRequest): Boolean =
     r.method == HttpMethods.OPTIONS && r.getHeader(classOf[Origin]).isPresent && r
@@ -48,8 +41,8 @@ object WebHandler {
    *  - Otherise if the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
    */
   def grpcWebHandler(handlers: PartialFunction[HttpRequest, Future[HttpResponse]]*)(
-      implicit as: ClassicActorSystemProvider,
-      corsSettings: CorsSettings = defaultCorsSettings): HttpRequest => Future[HttpResponse] = {
+      implicit as: ClassicActorSystemProvider): HttpRequest => Future[HttpResponse] = {
+    val corsSettings: CorsSettings = defaultCorsSettings(as)
     implicit val system = as.classicSystem
     val servicesHandler = ServiceHandler.concat(handlers: _*)
     Route.toFunction(cors(corsSettings) {

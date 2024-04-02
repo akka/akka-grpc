@@ -40,12 +40,6 @@
       <version>${akka.grpc.project.version}</version>
     </dependency>
     <dependency>
-      <groupId>ch.megard</groupId>
-      <artifactId>akka-http-cors_2.13</artifactId>
-      <version>${akka.http.cors.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-stream-testkit_2.13</artifactId>
       <version>${akka.version}</version>

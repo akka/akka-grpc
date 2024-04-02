@@ -44,9 +44,6 @@ object Dependencies {
     val akkaDiscovery = "com.typesafe.akka" %% "akka-discovery" % Versions.akka
     val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % Versions.akka
 
-    val akkaHttpCors = ("ch.megard" %% "akka-http-cors" % "1.2.0") // Apache v2
-      .excludeAll(ExclusionRule(organization = "com.typesafe.akka")) // needed to not pull in 2.13 deps for Scala 3
-
     val scalapbCompilerPlugin = "com.thesamet.scalapb" %% "compilerplugin" % scalapb.compiler.Version.scalapbVersion
     val scalapbRuntime = ("com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion)
       .exclude("io.grpc", "grpc-netty")
@@ -117,7 +114,6 @@ object Dependencies {
     Compile.akkaHttpCore,
     Compile.akkaHttp,
     Compile.akkaDiscovery,
-    Compile.akkaHttpCors % "provided",
     Test.akkaTestkit,
     Test.akkaStreamTestkit,
     Test.scalaTest,
@@ -151,7 +147,6 @@ object Dependencies {
     // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
     Compile.grpcStub,
     Compile.akkaPki,
-    Compile.akkaHttpCors,
     Runtime.logback,
     Test.scalaTest,
     Test.scalaTestPlusJunit,
