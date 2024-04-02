@@ -49,11 +49,6 @@
       <artifactId>akka-pki_2.13</artifactId>
       <version>${akka.version}</version>
     </dependency>
-    <dependency>
-      <groupId>ch.megard</groupId>
-      <artifactId>akka-http-cors_2.13</artifactId>
-      <version>${akka.http.cors.version}</version>
-    </dependency>
 
     <!-- Needed for the generated client -->
     <dependency>

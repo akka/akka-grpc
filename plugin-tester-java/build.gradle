@@ -40,7 +40,6 @@ def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
 
 dependencies {
-  implementation group: 'ch.megard', name: "akka-http-cors_${scalaBinaryVersion}", version: '1.1.3'
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:${akkaVersion}"
   implementation "com.typesafe.akka:akka-pki_${scalaBinaryVersion}:${akkaVersion}"
   testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.2.12"

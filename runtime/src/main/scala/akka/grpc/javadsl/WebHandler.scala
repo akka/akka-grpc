@@ -22,8 +22,8 @@ import akka.japi.function.{ Function => JFunction }
 import akka.stream.Materializer
 import akka.stream.javadsl.{ Keep, Sink, Source }
 import akka.util.ConstantFun
-import ch.megard.akka.http.cors.javadsl.settings.CorsSettings
-import ch.megard.akka.http.cors.javadsl.CorsDirectives
+import akka.http.javadsl.settings.CorsSettings
+import akka.http.javadsl.server.Directives.cors
 
 @ApiMayChange
 object WebHandler {
@@ -39,8 +39,10 @@ object WebHandler {
   def grpcWebHandler(
       handlers: util.List[JFunction[HttpRequest, CompletionStage[HttpResponse]]],
       as: ClassicActorSystemProvider,
-      mat: Materializer): JFunction[HttpRequest, CompletionStage[HttpResponse]] =
-    grpcWebHandler(handlers, as, mat, scaladsl.WebHandler.defaultCorsSettings)
+      mat: Materializer): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
+    val defaultCorsSettings = scaladsl.WebHandler.defaultCorsSettings(as)
+    grpcWebHandler(handlers, as, mat, defaultCorsSettings)
+  }
 
   // Adapt Marshaller.futureMarshaller(fromResponse) to javadsl
   private implicit val csResponseMarshaller: ToResponseMarshaller[CompletionStage[HttpResponse]] = {
@@ -69,7 +71,7 @@ object WebHandler {
 
     val servicesHandler = concatOrNotFound(handlers.asScala.toList: _*)
     val servicesRoute = RouteAdapter(MarshallingDirectives.handleWith(servicesHandler.apply(_)))
-    val handler = asyncHandler(CorsDirectives.cors(corsSettings, () => servicesRoute), as, mat)
+    val handler = asyncHandler(cors(corsSettings, () => servicesRoute), as, mat)
     (req: HttpRequest) =>
       if (scaladsl.ServiceHandler.isGrpcWebRequest(req) || scaladsl.WebHandler.isCorsPreflightRequest(req)) handler(req)
       else unsupportedMediaType
