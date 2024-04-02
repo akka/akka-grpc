@@ -1,11 +1,71 @@
 # Maven
 
-To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
+```xml
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Project name</name>
+  <groupId>com.example</groupId>
+  <artifactId>my-grpc-app</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <properties>
+    <akka.grpc.version>$project.version$</akka.grpc.version>
+    <grpc.version>$grpc.version$</grpc.version>
+    <project.encoding>UTF-8</project.encoding>
+  </properties>
+  <repositories>
+    <repository>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>akka-repository</id>
+      <name>Akka library repository</name>
+      <url>https://repo.akka.io/maven</url>
+    </pluginRepository>
+  </pluginRepositories>
+  <dependencies>
+    <dependency>
+      <groupId>com.lightbend.akka.grpc</groupId>
+      <artifactId>akka-grpc-runtime_2.13</artifactId>
+      <version>${akka.grpc.version}</version>
+    </dependency>
+    <!-- for loading of cert, issue #89 -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-testing</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <!-- Hook the generate goal into the lifecycle,
+             automatically tied to generate-sources -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+
+For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
 ## Configuring what to generate
 
 The plugin can be configured to generate either Java or Scala classes, and then server and or client for the chosen language.
-By default both client and server in Java are generated.
+By default, both client and server in Java are generated.
 
 Java
 :   ```xml

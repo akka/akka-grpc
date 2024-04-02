@@ -13,7 +13,32 @@ By default both client and server are generated and Java or Scala is autodetecte
 
 ### Installation
 
-Follow the initial instructions in @ref[client walkthrough](../client/walkthrough.md) or @ref[server walkthrough](../server/walkthrough.md) to set the plugin up.
+To add the Akka gRPC gradle plugin to a project:
+
+```gradle
+buildscript {
+  repositories {
+    gradlePluginPortal()
+    maven {
+      url "https://repo.akka.io/maven"
+    }
+  }
+}
+plugins {
+  id 'java'
+  id 'application'
+  id 'com.lightbend.akka.grpc.gradle' version '$project.version$'
+}
+repositories {
+  mavenCentral()
+  maven {
+    url "https://repo.akka.io/maven"
+  }
+}
+```
+
+
+For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
 ### Available plugin options
 

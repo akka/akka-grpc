@@ -50,7 +50,7 @@ repositories {
 
 Maven
 :   @@@vars
-```
+```xml
 <project>
   <modelVersion>4.0.0</modelVersion>
   <name>Project name</name>

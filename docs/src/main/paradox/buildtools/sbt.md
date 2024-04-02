@@ -1,6 +1,18 @@
 # sbt
 
-To get started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
+To add the sbt plugin and Akka gRPC dependencies to a project:
+
+```scala
+// in project/plugins.sbt:
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
+//
+// in build.sbt:
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+enablePlugins(AkkaGrpcPlugin)
+```
+
+For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
 ## Configuring what to generate
 
