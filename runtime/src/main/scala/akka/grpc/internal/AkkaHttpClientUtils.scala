@@ -15,7 +15,6 @@ import akka.grpc.GrpcResponseMetadata
 import akka.grpc.GrpcServiceException
 import akka.grpc.GrpcSingleResponse
 import akka.grpc.ProtobufSerializer
-import akka.grpc.scaladsl.StringEntry
 import akka.http.scaladsl.ClientTransport
 import akka.http.scaladsl.ConnectionContext
 import akka.http.scaladsl.Http
@@ -31,6 +30,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.RequestResponseAssociation
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.stream.FlowShape
 import akka.stream.Materializer
@@ -278,9 +278,7 @@ object AkkaHttpClientUtils {
                           done.onComplete(_ => trailerPromise.trySuccess(immutable.Seq.empty)))
                     case Strict(_, data) =>
                       val rawTrailers = response.attribute(AttributeKeys.trailer).map(_.headers).getOrElse(Seq.empty)
-                      val trailers = rawTrailers.map(h => HttpHeader.parse(h._1, h._2)).collect {
-                        case HttpHeader.ParsingResult.Ok(header, _) => header
-                      }
+                      val trailers = rawTrailers.map(h => RawHeader(h._1, h._2))
                       trailerPromise.success(trailers)
                       Source.single[ByteString](data)
                     case _ =>
@@ -342,8 +340,7 @@ object AkkaHttpClientUtils {
       response: HttpResponse,
       trailers: Seq[HttpHeader]): StatusRuntimeException = {
     val allHeaders = response.headers ++ trailers
-    val metadata: io.grpc.Metadata =
-      new MetadataImpl(allHeaders.map(h => (h.name, StringEntry(h.value))).toList).toGoogleGrpcMetadata()
+    val metadata: io.grpc.Metadata = new MetadataImpl(new HeaderMetadataImpl(allHeaders).asList).toGoogleGrpcMetadata()
     allHeaders.find(_.name == "grpc-status").map(_.value) match {
       case None =>
         val status = mapHttpStatus(response)
