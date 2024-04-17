@@ -55,6 +55,13 @@ the trusted client certificate ip or dns SAN (Subject Alternative Names) or CN (
 
 This is done by wrapping the service handler in the `requireClientCertificateIdentity`:
 
+Scala
+:  @@snip [AuthenticatedGreeterServer.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/GreeterServerWithClientCertIdentity.scala) { #with-mtls-cert-identity }
+
+Java
+:  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServerWithClientCertIdentity.java) { #with-mtls-cert-identity }
+
+
 FIXME provide sample snippets
 
 
