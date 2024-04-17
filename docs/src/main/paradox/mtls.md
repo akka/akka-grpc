@@ -14,11 +14,11 @@ than a normal public one like what you use for a public web server.
 
 ## Setting the server up
 
-A JKS store can be prepared with the right contents, or we can create it the fly from cert files in some location the server can access for reading, 
-in this sample we use cert and key files in PEM format available from the file system and use the Akka HTTP convenience factories to load them.
+A JKS store can be prepared with the right contents, or we can create it on the fly from certificate files in some location the server as read access to. 
+In this example we use certificate and key files in the PEM format available from the file system and use the Akka HTTP convenience factories to load them.
 
-The server is set up with its own private key and cert as well as a trust 
-store with a CA to trust client certificates from:
+The server is set up with its own private key and certificate as well as with a trust 
+store containing the certificate authority (CA) to trust client certificates from:
 
 Scala
 :  @@snip [MtlsGreeterServer.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/MtlsGreeterServer.scala) { #full-server }
@@ -29,12 +29,12 @@ Java
 When run the server will only accept client connections that use a keypair that it considers valid, other connections will be denied
 and fail with a TLS protocol error.
 
-It is possible to rotate the certificates without restarting the service, see @extref[Akka HTTP documentation](akka-http:server-side/server-https-support.html#rotating-certificates) 
+It is possible to rotate the certificates without restarting the service, see the @extref[Akka HTTP documentation](akka-http:server-side/server-https-support.html#rotating-certificates). 
 
 
 ## Setting the client up
 
-In the client, the trust store must be set up to trust the server cert, in our sample it is signed with the same CA as the
+In the client, the trust store must be set up to trust the server certificate, in our example it is signed with the same CA as the
 server:
 
 Scala
@@ -46,7 +46,7 @@ Java
 A client presenting a keypair will be able to connect to both servers requiring regular HTTPS gRPC services and mTLS servers that
 accept the client certificate.
 
-It is possible to rotate the certificates without restarting the service, see @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate)
+It is possible to rotate the certificates without restarting the service, see the @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate).
 
 ## Further limiting of access using client certificate identities
 
