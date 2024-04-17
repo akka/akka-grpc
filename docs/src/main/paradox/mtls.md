@@ -14,7 +14,7 @@ than a normal public one like what you use for a public web server.
 
 ## Setting the server up
 
-A JSK store can be prepared with the right contents, or we can create it the fly from cert files in some location the server can access for reading, 
+A JKS store can be prepared with the right contents, or we can create it the fly from cert files in some location the server can access for reading, 
 in this sample we use cert and key files in PEM format available from the file system and use the Akka HTTP convenience factories to load them.
 
 The server is set up with its own private key and cert as well as a trust 
