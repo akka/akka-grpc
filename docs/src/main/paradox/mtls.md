@@ -29,6 +29,8 @@ Java
 When run the server will only accept client connections that use a keypair that it considers valid, other connections will be denied
 and fail with a TLS protocol error.
 
+It is possible to rotate the certificates without restarting the service, see @extref[Akka HTTP documentation](akka-http:server-side/server-https-support.html#rotating-certificates) 
+
 
 ## Setting the client up
 
@@ -43,6 +45,8 @@ Java
 
 A client presenting a keypair will be able to connect to both servers requiring regular HTTPS gRPC services and mTLS servers that
 accept the client certificate.
+
+It is possible to rotate the certificates without restarting the service, see @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate)
 
 ## Further limiting of access using client certificate identities
 
