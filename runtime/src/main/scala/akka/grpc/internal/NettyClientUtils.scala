@@ -125,6 +125,9 @@ object NettyClientUtils {
         channelClosedPromise.tryFailure(e)
     }
 
+    if (settings.eagerConnection)
+      channel.getState(true)
+
     new InternalChannel {
       override def shutdown() = channel.shutdown()
       override def done = channelClosedPromise.future
