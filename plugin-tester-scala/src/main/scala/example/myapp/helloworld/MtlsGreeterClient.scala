@@ -45,10 +45,10 @@ object MtlsGreeterClient {
   def sslContext(): SSLContext = {
     SSLContextFactory.createSSLContextFromPem(
       // Note: these are filesystem paths, not classpath
-      certificatePath = Paths.get("plugin-tester-scala/src/main/resources/certs/client1.crt"),
-      privateKeyPath = Paths.get("plugin-tester-scala/src/main/resources/certs/client1.key"),
+      certificatePath = Paths.get("src/main/resources/certs/client1.crt"),
+      privateKeyPath = Paths.get("src/main/resources/certs/client1.key"),
       // server cert is issued by this CA
-      trustedCaCertificatePaths = Seq(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt")))
+      trustedCaCertificatePaths = Seq(Paths.get("src/main/resources/certs/rootCA.crt")))
   }
 
   private def classPathFileAsString(path: String): String =

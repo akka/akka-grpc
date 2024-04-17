@@ -16,7 +16,6 @@ import example.myapp.helloworld.grpc._
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Paths
-import java.security.SecureRandom
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.io.Source
@@ -52,15 +51,14 @@ class MtlsGreeterServer(system: ActorSystem) {
     binding
   }
 
-  private def serverHttpContext: HttpsConnectionContext = {
+  private def serverHttpContext: HttpsConnectionContext =
     ConnectionContext.httpsServer { () =>
       val context = SSLContextFactory.createSSLContextFromPem(
         // Note: these are filesystem paths, not classpath
-        certificatePath = Paths.get("plugin-tester-scala/src/main/resources/certs/localhost-server.crt"),
-        privateKeyPath = Paths.get("plugin-tester-scala/src/main/resources/certs/localhost-server.key"),
+        certificatePath = Paths.get("src/main/resources/certs/localhost-server.crt"),
+        privateKeyPath = Paths.get("src/main/resources/certs/localhost-server.key"),
         // client certs are issued by this CA
-        trustedCaCertificatePaths = Seq(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt")))
-      context.init(keyManagers, trustManagers, new SecureRandom)
+        trustedCaCertificatePaths = Seq(Paths.get("src/main/resources/certs/rootCA.crt")))
 
       val engine = context.createSSLEngine()
       engine.setUseClientMode(false)
@@ -70,7 +68,6 @@ class MtlsGreeterServer(system: ActorSystem) {
 
       engine
     }
-  }
 
   private def classPathFileAsString(path: String): String =
     Source.fromResource(path).mkString

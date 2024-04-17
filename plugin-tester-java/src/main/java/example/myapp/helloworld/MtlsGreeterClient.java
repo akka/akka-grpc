@@ -45,10 +45,10 @@ public class MtlsGreeterClient {
     try {
       return SSLContextFactory.createSSLContextFromPem(
         // Note: these are filesystem paths, not classpath
-        Paths.get("plugin-tester-java/src/main/resources/certs/client1.crt"),
-        Paths.get("plugin-tester-java/src/main/resources/certs/client1.key"),
+        Paths.get("src/main/resources/certs/client1.crt"),
+        Paths.get("src/main/resources/certs/client1.key"),
         // server cert is issued by this CA
-        List.of(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt"))
+        List.of(Paths.get("src/main/resources/certs/rootCA.crt"))
       );
     } catch (Exception ex) {
       throw new RuntimeException("Failed to set up SSL context for the client", ex);

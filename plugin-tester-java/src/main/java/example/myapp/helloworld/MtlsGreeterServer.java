@@ -10,6 +10,7 @@ import akka.http.javadsl.ConnectionContext;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.HttpsConnectionContext;
 import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.common.SSLContextFactory;
 import akka.http.javadsl.model.AttributeKeys;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
@@ -33,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -69,17 +71,21 @@ class MtlsGreeterServer {
   }
 
   private static HttpsConnectionContext serverHttpContext() {
-    try {
-      return SSLContextFactory.createSSLContextFromPem(
+    return ConnectionContext.httpsServer(() -> {
+      SSLContext context = SSLContextFactory.createSSLContextFromPem(
         // Note: these are filesystem paths, not classpath
-        Paths.get("plugin-tester-java/src/main/resources/certs/localhost-server.crt"),
-        Paths.get("plugin-tester-java/src/main/resources/certs/localhost-server.key"),
+        Paths.get("src/main/resources/certs/localhost-server.crt"),
+        Paths.get("src/main/resources/certs/localhost-server.key"),
         // client certs to trust are issued by this CA
-        List.of(Paths.get("plugin-tester-scala/src/main/resources/certs/rootCA.crt"))
-      );
-    } catch (Exception ex) {
-      throw new RuntimeException("Failed setting up the server HTTPS context", ex);
-    }
+        List.of(Paths.get("src/main/resources/certs/rootCA.crt")));
+
+      SSLEngine engine = context.createSSLEngine();
+      engine.setUseClientMode(false);
+
+      // require client certs
+      engine.setNeedClientAuth(true);
+      return engine;
+    });
   }
 }
 //#full-server
