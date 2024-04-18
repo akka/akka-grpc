@@ -76,7 +76,7 @@ Currently service discovery is only queried on creation of the client. A client 
  
 ## Debug logging
 
-To enable fine grained debug running the following logging configuration can be used.
+To enable fine-grained debug running the following logging configuration can be used.
 
 Put this in a file `grpc-debug-logging.properties`:
 
