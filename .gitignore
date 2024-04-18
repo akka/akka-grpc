@@ -5,6 +5,8 @@
 /.jvmopts
 
 target
+build
+.gradle
 
 .idea/
 *.iml
@@ -20,3 +22,6 @@ target
 /gradle-plugin/build/
 
 .bsp/
+
+# attachments created by scripts/prepare-downloads.sh
+docs/src/main/paradox/attachments

@@ -15,6 +15,7 @@ Variables to be expanded in this template:
 
 - [ ] Check that open PRs and issues assigned to the milestone are reasonable
 - [ ] Update the Change date and version in the LICENSE file.
+- [ ] Update the Akka gRPC version in the samples to $VERSION$, otherwise the published zip files of the samples will have the old version.
 - [ ] Create a new milestone for the [next version](https://github.com/akka/akka-grpc/milestones)
 - [ ] Close the [$VERSION$ milestone](https://github.com/akka/akka-grpc/milestones?direction=asc&sort=due_date)
 - [ ] Make sure all important PRs have been merged
@@ -57,8 +58,7 @@ For minor or major releases:
 - [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies) and version for [Akka module versions](https://doc.akka.io/docs/akka-dependencies/current/) in [akka-dependencies repo](https://github.com/akka/akka-dependencies)
 - [ ] Update [Akka Guide samples](https://github.com/lightbend/akka-guide)
 - [ ] Update [Akka Projection gRPC samples](https://github.com/akka/akka-projection/tree/main/samples/grpc)
-- [ ] Update quickstarts:
-  - [ ] [Akka gRPC Java](https://github.com/akka/akka-grpc-quickstart-java.g8/blob/main/src/main/g8/default.properties)
+- [ ] Update sbt new (g8) template:
   - [ ] [Akka gRPC Scala](https://github.com/akka/akka-grpc-quickstart-scala.g8/blob/main/src/main/g8/default.properties)
 
 - Close this issue
