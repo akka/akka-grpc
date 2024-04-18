@@ -204,10 +204,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala"), "Buildtool" -> Seq("sbt", "Gradle", "Maven")),
-    paradoxRoots := List(
-      "index.html",
-      "quickstart-java/index.html",
-      "quickstart-scala/index.html"),
+    paradoxRoots := List("index.html", "quickstart-java/index.html", "quickstart-scala/index.html"),
     Compile / paradoxProperties ++= Map(
       "akka.version" -> Dependencies.Versions.akka,
       "akka-http.version" -> Dependencies.Versions.akkaHttp,
