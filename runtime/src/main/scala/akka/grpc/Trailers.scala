@@ -5,10 +5,10 @@
 package akka.grpc
 
 import akka.annotation.ApiMayChange
-import io.grpc.Status
 import akka.grpc.internal.JavaMetadataImpl
-import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
 import akka.grpc.javadsl.{ Metadata => jMetadata }
+import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
+import io.grpc.Status
 
 @ApiMayChange
 class Trailers(val status: Status, val metadata: Metadata) {
@@ -36,4 +36,9 @@ class Trailers(val status: Status, val metadata: Metadata) {
 object Trailers {
   def apply(status: Status): Trailers = new Trailers(status)
   def apply(status: Status, metadata: Metadata): Trailers = new Trailers(status, metadata)
+
+  def apply(code: com.google.rpc.Code, message: String, details: Seq[scalapb.GeneratedMessage]): Trailers = {
+    val ex = GrpcServiceException(code, message, details)
+    Trailers(ex.status, ex.metadata)
+  }
 }
