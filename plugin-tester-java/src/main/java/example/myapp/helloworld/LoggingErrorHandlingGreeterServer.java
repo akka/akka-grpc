@@ -16,6 +16,8 @@ import akka.http.javadsl.server.Route;
 import akka.japi.Function;
 import akka.stream.Materializer;
 import akka.stream.SystemMaterializer;
+import com.google.rpc.Code;
+import com.google.rpc.LocalizedMessage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import example.myapp.helloworld.grpc.GreeterService;
@@ -24,6 +26,7 @@ import example.myapp.helloworld.grpc.HelloReply;
 import example.myapp.helloworld.grpc.HelloRequest;
 import io.grpc.Status;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiFunction;
@@ -47,15 +50,23 @@ public class LoggingErrorHandlingGreeterServer {
   }
 
   //#implementation
+
+  private static final RuntimeException nameNonEmptyException = new IllegalArgumentException("Name must be capitalized");
+  private static final RuntimeException nameCapitalizedException = new IllegalArgumentException("Name must be capitalized");
+
   private static class Impl extends GreeterServiceImpl {
     public Impl(Materializer mat) {
       super(mat);
     }
     @Override
     public CompletionStage<HelloReply> sayHello(HelloRequest in) {
-      if (Character.isLowerCase(in.getName().charAt(0))) {
+      if (in.getName().isEmpty()) {
         CompletableFuture<HelloReply> reply = new CompletableFuture<>();
-        reply.completeExceptionally(new IllegalArgumentException("Name must be capitalized"));
+        reply.completeExceptionally(nameNonEmptyException);
+        return reply;
+      } else if (Character.isLowerCase(in.getName().charAt(0))) {
+        CompletableFuture<HelloReply> reply = new CompletableFuture<>();
+        reply.completeExceptionally(nameCapitalizedException);
         return reply;
       } else {
         HelloReply reply = HelloReply.newBuilder()
@@ -100,7 +111,19 @@ public class LoggingErrorHandlingGreeterServer {
   //#custom-error-mapping
   private final static Function<Throwable, Trailers> customErrorMapping = (throwable) -> {
     if (throwable instanceof IllegalArgumentException) {
-      return new Trailers(Status.INVALID_ARGUMENT);
+      if (throwable.getMessage().equals(nameNonEmptyException.getMessage())) {
+        // We can pass through the message by attaching it to the Status.
+        return new Trailers(Status.INVALID_ARGUMENT.withDescription(throwable.getMessage()));
+      } else if (throwable.getMessage().equals(nameCapitalizedException.getMessage())) {
+        // We can pass through extra error details like localized versions of the message.
+        // FIXME: This subproject uses Java protos, which do not extend GeneratedMessage, so the code below does not compile.
+        //   It seems strange that we're requiring a java.util.List[GeneratedMessage] when java protos do not extend the GeneratedMessage trait.
+        // com.google.rpc.LocalizedMessage lm = com.google.rpc.LocalizedMessage.newBuilder().setLocale("en-US").setMessage(throwable.getMessage()).build();
+        // return Trailers.create(Code.INVALID_ARGUMENT, throwable.getMessage(), List.of(lm));
+        return Trailers.create(Code.INVALID_ARGUMENT, throwable.getMessage(), List.of());
+      } else {
+        return new Trailers(Status.INVALID_ARGUMENT);
+      }
     } else {
       return null;
     }
