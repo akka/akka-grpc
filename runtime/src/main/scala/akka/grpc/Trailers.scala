@@ -10,6 +10,8 @@ import akka.grpc.javadsl.{ Metadata => jMetadata }
 import akka.grpc.scaladsl.{ Metadata, MetadataBuilder }
 import io.grpc.Status
 
+import scala.jdk.CollectionConverters._
+
 @ApiMayChange
 class Trailers(val status: Status, val metadata: Metadata) {
   def this(status: Status) = {
@@ -40,5 +42,12 @@ object Trailers {
   def apply(code: com.google.rpc.Code, message: String, details: Seq[scalapb.GeneratedMessage]): Trailers = {
     val ex = GrpcServiceException(code, message, details)
     Trailers(ex.status, ex.metadata)
+  }
+
+  def create(
+      code: com.google.rpc.Code,
+      message: String,
+      details: java.util.List[scalapb.GeneratedMessage]): Trailers = {
+    apply(code, message, details.asScala.toVector)
   }
 }
