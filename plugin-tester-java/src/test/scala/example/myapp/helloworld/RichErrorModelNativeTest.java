@@ -12,6 +12,7 @@ import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
+import akka.testkit.javadsl.TestKit;
 import com.google.rpc.LocalizedMessage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -50,20 +51,20 @@ public class RichErrorModelNativeTest extends JUnitSuite {
     public void testNativeApi() throws Exception {
         Config conf = ConfigFactory.load();
         ActorSystem sys = ActorSystem.create("HelloWorld", conf);
-        run(sys);
-
-        GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8091, sys).withTls(false);
-
         GreeterServiceClient client = null;
         try {
+            run(sys);
+
+            GrpcClientSettings settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", 8091, sys).withTls(false);
+
             client = GreeterServiceClient.create(settings, sys);
 
             // #client_request
             HelloRequest request = HelloRequest.newBuilder().setName("Alice").build();
             CompletionStage<HelloReply> response = client.sayHello(request);
-            StatusRuntimeException statusRuntimeException = response.toCompletableFuture().handle((res, ex) -> {
-                return (StatusRuntimeException) ex;
-            }).get();
+            StatusRuntimeException statusRuntimeException = response.toCompletableFuture().handle((res, ex) ->
+              (StatusRuntimeException) ex
+            ).get();
 
             GrpcServiceException ex = GrpcServiceException.apply(statusRuntimeException);
             MetadataStatus meta = (MetadataStatus) ex.getMetadata();
@@ -76,13 +77,11 @@ public class RichErrorModelNativeTest extends JUnitSuite {
             Assert.assertEquals("The password!", details.getMessage());
             Assert.assertEquals("EN", details.getLocale());
             // #client_request
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail("Got unexpected error " + e.getMessage());
         } finally {
-            if (client != null) client.close();
-            sys.terminate();
+            if (client != null) {
+                 client.close();
+            }
+            TestKit.shutdownActorSystem(sys);
         }
     }
 }
