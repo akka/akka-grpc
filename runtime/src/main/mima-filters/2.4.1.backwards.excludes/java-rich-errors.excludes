@@ -1,0 +1,4 @@
+# This breaks compatibility but Java users could likely never use it anyway (scalpb message type as parameter)
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.GrpcServiceException.create")
+# not for user extension
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.MetadataStatus.getParsedDetails")

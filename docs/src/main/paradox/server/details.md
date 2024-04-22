@@ -52,6 +52,6 @@ Scala
 :    @@snip[RichErrorModelSpec](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelNativeSpec.scala) { #rich_error_model_unary }
 
 Java
-:    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorNativeImpl.java) { #rich_error_model_unary }
+:    @@snip[RichErrorModelTest](/plugin-tester-java/src/test/scala/example/myapp/helloworld/RichErrorNativeImpl.java) { #rich_error_model_unary }
 
 Please look @ref[here](../client/details.md) how to handle this on the client.

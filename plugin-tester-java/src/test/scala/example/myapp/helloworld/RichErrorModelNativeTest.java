@@ -2,7 +2,7 @@
  * Copyright (C) 2018-2023 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package example.myapp.helloworld.grpc;
+package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
@@ -12,9 +12,10 @@ import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
-import com.google.rpc.error_details.LocalizedMessage;
+import com.google.rpc.LocalizedMessage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import example.myapp.helloworld.grpc.*;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.junit.Assert;
@@ -71,9 +72,9 @@ public class RichErrorModelNativeTest extends JUnitSuite {
             assertEquals(Status.INVALID_ARGUMENT.getCode().value(), meta.getCode());
             assertEquals("What is wrong?", meta.getMessage());
 
-            LocalizedMessage details = meta.getParsedDetails(LocalizedMessage.messageCompanion()).get(0);
-            assertEquals("The password!", details.message());
-            assertEquals("EN", details.locale());
+            LocalizedMessage details = meta.getParsedDetails(LocalizedMessage.getDefaultInstance()).get(0);
+            Assert.assertEquals("The password!", details.getMessage());
+            Assert.assertEquals("EN", details.getLocale());
             // #client_request
 
         } catch (Exception e) {

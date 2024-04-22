@@ -11,6 +11,7 @@ import akka.grpc.internal.{ JavaMetadataImpl, RichGrpcMetadataImpl }
 import com.google.protobuf.any.Any
 import io.grpc.protobuf.StatusProto
 
+import java.util.{ List => JList }
 import scala.jdk.CollectionConverters._
 
 object GrpcServiceException {
@@ -21,22 +22,28 @@ object GrpcServiceException {
   def create(
       code: com.google.rpc.Code,
       message: String,
-      details: java.util.List[scalapb.GeneratedMessage]): GrpcServiceException = {
-    apply(code, message, details.asScala.toVector)
+      details: JList[com.google.protobuf.Message]): GrpcServiceException = {
+    internalCreate(code, message, details.asScala.toVector.map(msg => com.google.protobuf.Any.pack(msg)))
   }
 
   /**
    * Scala API
    */
-  def apply(
-      code: com.google.rpc.Code,
-      message: String,
-      details: Seq[scalapb.GeneratedMessage]): GrpcServiceException = {
+  def apply(code: com.google.rpc.Code, message: String, details: Seq[scalapb.GeneratedMessage]): GrpcServiceException =
+    internalCreate(code, message, details.map(msg => toJavaProto(Any.pack(msg))))
 
+  def apply(ex: StatusRuntimeException): GrpcServiceException =
+    ex.getTrailers match {
+      case null =>
+        new GrpcServiceException(ex.getStatus)
+      case trailers =>
+        new GrpcServiceException(ex.getStatus, new RichGrpcMetadataImpl(ex.getStatus, trailers))
+    }
+
+  private def internalCreate(code: com.google.rpc.Code, message: String, details: Seq[com.google.protobuf.Any]) = {
     val status = com.google.rpc.Status.newBuilder().setCode(code.getNumber).setMessage(message)
 
-    details.foreach(msg => status.addDetails(toJavaProto(Any.pack(msg))))
-
+    details.foreach(msg => status.addDetails(msg))
     val statusRuntimeException = StatusProto.toStatusRuntimeException(status.build)
 
     new GrpcServiceException(
@@ -49,16 +56,6 @@ object GrpcServiceException {
     javaPbOut.setTypeUrl(scalaPbSource.typeUrl)
     javaPbOut.setValue(scalaPbSource.value)
     javaPbOut.build
-  }
-
-  def apply(ex: StatusRuntimeException): GrpcServiceException = {
-    ex.getTrailers match {
-      case null =>
-        new GrpcServiceException(ex.getStatus)
-      case trailers =>
-        new GrpcServiceException(ex.getStatus, new RichGrpcMetadataImpl(ex.getStatus, trailers))
-    }
-
   }
 }
 
