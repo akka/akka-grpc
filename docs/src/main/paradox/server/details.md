@@ -46,12 +46,13 @@ Java
 ## Rich error model
 Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model).  
 
-This example uses an error model taken from [common protobuf](https://github.com/googleapis/googleapis/blob/master/google/rpc/error_details.proto) but every class that is based on `scalapb.GeneratedMessage` can be used. Build and return the error as an `AkkaGrpcException`:
+This example uses an error model taken from [common protobuf](https://github.com/googleapis/googleapis/blob/master/google/rpc/error_details.proto) but every class that is based on @scala[`scalapb.GeneratedMessage`]@java[`com.google.protobuf.Message`] can be used. 
+Build and return the error as an `AkkaGrpcException`:
 
 Scala
 :    @@snip[RichErrorModelSpec](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelNativeSpec.scala) { #rich_error_model_unary }
 
 Java
-:    @@snip[RichErrorModelTest](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorNativeImpl.java) { #rich_error_model_unary }
+:    @@snip[RichErrorModelTest](/plugin-tester-java/src/test/scala/example/myapp/helloworld/RichErrorNativeImpl.java) { #rich_error_model_unary }
 
 Please look @ref[here](../client/details.md) how to handle this on the client.

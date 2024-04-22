@@ -246,6 +246,15 @@ class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with jav
 
   def getParsedDetails[K <: GeneratedMessage](companion: GeneratedMessageCompanion[K]): jList[K] =
     richDelegate.getParsedDetails(companion).asJava
+
+  def getParsedDetails[K <: com.google.protobuf.GeneratedMessageV3](messageType: K): jList[K] = {
+    val parser = messageType.getParserForType
+    val messageTypeUrl = s"type.googleapis.com/${messageType.getDescriptorForType.getFullName}"
+    richDelegate.details.collect {
+      case scalaPbAny if scalaPbAny.typeUrl == messageTypeUrl =>
+        parser.parseFrom(scalaPbAny.value).asInstanceOf[K]
+    }.asJava
+  }
 }
 
 class RichGrpcMetadataImpl(delegate: io.grpc.Status, meta: io.grpc.Metadata)
