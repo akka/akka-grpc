@@ -118,9 +118,8 @@ public class LoggingErrorHandlingGreeterServer {
         // We can pass through extra error details like localized versions of the message.
         // FIXME: This subproject uses Java protos, which do not extend GeneratedMessage, so the code below does not compile.
         //   It seems strange that we're requiring a java.util.List[GeneratedMessage] when java protos do not extend the GeneratedMessage trait.
-        // com.google.rpc.LocalizedMessage lm = com.google.rpc.LocalizedMessage.newBuilder().setLocale("en-US").setMessage(throwable.getMessage()).build();
-        // return Trailers.create(Code.INVALID_ARGUMENT, throwable.getMessage(), List.of(lm));
-        return Trailers.create(Code.INVALID_ARGUMENT, throwable.getMessage(), List.of());
+        LocalizedMessage lm = LocalizedMessage.newBuilder().setLocale("en-US").setMessage(throwable.getMessage()).build();
+        return Trailers.create(Code.INVALID_ARGUMENT, throwable.getMessage(), List.of(lm));
       } else {
         return new Trailers(Status.INVALID_ARGUMENT);
       }
