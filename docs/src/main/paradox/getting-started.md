@@ -2,7 +2,7 @@
 
 ## Akka gRPC Quickstart
 
-To try out Akka gRPC and understand how the development process might work out, try the [Akka gRPC Quickstart with Scala](https://developer.lightbend.com/guides/akka-grpc-quickstart-scala/) or the [Akka gRPC Quickstart with Java](https://developer.lightbend.com/guides/akka-grpc-quickstart-java/).
+To try out Akka gRPC and understand how the development process might work out, try the @ref[Akka gRPC Quickstart with Scala](quickstart-scala/index.md) or the @ref[Akka gRPC Quickstart with Java](quickstart-java/index.md).
 
 ## Video Introduction
 

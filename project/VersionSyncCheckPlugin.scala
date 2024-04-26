@@ -33,7 +33,11 @@ object VersionSyncCheckPlugin extends AutoPlugin {
         Paths.get("native-image-tests/grpc-scala/project/plugins.sbt")),
       Set(
         Paths.get("native-image-tests/grpc-scala/build.sbt"),
-        Paths.get("native-image-tests/grpc-scala/project/plugins.sbt"))).value,
+        Paths.get("native-image-tests/grpc-scala/project/plugins.sbt"),
+        Paths.get("samples/akka-grpc-quickstart-java/build.sbt"),
+        Paths.get("samples/akka-grpc-quickstart-java/pom.xml"),
+        Paths.get("samples/akka-grpc-quickstart-scala/build.sbt"),
+        Paths.get("samples/akka-grpc-quickstart-scala/pom.xml"))).value,
     googleProtobufVersionSyncCheck := versionSyncCheckImpl(
       "Google Protobuf",
       Dependencies.Versions.googleProtobuf,

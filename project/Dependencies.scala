@@ -19,7 +19,7 @@ object Dependencies {
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
     val akka = "2.9.2"
     val akkaBinary = "2.9"
-    val akkaHttp = "10.6.1"
+    val akkaHttp = "10.6.2"
     val akkaHttpBinary = "10.6"
 
     val grpc = "1.60.2" // checked synced by VersionSyncCheckPlugin
@@ -28,7 +28,7 @@ object Dependencies {
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.24.0" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.37.1"
+    val googleApi = "2.38.0"
 
     val scalaTest = "3.2.12"
 

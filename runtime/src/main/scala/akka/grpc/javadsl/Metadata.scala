@@ -4,7 +4,7 @@
 
 package akka.grpc.javadsl
 
-import java.util.{ List, Map, Optional }
+import java.util.{ List => JList, Map => JMap, Optional }
 import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 import akka.japi.Pair
@@ -35,13 +35,13 @@ trait Metadata {
    * @return A map from keys to a list of metadata entries. Entries with the same key will be ordered based on
    *         when they were added or received.
    */
-  def asMap(): Map[String, List[MetadataEntry]]
+  def asMap(): JMap[String, JList[MetadataEntry]]
 
   /**
    * @return A list of (key, entry) pairs. Pairs with the same key will be ordered based on when they were added
    *         or received.
    */
-  def asList(): List[Pair[String, MetadataEntry]]
+  def asList(): JList[Pair[String, MetadataEntry]]
 
   /**
    * @return Returns the scaladsl.Metadata interface for this instance.
@@ -61,6 +61,9 @@ trait MetadataStatus extends Metadata {
   def getStatus(): com.google.rpc.Status
   def getCode(): Int
   def getMessage(): String
-  def getDetails(): List[com.google.protobuf.any.Any]
-  def getParsedDetails[K <: scalapb.GeneratedMessage](companion: scalapb.GeneratedMessageCompanion[K]): List[K]
+  def getDetails(): JList[com.google.protobuf.any.Any]
+  @deprecated(message = "Use the new getParsedDetails overload taking a Java protobuf message type instead")
+  def getParsedDetails[K <: scalapb.GeneratedMessage](companion: scalapb.GeneratedMessageCompanion[K]): JList[K]
+
+  def getParsedDetails[K <: com.google.protobuf.GeneratedMessageV3](defaultMessage: K): JList[K]
 }

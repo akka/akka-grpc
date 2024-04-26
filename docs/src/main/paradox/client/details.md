@@ -84,6 +84,6 @@ Scala
 :  @@snip [GreeterClient.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelNativeSpec.scala) { #client_request }
 
 Java
-:  @@snip[RichErrorModelSpec](/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorModelNativeTest.java) { #client_request }
+:  @@snip[RichErrorModelSpec](/plugin-tester-java/src/test/scala/example/myapp/helloworld/RichErrorModelNativeTest.java) { #client_request }
 
 Please look @ref[here](../server/details.md) how to create errors with such details on the server side.
