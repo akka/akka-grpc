@@ -14,6 +14,9 @@ buildscript {
       url "https://repo.akka.io/maven"
     }
   }
+  configurations.classpath {
+    attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+  }
 }
 plugins {
   id 'scala'
@@ -38,12 +41,6 @@ repositories {
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
-
-buildscript {
-  configurations.classpath {
-    attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
-  }
-}
 
 dependencies {
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:${akkaVersion}"
