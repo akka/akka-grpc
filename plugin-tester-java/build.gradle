@@ -39,9 +39,9 @@ def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCA
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
 
-configurations.all {
-  resolutionStrategy {
-    force 'com.google.guava:guava:32.1.3-jre'
+buildscript {
+  configurations.classpath {
+    attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
   }
 }
 
