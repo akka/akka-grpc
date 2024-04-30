@@ -34,6 +34,17 @@ connection has been closed or shutdown due to errors, respectively. When you are
 you should call `close` on the channel, rather than the individual clients. Calling `close` on a generated client 
 that was created with a shared channel will throw a @apidoc[GrpcClientCloseException].
 
+## Channel laziness
+
+The Netty based channel backing a client will only actually connect once the client sees a first request. It is possible
+to configure it to eagerly connect as soon as the client, or channel, is created by setting `eager-connection = true` or
+programmatically through @apidoc[GrpcClientSettings] `withEagerConnection`.
+
+If the client does not see any traffic it will transition to an idle state, and close the connection, after 5 minutes. 
+You can find some more details about the Netty channel behavior in [the grpc connectivity-semantics-and-api docs](https://github.com/grpc/grpc/blob/master/doc/connectivity-semantics-and-api.md).
+
+The Akka HTTP backed client always connects eagerly.
+
 ## Load balancing
 
 When multiple endpoints are discovered for a gRPC client, currently one is

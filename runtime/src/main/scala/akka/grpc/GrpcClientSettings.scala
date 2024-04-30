@@ -150,7 +150,8 @@ object GrpcClientSettings {
       getOptionalString(clientConfiguration, "load-balancing-policy"),
       clientConfiguration.getString("backend"),
       identity,
-      getOptionalDuration(clientConfiguration, "service-discovery.refresh-interval"))
+      getOptionalDuration(clientConfiguration, "service-discovery.refresh-interval"),
+      clientConfiguration.getBoolean("eager-connection"))
 
   private def getOptionalString(config: Config, path: String): Option[String] =
     config.getString(path) match {
@@ -205,7 +206,8 @@ final class GrpcClientSettings private (
     val loadBalancingPolicy: Option[String],
     val backend: String,
     val channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = identity,
-    val discoveryRefreshInterval: Option[FiniteDuration]) {
+    val discoveryRefreshInterval: Option[FiniteDuration],
+    val eagerConnection: Boolean) {
   require(
     sslContext.isEmpty || trustManager.isEmpty,
     "Configuring the sslContext or the trustManager is mutually exclusive")
@@ -315,6 +317,14 @@ final class GrpcClientSettings private (
   def withDiscoveryRefreshInterval(refreshInterval: java.time.Duration): GrpcClientSettings =
     copy(discoveryRefreshInterval = Some(refreshInterval.asScala))
 
+  /**
+   * Request that the client try to connect the service immediately when the client is created
+   * rather than on the first request. Only supported for the Netty client backend, the akka-http client backend
+   * is always eager.
+   */
+  def withEagerConnection(eagerConnection: Boolean): GrpcClientSettings =
+    copy(eagerConnection = eagerConnection)
+
   private def copy(
       serviceName: String = serviceName,
       servicePortName: Option[String] = servicePortName,
@@ -333,7 +343,8 @@ final class GrpcClientSettings private (
       loadBalancingPolicy: Option[String] = loadBalancingPolicy,
       backend: String = backend,
       channelBuilderOverrides: NettyChannelBuilder => NettyChannelBuilder = channelBuilderOverrides,
-      discoveryRefreshInterval: Option[FiniteDuration] = discoveryRefreshInterval): GrpcClientSettings =
+      discoveryRefreshInterval: Option[FiniteDuration] = discoveryRefreshInterval,
+      eagerConnection: Boolean = eagerConnection): GrpcClientSettings =
     new GrpcClientSettings(
       callCredentials = callCredentials,
       serviceDiscovery = serviceDiscovery,
@@ -353,5 +364,6 @@ final class GrpcClientSettings private (
       loadBalancingPolicy = loadBalancingPolicy,
       backend = backend,
       channelBuilderOverrides = channelBuilderOverrides,
-      discoveryRefreshInterval = discoveryRefreshInterval)
+      discoveryRefreshInterval = discoveryRefreshInterval,
+      eagerConnection = eagerConnection)
 }

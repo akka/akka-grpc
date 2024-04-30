@@ -1,0 +1,2 @@
+# eager client connections, internal constructor
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcClientSettings.this")

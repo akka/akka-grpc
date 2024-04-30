@@ -58,6 +58,17 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
       val reply = clients.head.sayHello(HelloRequest("Alice"))
       reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
     }
+
+    "reply to single request (eager connect client)" in {
+      val eagerClient = GreeterServiceClient(
+        GrpcClientSettings
+          .connectToServiceAt("127.0.0.1", 8080)(clientSystem.asInstanceOf[ClassicActorSystemProvider])
+          .withEagerConnection(true)
+          .withTls(false))(clientSystem.asInstanceOf[ClassicActorSystemProvider])
+      // no clear way to test it actually connected eagerly, but at least cover that it works
+      val reply = eagerClient.sayHello(HelloRequest("Alice"))
+      reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
+    }
   }
 
   "GreeterServicePowerApi" should {
