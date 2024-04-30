@@ -34,9 +34,11 @@ repositories {
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
+def protoGoogleCommonVersion = "2.22.0"
 
 dependencies {
   implementation "com.typesafe.akka:akka-pki_${scalaBinaryVersion}:${akkaVersion}"
+  protobuf "com.google.api.grpc:proto-google-common-protos:${protoGoogleCommonVersion}"
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:${akkaVersion}"
   testImplementation "com.typesafe.akka:akka-actor-testkit-typed_${scalaBinaryVersion}:${akkaVersion}"
   testImplementation "org.scalatest:scalatest_${scalaBinaryVersion}:3.2.12"

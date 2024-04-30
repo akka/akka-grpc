@@ -14,6 +14,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.DebuggingDirectives
 import akka.stream.Materializer
+import com.google.rpc.LocalizedMessage
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc.{ GreeterService, GreeterServiceHandler, HelloReply, HelloRequest }
 import io.grpc.Status
@@ -32,10 +33,16 @@ object LoggingErrorHandlingGreeterServer {
 
 class LoggingErrorHandlingGreeterServer(system: ActorSystem) {
   //#implementation
+
+  private val nameNonEmptyException = new IllegalArgumentException("Name must be non-empty")
+  private val nameCapitalizedException = new IllegalArgumentException("Name must be capitalized")
+
   private final class Impl(mat: Materializer) extends GreeterServiceImpl()(mat) {
     override def sayHello(in: HelloRequest): Future[HelloReply] =
-      if (in.name.head.isLower) {
-        Future.failed(new IllegalArgumentException("Name must be capitalized"))
+      if (in.name.isEmpty) {
+        Future.failed(nameNonEmptyException)
+      } else if (in.name.head.isLower) {
+        Future.failed(nameCapitalizedException)
       } else {
         Future.successful(HelloReply(s"Hello, ${in.name}"))
       }
@@ -73,7 +80,17 @@ class LoggingErrorHandlingGreeterServer(system: ActorSystem) {
 
   //#custom-error-mapping
   private val customErrorMapping: PartialFunction[Throwable, Trailers] = {
-    case ex: IllegalArgumentException => Trailers(Status.INVALID_ARGUMENT.withDescription(ex.getMessage))
+    case ex: IllegalArgumentException =>
+      if (ex.getMessage == nameNonEmptyException.getMessage) {
+        // We can pass through the message by attaching it to the Status.
+        Trailers(Status.INVALID_ARGUMENT.withDescription(ex.getMessage))
+      } else if (ex.getMessage == nameCapitalizedException.getMessage) {
+        // We can pass through extra error details like localized versions of the message.
+        Trailers(com.google.rpc.Code.INVALID_ARGUMENT, ex.getMessage, List(LocalizedMessage("en-US", ex.getMessage)))
+      } else {
+        // If we don't recognize the exception, we might want to withhold the message.
+        Trailers(Status.INVALID_ARGUMENT)
+      }
   }
   //#custom-error-mapping
 
