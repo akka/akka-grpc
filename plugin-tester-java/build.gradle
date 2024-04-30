@@ -35,10 +35,12 @@ repositories {
   }
 }
 
-compileOptions {
-  sourceCompatibility 11
-  targetCompatibility 11
+configurations{ 
+  compileClasspath{
+    attributes.attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment.class, TargetJvmEnvironment.STANDARD_JVM)) 
+  }
 }
+
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
