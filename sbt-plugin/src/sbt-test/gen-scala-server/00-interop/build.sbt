@@ -4,7 +4,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.60.2" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.63.0" // checked synced by VersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",

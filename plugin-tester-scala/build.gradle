@@ -36,6 +36,10 @@ def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
 def protoGoogleCommonVersion = "2.22.0"
 
+tasks.named("processResources") {
+ duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 dependencies {
   implementation "com.typesafe.akka:akka-pki_${scalaBinaryVersion}:${akkaVersion}"
   protobuf "com.google.api.grpc:proto-google-common-protos:${protoGoogleCommonVersion}"
