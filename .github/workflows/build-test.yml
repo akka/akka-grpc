@@ -258,7 +258,7 @@ jobs:
       - name: Test Maven Scala
         run: |-
           cd plugin-tester-scala
-          mvn -nsu -ntp -Dakka.grpc.project.version=`cat ~/.version` akka-grpc:generate scala:compile
+          mvn -nsu -ntp -Dakka.grpc.project.version=`cat ~/.version` dependency:unpack@unpack akka-grpc:generate scala:compile
 
   test-docs:
     name: Docs
