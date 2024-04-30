@@ -35,6 +35,10 @@ def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCA
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
 def akkaVersion = "2.9.2"
 
+tasks.named("processResources") {
+ duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 dependencies {
   implementation "com.typesafe.akka:akka-pki_${scalaBinaryVersion}:${akkaVersion}"
   testImplementation "com.typesafe.akka:akka-stream-testkit_${scalaBinaryVersion}:${akkaVersion}"
