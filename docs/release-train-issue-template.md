@@ -14,6 +14,7 @@ Variables to be expanded in this template:
 ### Cutting the release
 
 - [ ] Check that open PRs and issues assigned to the milestone are reasonable
+- [ ] If PRs were merged after EU midnight, trigger the [native-image tests](https://github.com/akka/akka-grpc/actions/workflows/native-image-tests.yml) and see that they are green.
 - [ ] Update the Change date and version in the LICENSE file.
 - [ ] Update the Akka gRPC version in the samples to $VERSION$, otherwise the published zip files of the samples will have the old version.
 - [ ] Create a new milestone for the [next version](https://github.com/akka/akka-grpc/milestones)
