@@ -33,7 +33,7 @@ repositories {
 
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
-def akkaVersion = "2.9.2"
+def akkaVersion = "2.9.3"
 def protoGoogleCommonVersion = "2.22.0"
 
 tasks.named("processResources") {

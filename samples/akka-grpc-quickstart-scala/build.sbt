@@ -3,7 +3,7 @@ name := "akka-grpc-quickstart-scala"
 version := "1.0"
 scalaVersion := "2.13.13"
 
-val akkaVersion = "2.9.2"
+val akkaVersion = "2.9.3"
 lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.4.2")
 
 enablePlugins(AkkaGrpcPlugin)
