@@ -60,9 +60,12 @@ object Dependencies {
       .exclude("io.grpc", "grpc-xds")
 
     val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.36"
-    val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
-    val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
-    val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
+    val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven % Provided // Apache v2
+    val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven % Provided // Apache v2
+    val mavenArtifactTransfer =
+      "org.apache.maven.shared" % "maven-artifact-transfer" % "0.13.1" % Provided // Apache v2 ?
+    val mavenPluginToolsAnnotations =
+      "org.apache.maven.plugin-tools" % "maven-plugin-annotations" % "3.13.0" % Provided // Apache v2?
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
   }
@@ -119,13 +122,15 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit)
 
-  val mavenPlugin = l ++= Seq(
-    Compile.slf4jApi,
-    Compile.mavenPluginApi,
-    Compile.mavenCore,
-    Compile.protocJar,
-    Compile.plexusBuildApi,
-    Test.scalaTest)
+  val mavenPlugin =
+    l ++= Seq(
+      Compile.slf4jApi,
+      Compile.mavenPluginApi,
+      Compile.mavenCore,
+      Compile.plexusBuildApi,
+      Compile.mavenArtifactTransfer,
+      Compile.mavenPluginToolsAnnotations,
+      Test.scalaTest)
 
   val sbtPlugin = Seq(
     l ++= Seq(Compile.scalapbCompilerPlugin),

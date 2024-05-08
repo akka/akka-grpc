@@ -8,10 +8,24 @@ import java.io.{ ByteArrayOutputStream, File, PrintStream }
 import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
+import org.apache.maven.artifact.factory.ArtifactFactory
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager
+import org.apache.maven.artifact.repository.{ ArtifactRepository, ArtifactRepositoryPolicy }
+import org.apache.maven.artifact.versioning.VersionRange
+import org.apache.maven.execution.MavenSession
+import org.apache.maven.model.Dependency
+import org.apache.maven.plugins.annotations.Parameter
+import org.apache.maven.shared.transfer.artifact.resolve.{ ArtifactResolver, ArtifactResolverException }
 
 import javax.inject.Inject
-import org.apache.maven.plugin.AbstractMojo
-import org.apache.maven.project.MavenProject
+import org.apache.maven.plugin.{ AbstractMojo, MojoExecutionException }
+import org.apache.maven.project.{ DefaultProjectBuildingRequest, MavenProject }
+import org.apache.maven.repository.RepositorySystem
+import org.apache.maven.shared.transfer.artifact.DefaultArtifactCoordinate
+import org.apache.maven.shared.transfer.dependencies.DefaultDependableCoordinate
+import org.apache.maven.shared.transfer.dependencies.resolve.{ DependencyResolver, DependencyResolverException }
+import org.apache.maven.toolchain.ToolchainManager
+import org.codehaus.plexus.component.annotations.Component
 import org.sonatype.plexus.build.incremental.BuildContext
 import protocbridge.{ JvmGenerator, ProtocRunner, Target }
 import scalapb.ScalaPbCodeGenerator
@@ -90,6 +104,15 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   @BeanProperty
   var project: MavenProject = _
 
+  @Component
+  var artifactResolver: ArtifactResolver = _
+
+  @Component
+  var dependencyResolver: DependencyResolver = _
+
+  @Component
+  var artifactHandlerManager: ArtifactHandlerManager = _
+
   @BeanProperty
   var protoPaths: java.util.List[String] = _
   @BeanProperty
@@ -122,6 +145,18 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   @BeanProperty
   var protocVersion: String = _
+
+  @Parameter(defaultValue = "${project.remoteArtifactRepositories}", readonly = true, required = true)
+  var pomRemoteRepositories: java.util.List[ArtifactRepository] = _
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  var session: MavenSession = _
+
+  /**
+   * The repository system.
+   */
+  @Component
+  var repositorySystem: RepositorySystem = _
 
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
 
@@ -206,12 +241,77 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
       }
 
-      val runProtoc: Seq[String] => Int = args =>
-        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      getProtoc()
+
+      /* val runProtoc: Seq[String] => Int = args =>
+        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray) */
+
+      val runProtoc = ???
       val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
+  }
+
+  private def getProtoc(): Unit = {
+
+    /**
+     * https://repo.maven.apache.org/maven2/com/google/protobuf/protoc/3.24.0/protoc-3.24.0-linux-x86_64.exe
+     */
+    val dependableCoordinate = new DefaultDependableCoordinate()
+    dependableCoordinate.setGroupId("com.google.protobuf.protoc")
+    dependableCoordinate.setArtifactId("protoc")
+    dependableCoordinate.setType("exe")
+    dependableCoordinate.setVersion("3.24.0")
+    dependableCoordinate.setClassifier("linux-x86_64")
+
+    val artifactHandler = artifactHandlerManager.getArtifactHandler(dependableCoordinate.getType())
+    val artifactCoordinate = new DefaultArtifactCoordinate()
+    artifactCoordinate.setGroupId(dependableCoordinate.getGroupId())
+    artifactCoordinate.setArtifactId(dependableCoordinate.getArtifactId())
+    artifactCoordinate.setVersion(dependableCoordinate.getVersion())
+    artifactCoordinate.setClassifier(dependableCoordinate.getClassifier())
+    artifactCoordinate.setExtension(artifactHandler.getExtension())
+
+    val always = new ArtifactRepositoryPolicy(
+      true,
+      ArtifactRepositoryPolicy.UPDATE_POLICY_ALWAYS,
+      ArtifactRepositoryPolicy.CHECKSUM_POLICY_WARN)
+
+    var repoList = new java.util.ArrayList[ArtifactRepository]
+
+    if (pomRemoteRepositories != null) {
+      repoList.addAll(pomRemoteRepositories)
+    }
+
+    try {
+
+      val buildingRequest =
+        new DefaultProjectBuildingRequest(session.getProjectBuildingRequest)
+
+      val settings = session.getSettings
+      repositorySystem.injectMirror(repoList, settings.getMirrors)
+      repositorySystem.injectProxy(repoList, settings.getProxies)
+      repositorySystem.injectAuthentication(repoList, settings.getServers)
+
+      buildingRequest.setRemoteRepositories(repoList)
+
+      /* if (transitive) {
+        getLog().info("Resolving " + coordinate + " with transitive dependencies");
+        dependencyResolver.resolveDependencies(buildingRequest, coordinate, null);
+      } else { */
+      getLog().info("Resolving " + dependableCoordinate)
+      val result = artifactResolver.resolveArtifact(buildingRequest, artifactCoordinate)
+
+      // Now what?
+
+    } catch {
+      case ex: ArtifactResolverException =>
+        throw new MojoExecutionException("Couldn't download protoc artifact: " + ex.getMessage, ex)
+      case ex: DependencyResolverException =>
+        throw new MojoExecutionException("Couldn't download protoc artifact: " + ex.getMessage, ex)
+    }
+
   }
 
   private[this] def executeProtoc(

@@ -4,10 +4,11 @@
 
 package akka.grpc.scaladsl
 
-import com.google.protobuf.any.{ Any => ScalapbAny }
+import com.google.protobuf.any.{Any => ScalapbAny}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import com.google.protobuf.ByteString
+import io.grpc.Status
 
 class ScalapbProtobufSerializerSpec extends AnyWordSpec with Matchers {
   "Google protobuf serializer" should {
