@@ -2,7 +2,7 @@ name := "grpc-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.14"
 
 lazy val akkaVersion = sys.props.getOrElse("akka.version", "2.9.3")
 lazy val akkaGrpcVersion = sys.props.getOrElse("akka.grpc.version", "2.4.0")
