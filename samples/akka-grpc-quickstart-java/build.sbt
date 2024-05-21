@@ -1,6 +1,6 @@
 name := "akka-grpc-quickstart-java"
 version := "1.0"
-scalaVersion := "2.13.13"
+scalaVersion := "2.13.14"
 
 val akkaVersion = "2.9.3"
 lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.4.3")
@@ -22,13 +22,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-discovery" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-pki" % akkaVersion,
-
   "ch.qos.logback" % "logback-classic" % "1.2.13",
-
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
   "junit" % "junit" % "4.13.2" % Test,
-  "com.novocode" % "junit-interface" % "0.11" % Test
-)
+  "com.novocode" % "junit-interface" % "0.11" % Test)
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
