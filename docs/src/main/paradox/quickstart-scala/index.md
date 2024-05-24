@@ -9,7 +9,7 @@ After trying this example the @ref[Akka gRPC documentation](../index.md) is a go
 The Hello World example for Scala is a zipped project that includes build files for sbt, Maven and Gradle. You can choose any of these build tools. You can run it on Linux, MacOS, or Windows. The only prerequisite is Java 17 or later, and a local installation of the build tool.
 
 
-1. Download the project [zip file](../attachments/akka-GRPC-quickstart-scala.zip). 
+1. Download the project [zip file](../attachments/akka-grpc-quickstart-scala.zip). 
 1. Extract the zip file to a convenient location: 
   - On Linux and OSX systems, open a terminal and use the command `unzip akka-grpc-quickstart-scala.zip`.
   - On Windows, use a tool such as File Explorer to extract the project. 

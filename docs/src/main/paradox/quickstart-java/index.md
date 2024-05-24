@@ -10,7 +10,7 @@ The Hello World example for Scala is a zipped project that includes a distributi
 
 Download and unzip the example:
 
-1. Download the project [zip file](../attachments/akka-GRPC-quickstart-java.zip).
+1. Download the project [zip file](../attachments/akka-grpc-quickstart-java.zip).
 2. Extract the zip file to a convenient location.
   - On Linux and OSX systems, open a terminal and use the command `unzip akka-grpc-quickstart-java.zip`.
   - On Windows, use a tool such as File Explorer to extract the project. 
