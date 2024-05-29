@@ -9,3 +9,4 @@ paths:
     - native-image-tests
     - plugin-tester-java
     - plugin-tester-scala
+    - samples
