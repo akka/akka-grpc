@@ -5,6 +5,7 @@
 package akka.grpc.scaladsl
 
 import akka.annotation.{ ApiMayChange, DoNotInherit, InternalApi }
+import akka.http.scaladsl.model.{ AttributeKey, HttpMessage }
 import akka.util.ByteString
 import com.google.protobuf.any
 
@@ -21,6 +22,7 @@ import com.google.protobuf.any
    */
   @InternalApi
   private[grpc] val raw: Option[io.grpc.Metadata] = None
+  private[grpc] val rawHttpMessage: Option[HttpMessage] = None
 
   /**
    * @return The text header value for `key` if one exists, if the same key has multiple values the last occurrence
@@ -45,6 +47,14 @@ import com.google.protobuf.any
    */
   @ApiMayChange
   def asList: List[(String, MetadataEntry)]
+
+  /**
+   * Get an attribute from the underlying akka-http message associated with this metadata.
+   *
+   * Will return `None` if this metadata is not associated with an akka-http request or response, for example,
+   * if using the netty client support.
+   */
+  def attribute[T](key: AttributeKey[T]): Option[T]
 }
 
 /**

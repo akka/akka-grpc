@@ -1,0 +1,5 @@
+# not for user extension
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.Metadata.getAttribute")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.akka$grpc$scaladsl$Metadata$_setter_$rawHttpMessage_=")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.rawHttpMessage")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.Metadata.attribute")

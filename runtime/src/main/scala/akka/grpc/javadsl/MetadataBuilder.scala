@@ -5,12 +5,11 @@
 package akka.grpc.javadsl
 
 import java.lang.{ Iterable => jIterable }
-
 import akka.annotation.ApiMayChange
 
 import scala.collection.JavaConverters._
-import akka.http.javadsl.model.HttpHeader
-import akka.http.scaladsl.model.{ HttpHeader => sHttpHeader }
+import akka.http.javadsl.model.{ HttpHeader, HttpMessage }
+import akka.http.scaladsl.model.{ HttpHeader => sHttpHeader, HttpMessage => sHttpMessage }
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.util.ByteString
 import akka.grpc.scaladsl
@@ -68,6 +67,22 @@ object MetadataBuilder {
    */
   def fromHeaders(headers: jIterable[HttpHeader]): Metadata =
     new JavaMetadataImpl(scaladsl.MetadataBuilder.fromHeaders(headers.asScala.map(asScala).toList))
+
+  /**
+   * Constructs a Metadata instance from an HTTP message.
+   *
+   * @param message The HTTP message.
+   * @return The metadata instance.
+   */
+  def fromHttpMessage(message: HttpMessage): Metadata = {
+    message match {
+      // All HTTP messages should be scaladsl HttpMessages
+      case s: sHttpMessage => new JavaMetadataImpl(scaladsl.MetadataBuilder.fromHttpMessage(s))
+      // If not, just pass the headers
+      case _ => fromHeaders(message.getHeaders)
+    }
+
+  }
 
   /**
    * Converts from a javadsl.HttpHeader to a scaladsl.HttpHeader.
