@@ -156,7 +156,7 @@ public class @{serviceName}HandlerFactory {
     private static CompletionStage<akka.http.javadsl.model.HttpResponse> handle(akka.http.javadsl.model.HttpRequest request, String method, @serviceName implementation, Materializer mat, akka.japi.Function<ActorSystem, akka.japi.Function<Throwable, Trailers>> eHandler, ClassicActorSystemProvider system) {
       return GrpcMarshalling.negotiated(request, (reader, writer) -> {
         final CompletionStage<akka.http.javadsl.model.HttpResponse> response;
-        @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHeaders(request.getHeaders());" } else { "" }}
+        @{if(powerApis) { "Metadata metadata = MetadataBuilder.fromHttpMessage(request);" } else { "" }}
         switch(method) {
           @for(method <- service.methods) {
           case "@method.grpcName":

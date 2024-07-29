@@ -4,7 +4,8 @@
 
 package akka.grpc.internal
 
-import akka.grpc.scaladsl.{ BytesEntry, Metadata, StringEntry }
+import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataBuilder, StringEntry }
+import akka.http.scaladsl.model.AttributeKey
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.util.ByteString
 import org.scalatest.concurrent.ScalaFutures
@@ -70,6 +71,27 @@ class MetadataImplSpec extends AnyWordSpec with Matchers with ScalaFutures {
       RawHeader(DUPE_BINARY_KEY, MetadataImpl.encodeBinaryHeader(v)))
 
     testMetadata(new HeaderMetadataImpl(headers))
+  }
+
+  "HttpMessageMetadataImpl" should {
+    val headers = TEXT_ENTRIES.collect {
+      case (k, v) => RawHeader(k, v)
+    } ++ BINARY_ENTRIES.collect {
+      case (k, v) => RawHeader(k, MetadataImpl.encodeBinaryHeader(v))
+    } ++ DUPE_TEXT_VALUES.map(v => RawHeader(DUPE_TEXT_KEY, v)) ++ DUPE_BINARY_VALUES.map(v =>
+      RawHeader(DUPE_BINARY_KEY, MetadataImpl.encodeBinaryHeader(v)))
+
+    testMetadata(new HeaderMetadataImpl(headers))
+
+    "grant access HttpRequest attributes" in {
+      case class MyAttribute(value: Int)
+      val myAttributeKey = AttributeKey("my-attribute", classOf[MyAttribute])
+      val value = MyAttribute(10)
+      val request = akka.http.scaladsl.model.HttpRequest().withAttributes(Map(myAttributeKey -> value))
+      val metadata = MetadataBuilder.fromHttpMessage(request)
+
+      metadata.attribute(myAttributeKey) should be(Some(value))
+    }
   }
 
   def testMetadata(m: Metadata): Unit = {

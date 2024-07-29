@@ -6,9 +6,9 @@ package akka.grpc.scaladsl
 
 import scala.collection.immutable
 import akka.annotation.{ ApiMayChange, DoNotInherit }
-import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.{ HttpHeader, HttpMessage }
 import akka.util.ByteString
-import akka.grpc.internal.{ EntryMetadataImpl, HeaderMetadataImpl, MetadataImpl }
+import akka.grpc.internal.{ EntryMetadataImpl, HeaderMetadataImpl, HttpMessageMetadataImpl, MetadataImpl }
 
 /**
  * This class provides an interface for constructing immutable Metadata instances.
@@ -78,4 +78,14 @@ object MetadataBuilder {
    */
   def fromHeaders(headers: immutable.Seq[HttpHeader]): Metadata =
     new HeaderMetadataImpl(headers)
+
+  /**
+   * Creates a Metadata instance from an HTTP message.
+   *
+   * @param message The message
+   * @return The new Metadata instance.
+   */
+  def fromHttpMessage(message: HttpMessage): Metadata =
+    new HttpMessageMetadataImpl(message)
+
 }

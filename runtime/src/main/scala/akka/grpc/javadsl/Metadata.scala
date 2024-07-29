@@ -4,11 +4,12 @@
 
 package akka.grpc.javadsl
 
-import java.util.{ List => JList, Map => JMap, Optional }
+import java.util.{ Optional, List => JList, Map => JMap }
 import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.util.ByteString
 import akka.japi.Pair
 import akka.grpc.scaladsl
+import akka.http.javadsl.model.AttributeKey
 
 /**
  * Immutable representation of the metadata in a call
@@ -47,6 +48,14 @@ trait Metadata {
    * @return Returns the scaladsl.Metadata interface for this instance.
    */
   def asScala: scaladsl.Metadata
+
+  /**
+   * Get an attribute from the underlying akka-http message associated with this metadata.
+   *
+   * Will return `None` if this metadata is not associated with an akka-http request or response, for example,
+   * if using the netty client support.
+   */
+  def getAttribute[T](key: AttributeKey[T]): Optional[T]
 }
 
 /**

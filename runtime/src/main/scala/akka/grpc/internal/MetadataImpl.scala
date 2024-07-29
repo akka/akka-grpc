@@ -9,7 +9,8 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.compat.java8.OptionConverters._
 import akka.annotation.InternalApi
-import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpMessage }
+import akka.http.javadsl.{ model => jm }
 import akka.japi.Pair
 import akka.util.ByteString
 import akka.grpc.scaladsl.{ BytesEntry, Metadata, MetadataEntry, MetadataStatus, StringEntry }
@@ -107,6 +108,8 @@ class GrpcMetadataImpl(delegate: io.grpc.Metadata) extends Metadata {
     delegate.keys.iterator.asScala.flatMap(key => getEntries(key).map(entry => (key, entry))).toList
   }
 
+  override def attribute[T](key: AttributeKey[T]): Option[T] = None
+
   override def toString: String =
     MetadataImpl.niceStringRep(map)
 
@@ -149,6 +152,8 @@ class EntryMetadataImpl(entries: List[(String, MetadataEntry)] = Nil) extends Me
 
   override def toString: String =
     MetadataImpl.niceStringRep(asMap)
+
+  override def attribute[T](key: AttributeKey[T]): Option[T] = None
 }
 
 /**
@@ -182,6 +187,8 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
   override def asList: List[(String, MetadataEntry)] =
     headers.map(toKeyEntry).toList
 
+  override def attribute[T](key: AttributeKey[T]): Option[T] = None
+
   override def toString: String =
     MetadataImpl.niceStringRep(asMap)
 
@@ -197,6 +204,16 @@ class HeaderMetadataImpl(headers: immutable.Seq[HttpHeader] = immutable.Seq.empt
       }
     (key, entry)
   }
+}
+
+/**
+ * This class wraps an HttpMessage with the Metadata interface.
+ *
+ * @param message The HTTP message to wrap.
+ */
+class HttpMessageMetadataImpl(message: HttpMessage) extends HeaderMetadataImpl(message.headers) {
+  override def attribute[T](key: AttributeKey[T]): Option[T] = message.attribute(key)
+  override private[grpc] val rawHttpMessage = Some(message)
 }
 
 /**
@@ -225,6 +242,9 @@ class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with jav
 
   override def asScala: Metadata =
     delegate
+
+  override def getAttribute[T](key: jm.AttributeKey[T]): Optional[T] =
+    delegate.rawHttpMessage.flatMap(_.attribute(key)).asJava
 
   override def toString: String =
     delegate.toString

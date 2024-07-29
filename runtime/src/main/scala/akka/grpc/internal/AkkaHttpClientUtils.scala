@@ -303,10 +303,10 @@ object AkkaHttpClientUtils {
                   .mapMaterializedValue(_ =>
                     Future.successful(new GrpcResponseMetadata() {
                       override def headers: akka.grpc.scaladsl.Metadata =
-                        new HeaderMetadataImpl(response.headers)
+                        new HttpMessageMetadataImpl(response)
 
                       override def getHeaders(): akka.grpc.javadsl.Metadata =
-                        new JavaMetadataImpl(new HeaderMetadataImpl(response.headers))
+                        new JavaMetadataImpl(new HttpMessageMetadataImpl(response))
 
                       override def trailers: Future[akka.grpc.scaladsl.Metadata] =
                         trailerPromise.future.map(new HeaderMetadataImpl(_))
