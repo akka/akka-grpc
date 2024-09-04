@@ -17,8 +17,8 @@ import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.http.scaladsl.{ ConnectionContext, Http }
 import io.grpc.internal.testing.TestUtils
-import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 
+import javax.net.ssl.{ KeyManagerFactory, SSLContext }
 import scala.concurrent.{ Await, Future }
 
 /**
@@ -50,6 +50,7 @@ case class AkkaGrpcServerScala(serverHandlerFactory: ActorSystem => HttpRequest 
     }
 
   private def serverHttpContext() = {
+    // FIXME no need to do this manually anymore, use SSLContextFactory
     val keyEncoded =
       new String(Files.readAllBytes(Paths.get(TestUtils.loadCert("server1.key").getAbsolutePath)), "UTF-8")
         .replace("-----BEGIN PRIVATE KEY-----\n", "")

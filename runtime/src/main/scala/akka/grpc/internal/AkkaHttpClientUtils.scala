@@ -4,62 +4,31 @@
 
 package akka.grpc.internal
 
-import akka.Done
-import akka.NotUsed
+import akka.{ Done, NotUsed }
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
-import akka.grpc.GrpcClientSettings
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
-import akka.grpc.GrpcResponseMetadata
-import akka.grpc.GrpcServiceException
-import akka.grpc.GrpcSingleResponse
-import akka.grpc.ProtobufSerializer
-import akka.http.scaladsl.ClientTransport
-import akka.http.scaladsl.ConnectionContext
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.AttributeKey
-import akka.http.scaladsl.model.AttributeKeys
-import akka.http.scaladsl.model.HttpEntity.Chunk
-import akka.http.scaladsl.model.HttpEntity.Chunked
-import akka.http.scaladsl.model.HttpEntity.LastChunk
-import akka.http.scaladsl.model.HttpEntity.Strict
-import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.RequestResponseAssociation
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.Uri
+import akka.grpc._
+import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.stream.FlowShape
-import akka.stream.Materializer
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.GraphDSL
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.Sink
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http, HttpsConnectionContext }
+import akka.stream.{ FlowShape, Materializer, OverflowStrategy }
+import akka.stream.scaladsl.{ Flow, GraphDSL, Keep, Sink, Source }
 import akka.util.ByteString
-import io.grpc.CallOptions
-import io.grpc.MethodDescriptor
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
+import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
 
 import java.net.InetSocketAddress
 import java.security.SecureRandom
 import java.util.concurrent.CompletionStage
-import javax.net.ssl.KeyManager
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
+import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.Promise
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.concurrent.duration._
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{ Failure, Success }
 
 /**
  * INTERNAL API
@@ -115,18 +84,19 @@ object AkkaHttpClientUtils {
 
     val http2client =
       if (settings.useTls) {
-        val connectionContext =
-          ConnectionContext.httpsClient {
-            settings.sslContext.getOrElse {
-              settings.trustManager match {
+        val connectionContext: HttpsConnectionContext =
+          settings.sslContextProvider
+            .map(provider => ConnectionContext.httpsClient((host, port) => provider().createSSLEngine(host, port)))
+            .getOrElse {
+              val sslContext = settings.sslContext.getOrElse(settings.trustManager match {
                 case None => SSLContext.getDefault
                 case Some(trustManager) =>
                   val sslContext: SSLContext = SSLContext.getInstance("TLS")
                   sslContext.init(Array[KeyManager](), Array[TrustManager](trustManager), new SecureRandom)
                   sslContext
-              }
+              })
+              ConnectionContext.httpsClient(sslContext)
             }
-          }
 
         builder.withCustomHttpsConnectionContext(connectionContext).managedPersistentHttp2()
       } else {
