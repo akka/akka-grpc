@@ -4,31 +4,52 @@
 
 package akka.grpc.internal
 
-import akka.{ Done, NotUsed }
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
 import akka.grpc.GrpcProtocol.GrpcProtocolReader
 import akka.grpc._
-import akka.http.scaladsl.model.HttpEntity.{ Chunk, Chunked, LastChunk, Strict }
+import akka.http.scaladsl.model.HttpEntity.Chunk
+import akka.http.scaladsl.model.HttpEntity.Chunked
+import akka.http.scaladsl.model.HttpEntity.LastChunk
+import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.http.scaladsl.{ ClientTransport, ConnectionContext, Http, HttpsConnectionContext }
-import akka.stream.{ FlowShape, Materializer, OverflowStrategy }
-import akka.stream.scaladsl.{ Flow, GraphDSL, Keep, Sink, Source }
+import akka.http.scaladsl.ClientTransport
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpsConnectionContext
+import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.GraphDSL
+import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import akka.stream.FlowShape
+import akka.stream.Materializer
+import akka.stream.OverflowStrategy
 import akka.util.ByteString
-import io.grpc.{ CallOptions, MethodDescriptor, Status, StatusRuntimeException }
+import akka.Done
+import akka.NotUsed
+import io.grpc.CallOptions
+import io.grpc.MethodDescriptor
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 
 import java.net.InetSocketAddress
 import java.security.SecureRandom
 import java.util.concurrent.CompletionStage
-import javax.net.ssl.{ KeyManager, SSLContext, TrustManager }
+import javax.net.ssl.KeyManager
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
 import scala.collection.immutable
 import scala.compat.java8.FutureConverters.FutureOps
-import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.concurrent.duration._
-import scala.util.{ Failure, Success }
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
 
 /**
  * INTERNAL API
