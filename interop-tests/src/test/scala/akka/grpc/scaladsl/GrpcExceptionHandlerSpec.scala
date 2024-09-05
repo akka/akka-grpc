@@ -6,9 +6,9 @@ package akka.grpc.scaladsl
 
 import akka.actor.ActorSystem
 import akka.grpc.internal.{ GrpcProtocolNative, GrpcRequestHelpers, Identity }
-import akka.grpc.scaladsl.headers.`Status`
-import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.{ AttributeKeys, HttpEntity, HttpHeader, HttpRequest, HttpResponse }
 import akka.http.scaladsl.model.HttpEntity.{ Chunked, LastChunk, Strict }
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.TestKit
 import akka.util.ByteString
@@ -40,16 +40,7 @@ class GrpcExceptionHandlerSpec
         .recoverWith(GrpcExceptionHandler.default)
 
       val response = result.futureValue
-      response.entity match {
-        case Chunked(_, chunks) =>
-          chunks.runWith(Sink.seq).futureValue match {
-            case Seq(LastChunk("", List(`Status`("3")))) => // ok
-          }
-        case _: Strict =>
-          response.attribute(AttributeKeys.trailer).get.headers.contains("grpc-status" -> "3")
-        case other =>
-          fail(s"Unexpected [$other]")
-      }
+      trailersOnly(response).find(_.name() == "grpc-status").map(_.value()) shouldBe Some("3")
     }
 
     import example.myapp.helloworld.grpc.helloworld._
@@ -115,15 +106,12 @@ class GrpcExceptionHandlerSpec
       val request = GrpcRequestHelpers(s"/${GreeterService.name}/SayHello", List.empty, Source.single(HelloRequest("")))
 
       val reply = GreeterServiceHandler(ExampleImpl).apply(request).futureValue
-
-      val lastChunk = reply.entity.asInstanceOf[Chunked].chunks.runWith(Sink.last).futureValue.asInstanceOf[LastChunk]
+      val trailers = trailersOnly(reply)
       // Invalid argument is '3' https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
-      val statusHeader = lastChunk.trailer.find { _.name == "grpc-status" }
-      statusHeader.map(_.value()) should be(Some("3"))
-      val statusMessageHeader = lastChunk.trailer.find { _.name == "grpc-message" }
-      statusMessageHeader.map(_.value()) should be(Some("No name found"))
+      trailers.find(_.name() == "grpc-status").map(_.value()) shouldBe Some("3")
+      trailers.find(_.name() == "grpc-message").map(_.value()) shouldBe Some("No name found")
 
-      val metadata = MetadataBuilder.fromHeaders(lastChunk.trailer)
+      val metadata = MetadataBuilder.fromHeaders(trailers)
       metadata.getText("test-text") should be(Some("test-text-data"))
       metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
     }
@@ -150,4 +138,24 @@ class GrpcExceptionHandlerSpec
       metadata.getBinary("test-binary-bin") should be(Some(ByteString("test-binary-data")))
     }
   }
+
+  private def trailersOnly(response: HttpResponse): Seq[HttpHeader] = {
+    if (response.header("grpc-status").isDefined) {
+      response.headers
+    } else {
+      response.entity match {
+        case Chunked(_, chunks) =>
+          chunks.runWith(Sink.seq).futureValue match {
+            case Seq(LastChunk("", trailers)) =>
+              trailers
+          }
+        case _: Strict =>
+          response.attribute(AttributeKeys.trailer).get.headers.map { case (key, value) => RawHeader(key, value) }
+        case other =>
+          fail(s"Unexpected [$other]")
+      }
+
+    }
+  }
+
 }
