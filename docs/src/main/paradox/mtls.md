@@ -50,7 +50,7 @@ It is possible to rotate the certificates without restarting the service, by usi
 of the underlying client, new certificates are not picked up until a new connection is made and connections are kept alive
 for a relatively long time by default (30 minutes without any requests sent with the default Netty based client).
 
-see the @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate).
+For more details about the Akka HTTP certificate utilities see @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate).
 
 ## Further limiting of access using client certificate identities
 
