@@ -13,10 +13,12 @@ import example.myapp.helloworld.grpc.HelloRequest
 
 import java.nio.file.Paths
 import javax.net.ssl.SSLContext
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.util.Failure
 import scala.util.Success
+import scala.util.Try
 
 object MtlsGreeterClient {
 
@@ -30,11 +32,12 @@ object MtlsGreeterClient {
     val rotatingClientSettings =
       GrpcClientSettings.connectToServiceAt("localhost", 8443).withSslContextProvider(rotatingSslContext())
 
-    val client = GreeterServiceClient(clientSettings)
+    val client = GreeterServiceClient(rotatingClientSettings)
 
-    val reply = client.sayHello(HelloRequest("Jonas"))
+    while (true) {
+      val reply = client.sayHello(HelloRequest("Jonas"))
 
-    reply.onComplete { tryResponse =>
+      val tryResponse = Try { Await.result(reply, 5.seconds) }
       tryResponse match {
         case Success(reply) =>
           println(s"Successful reply: $reply")
@@ -42,7 +45,8 @@ object MtlsGreeterClient {
           println("Request failed")
           exception.printStackTrace()
       }
-      sys.terminate()
+
+      Thread.sleep(10000)
     }
   }
 
@@ -56,7 +60,8 @@ object MtlsGreeterClient {
   }
 
   def rotatingSslContext(): () => SSLContext = {
-    SSLContextFactory.refreshingSSLContextProvider(5.minutes) { () =>
+    SSLContextFactory.refreshingSSLContextProvider(30.seconds) { () =>
+      println("### reloading cert")
       SSLContextFactory.createSSLContextFromPem(
         // Note: these are filesystem paths, not classpath
         Paths.get("src/main/resources/certs/client1.crt"),

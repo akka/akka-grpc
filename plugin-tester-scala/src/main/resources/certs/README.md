@@ -56,6 +56,14 @@ openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in client1.csr -out client1.
 
 We now have client1.crt and client1.key for the client.
 
+Another round for a separate valid client cert, again set a common name, different from client1 key pair:
+```shell
+openssl req -newkey rsa:2048 -nodes -keyout client2.key -out client2.csr
+openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in client2.csr -out client2.crt -days 36500 -CAcreateserial
+```
+
+You can now drop the clilent2.csr file and the rootCA.srl
+
 Additional non CA-signed certs for testing key pair that the server does not agree to:
 
 ```shell
