@@ -11,7 +11,7 @@ import akka.grpc.GrpcProtocol.{ GrpcProtocolWriter, TrailerFrame }
 import akka.grpc.scaladsl.{ headers, GrpcExceptionHandler }
 import akka.grpc.{ ProtobufSerializer, Trailers }
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, Trailer }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, StatusCodes, Trailer }
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -51,11 +51,7 @@ object GrpcResponseHelpers {
     try writer.encodeDataToResponse(m.serialize(e), responseHeaders, TrailerOkAttribute)
     catch {
       case NonFatal(ex) =>
-        val trailers = GrpcEntityHelpers.handleException(ex, eHandler)
-        writer.encodeDataToResponse(
-          ByteString.empty,
-          responseHeaders,
-          Trailer(GrpcEntityHelpers.trailer(trailers.status, trailers.metadata).trailers))
+        status(GrpcEntityHelpers.handleException(ex, eHandler))
     }
   }
 
@@ -97,6 +93,12 @@ object GrpcResponseHelpers {
       entity = HttpEntity.Chunked(writer.contentType, entity))
   }
 
-  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter): HttpResponse =
-    response(Source.single(writer.encodeFrame(GrpcEntityHelpers.trailer(trailer.status, trailer.metadata))))
+  def status(trailer: Trailers)(implicit writer: GrpcProtocolWriter): HttpResponse = {
+    // This is the Trailers-Only optimisation (for sending immediate errors), which, for gRPC web and gRPC over HTTP2,
+    // are identical, it's just the 200 status code, content type, and then the trailers as headers.
+    HttpResponse(
+      status = StatusCodes.OK,
+      headers = GrpcEntityHelpers.trailer(trailer.status, trailer.metadata).trailers,
+      entity = HttpEntity(writer.contentType, ByteString.empty))
+  }
 }

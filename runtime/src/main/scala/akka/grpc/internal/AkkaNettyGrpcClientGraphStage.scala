@@ -102,6 +102,10 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         override def onMessage(message: O): Unit =
           callback.invoke(message)
         override def onClose(status: Status, trailers: Metadata): Unit = {
+          if (!matVal.isCompleted) {
+            // Trailers only response, first invoke onHeaders to setup the materialized value
+            onHeaders(trailers)
+          }
           trailerPromise.success(trailers)
           callback.invoke(Closed(status, trailers))
         }
