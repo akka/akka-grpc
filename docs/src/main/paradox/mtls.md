@@ -46,7 +46,11 @@ Java
 A client presenting a keypair will be able to connect to both servers requiring regular HTTPS gRPC services and mTLS servers that
 accept the client certificate.
 
-It is possible to rotate the certificates without restarting the service, see the @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate).
+It is possible to rotate the certificates without restarting the service, by using the Akka HTTP `SSLContextFactory.refreshingSSLContextProvider`. Note however that picking up the new certs works in concert with the connection handling
+of the underlying client, new certificates are not picked up until a new connection is made and connections are kept alive
+for a relatively long time by default (30 minutes without any requests sent with the default Netty based client).
+
+see the @extref[Akka HTTP documentation](akka-http:client-side/client-https-support.html#convenient-loading-of-key-and-certificate).
 
 ## Further limiting of access using client certificate identities
 
