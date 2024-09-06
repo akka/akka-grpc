@@ -194,6 +194,22 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
         settings.serviceDiscovery should not be null
       } finally actorSystem.terminate()
     }
+
+    "allow a user provided config object" in {
+      val config = ConfigFactory.parseString("""
+         "service-with-user-config" {
+            host = "my-host"
+            port = 43
+            service-discovery {
+              mechanism = "static"
+            }
+          }
+          """)
+      val settings = GrpcClientSettings.fromConfig("service-with-user-config", config)
+      settings.defaultPort should ===(43)
+      settings.useTls should ===(true) // from system default config
+
+    }
   }
 
   override def afterAll(): Unit = {
