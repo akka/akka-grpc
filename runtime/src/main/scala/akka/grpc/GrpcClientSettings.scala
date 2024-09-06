@@ -54,7 +54,7 @@ object GrpcClientSettings {
    * Look up client settings from the given configuration. Will look for an entry with the given name client name
    * directly in the config block. Each client configuration falls back to the defaults defined in reference.conf
    *
-   * @param clientName of the client configuration to lookup config from the ActorSystem's config
+   * @param clientName of the client name to lookup config from the given config
    */
   def fromConfig(clientName: String, config: Config)(
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
