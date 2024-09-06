@@ -55,31 +55,38 @@ object NettyClientUtils {
     private val lock = new Object
     private var sslContexts: Option[(SSLContext, ShadedNettySslContext)] = None
 
-    private def getContext(): ShadedNettySslContext = lock.synchronized {
-      val freshJavaSslContext = javaSslContextProvider()
-      sslContexts
-        .collect { case (javaContext, nettyContext) if javaContext eq freshJavaSslContext => nettyContext }
-        .getOrElse {
-          val nettyContext = createNettySslContext(freshJavaSslContext)
-          sslContexts = Some((freshJavaSslContext, nettyContext))
-          nettyContext
-        }
+    // we need an initial instance
+    getContext(true)
+
+    private def getContext(createIfMissing: Boolean): ShadedNettySslContext = lock.synchronized {
+      if (!createIfMissing) sslContexts.get._2
+      else {
+        val freshJavaSslContext = javaSslContextProvider()
+
+        sslContexts
+          .collect { case (javaContext, nettyContext) if javaContext eq freshJavaSslContext => nettyContext }
+          .getOrElse {
+            val nettyContext = createNettySslContext(freshJavaSslContext)
+            sslContexts = Some((freshJavaSslContext, nettyContext))
+            nettyContext
+          }
+      }
     }
 
-    override def isClient: Boolean = getContext().isClient
+    override def isClient: Boolean = getContext(false).isClient
 
-    override def cipherSuites(): util.List[String] = getContext().cipherSuites()
+    override def cipherSuites(): util.List[String] = getContext(false).cipherSuites()
 
     @nowarn("msg=deprecated")
     override def applicationProtocolNegotiator(): ApplicationProtocolNegotiator =
-      getContext().applicationProtocolNegotiator()
+      getContext(false).applicationProtocolNegotiator()
 
-    override def newEngine(byteBufAllocator: ByteBufAllocator): SSLEngine = getContext().newEngine(byteBufAllocator)
+    override def newEngine(byteBufAllocator: ByteBufAllocator): SSLEngine = getContext(true).newEngine(byteBufAllocator)
 
     override def newEngine(byteBufAllocator: ByteBufAllocator, s: String, i: Int): SSLEngine =
-      getContext().newEngine(byteBufAllocator, s, i)
+      getContext(true).newEngine(byteBufAllocator, s, i)
 
-    override def sessionContext(): SSLSessionContext = getContext().sessionContext()
+    override def sessionContext(): SSLSessionContext = getContext(false).sessionContext()
   }
 
   /**

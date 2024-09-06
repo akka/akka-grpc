@@ -234,13 +234,22 @@ final class GrpcClientSettings private (
     Option(trustManager).fold(this)(trustManager => copy(useTls = true, trustManager = Option(trustManager)))
 
   /**
-   * For each new client connection, invoke this provider to set up TLS, useful for example for using rotating
+   * Scala API: For each new client connection, invoke this provider to set up TLS, useful for example for using rotating
    * certs for the client provided by `SSLContextFactory.refreshingSSLEngineProvider`.
    *
    * When setting this the other TLS settings (`sslContext`,`tlsManager`) must not be set.
    */
   def withSslContextProvider(provider: () => SSLContext): GrpcClientSettings =
     copy(useTls = true, sslContextProvider = Some(provider))
+
+  /**
+   * Java API: For each new client connection, invoke this provider to set up TLS, useful for example for using rotating
+   * certs for the client provided by `SSLContextFactory.refreshingSSLEngineProvider`.
+   *
+   * When setting this the other TLS settings (`sslContext`,`tlsManager`) must not be set.
+   */
+  def withSslContextProvider(provider: akka.japi.function.Creator[SSLContext]): GrpcClientSettings =
+    copy(useTls = true, sslContextProvider = Some(() => provider.create()))
 
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
