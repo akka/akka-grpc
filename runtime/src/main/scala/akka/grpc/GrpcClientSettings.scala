@@ -46,17 +46,22 @@ object GrpcClientSettings {
    * @param clientName of the client configuration to lookup config from the ActorSystem's config
    */
   def fromConfig(clientName: String)(implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
-    val system = actorSystem.classicSystem
-    val akkaGrpcClientConfig = system.settings.config.getConfig("akka.grpc.client")
-    val clientConfig = {
-      // Use config named "*" by default
-      val defaultServiceConfig = akkaGrpcClientConfig.getConfig("\"*\"")
-      require(
-        akkaGrpcClientConfig.hasPath(s""""$clientName""""),
-        s"Config path `akka.grpc.client.$clientName` does not exist")
-      akkaGrpcClientConfig.getConfig(s""""$clientName"""").withFallback(defaultServiceConfig)
-    }
+    val akkaGrpcClientConfig = actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client")
+    fromConfig(clientName, akkaGrpcClientConfig)
+  }
 
+  /**
+   * Look up client settings from the given configuration. Will look for an entry with the given name client name
+   * directly in the config block. Each client configuration falls back to the defaults defined in reference.conf
+   *
+   * @param clientName of the client name to lookup config from the given config
+   */
+  def fromConfig(clientName: String, config: Config)(
+      implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
+    // Use config named "*" by default
+    val defaultServiceConfig = actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client.\"*\"")
+    require(config.hasPath(s""""$clientName""""), s"Config path `akka.grpc.client.$clientName` does not exist")
+    val clientConfig = config.getConfig(s""""$clientName"""").withFallback(defaultServiceConfig)
     GrpcClientSettings.fromConfig(clientConfig)
   }
 
