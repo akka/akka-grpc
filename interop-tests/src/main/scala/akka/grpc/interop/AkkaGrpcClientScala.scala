@@ -4,12 +4,14 @@
 
 package akka.grpc.interop
 
-import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import io.grpc.internal.testing.TestUtils
-import io.grpc.testing.integration2.{ ClientTester, Settings, TestServiceClient }
+import io.grpc.testing.integration2.ClientTester
+import io.grpc.testing.integration2.Settings
+import io.grpc.testing.integration2.TestServiceClient
 
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 // TODO #151 use our own Settings object
 final case class AkkaGrpcClientScala(clientTesterFactory: Settings => ActorSystem => ClientTester) extends GrpcClient {

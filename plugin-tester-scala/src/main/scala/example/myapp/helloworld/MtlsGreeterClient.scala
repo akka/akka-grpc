@@ -7,16 +7,16 @@ package example.myapp.helloworld
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import akka.http.scaladsl.common.SSLContextFactory
 import example.myapp.helloworld.grpc.GreeterServiceClient
 import example.myapp.helloworld.grpc.HelloRequest
 
 import java.nio.file.Paths
 import javax.net.ssl.SSLContext
-import akka.http.scaladsl.common.SSLContextFactory
 import scala.concurrent.ExecutionContext
-import scala.io.Source
-import scala.util.Success
+import scala.concurrent.duration.DurationInt
 import scala.util.Failure
+import scala.util.Success
 
 object MtlsGreeterClient {
 
@@ -26,8 +26,11 @@ object MtlsGreeterClient {
 
     val clientSettings = GrpcClientSettings.connectToServiceAt("localhost", 8443).withSslContext(sslContext())
 
-    val client = GreeterServiceClient(clientSettings)
+    // alternatively, for rotating certs
+    val rotatingClientSettings =
+      GrpcClientSettings.connectToServiceAt("localhost", 8443).withSslContextProvider(rotatingSslContext())
 
+    val client = GreeterServiceClient(clientSettings)
     val reply = client.sayHello(HelloRequest("Jonas"))
 
     reply.onComplete { tryResponse =>
@@ -51,8 +54,17 @@ object MtlsGreeterClient {
       trustedCaCertificatePaths = Seq(Paths.get("src/main/resources/certs/rootCA.crt")))
   }
 
-  private def classPathFileAsString(path: String): String =
-    Source.fromResource(path).mkString
+  def rotatingSslContext(): () => SSLContext = {
+    SSLContextFactory.refreshingSSLContextProvider(30.seconds) { () =>
+      println("### reloading cert")
+      SSLContextFactory.createSSLContextFromPem(
+        // Note: these are filesystem paths, not classpath
+        Paths.get("src/main/resources/certs/client1.crt"),
+        Paths.get("src/main/resources/certs/client1.key"),
+        // server cert is issued by this CA
+        Seq(Paths.get("src/main/resources/certs/rootCA.crt")))
+    }
+  }
 
 }
 //#full-client

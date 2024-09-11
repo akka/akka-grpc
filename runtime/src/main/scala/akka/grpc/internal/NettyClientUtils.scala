@@ -4,8 +4,6 @@
 
 package akka.grpc.internal
 
-import akka.Done
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
@@ -15,26 +13,33 @@ import akka.grpc.GrpcSingleResponse
 import akka.stream.scaladsl.Flow
 import akka.stream.scaladsl.Keep
 import akka.stream.scaladsl.Source
-import io.grpc.CallOptions
-import io.grpc.MethodDescriptor
+import akka.Done
+import akka.NotUsed
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
-import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig
+import io.grpc.netty.shaded.io.netty.buffer.ByteBufAllocator
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.Protocol
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectedListenerFailureBehavior
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig.SelectorFailureBehavior
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig
 import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNames
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext
+import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNegotiator
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext => ShadedNettySslContext }
+import io.grpc.CallOptions
+import io.grpc.MethodDescriptor
 
+import java.util
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLSessionContext
 import scala.annotation.nowarn
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import scala.concurrent.duration.FiniteDuration
 import scala.util.Failure
 import scala.util.Success
 
@@ -43,6 +48,46 @@ import scala.util.Success
  */
 @InternalApi
 object NettyClientUtils {
+
+  private final class RefreshingShadedNettySslContext(javaSslContextProvider: () => SSLContext)
+      extends ShadedNettySslContext {
+
+    private val lock = new Object
+    private var sslContexts: Option[(SSLContext, ShadedNettySslContext)] = None
+
+    // we need an initial instance
+    getContext(true)
+
+    private def getContext(createIfMissing: Boolean): ShadedNettySslContext = lock.synchronized {
+      if (!createIfMissing) sslContexts.get._2
+      else {
+        val freshJavaSslContext = javaSslContextProvider()
+
+        sslContexts
+          .collect { case (javaContext, nettyContext) if javaContext eq freshJavaSslContext => nettyContext }
+          .getOrElse {
+            val nettyContext = createNettySslContext(freshJavaSslContext)
+            sslContexts = Some((freshJavaSslContext, nettyContext))
+            nettyContext
+          }
+      }
+    }
+
+    override def isClient: Boolean = getContext(false).isClient
+
+    override def cipherSuites(): util.List[String] = getContext(false).cipherSuites()
+
+    @nowarn("msg=deprecated")
+    override def applicationProtocolNegotiator(): ApplicationProtocolNegotiator =
+      getContext(false).applicationProtocolNegotiator()
+
+    override def newEngine(byteBufAllocator: ByteBufAllocator): SSLEngine = getContext(true).newEngine(byteBufAllocator)
+
+    override def newEngine(byteBufAllocator: ByteBufAllocator, s: String, i: Int): SSLEngine =
+      getContext(true).newEngine(byteBufAllocator, s, i)
+
+    override def sessionContext(): SSLSessionContext = getContext(false).sessionContext()
+  }
 
   /**
    * INTERNAL API
@@ -79,10 +124,13 @@ object NettyClientUtils {
         case Some(sslContext) =>
           builder.sslContext(createNettySslContext(sslContext))
         case None =>
-          (settings.trustManager, settings.sslProvider) match {
-            case (None, None) =>
+          (settings.trustManager, settings.sslProvider, settings.sslContextProvider) match {
+            case (None, None, None) =>
               builder
-            case (tm, provider) =>
+            case (None, None, Some(contextProvider)) =>
+              builder.sslContext(new RefreshingShadedNettySslContext(contextProvider))
+
+            case (tm, provider, _) =>
               val context = provider.fold(GrpcSslContexts.configure(SslContextBuilder.forClient()))(sslProvider =>
                 GrpcSslContexts.configure(SslContextBuilder.forClient(), sslProvider))
               builder.sslContext((tm match {
@@ -183,13 +231,10 @@ object NettyClientUtils {
   }
 
   /**
-   * INTERNAL API
-   *
-   * Given a Java [[SSLContext]], create a Netty [[SslContext]] that can be used to build
+   * Given a Java [[SSLContext]], create a Netty [[ShadedNettySslContext]] that can be used to build
    * a Netty HTTP/2 channel.
    */
-  @InternalApi
-  private def createNettySslContext(javaSslContext: SSLContext): SslContext = {
+  private def createNettySslContext(javaSslContext: SSLContext): ShadedNettySslContext = {
     import io.grpc.netty.shaded.io.netty.handler.ssl.ClientAuth
     import io.grpc.netty.shaded.io.netty.handler.ssl.IdentityCipherSuiteFilter
     import io.grpc.netty.shaded.io.netty.handler.ssl.JdkSslContext

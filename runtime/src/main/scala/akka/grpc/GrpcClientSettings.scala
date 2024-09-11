@@ -149,6 +149,7 @@ object GrpcClientSettings {
       }),
       None,
       getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
+      None,
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
@@ -205,6 +206,7 @@ final class GrpcClientSettings private (
     val sslProvider: Option[SslProvider],
     val sslContext: Option[SSLContext],
     val trustManager: Option[TrustManager],
+    val sslContextProvider: Option[() => SSLContext],
     val deadline: Duration,
     val userAgent: Option[String],
     val useTls: Boolean,
@@ -214,8 +216,8 @@ final class GrpcClientSettings private (
     val discoveryRefreshInterval: Option[FiniteDuration],
     val eagerConnection: Boolean) {
   require(
-    sslContext.isEmpty || trustManager.isEmpty,
-    "Configuring the sslContext or the trustManager is mutually exclusive")
+    Seq(sslContextProvider.isDefined, sslContext.isDefined, trustManager.isDefined).count(_ == true) < 2,
+    "Only one of sslContextProvider, the sslContext or trustManager is allowed to be configured at the same time")
   require(
     if (sslContext.isDefined) sslProvider.forall(_ == SslProvider.JDK) else true,
     "When sslContext is configured, sslProvider must not set to something different than JDK")
@@ -227,17 +229,32 @@ final class GrpcClientSettings private (
   def withDefaultPort(value: Int): GrpcClientSettings = copy(defaultPort = value)
   def withCallCredentials(value: CallCredentials): GrpcClientSettings = copy(callCredentials = Option(value))
   def withOverrideAuthority(value: String): GrpcClientSettings = copy(overrideAuthority = Option(value))
+
+  /** Note: Netty client backend specific setting */
   def withSslProvider(sslProvider: SslProvider): GrpcClientSettings =
     Option(sslProvider).fold(this)(sslProvider => copy(useTls = true, sslProvider = Some(sslProvider)))
-
-  /**
-   * Prefer using `withContextManager`: withSslContext forces the ssl-provider 'jdk', which is known
-   * not to work on JDK 1.8.0_252.
-   */
   def withSslContext(sslContext: SSLContext): GrpcClientSettings =
     Option(sslContext).fold(this)(sslContext => copy(useTls = true, sslContext = Option(sslContext)))
   def withTrustManager(trustManager: TrustManager): GrpcClientSettings =
     Option(trustManager).fold(this)(trustManager => copy(useTls = true, trustManager = Option(trustManager)))
+
+  /**
+   * Scala API: For each new client connection, invoke this provider to set up TLS, useful for example for using rotating
+   * certs for the client provided by `SSLContextFactory.refreshingSSLEngineProvider`.
+   *
+   * When setting this the other TLS settings (`sslContext`,`tlsManager`) must not be set.
+   */
+  def withSslContextProvider(provider: () => SSLContext): GrpcClientSettings =
+    copy(useTls = true, sslContextProvider = Some(provider))
+
+  /**
+   * Java API: For each new client connection, invoke this provider to set up TLS, useful for example for using rotating
+   * certs for the client provided by `SSLContextFactory.refreshingSSLEngineProvider`.
+   *
+   * When setting this the other TLS settings (`sslContext`,`tlsManager`) must not be set.
+   */
+  def withSslContextCreator(provider: akka.japi.function.Creator[SSLContext]): GrpcClientSettings =
+    copy(useTls = true, sslContextProvider = Some(() => provider.create()))
 
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)
 
@@ -340,6 +357,7 @@ final class GrpcClientSettings private (
       sslProvider: Option[SslProvider] = sslProvider,
       sslContext: Option[SSLContext] = sslContext,
       trustManager: Option[TrustManager] = trustManager,
+      sslContextProvider: Option[() => SSLContext] = sslContextProvider,
       deadline: Duration = deadline,
       userAgent: Option[String] = userAgent,
       useTls: Boolean = useTls,
@@ -362,6 +380,7 @@ final class GrpcClientSettings private (
       sslProvider = sslProvider,
       sslContext = sslContext,
       trustManager = trustManager,
+      sslContextProvider = sslContextProvider,
       userAgent = userAgent,
       useTls = useTls,
       resolveTimeout = resolveTimeout,
@@ -371,4 +390,5 @@ final class GrpcClientSettings private (
       channelBuilderOverrides = channelBuilderOverrides,
       discoveryRefreshInterval = discoveryRefreshInterval,
       eagerConnection = eagerConnection)
+
 }

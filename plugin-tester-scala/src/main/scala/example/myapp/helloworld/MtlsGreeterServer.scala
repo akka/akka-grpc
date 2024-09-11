@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 import scala.io.Source
 
 object MtlsGreeterServer {
@@ -43,7 +44,11 @@ class MtlsGreeterServer(system: ActorSystem) {
 
     // Bind service handler servers to localhost:8443
     val binding =
-      Http().newServerAt("127.0.0.1", 8443).enableHttps(serverHttpContext).bind(service)
+      Http()
+        .newServerAt("127.0.0.1", 8443)
+        .enableHttps(serverHttpContext)
+        .bind(service)
+        .map(_.addToCoordinatedShutdown(5.seconds))
 
     // report successful binding
     binding.foreach { binding => log.info(s"gRPC server bound to: {}", binding.localAddress) }
