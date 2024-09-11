@@ -31,7 +31,7 @@ public class MtlsGreeterClient {
     // alternatively, for rotating certs
     GrpcClientSettings rotatingClientSettings =
       GrpcClientSettings.connectToServiceAt("localhost", 8443, system)
-        .withSslContextProvider(rotatingSslContext());
+        .withSslContextCreator(rotatingSslContext());
 
 
     GreeterServiceClient client = GreeterServiceClient.create(clientSettings, system);

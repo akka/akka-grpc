@@ -248,7 +248,7 @@ final class GrpcClientSettings private (
    *
    * When setting this the other TLS settings (`sslContext`,`tlsManager`) must not be set.
    */
-  def withSslContextProvider(provider: akka.japi.function.Creator[SSLContext]): GrpcClientSettings =
+  def withSslContextCreator(provider: akka.japi.function.Creator[SSLContext]): GrpcClientSettings =
     copy(useTls = true, sslContextProvider = Some(() => provider.create()))
 
   def withResolveTimeout(value: FiniteDuration): GrpcClientSettings = copy(resolveTimeout = value)

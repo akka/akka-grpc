@@ -13,12 +13,10 @@ import example.myapp.helloworld.grpc.HelloRequest
 
 import java.nio.file.Paths
 import javax.net.ssl.SSLContext
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.util.Failure
 import scala.util.Success
-import scala.util.Try
 
 object MtlsGreeterClient {
 
@@ -32,12 +30,10 @@ object MtlsGreeterClient {
     val rotatingClientSettings =
       GrpcClientSettings.connectToServiceAt("localhost", 8443).withSslContextProvider(rotatingSslContext())
 
-    val client = GreeterServiceClient(rotatingClientSettings)
+    val client = GreeterServiceClient(clientSettings)
+    val reply = client.sayHello(HelloRequest("Jonas"))
 
-    while (true) {
-      val reply = client.sayHello(HelloRequest("Jonas"))
-
-      val tryResponse = Try { Await.result(reply, 5.seconds) }
+    reply.onComplete { tryResponse =>
       tryResponse match {
         case Success(reply) =>
           println(s"Successful reply: $reply")
@@ -45,8 +41,7 @@ object MtlsGreeterClient {
           println("Request failed")
           exception.printStackTrace()
       }
-
-      Thread.sleep(10000)
+      sys.terminate()
     }
   }
 
