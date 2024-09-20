@@ -33,7 +33,7 @@ To serve a gRPC service with Akka gRPC, it is recommended to serve the
 native gRPC protocol on a different port than gRPC-Web, as the two protocols
 will likely require a different security story. You can use
 @apidoc[WebHandler.grpcWebHandler](WebHandler$) to serve your
-gRPC-Web endpoint with basic CORS infrastructure in place. To use CORS please have a look at our [akka-http docs](https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/cors-directives/cors.html).
+gRPC-Web endpoint with basic CORS infrastructure in place. To use CORS please have a look at our [akka-http docs](https://doc.akka.io/libraries/akka-http/current/routing-dsl/directives/cors-directives/cors.html).
 
 And then serve the handlers with @apidoc[WebHandler.grpcWebHandler](WebHandler$) like this:
 

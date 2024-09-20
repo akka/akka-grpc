@@ -209,19 +209,19 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
       "akka.version" -> Dependencies.Versions.akka,
       "akka-http.version" -> Dependencies.Versions.akkaHttp,
       "grpc.version" -> Dependencies.Versions.grpc,
-      "project.url" -> "https://doc.akka.io/docs/akka-grpc/current/",
-      "canonical.base_url" -> "https://doc.akka.io/docs/akka-grpc/current",
+      "project.url" -> "https://doc.akka.io/libraries/akka-grpc/current/",
+      "canonical.base_url" -> "https://doc.akka.io/libraries/akka-grpc/current",
       "scaladoc.scala.base_url" -> s"https://www.scala-lang.org/api/current/",
       // Akka
-      "extref.akka.base_url" -> s"https://doc.akka.io/docs/akka/${Dependencies.Versions.akkaBinary}/%s",
+      "extref.akka.base_url" -> s"https://doc.akka.io/libraries/akka-core/${Dependencies.Versions.akkaBinary}/%s",
       "scaladoc.akka.base_url" -> s"https://doc.akka.io/api/akka/${Dependencies.Versions.akkaBinary}",
       "javadoc.akka.base_url" -> s"https://doc.akka.io/japi/akka/${Dependencies.Versions.akkaBinary}/",
       // Akka HTTP
-      "extref.akka-http.base_url" -> s"https://doc.akka.io/docs/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
+      "extref.akka-http.base_url" -> s"https://doc.akka.io/libraries/akka-http/${Dependencies.Versions.akkaHttpBinary}/%s",
       "scaladoc.akka.http.base_url" -> s"https://doc.akka.io/api/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
       "javadoc.akka.http.base_url" -> s"https://doc.akka.io/japi/akka-http/${Dependencies.Versions.akkaHttpBinary}/",
       // Akka Management
-      "extref.akka-management.base_url" -> s"https://doc.akka.io/docs/akka-management/current/%s",
+      "extref.akka-management.base_url" -> s"https://doc.akka.io/libraries/akka-management/current/%s",
       // Akka gRPC
       "scaladoc.akka.grpc.base_url" -> s"/${(Preprocess / siteSubdirName).value}/",
       "javadoc.akka.grpc.base_url" -> "" // @apidoc links to Scaladoc

@@ -1,2 +1,2 @@
 # Sample redirect when renaming pages
-# RedirectMatch 301 ^/docs/akka-grpc/([^/]+)/release-notes/1.0.html https://doc.akka.io/docs/akka-grpc/$1/release-notes/1.0.x.html
+# RedirectMatch 301 ^/libraries/akka-grpc/([^/]+)/release-notes/1.0.html https://doc.akka.io/libraries/akka-grpc/$1/release-notes/1.0.x.html
