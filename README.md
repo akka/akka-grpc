@@ -10,7 +10,7 @@ The Akka family of projects is managed by teams at [Lightbend](https://lightbend
 
 ## Documentation
 
-- [Akka gRPC reference](https://doc.akka.io/docs/akka-grpc/current/) documentation 
+- [Akka gRPC reference](https://doc.akka.io/libraries/akka-grpc/current/) documentation 
 
 ## Project Status
 
@@ -18,7 +18,7 @@ This library is ready to be used in production
 
 The API on both sides (Client and Server) is a simple Akka Streams-based one.
 
-The client side is currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded) with an [Akka HTTP](https://doc.akka.io/docs/akka-http/current) client 
+The client side is currently implemented on top of [io.grpc:grpc-netty-shaded](https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded) with an [Akka HTTP](https://doc.akka.io/libraries/akka-http/current) client 
 backend alternative available.
 
 As for performance, we are currently relying on the JVM TLS implementation,

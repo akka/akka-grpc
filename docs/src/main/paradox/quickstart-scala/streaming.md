@@ -145,8 +145,8 @@ This method is generated in the `GreeterService` interface and we have to implem
 
 @@snip [GreeterServiceImpl.scala](/samples/akka-grpc-quickstart-scala/src/main/scala/com/example/helloworld/GreeterServiceImpl.scala) { #import #service-stream }
 
-To connect all input and output streams of all connected clients dynamically we use a [MergeHub](https://doc.akka.io/docs/akka/current/stream/stream-dynamic.html#using-the-mergehub) for the incoming
-messages and a [BroadcastHub](https://doc.akka.io/docs/akka/current/stream/stream-dynamic.html#using-the-broadcasthub) for the outgoing messages.
+To connect all input and output streams of all connected clients dynamically we use a [MergeHub](https://doc.akka.io/libraries/akka-core/current/stream/stream-dynamic.html#using-the-mergehub) for the incoming
+messages and a [BroadcastHub](https://doc.akka.io/libraries/akka-core/current/stream/stream-dynamic.html#using-the-broadcasthub) for the outgoing messages.
 
 The `MergeHub` and `BroadcastHub` are only needed because we want to connect different clients with each other.
 If each client was separate it might look like this to have the stream of incoming messages from one client

@@ -29,7 +29,7 @@ Variables to be expanded in this template:
 ### Check availability
 
 - [ ] Check [API](https://doc.akka.io/api/akka-grpc/$VERSION$/) documentation
-- [ ] Check [reference](https://doc.akka.io/docs/akka-grpc/$VERSION$/) documentation. Check that the reference docs were deployed and show a version warning (see section below on how to fix the version warning).
+- [ ] Check [reference](https://doc.akka.io/libraries/akka-grpc/$VERSION$/) documentation. Check that the reference docs were deployed and show a version warning (see section below on how to fix the version warning).
 - [ ] Check the release on https://repo.akka.io/maven/com/lightbend/akka/grpc/akka-grpc-scalapb-protoc-plugin_2.12/$VERSION$/akka-grpc-scalapb-protoc-plugin_2.12-$VERSION$.pom
 
 ### When everything is on https://repo.akka.io/maven
@@ -56,7 +56,7 @@ For minor or major releases:
 
 ### Afterwards
 
-- [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies) and version for [Akka module versions](https://doc.akka.io/docs/akka-dependencies/current/) in [akka-dependencies repo](https://github.com/akka/akka-dependencies)
+- [ ] Update [akka-dependencies bom](https://github.com/lightbend/akka-dependencies) and version for [Akka module versions](https://doc.akka.io/libraries/akka-dependencies/current/) in [akka-dependencies repo](https://github.com/akka/akka-dependencies)
 - [ ] Update [Akka Guide samples](https://github.com/lightbend/akka-guide)
 - [ ] Update [Akka Projection gRPC samples](https://github.com/akka/akka-projection/tree/main/samples/grpc)
 - [ ] Update sbt new (g8) template:
