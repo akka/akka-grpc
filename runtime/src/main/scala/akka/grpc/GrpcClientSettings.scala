@@ -10,15 +10,16 @@ import akka.discovery.{ Discovery, ServiceDiscovery }
 import akka.discovery.ServiceDiscovery.{ Resolved, ResolvedTarget }
 import akka.grpc.internal.HardcodedServiceDiscovery
 import akka.util.Helpers
-import akka.util.JavaDurationConverters._
 import com.typesafe.config.{ Config, ConfigValueFactory }
 import io.grpc.CallCredentials
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
 
 import javax.net.ssl.{ SSLContext, TrustManager }
+
 import scala.collection.immutable
 import scala.concurrent.duration.{ Duration, _ }
+import scala.jdk.DurationConverters._
 
 object GrpcClientSettings {
 
@@ -77,7 +78,7 @@ object GrpcClientSettings {
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
     val clientConfiguration: Config =
       actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
-    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").toScala
     val discovery = Discovery.get(actorSystem).discovery
     withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
   }
@@ -94,7 +95,7 @@ object GrpcClientSettings {
       implicit actorSystem: ClassicActorSystemProvider): GrpcClientSettings = {
     val clientConfiguration: Config =
       actorSystem.classicSystem.settings.config.getConfig("akka.grpc.client").getConfig("\"*\"")
-    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").toScala
     withConfigDefaults(serviceName, discovery, -1, resolveTimeout, clientConfiguration)
   }
 
@@ -105,7 +106,7 @@ object GrpcClientSettings {
     val serviceDiscoveryMechanism = clientConfiguration.getString("service-discovery.mechanism")
     var serviceName = clientConfiguration.getString("service-discovery.service-name")
     val port = clientConfiguration.getInt("port")
-    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").asScala
+    val resolveTimeout = clientConfiguration.getDuration("service-discovery.resolve-timeout").toScala
     val sd = serviceDiscoveryMechanism match {
       case "static" | "grpc-dns" =>
         val host = clientConfiguration.getString("host")
@@ -174,7 +175,7 @@ object GrpcClientSettings {
   private def getOptionalDuration(config: Config, path: String): Option[FiniteDuration] =
     Helpers.toRootLowerCase(config.getString(path)) match {
       case "off" => None
-      case _     => Some(config.getDuration(path).asScala)
+      case _     => Some(config.getDuration(path).toScala)
     }
 
   private def getPotentiallyInfiniteDuration(underlying: Config, path: String): Duration =
@@ -337,7 +338,7 @@ final class GrpcClientSettings private (
    */
   @ApiMayChange
   def withDiscoveryRefreshInterval(refreshInterval: java.time.Duration): GrpcClientSettings =
-    copy(discoveryRefreshInterval = Some(refreshInterval.asScala))
+    copy(discoveryRefreshInterval = Some(refreshInterval.toScala))
 
   /**
    * Request that the client try to connect the service immediately when the client is created

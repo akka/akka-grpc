@@ -8,7 +8,6 @@ import java.time.{ Duration => JDuration }
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 import akka.NotUsed
 import akka.annotation.{ InternalApi, InternalStableApi }
-import akka.dispatch.ExecutionContexts
 import akka.grpc.scaladsl.SingleResponseRequestBuilder
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, GrpcSingleResponse }
 import akka.stream.{ Graph, Materializer, SourceShape }
@@ -17,9 +16,9 @@ import akka.stream.scaladsl.{ Keep, Sink, Source }
 import akka.util.ByteString
 import io.grpc._
 
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.jdk.FutureConverters._
 
 /**
  * INTERNAL API
@@ -88,10 +87,10 @@ final class JavaUnaryRequestBuilder[I, O](
     this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
 
   override def invoke(request: I): CompletionStage[O] =
-    delegate.invoke(request).toJava
+    delegate.invoke(request).asJava
 
   override def invokeWithMetadata(request: I): CompletionStage[GrpcSingleResponse[O]] =
-    delegate.invokeWithMetadata(request).toJava
+    delegate.invokeWithMetadata(request).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaUnaryRequestBuilder[I, O] =
     new JavaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
@@ -141,7 +140,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
 
   override def invoke(request: Source[I, NotUsed]): Future[O] =
-    invokeWithMetadata(request).map(_.value)(ExecutionContexts.parasitic).recoverWith(RequestBuilderImpl.richError)
+    invokeWithMetadata(request).map(_.value)(ExecutionContext.parasitic).recoverWith(RequestBuilderImpl.richError)
 
   override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
     // a bit much overhead here because we are using the flow to represent a single response
@@ -166,7 +165,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
             def trailers = metadata.trailers
             def getTrailers() = metadata.getTrailers()
           }
-      }(ExecutionContexts.parasitic)
+      }(ExecutionContext.parasitic)
       .recoverWith(RequestBuilderImpl.richError)
   }
 
@@ -217,10 +216,10 @@ final class JavaClientStreamingRequestBuilder[I, O](
     new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 
   override def invoke(request: JavaSource[I, NotUsed]): CompletionStage[O] =
-    delegate.invoke(request.asScala).toJava
+    delegate.invoke(request.asScala).asJava
 
   override def invokeWithMetadata(request: JavaSource[I, NotUsed]): CompletionStage[GrpcSingleResponse[O]] =
-    delegate.invokeWithMetadata(request.asScala).toJava
+    delegate.invokeWithMetadata(request.asScala).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingRequestBuilder[I, O] =
     new JavaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
@@ -328,7 +327,7 @@ final class JavaServerStreamingRequestBuilder[I, O](
     delegate.invoke(request).asJava
 
   override def invokeWithMetadata(source: I): JavaSource[O, CompletionStage[GrpcResponseMetadata]] =
-    delegate.invokeWithMetadata(source).mapMaterializedValue(_.toJava).asJava
+    delegate.invokeWithMetadata(source).mapMaterializedValue(_.asJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaServerStreamingRequestBuilder[I, O] =
     new JavaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
@@ -438,7 +437,7 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
 
   override def invokeWithMetadata(
       source: JavaSource[I, NotUsed]): JavaSource[O, CompletionStage[GrpcResponseMetadata]] =
-    delegate.invokeWithMetadata(source.asScala).mapMaterializedValue(_.toJava).asJava
+    delegate.invokeWithMetadata(source.asScala).mapMaterializedValue(_.asJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaBidirectionalStreamingRequestBuilder[I, O] =
     new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)

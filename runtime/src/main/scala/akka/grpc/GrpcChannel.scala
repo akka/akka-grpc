@@ -6,8 +6,8 @@ package akka.grpc
 
 import java.util.concurrent.CompletionStage
 
-import scala.compat.java8.FutureConverters._
 import scala.concurrent.Future
+import scala.jdk.FutureConverters._
 
 import akka.Done
 import akka.actor.ClassicActorSystemProvider
@@ -25,14 +25,14 @@ final class GrpcChannel private (
    * Java API: Initiates a shutdown in which preexisting and new calls are cancelled.
    */
   def closeCS(): CompletionStage[Done] =
-    close().toJava
+    close().asJava
 
   /**
    * Java API: Returns a CompletionStage that completes successfully when channel is shut down via close(),
    * or exceptionally if connection cannot be established or reestablished after maxConnectionAttempts.
    */
   def closedCS(): CompletionStage[Done] =
-    closed().toJava
+    closed().asJava
 
   /**
    * Scala API: Initiates a shutdown in which preexisting and new calls are cancelled.

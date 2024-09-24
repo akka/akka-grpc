@@ -15,7 +15,7 @@ class NameResolverListenerProbe extends NameResolver.Listener {
   private val promise = Promise[Seq[EquivalentAddressGroup]]()
 
   override def onAddresses(servers: util.List[EquivalentAddressGroup], attributes: Attributes): Unit = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     promise.trySuccess(servers.asScala.toSeq)
   }
 

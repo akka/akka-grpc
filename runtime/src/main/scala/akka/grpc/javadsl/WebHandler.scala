@@ -46,12 +46,12 @@ object WebHandler {
 
   // Adapt Marshaller.futureMarshaller(fromResponse) to javadsl
   private implicit val csResponseMarshaller: ToResponseMarshaller[CompletionStage[HttpResponse]] = {
-    import scala.compat.java8.FutureConverters._
+    import scala.jdk.FutureConverters._
     // HACK: Only known way to lift this to the scaladsl.model types required for MarshallingDirectives.handleWith
     Marshaller.asScalaToResponseMarshaller(
       Marshaller
         .fromScala(sMarshaller.futureMarshaller(sMarshaller.opaque(ConstantFun.scalaIdentityFunction[HttpResponse])))
-        .compose[CompletionStage[HttpResponse]](_.toScala))
+        .compose[CompletionStage[HttpResponse]](_.asScala))
   }
 
   /**
@@ -67,7 +67,7 @@ object WebHandler {
       as: ClassicActorSystemProvider,
       mat: Materializer,
       corsSettings: CorsSettings): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
 
     val servicesHandler = concatOrNotFound(handlers.asScala.toList: _*)
     val servicesRoute = RouteAdapter(MarshallingDirectives.handleWith(servicesHandler.apply(_)))

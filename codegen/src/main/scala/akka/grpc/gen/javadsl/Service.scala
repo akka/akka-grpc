@@ -9,7 +9,7 @@ import protocgen.CodeGenRequest
 import scalapb.compiler.{ DescriptorImplicits, GeneratorParams }
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable
 
 final case class Service(

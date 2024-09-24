@@ -7,7 +7,7 @@ package akka.grpc.javadsl
 import java.lang.{ Iterable => jIterable }
 import akka.annotation.ApiMayChange
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import akka.http.javadsl.model.{ HttpHeader, HttpMessage }
 import akka.http.scaladsl.model.{ HttpHeader => sHttpHeader, HttpMessage => sHttpMessage }
 import akka.http.scaladsl.model.headers.RawHeader

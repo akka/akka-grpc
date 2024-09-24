@@ -14,7 +14,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 class AkkaDiscoveryNameResolverSpec

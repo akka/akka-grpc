@@ -21,15 +21,15 @@ object ServerReflection {
   def create(
       objects: Collection[ServiceDescription],
       sys: ClassicActorSystemProvider): akka.japi.function.Function[HttpRequest, CompletionStage[HttpResponse]] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val delegate = ServerReflectionHandler.apply(
       ServerReflectionImpl(objects.asScala.map(_.descriptor).toSeq, objects.asScala.map(_.name).toList))(sys)
-    import scala.compat.java8.FutureConverters._
+    import scala.jdk.FutureConverters._
     implicit val ec = sys.classicSystem.dispatcher
     request =>
       delegate
         .apply(request.asInstanceOf[akka.http.scaladsl.model.HttpRequest])
         .map(_.asInstanceOf[HttpResponse])
-        .toJava
+        .asJava
   }
 }
