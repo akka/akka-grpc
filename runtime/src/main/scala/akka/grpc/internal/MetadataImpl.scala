@@ -5,9 +5,9 @@
 package akka.grpc.internal
 
 import java.util.{ Locale, Optional, List => jList, Map => jMap }
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters._
 import akka.annotation.InternalApi
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpMessage }
 import akka.http.javadsl.{ model => jm }
@@ -224,10 +224,10 @@ class HttpMessageMetadataImpl(message: HttpMessage) extends HeaderMetadataImpl(m
 @InternalApi
 class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with javadsl.MetadataStatus {
   override def getText(key: String): Optional[String] =
-    delegate.getText(key).asJava
+    delegate.getText(key).toJava
 
   override def getBinary(key: String): Optional[ByteString] =
-    delegate.getBinary(key).asJava
+    delegate.getBinary(key).toJava
 
   override def asMap(): jMap[String, jList[javadsl.MetadataEntry]] = {
     // This method is also affected by incompatible changes between scala 2.12 and 2.13. (See comment in
@@ -244,7 +244,7 @@ class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with jav
     delegate
 
   override def getAttribute[T](key: jm.AttributeKey[T]): Optional[T] =
-    delegate.rawHttpMessage.flatMap(_.attribute(key)).asJava
+    delegate.rawHttpMessage.flatMap(_.attribute(key)).toJava
 
   override def toString: String =
     delegate.toString

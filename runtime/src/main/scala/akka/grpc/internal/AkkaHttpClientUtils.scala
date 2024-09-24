@@ -43,7 +43,7 @@ import javax.net.ssl.KeyManager
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import scala.collection.immutable
-import scala.compat.java8.FutureConverters.FutureOps
+import scala.jdk.FutureConverters.FutureOps
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -305,7 +305,7 @@ object AkkaHttpClientUtils {
                       override def getTrailers(): CompletionStage[akka.grpc.javadsl.Metadata] =
                         trailerPromise.future
                           .map[akka.grpc.javadsl.Metadata](h => new JavaMetadataImpl(new HeaderMetadataImpl(h)))
-                          .toJava
+                          .asJava
                     }))
               case Failure(e) =>
                 Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))

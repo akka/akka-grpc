@@ -7,13 +7,13 @@ package akka.grpc.internal
 import java.util.concurrent.CompletionStage
 
 import akka.annotation.InternalApi
-import akka.dispatch.ExecutionContexts
 import akka.grpc.GrpcSingleResponse
 import akka.util.OptionVal
 import io.grpc._
 
-import scala.compat.java8.FutureConverters._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.{ Future, Promise }
+import scala.jdk.FutureConverters._
 
 /**
  * gRPC Netty based client listener transforming callbacks into a future response
@@ -41,7 +41,7 @@ private[akka] final class UnaryCallAdapter[Res] extends ClientCall.Listener[Res]
     }
 
   def future: Future[Res] = responsePromise.future
-  def cs: CompletionStage[Res] = future.toJava
+  def cs: CompletionStage[Res] = future.asJava
 }
 
 /**
@@ -80,9 +80,9 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
       override def getHeaders() = jMetadata
 
       private lazy val sTrailer =
-        trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
+        trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContext.parasitic)
       private lazy val jTrailer =
-        trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic).toJava
+        trailerPromise.future.map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContext.parasitic).asJava
 
       def trailers = sTrailer
       def getTrailers() = jTrailer
@@ -105,5 +105,5 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
     }
 
   def future: Future[GrpcSingleResponse[Res]] = responsePromise.future
-  def cs: CompletionStage[GrpcSingleResponse[Res]] = future.toJava
+  def cs: CompletionStage[GrpcSingleResponse[Res]] = future.asJava
 }

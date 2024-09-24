@@ -17,9 +17,9 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.9.3"
-    val akkaBinary = "2.9"
-    val akkaHttp = "10.6.3"
+    val akka = "2.10.0-M1"
+    val akkaBinary = "2.11"
+    val akkaHttp = "10.7.0-M1"
     val akkaHttpBinary = "10.6"
 
     val grpc = "1.63.2" // checked synced by VersionSyncCheckPlugin
@@ -59,7 +59,7 @@ object Dependencies {
       .exclude("io.grpc", "grpc-alts")
       .exclude("io.grpc", "grpc-xds")
 
-    val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.36"
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.16"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
@@ -113,6 +113,7 @@ object Dependencies {
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
+    Compile.akkaPki,
     Compile.akkaDiscovery,
     Test.akkaTestkit,
     Test.akkaStreamTestkit,

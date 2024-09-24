@@ -30,10 +30,10 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     },
     buildInfoKeys ++= Seq[BuildInfoKey](organization, name, version, scalaVersion, sbtVersion),
     buildInfoKeys += "runtimeArtifactName" -> akkaGrpcRuntimeName,
-    buildInfoKeys += "akkaVersion" → Dependencies.Versions.akka,
-    buildInfoKeys += "akkaHttpVersion" → Dependencies.Versions.akkaHttp,
-    buildInfoKeys += "grpcVersion" → Dependencies.Versions.grpc,
-    buildInfoKeys += "googleProtobufVersion" → Dependencies.Versions.googleProtobuf,
+    buildInfoKeys += "akkaVersion" -> Dependencies.Versions.akka,
+    buildInfoKeys += "akkaHttpVersion" -> Dependencies.Versions.akkaHttp,
+    buildInfoKeys += "grpcVersion" -> Dependencies.Versions.grpc,
+    buildInfoKeys += "googleProtobufVersion" -> Dependencies.Versions.googleProtobuf,
     buildInfoPackage := "akka.grpc.gen",
     (Compile / assembly / artifact) := {
       val art = (Compile / assembly / artifact).value

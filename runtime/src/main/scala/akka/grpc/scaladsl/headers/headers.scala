@@ -35,7 +35,7 @@ object `Message-Accept-Encoding` extends ModeledCustomHeaderCompanion[`Message-A
 
   /** Java API */
   def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Array[String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     findIn(headers.asScala)
   }
 }
@@ -60,7 +60,7 @@ object `Message-Encoding` extends ModeledCustomHeaderCompanion[`Message-Encoding
 
   /** Java API */
   def findIn(headers: java.lang.Iterable[jm.HttpHeader]): Option[String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     findIn(headers.asScala)
   }
 }

@@ -77,7 +77,7 @@ object AbstractGenerateMojo {
    * e.g. { "flatPackage": "true", "serverPowerApis": "false" } -> ["flat_package"]
    */
   def parseGeneratorSettings(generatorSettings: java.util.Map[String, String]): Seq[String] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     generatorSettings.asScala.filter(_._2.toLowerCase() != "false").keys.toSeq.map { params =>
       "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
     }
@@ -110,7 +110,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   @BeanProperty
   var generatePlayServer: Boolean = _
 
-  import scala.collection.JavaConverters._
+  import scala.jdk.CollectionConverters._
   @BeanProperty
   var generatorSettings: java.util.Map[String, String] = _
 

@@ -2,7 +2,7 @@ package akka.grpc
 
 import java.nio.file.{ Files, Path, Paths }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.sys.process._
 import scala.util.matching.UnanchoredRegex
 

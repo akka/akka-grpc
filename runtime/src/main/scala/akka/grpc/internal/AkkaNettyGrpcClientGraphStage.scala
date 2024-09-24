@@ -5,15 +5,15 @@
 package akka.grpc.internal
 
 import akka.annotation.InternalApi
-import akka.dispatch.ExecutionContexts
 import akka.grpc.GrpcResponseMetadata
 import akka.stream
 import akka.stream.{ Attributes => _, _ }
 import akka.stream.stage._
 import io.grpc._
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.{ Future, Promise }
-import scala.compat.java8.FutureConverters._
+import scala.jdk.FutureConverters._
 
 @InternalApi
 private object AkkaNettyGrpcClientGraphStage {
@@ -92,10 +92,10 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
             def getHeaders() = jMetadata
 
             private lazy val sTrailers =
-              trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
+              trailerPromise.future.map(MetadataImpl.scalaMetadataFromGoogleGrpcMetadata)(ExecutionContext.parasitic)
             private lazy val jTrailers = trailerPromise.future
-              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContexts.parasitic)
-              .toJava
+              .map(MetadataImpl.javaMetadataFromGoogleGrpcMetadata)(ExecutionContext.parasitic)
+              .asJava
             def trailers = sTrailers
             def getTrailers() = jTrailers
           })
