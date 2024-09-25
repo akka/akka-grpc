@@ -97,14 +97,18 @@ object Common extends AutoPlugin {
         },
         "-doc-canonical-base-url",
         "https://doc.akka.io/api/akka-grpc/current/") ++
-      (if (scalaVersion.value.startsWith("2"))
+      (if (scalaBinaryVersion.value.startsWith("3")) {
          Seq(
+           s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/")
+       } else if (isJdk17orHigher) {
+         Seq(
+           "-jdk-api-doc-base",
+           s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/",
            "-skip-packages",
-           "akka.pattern:" + // for some reason Scaladoc creates this
-           "templates")
-       else {
-         // Scala 3
-         Seq.empty
+           "akka.pattern")
+       } else {
+         Seq("-skip-packages", "akka.pattern")
+
        }),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     Compile / doc / javacOptions := Seq.empty,
@@ -120,4 +124,7 @@ object Common extends AutoPlugin {
       throw new IllegalArgumentException("JDK 11 or higher is required")
     result
   }
+
+  val isJdk17orHigher: Boolean =
+    VersionNumber(sys.props("java.specification.version")).matchesSemVer(SemanticSelector(">=17"))
 }

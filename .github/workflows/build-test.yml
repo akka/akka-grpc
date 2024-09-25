@@ -259,31 +259,3 @@ jobs:
         run: |-
           cd plugin-tester-scala
           mvn -nsu -ntp -Dakka.grpc.project.version=`cat ~/.version` dependency:unpack@unpack akka-grpc:generate scala:compile
-
-  test-docs:
-    name: Docs
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        # https://github.com/actions/checkout/releases
-        # v4.1.1
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          fetch-depth: 0
-
-      - name: Cache Coursier cache
-        # https://github.com/coursier/cache-action/releases
-        # v6.4.5
-        uses: coursier/cache-action@1ff273bff02a8787bc9f1877d347948af647956d
-
-      - name: Set up JDK 11
-        # https://github.com/coursier/setup-action/releases
-        # v1.3.5
-        uses: coursier/setup-action@7bde40eee928896f074dbb76d22dd772eed5c65f
-        with:
-          jvm: temurin:1.11
-
-      - name: Test Maven Java
-        run: |-
-          cp .jvmopts-ghactions .jvmopts
-          sbt paradox
