@@ -1,7 +1,8 @@
 package akka.grpc
 
-import sbt.*
-import sbt.Keys.*
+import sbt._
+import sbt.Keys._
+import buildinfo.BuildInfo
 
 object Dependencies {
 
