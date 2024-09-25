@@ -18,7 +18,7 @@ object Dependencies {
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
     val akka = "2.10.0-M1"
-    val akkaBinary = "2.11"
+    val akkaBinary = "2.10"
     val akkaHttp = "10.7.0-M1"
     val akkaHttpBinary = "10.6"
 
