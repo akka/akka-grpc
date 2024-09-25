@@ -1,10 +1,14 @@
 package akka.grpc
 
-import sbt._
-import sbt.Keys._
-import buildinfo.BuildInfo
+import sbt.*
+import sbt.Keys.*
 
 object Dependencies {
+
+  // Java Platform version for JavaDoc creation
+  // sync with Java version in .github/workflows/release.yml#documentation
+  lazy val JavaDocLinkVersion = 17
+
   object Versions {
     val scala212 = "2.12.19"
     val scala213 = "2.13.14"
@@ -20,7 +24,7 @@ object Dependencies {
     val akka = "2.10.0-M1"
     val akkaBinary = VersionNumber(akka).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
     val akkaHttp = "10.7.0-M1"
-    val akkaHttpBinary = "10.6"
+    val akkaHttpBinary = VersionNumber(akkaHttp).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
     val grpc = "1.63.2" // checked synced by VersionSyncCheckPlugin
 

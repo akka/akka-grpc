@@ -39,7 +39,7 @@ Variables to be expanded in this template:
          ```
          cd ~/www
          git status
-         git add docs/akka-grpc/current docs/akka-grpc/$VERSION$
+         git add libraries/akka-grpc/current libraries/akka-grpc/$VERSION$
          git add api/akka-grpc/current api/akka-grpc/$VERSION$
          git commit -m "Akka gRPC $VERSION$"
          ```

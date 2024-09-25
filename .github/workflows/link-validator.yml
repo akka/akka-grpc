@@ -1,8 +1,10 @@
 name: Link Validator
 
 on:
+  workflow_dispatch:
+  pull_request:
   schedule:
-    - cron:  '0 6 * * 1'
+    - cron:  '0 6 1 * *'
 
 permissions:
   contents: read
@@ -33,10 +35,12 @@ jobs:
           apps: cs
 
       - name: sbt site
-        run: sbt akka-grpc-docs/makeSite
+        run: |
+          cp .jvmopts-ghactions .jvmopts
+          sbt akka-grpc-docs/makeSite
 
       - name: Run Link Validator
         run: |
-          VERSION=$(ls docs/target/site/docs/akka-grpc)
+          VERSION=$(ls docs/target/site/libraries/akka-grpc)
           sed -e "s/snapshot/$VERSION/" scripts/link-validator.conf > /tmp/link-validator.conf
-          cs launch net.runne::site-link-validator:0.2.3 -- /tmp/link-validator.conf
+          cs launch net.runne::site-link-validator:0.2.5 -- /tmp/link-validator.conf

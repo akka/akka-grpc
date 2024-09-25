@@ -200,7 +200,7 @@ lazy val docs = Project(id = "akka-grpc-docs", base = file("docs"))
     publish / skip := true,
     previewPath := (Paradox / siteSubdirName).value,
     Preprocess / siteSubdirName := s"api/akka-grpc/${projectInfoVersion.value}",
-    Paradox / siteSubdirName := s"docs/akka-grpc/${projectInfoVersion.value}",
+    Paradox / siteSubdirName := s"libraries/akka-grpc/${projectInfoVersion.value}",
     // Make sure code generation is ran before paradox:
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / compile).value,
     paradoxGroups := Map("Language" -> Seq("Java", "Scala"), "Buildtool" -> Seq("sbt", "Gradle", "Maven")),

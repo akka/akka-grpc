@@ -97,14 +97,16 @@ object Common extends AutoPlugin {
         },
         "-doc-canonical-base-url",
         "https://doc.akka.io/api/akka-grpc/current/") ++
-      (if (scalaVersion.value.startsWith("2"))
+      (if (scalaBinaryVersion.value.startsWith("3")) {
          Seq(
+           s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/")
+       } else {
+         Seq(
+           "-jdk-api-doc-base",
+           s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/",
+           // for some reason Scaladoc creates this
            "-skip-packages",
-           "akka.pattern:" + // for some reason Scaladoc creates this
-           "templates")
-       else {
-         // Scala 3
-         Seq.empty
+           "akka.pattern")
        }),
     Compile / doc / scalacOptions -= "-Xfatal-warnings",
     Compile / doc / javacOptions := Seq.empty,
