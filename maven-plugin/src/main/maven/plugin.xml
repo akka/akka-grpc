@@ -94,7 +94,7 @@
         <extraGenerators implementation="java.util.List" default-value=""/>
         <protoPaths default-value="${project.basedir}/src/main/proto,${project.basedir}/src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="${project.build.directory}/generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
-	<protocVersion implementation="java.lang.String" default-value="-v3.24.0">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
+	<protocVersion implementation="java.lang.String" default-value="-v3.25.5">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
         <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
@@ -185,7 +185,7 @@
         <extraGenerators implementation="java.util.List" default-value=""/>
         <protoPaths default-value="src/test/proto,src/test/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="target/generated-test-sources">${akka-grpc.outputDirectory}</outputDirectory>
-        <protocVersion implementation="java.lang.String" default-value="-v3.24.0">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
+        <protocVersion implementation="java.lang.String" default-value="-v3.25.5">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
         <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
