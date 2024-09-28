@@ -1,6 +1,6 @@
 name := "akka-grpc-quickstart-java"
 version := "1.0"
-scalaVersion := "2.13.14"
+scalaVersion := "2.13.15"
 
 val akkaVersion = "2.10.0-M1"
 lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.4.3")
