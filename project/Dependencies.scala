@@ -11,7 +11,7 @@ object Dependencies {
   lazy val JavaDocLinkVersion = 17
 
   object Versions {
-    val scala212 = "2.12.19"
+    val scala212 = "2.12.20"
     val scala213 = "2.13.15"
     val scala3 = "3.3.3"
 
