@@ -114,6 +114,7 @@ object Dependencies {
     Compile.akkaHttpCore,
     Compile.akkaHttp,
     Compile.akkaDiscovery,
+    Compile.akkaPki,
     Test.akkaTestkit,
     Test.akkaStreamTestkit,
     Test.scalaTest,
