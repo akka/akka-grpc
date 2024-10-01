@@ -2,3 +2,4 @@
 
 -Dfile.encoding=UTF8
 -Dsbt.color=always
+-Dakka.warn-on-no-license-key=false
