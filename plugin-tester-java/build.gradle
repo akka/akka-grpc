@@ -37,7 +37,7 @@ repositories {
 
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
 def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
-def akkaVersion = "2.9.3"
+def akkaVersion = "2.9.6"
 
 tasks.named("processResources") {
  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
