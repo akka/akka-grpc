@@ -17,7 +17,7 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io//docs/akka/current/project/downstream-upgrade-strategy.html
-    val akka = "2.9.3"
+    val akka = "2.9.6"
     val akkaBinary = "2.9"
     val akkaHttp = "10.6.3"
     val akkaHttpBinary = "10.6"
@@ -114,6 +114,7 @@ object Dependencies {
     Compile.akkaHttpCore,
     Compile.akkaHttp,
     Compile.akkaDiscovery,
+    Compile.akkaPki,
     Test.akkaTestkit,
     Test.akkaStreamTestkit,
     Test.scalaTest,
