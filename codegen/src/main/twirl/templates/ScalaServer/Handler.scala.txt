@@ -139,7 +139,7 @@ object @{serviceName}Handler {
         case request if isThisService(request.uri.path) =>
           request.uri.path.tail.tail match {
             case model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)) => handle(spi.onRequest(prefix, method, request), method)
-            case _ => scala.concurrent.Future.failed(new akka.grpc.GrpcServiceException(io.grpc.Status.INVALID_ARGUMENT.withDescription("Invalid gRPC request path [${request.uri.path}]")))
+            case _ => scala.concurrent.Future.failed(new akka.grpc.GrpcServiceException(io.grpc.Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [${request.uri.path}]")))
           }
       }
     }
