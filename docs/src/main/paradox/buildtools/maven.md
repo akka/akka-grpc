@@ -1,5 +1,6 @@
 # Maven
 
+:   @@@vars
 ```xml
 <project>
   <modelVersion>4.0.0</modelVersion>
@@ -59,6 +60,7 @@
   </build>
 </project>
 ```
+@@@
 
 For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 

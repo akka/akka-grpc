@@ -2,6 +2,7 @@
 
 To add the sbt plugin and Akka gRPC dependencies to a project:
 
+:   @@@vars
 ```scala
 // in project/plugins.sbt:
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
@@ -11,6 +12,7 @@ addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 enablePlugins(AkkaGrpcPlugin)
 ```
+@@@
 
 For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
