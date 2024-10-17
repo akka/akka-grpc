@@ -15,6 +15,7 @@ By default both client and server are generated and Java or Scala is autodetecte
 
 To add the Akka gRPC gradle plugin to a project:
 
+:   @@@vars
 ```gradle
 buildscript {
   repositories {
@@ -36,7 +37,7 @@ repositories {
   }
 }
 ```
-
+@@@
 
 For a step by step getting started with Akka gRPC read the @ref[client](../client/index.md) or @ref[server](../server/index.md) introductions.
 
