@@ -27,7 +27,7 @@ object Common extends AutoPlugin {
       developers += Developer(
         "contributors",
         "Contributors",
-        "https://gitter.im/akka/dev",
+        "akka.official@gmail.com",
         url("https://github.com/akka/akka-grpc/graphs/contributors")),
       releaseNotesURL := (
         // can't use isSnapshot for some reason related to the trixery we do with benchmark-java including modules from this project
