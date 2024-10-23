@@ -11,8 +11,8 @@
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <akka.version>2.10.0-M1</akka.version>
-    <akka-grpc.version>2.4.3</akka-grpc.version>
+    <akka.version>2.10.0</akka.version>
+    <akka-grpc.version>2.5.0</akka-grpc.version>
     <scala.binary.version>2.13</scala.binary.version>
     <project.encoding>UTF-8</project.encoding>
   </properties>

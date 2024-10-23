@@ -9,7 +9,7 @@ buildscript {
 plugins {
   id 'java'
   id 'application'
-  id 'com.lightbend.akka.grpc.gradle' version '2.4.3'
+  id 'com.lightbend.akka.grpc.gradle' version '2.5.0'
 }
 repositories {
   mavenCentral()
@@ -21,15 +21,15 @@ repositories {
 dependencies {
   implementation 'org.scala-lang:scala-library:2.13.13'
 
-  implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.10.0-M1'
-  implementation 'com.typesafe.akka:akka-discovery_2.13:2.10.0-M1'
-  implementation 'com.typesafe.akka:akka-stream_2.13:2.10.0-M1'
-  implementation 'com.typesafe.akka:akka-pki_2.13:2.10.0-M1'
+  implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.10.0'
+  implementation 'com.typesafe.akka:akka-discovery_2.13:2.10.0'
+  implementation 'com.typesafe.akka:akka-stream_2.13:2.10.0'
+  implementation 'com.typesafe.akka:akka-pki_2.13:2.10.0'
 
   implementation 'ch.qos.logback:logback-classic:1.2.13'
 
-  testImplementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.10.0-M1'
-  testImplementation 'com.typesafe.akka:akka-stream-testkit_2.13:2.10.0-M1'
+  testImplementation 'com.typesafe.akka:akka-actor-testkit-typed_2.13:2.10.0'
+  testImplementation 'com.typesafe.akka:akka-stream-testkit_2.13:2.10.0'
   testImplementation 'junit:junit:4.13'
 }
 
