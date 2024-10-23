@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2023 Lightbend Inc. <https://www.lightbend.com>
+ * Copyright (C) 2018-2024 Lightbend Inc. <https://www.lightbend.com>
  */
 
 package akka.grpc
@@ -27,7 +27,7 @@ object CopyrightHeader extends AutoPlugin {
 
   // Not determined automatically so that it can be updated in a PR instead of
   // branches randomly starting to fail in the new year
-  val CurrentYear = "2023"
+  val CurrentYear = "2024"
   val CopyrightPattern = "Copyright \\([Cc]\\) (\\d{4}(-\\d{4})?) (Lightbend|Typesafe) Inc. <.*>".r
   val CopyrightHeaderPattern = s"(?s).*${CopyrightPattern}.*".r
 
