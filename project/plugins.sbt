@@ -17,7 +17,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4")
 addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.32")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.7")
-addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.6.1")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.9.0")
 
 // docs
 addSbtPlugin("io.akka" % "sbt-paradox-akka" % "24.10.3")
