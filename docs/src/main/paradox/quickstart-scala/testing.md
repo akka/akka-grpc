@@ -1,6 +1,6 @@
 ## Testing gRPC
  
-The tests in the Hello World example illustrates use of the [ScalaTest](http://www.scalatest.org/) framework. The test coverage is not complete. It only shows how to get started with testing gRPC services. You could add to it as an exercise to increase your own knowledge.
+The tests in the Hello World example illustrates use of the [ScalaTest](https://www.scalatest.org/) framework. The test coverage is not complete. It only shows how to get started with testing gRPC services. You could add to it as an exercise to increase your own knowledge.
  
 Let's look at the test class definition in the `GreeterSpec.scala` source file:
  

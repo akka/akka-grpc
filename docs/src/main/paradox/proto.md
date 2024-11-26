@@ -3,7 +3,7 @@
 gRPC uses the Protobuf `.proto` file format to define your messages, services
 and some aspects of the code generation.
 
-For an in-depth description see the [Protocol buffers documentation](https://developers.google.com/protocol-buffers/docs/proto3),
+For an in-depth description see the [Protocol buffers documentation](https://protobuf.dev/programming-guides/proto3/),
 but here are a few quick examples:
 
 ## Messages
@@ -26,7 +26,7 @@ There are a number of options that can be set in the `.proto` definition that in
 
 @@snip [helloworld.proto](/plugin-tester-scala/src/main/protobuf/helloworld.proto) { #options }
 
-The (optional) [`package`](https://developers.google.com/protocol-buffers/docs/proto3#packages)
+The (optional) [`package`](https://protobuf.dev/programming-guides/proto3/#packages)
 in the `.proto` is used to resolve references from one `.proto` file to another.
 It can also be used for the package name in the generated code, but it is
 common to use the separate `java_package` option to override it. In the Akka gRPC

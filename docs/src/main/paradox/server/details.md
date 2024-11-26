@@ -44,7 +44,7 @@ Java
 :   @@snip[ExceptionGreeterServiceImpl](/interop-tests/src/test/java/example/myapp/helloworld/grpc/ExceptionGreeterServiceImpl.java) { #streaming }
 
 ## Rich error model
-Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model).  
+Beyond status codes you can also use the [Rich error model](https://grpc.io/docs/guides/error/#richer-error-model).  
 
 This example uses an error model taken from [common protobuf](https://github.com/googleapis/googleapis/blob/master/google/rpc/error_details.proto) but every class that is based on @scala[`scalapb.GeneratedMessage`]@java[`com.google.protobuf.Message`] can be used. 
 Build and return the error as an `AkkaGrpcException`:
