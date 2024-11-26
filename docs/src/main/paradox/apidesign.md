@@ -1,13 +1,13 @@
 # API Design
 
 When designing a gRPC API, you could take into consideration some of the
-[Google Cloud API Design Patterns](https://cloud.google.com/apis/design/design_patterns).
+[Google Cloud API Design Patterns](https://google.aip.dev/general#design-patterns).
 
 ## Methods without request or response
 
 If you want to create an endpoint that takes no parameters or produces no
 response, it might be tempting to use the `Empty` type as defined by
-Google in their [empty.proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/empty.proto).
+Google in their [empty.proto](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/empty.proto).
 
 It is recommended to introduce your own (empty) message types, however, as
 functionality may grow and this prepares you for adding additional (optional) fields
@@ -15,14 +15,14 @@ over time.
 
 ## Declare and enforce constraints for your request and response payloads with `protoc-gen-validate`
 
-[`protoc-gen-validate` (PGV)](https://github.com/envoyproxy/protoc-gen-validate) defines
+[`protoc-gen-validate` (PGV)](https://github.com/bufbuild/protoc-gen-validate) defines
 a set of Protobuf options allowing to add additional rules on messages and fields in a declarative
 fashion. A set of validators for different languages is also provided, to enforce these rules at
 runtime.
 
 ### Java support
 
-Validators for Java stubs are provided by [the project itself](https://github.com/envoyproxy/protoc-gen-validate#java).
+Validators for Java stubs are provided by [the project itself](https://github.com/bufbuild/protoc-gen-validate#java).
 
 Follow the instructions there for Maven and Gradle. If your are using sbt, you can get
 `validate.proto` into the include path and run the protoc plugin generating the validators

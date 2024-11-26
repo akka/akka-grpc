@@ -87,7 +87,7 @@ Java
 
 ## Rich error model
 
-Beyond status codes you can also use the [Rich error model](https://www.grpc.io/docs/guides/error/#richer-error-model).
+Beyond status codes you can also use the [Rich error model](https://grpc.io/docs/guides/error/#richer-error-model).
 
 Extract the `GrpcServiceException` to access `code`, `message` and `details`.
 
