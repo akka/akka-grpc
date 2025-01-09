@@ -100,7 +100,7 @@ object Common extends AutoPlugin {
       (if (scalaBinaryVersion.value.startsWith("3")) {
          Seq(
            s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/")
-       } else if (isJdk17orHigher) {
+       } else if (isJdk17orHigher && scalaBinaryVersion.value.startsWith("2.13")) {
          Seq(
            "-jdk-api-doc-base",
            s"https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api/java.base/",
