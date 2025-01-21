@@ -15,6 +15,9 @@ import scala.concurrent.Future
 /**
  * Not for user extension, used by generated code.
  *
+ * Internal abstraction for Akka gRPC integration in Akka SDK. Implemented only by the generated ScalaHandlerFactory for
+ * Java gRPC service bootstrap when the codegen option generateScalaHandlerFactory is set.
+ *
  * @tparam S the gRPC service type
  */
 @DoNotInherit

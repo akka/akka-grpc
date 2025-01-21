@@ -21,6 +21,9 @@ import scala.jdk.FutureConverters.CompletionStageOps
 
 /**
  * INTERNAL API
+ *
+ * Internal abstraction for Akka gRPC integration in Akka SDK. Used only by the generated ScalaHandlerFactory for
+ * Java gRPC service bootstrap when the codegen option generateScalaHandlerFactory is set.
  */
 @InternalApi
 private[akka] object InstancePerRequestPF {
