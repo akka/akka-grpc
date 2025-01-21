@@ -8,6 +8,7 @@ import scala.collection.immutable
 import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
+import templates.JavaServer.txt.ScalaHandler
 import templates.JavaServer.txt.{ Handler, PowerApiInterface }
 
 class JavaServerCodeGenerator extends JavaCodeGenerator {
@@ -15,7 +16,7 @@ class JavaServerCodeGenerator extends JavaCodeGenerator {
 
   override def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] =
     super.perServiceContent + generatePlainHandlerFactory +
-    generatePowerHandlerFactory + generatePowerService
+    generatePowerHandlerFactory + generatePowerService + generateScalaHandlerFactory
 
   override val suggestedDependencies = (scalaBinaryVersion: CodeGenerator.ScalaBinaryVersion) =>
     Seq(
@@ -55,5 +56,19 @@ class JavaServerCodeGenerator extends JavaCodeGenerator {
       immutable.Seq(b.build)
     } else immutable.Seq.empty
   }
+
+  val generateScalaHandlerFactory: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] =
+    (logger, service) => {
+      if (service.generateScalaHandlerFactory) {
+        val b = CodeGeneratorResponse.File.newBuilder()
+        b.setContent(ScalaHandler(service).body)
+        val serverPath = s"${service.packageDir}/${service.name}ScalaHandlerFactory.java"
+        b.setName(serverPath)
+        logger.info(
+          s"Generating Akka gRPC instance per request service handler for ${service.packageName}.${service.name}")
+        immutable.Seq(b.build)
+      } else
+        immutable.Seq.empty
+    }
 }
 object JavaServerCodeGenerator extends JavaServerCodeGenerator

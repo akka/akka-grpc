@@ -132,6 +132,8 @@
         <configuration>
           <generatorSettings>
             <serverPowerApis>true</serverPowerApis>
+            <!-- not possible to use together with power APIs -->
+            <generateScalaHandlerFactory>false</generateScalaHandlerFactory>
           </generatorSettings>
           <includeStdTypes>true</includeStdTypes>
           <language>Java</language>

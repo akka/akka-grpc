@@ -7,33 +7,31 @@ package akka.grpc.internal
 import java.net.URI
 import java.net.InetSocketAddress
 import java.util.{ List => JList }
-
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import scala.collection.immutable
-
 import io.grpc.Attributes
 import io.grpc.NameResolver.Listener
 import io.grpc.EquivalentAddressGroup
-
 import akka.actor.ActorSystem
 import akka.discovery.Lookup
 import akka.discovery.ServiceDiscovery
 import akka.discovery.ServiceDiscovery.Resolved
 import akka.discovery.ServiceDiscovery.ResolvedTarget
 import akka.testkit.TestKit
-
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class AkkaDiscoveryNameResolverProviderSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("AkkaDiscoveryNameResolverProviderSpec"))
     with AnyWordSpecLike
     with Matchers
+    with BeforeAndAfterAll
     with ScalaFutures {
 
   implicit override val patienceConfig: PatienceConfig =
@@ -76,6 +74,10 @@ class AkkaDiscoveryNameResolverProviderSpec
       address.getHostString() should be("10.0.0.3")
       address.getPort() should be(4312)
     }
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 
 }

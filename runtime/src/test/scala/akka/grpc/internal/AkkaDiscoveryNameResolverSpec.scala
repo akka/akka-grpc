@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 class AkkaDiscoveryNameResolverSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("AkkaDiscoveryNameResolverSpec"))
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures {

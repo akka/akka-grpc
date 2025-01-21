@@ -39,11 +39,25 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
+    val generateScalaHandlerFactory =
+      params.contains("generate_scala_handler_factory") && !params.contains("generate_scala_handler_factory=false")
+
+    if (serverPowerApi && generateScalaHandlerFactory) {
+      logger.warn(
+        "Both server_power_apis and generate_scala_handler_factory enabled. Handler for power API not supported and will not be generated")
+    }
+
     val codeGenRequest = CodeGenRequest(request)
     val services = (for {
       fileDesc <- codeGenRequest.filesToGenerate
       serviceDesc <- fileDesc.getServices.asScala
-    } yield Service(codeGenRequest, fileDesc, serviceDesc, serverPowerApi, usePlayActions)).toVector
+    } yield Service(
+      codeGenRequest,
+      fileDesc,
+      serviceDesc,
+      serverPowerApi,
+      usePlayActions,
+      generateScalaHandlerFactory)).toVector
 
     for {
       service <- services

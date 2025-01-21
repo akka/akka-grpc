@@ -12,7 +12,7 @@ import akka.testkit.TestKit
 import akka.util.ByteString
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class GrpcProtocolWebTextSpec extends TestKit(ActorSystem()) with AnyWordSpecLike {
+class GrpcProtocolWebTextSpec extends TestKit(ActorSystem("GrpcProtocolWebTextSpec")) with AnyWordSpecLike {
 
   "GrpcProtocolWebText" should {
     val reader = GrpcProtocolWebText.newReader(Identity)
