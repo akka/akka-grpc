@@ -64,7 +64,8 @@ class JavaServerCodeGenerator extends JavaCodeGenerator {
         b.setContent(ScalaHandler(service).body)
         val serverPath = s"${service.packageDir}/${service.name}ScalaHandlerFactory.java"
         b.setName(serverPath)
-        logger.info(s"Generating Akka gRPC service handler for ${service.packageName}.${service.name}")
+        logger.info(
+          s"Generating Akka gRPC instance per request service handler for ${service.packageName}.${service.name}")
         immutable.Seq(b.build)
       } else
         immutable.Seq.empty
