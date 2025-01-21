@@ -14,16 +14,18 @@ import akka.testkit.TestKit
 import com.google.protobuf.descriptor.FileDescriptorProto
 import grpc.reflection.v1alpha.reflection.ServerReflectionRequest.MessageRequest
 import grpc.reflection.v1alpha.reflection.{ ServerReflection, ServerReflectionRequest, ServerReflectionResponse }
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class ServerReflectionImplSpec
-    extends TestKit(ActorSystem())
+    extends TestKit(ActorSystem("ServerReflectionImplSpec"))
     with AnyWordSpecLike
     with Matchers
     with ScalaFutures
+    with BeforeAndAfterAll
     with OptionValues {
   import ServerReflectionImpl._
   "The Server Reflection implementation utilities" should {
@@ -127,4 +129,8 @@ class ServerReflectionImplSpec
   private def decodeFileResponseToNames(response: ServerReflectionResponse): Seq[String] =
     response.messageResponse.fileDescriptorResponse.value.fileDescriptorProto.map(bs =>
       FileDescriptorProto.parseFrom(bs.newCodedInput()).name.getOrElse(""))
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
 }

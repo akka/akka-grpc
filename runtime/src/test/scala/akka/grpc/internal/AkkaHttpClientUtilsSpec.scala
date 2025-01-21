@@ -14,6 +14,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.testkit.TestKit
 import akka.util.ByteString
 import io.grpc.{ Metadata, Status, StatusRuntimeException }
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Span
@@ -21,7 +22,13 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.concurrent.ExecutionContext
 
-class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLike with Matchers with ScalaFutures {
+class AkkaHttpClientUtilsSpec
+    extends TestKit(ActorSystem("AkkaHttpClientUtilsSpec"))
+    with AnyWordSpecLike
+    with Matchers
+    with ScalaFutures
+    with BeforeAndAfterAll {
+
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val patience: PatienceConfig =
     PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
@@ -82,5 +89,9 @@ class AkkaHttpClientUtilsSpec extends TestKit(ActorSystem()) with AnyWordSpecLik
 
     lazy val key = Metadata.Key.of("custom-key", Metadata.ASCII_STRING_MARSHALLER)
     lazy val keyBin = Metadata.Key.of("custom-key-bin", Metadata.BINARY_BYTE_MARSHALLER)
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 }

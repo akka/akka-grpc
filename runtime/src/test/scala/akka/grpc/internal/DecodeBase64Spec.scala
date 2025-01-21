@@ -9,9 +9,10 @@ import akka.stream.scaladsl.Source
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestKit
 import akka.util.ByteString
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class DecodeBase64Spec extends TestKit(ActorSystem()) with AnyWordSpecLike {
+class DecodeBase64Spec extends TestKit(ActorSystem("DecodeBase64Spec")) with AnyWordSpecLike with BeforeAndAfterAll {
 
   private val data = ByteString(Range(-128, 128).map(_.toByte).toArray)
 
@@ -51,5 +52,9 @@ class DecodeBase64Spec extends TestKit(ActorSystem()) with AnyWordSpecLike {
           .expectComplete()
       }
     }
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 }
