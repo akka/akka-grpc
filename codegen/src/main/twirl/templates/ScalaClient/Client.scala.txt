@@ -66,14 +66,14 @@ object @{service.name}Client {
     @for(method <- service.methods) {
     private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) =
     @if(method.methodType == akka.grpc.gen.Unary) {
-      new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
     } else {
       @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-      new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-      new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-      new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       }
     }
     }
