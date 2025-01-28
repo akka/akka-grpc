@@ -10,7 +10,8 @@ import java.io.InputStream;
 
 /**
  *  This class has all the methods of the grpc-java AbstractInteropTest, but none of the implementations,
- *  so it can implemented either by calling AbstractInteropTest or with an Akka gRPC implementation.
+ *  so it can implement either by calling AbstractInteropTest or with an Akka gRPC implementation.
+ *  https://github.com/grpc/grpc-java/blob/master/interop-testing/src/main/java/io/grpc/testing/integration/AbstractInteropTest.java
  *
  * Test requirements documentation: https://github.com/grpc/grpc/blob/master/doc/interop-test-descriptions.md
  */
@@ -21,8 +22,6 @@ public interface ClientTester {
     void tearDown() throws Exception;
 
     void emptyUnary() throws Exception;
-
-    void cacheableUnary();
 
     void largeUnary() throws Exception;
 
@@ -41,16 +40,6 @@ public interface ClientTester {
     void pingPong() throws Exception;
 
     void emptyStream() throws Exception;
-
-    void computeEngineCreds(String serviceAccount, String oauthScope) throws Exception;
-
-    void serviceAccountCreds(String jsonKey, InputStream credentialsStream, String authScope) throws Exception;
-
-    void jwtTokenCreds(InputStream serviceAccountJson) throws Exception;
-
-    void oauth2AuthToken(String jsonKey, InputStream credentialsStream, String authScope) throws Exception;
-
-    void perRpcCreds(String jsonKey, InputStream credentialsStream, String oauthScope) throws Exception;
 
     void customMetadata() throws Exception;
 

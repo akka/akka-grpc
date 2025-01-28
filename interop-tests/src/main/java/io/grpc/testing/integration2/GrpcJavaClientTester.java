@@ -4,11 +4,8 @@
 
 package io.grpc.testing.integration2;
 
-import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.testing.integration.AbstractInteropTest;
-
-import java.io.InputStream;
 
 /**
  * Implementation of ClientTester that forwards all calls to the
@@ -39,11 +36,6 @@ public class GrpcJavaClientTester implements ClientTester {
     @Override
     public void emptyUnary() throws Exception {
         tester.emptyUnary();
-    }
-
-    @Override
-    public void cacheableUnary() {
-        tester.cacheableUnary();
     }
 
     @Override
@@ -92,31 +84,6 @@ public class GrpcJavaClientTester implements ClientTester {
     }
 
     @Override
-    public void computeEngineCreds(String serviceAccount, String oauthScope) throws Exception {
-        tester.computeEngineCreds(serviceAccount, oauthScope);
-    }
-
-    @Override
-    public void serviceAccountCreds(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-        tester.serviceAccountCreds(jsonKey, credentialsStream, authScope);
-    }
-
-    @Override
-    public void jwtTokenCreds(InputStream serviceAccountJson) throws Exception {
-        tester.jwtTokenCreds(serviceAccountJson);
-    }
-
-    @Override
-    public void oauth2AuthToken(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-        tester.oauth2AuthToken(jsonKey, credentialsStream, authScope);
-    }
-
-    @Override
-    public void perRpcCreds(String jsonKey, InputStream credentialsStream, String oauthScope) throws Exception {
-        tester.perRpcCreds(jsonKey, credentialsStream, oauthScope);
-    }
-
-    @Override
     public void customMetadata() throws Exception {
         tester.customMetadata();
     }
@@ -151,7 +118,7 @@ public class GrpcJavaClientTester implements ClientTester {
         tester.timeoutOnSleepingServer();
     }
 
-    private class UnderlyingTester extends AbstractInteropTest {
+    public final class UnderlyingTester extends AbstractInteropTest {
         @Override
         protected ManagedChannelBuilder<?> createChannelBuilder() {
             return ChannelBuilder.create(settings);

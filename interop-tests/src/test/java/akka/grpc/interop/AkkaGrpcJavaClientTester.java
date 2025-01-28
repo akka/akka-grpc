@@ -28,7 +28,6 @@ import io.grpc.testing.integration2.Settings;
 import org.junit.Assert;
 import scala.concurrent.ExecutionContext;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -84,11 +83,6 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
       EmptyProtos.Empty.newBuilder().build(),
       client.emptyCall(EmptyProtos.Empty.newBuilder().build()).toCompletableFuture().get()
     );
-  }
-
-  @Override
-  public void cacheableUnary() {
-    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
@@ -246,31 +240,6 @@ public class AkkaGrpcJavaClientTester implements ClientTester {
       client.fullDuplexCall(Source.empty()).toMat(Sink.seq(), Keep.right())
         .run(mat).toCompletableFuture().get();
     assertEquals(0, response.size());
-  }
-
-  @Override
-  public void computeEngineCreds(String serviceAccount, String oauthScope) throws Exception {
-    throw new UnsupportedOperationException("Not implemented!");
-  }
-
-  @Override
-  public void serviceAccountCreds(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-    throw new UnsupportedOperationException("Not implemented!");
-  }
-
-  @Override
-  public void jwtTokenCreds(InputStream serviceAccountJson) throws Exception {
-    throw new UnsupportedOperationException("Not implemented!");
-  }
-
-  @Override
-  public void oauth2AuthToken(String jsonKey, InputStream credentialsStream, String authScope) throws Exception {
-    throw new UnsupportedOperationException("Not implemented!");
-  }
-
-  @Override
-  public void perRpcCreds(String jsonKey, InputStream credentialsStream, String oauthScope) throws Exception {
-    throw new UnsupportedOperationException("Not implemented!");
   }
 
   @Override
