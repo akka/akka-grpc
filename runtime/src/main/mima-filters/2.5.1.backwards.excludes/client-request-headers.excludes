@@ -1,0 +1,5 @@
+# ok because has default impl in generated user impls
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.AkkaGrpcClient.addRequestHeader")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.AkkaGrpcClient.addRequestHeader")
+# new internal constructor in generated classes (and we generate reflection client)
+ProblemFilters.exclude[DirectMissingMethodProblem]("grpc.reflection.v1alpha.reflection.ServerReflectionClient#DefaultServerReflectionClient.this")

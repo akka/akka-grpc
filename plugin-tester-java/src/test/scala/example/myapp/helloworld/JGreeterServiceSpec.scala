@@ -56,6 +56,12 @@ class JGreeterServiceSpec extends Matchers with AnyWordSpecLike with BeforeAndAf
         HelloReply.newBuilder.setMessage("Hello, Alice").setTimestamp(timestamp).build()
       reply.toCompletableFuture.get should ===(expectedResponse)
     }
+
+    "use default metadata" in {
+      val clientWithHeader = clients.last.addRequestHeader("Authorization", "Bearer test")
+      val reply = clientWithHeader.sayHello(HelloRequest.newBuilder().setName("Alice").build())
+      reply.toCompletableFuture.get should ===(HelloReply.newBuilder.setMessage("Hello, Alice (authenticated)").build())
+    }
   }
 
   "GreeterServicePowerApi" should {

@@ -14,6 +14,11 @@ import akka.annotation.DoNotInherit
 trait AkkaGrpcClient {
 
   /**
+   * @return The same client decorated to add the given key and value to the metadata of any request issued.
+   */
+  def addRequestHeader(key: String, value: String): AkkaGrpcClient
+
+  /**
    * Initiates a shutdown in which preexisting and new calls are cancelled.
    *
    * This method is only valid for clients that use an internal channel. If the client was created

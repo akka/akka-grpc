@@ -19,7 +19,11 @@ import com.google.protobuf.any
 import com.google.rpc.Status
 import scalapb.{ GeneratedMessage, GeneratedMessageCompanion }
 
-@InternalApi private[akka] object MetadataImpl {
+/**
+ * INTERNAL API
+ */
+// Note: empty value used by generated code, cannot be private
+@InternalApi object MetadataImpl {
   val BINARY_SUFFIX: String = io.grpc.Metadata.BINARY_HEADER_SUFFIX
 
   val empty = new MetadataImpl(List.empty)
@@ -56,7 +60,11 @@ import scalapb.{ GeneratedMessage, GeneratedMessageCompanion }
   }
 }
 
-@InternalApi private[akka] final class MetadataImpl(val entries: List[(String, MetadataEntry)]) {
+/**
+ * INTERNAL API
+ */
+// Note: type used by generated code, cannot be private
+@InternalApi final class MetadataImpl(val entries: List[(String, MetadataEntry)]) {
   def addEntry(key: String, value: String): MetadataImpl = {
     if (key.endsWith(MetadataImpl.BINARY_SUFFIX))
       throw new IllegalArgumentException(s"String header names must not end with '${MetadataImpl.BINARY_SUFFIX}'")

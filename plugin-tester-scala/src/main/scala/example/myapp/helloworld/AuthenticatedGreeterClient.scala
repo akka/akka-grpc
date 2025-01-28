@@ -27,5 +27,13 @@ object AuthenticatedGreeterClient {
     val replyWhenAuthenticated =
       Await.result(client.sayHello().addHeader("Token", "XYZ").invoke(HelloRequest("Alice")), 10.seconds)
     sys.log.warning(s"Call with authentication succeeds: $replyWhenAuthenticated")
+
+    val interceptedClient: GreeterServiceClient =
+      client.addRequestHeader("Token", "XYZ")
+
+    val replyWhenInterceptAuthenticated =
+      Await.result(interceptedClient.sayHello(HelloRequest("Alice")), 10.seconds)
+    sys.log.warning(s"Call with intercepted authentication succeeds: $replyWhenInterceptAuthenticated")
+
   }
 }

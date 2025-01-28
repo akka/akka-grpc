@@ -18,6 +18,7 @@ import akka.grpc.GrpcClientSettings
 import akka.grpc.scaladsl.AkkaGrpcClient
 
 import akka.grpc.internal.NettyClientUtils
+import akka.grpc.internal.MetadataImpl
 
 import akka.grpc.AkkaGrpcGenerated
 
@@ -39,16 +40,23 @@ import akka.grpc.AkkaGrpcGenerated
 
 // Not sealed so users can extend to write their stubs
 @@AkkaGrpcGenerated
-trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient
+trait @{service.name}Client extends @{service.name} with @{service.name}ClientPowerApi with AkkaGrpcClient {
+  /**
+   * The same client instance decorated to add the given key and value to the metadata of any request issued.
+   */
+  override def addRequestHeader(key: String, value: String): @{service.name}Client =
+    // default implementation ignoring header for source compatibility
+    this
+}
 
 @@AkkaGrpcGenerated
 object @{service.name}Client {
   def apply(settings: GrpcClientSettings)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
-    new Default@{service.name}Client(GrpcChannel(settings), isChannelOwned = true)
+    new Default@{service.name}Client(GrpcChannel(settings), isChannelOwned = true, defaultMetadata = MetadataImpl.empty)
   def apply(channel: GrpcChannel)(implicit sys: ClassicActorSystemProvider): @{service.name}Client =
-    new Default@{service.name}Client(channel, isChannelOwned = false)
+    new Default@{service.name}Client(channel, isChannelOwned = false, defaultMetadata = MetadataImpl.empty)
 
-  private class Default@{service.name}Client(channel: GrpcChannel, isChannelOwned: Boolean)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
+  private class Default@{service.name}Client(channel: GrpcChannel, isChannelOwned: Boolean, defaultMetadata: MetadataImpl)(implicit sys: ClassicActorSystemProvider) extends @{service.name}Client {
     import @{service.name}.MethodDescriptors._
 
     private implicit val ex: ExecutionContext = sys.classicSystem.dispatcher
@@ -58,14 +66,14 @@ object @{service.name}Client {
     @for(method <- service.methods) {
     private def @{method.name}RequestBuilder(channel: akka.grpc.internal.InternalChannel) =
     @if(method.methodType == akka.grpc.gen.Unary) {
-      new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaUnaryRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
     } else {
       @if(method.methodType == akka.grpc.gen.ServerStreaming) {
-      new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaServerStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       } else if(method.methodType == akka.grpc.gen.ClientStreaming) {
-      new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaClientStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       } else if (method.methodType == akka.grpc.gen.BidiStreaming) {
-      new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings)
+      new ScalaBidirectionalStreamingRequestBuilder(@{method.name}Descriptor, channel, options, settings, defaultMetadata)
       }
     }
     }
@@ -89,6 +97,13 @@ object @{service.name}Client {
     def @{method.nameSafe}(in: @method.parameterType): @method.returnType =
       @{method.nameSafe}().invoke(in)
     }
+
+    /**
+     * The same client instance decorated to add the given key and value to the metadata of any request issued.
+     */
+    override def addRequestHeader(key: String, value: String): @{service.name}Client =
+      new Default@{service.name}Client(channel, isChannelOwned, defaultMetadata.addEntry(key, value))
+
 
     override def close(): scala.concurrent.Future[akka.Done] =
       if (isChannelOwned) channel.close()

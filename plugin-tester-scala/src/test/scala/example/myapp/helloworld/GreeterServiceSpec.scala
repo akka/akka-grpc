@@ -69,6 +69,12 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
       val reply = eagerClient.sayHello(HelloRequest("Alice"))
       reply.futureValue should ===(HelloReply("Hello, Alice", Some(Timestamp.apply(123456, 123))))
     }
+
+    "use default metadata" in {
+      val clientWithHeader = clients.last.addRequestHeader("Authorization", "Bearer test")
+      val reply = clientWithHeader.sayHello(HelloRequest("Alice"))
+      reply.futureValue should ===(HelloReply("Hello, Alice (authenticated)"))
+    }
   }
 
   "GreeterServicePowerApi" should {
