@@ -105,11 +105,6 @@ public class TestServiceClient {
                 clientTester.emptyUnary();
                 break;
 
-            case CACHEABLE_UNARY: {
-                clientTester.cacheableUnary();
-                break;
-            }
-
             case LARGE_UNARY:
                 clientTester.largeUnary();
                 break;
@@ -145,37 +140,6 @@ public class TestServiceClient {
             case EMPTY_STREAM:
                 clientTester.emptyStream();
                 break;
-
-            case COMPUTE_ENGINE_CREDS:
-                clientTester.computeEngineCreds(settings.getDefaultServiceAccount(), settings.getOauthScope());
-                break;
-
-            case SERVICE_ACCOUNT_CREDS: {
-                String jsonKey = Files.asCharSource(new File(settings.getServiceAccountKeyFile()), UTF_8).read();
-                FileInputStream credentialsStream = new FileInputStream(new File(settings.getServiceAccountKeyFile()));
-                clientTester.serviceAccountCreds(jsonKey, credentialsStream, settings.getOauthScope());
-                break;
-            }
-
-            case JWT_TOKEN_CREDS: {
-                FileInputStream credentialsStream = new FileInputStream(new File(settings.getServiceAccountKeyFile()));
-                clientTester.jwtTokenCreds(credentialsStream);
-                break;
-            }
-
-            case OAUTH2_AUTH_TOKEN: {
-                String jsonKey = Files.asCharSource(new File(settings.getServiceAccountKeyFile()), UTF_8).read();
-                FileInputStream credentialsStream = new FileInputStream(new File(settings.getServiceAccountKeyFile()));
-                clientTester.oauth2AuthToken(jsonKey, credentialsStream, settings.getOauthScope());
-                break;
-            }
-
-            case PER_RPC_CREDS: {
-                String jsonKey = Files.asCharSource(new File(settings.getServiceAccountKeyFile()), UTF_8).read();
-                FileInputStream credentialsStream = new FileInputStream(new File(settings.getServiceAccountKeyFile()));
-                clientTester.perRpcCreds(jsonKey, credentialsStream, settings.getOauthScope());
-                break;
-            }
 
             case CUSTOM_METADATA: {
                 clientTester.customMetadata();
