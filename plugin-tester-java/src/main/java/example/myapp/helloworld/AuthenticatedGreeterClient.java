@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2024 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package example.myapp.helloworld;
 
 import akka.actor.ActorSystem;
