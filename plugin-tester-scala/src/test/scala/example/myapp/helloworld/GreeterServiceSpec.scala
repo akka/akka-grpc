@@ -81,5 +81,10 @@ class GreeterSpec extends Matchers with AnyWordSpecLike with BeforeAndAfterAll w
           reply.futureValue should ===(HelloReply(expResp))
         }
     }
+
+    "use metadata in replying to single request" in {
+      val clientWithHeader = clients.last.addRequestHeader("Authorization", "Bearer test")
+      clientWithHeader.sayHello(HelloRequest("Alice"))
+    }
   }
 }
