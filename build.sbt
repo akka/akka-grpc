@@ -42,6 +42,12 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
     (assembly / mainClass) := Some("akka.grpc.gen.Main"),
     (assembly / assemblyOption) := (assembly / assemblyOption).value.withPrependShellScript(
       Some(sbtassembly.AssemblyPlugin.defaultUniversalScript(shebang = true))),
+    assemblyMergeStrategy := {
+      case x if x.endsWith("module-info.class") => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    },
     crossScalaVersions := Dependencies.Versions.CrossScalaForPlugin,
     scalaVersion := Dependencies.Versions.CrossScalaForPlugin.head)
   .settings(addArtifact((Compile / assembly / artifact), assembly))
