@@ -29,4 +29,9 @@ trait AkkaGrpcClient {
    * after maxConnectionAttempts.
    */
   def closed: Future[Done]
+
+  /**
+   * The same client instance decorated to add the given key and value to the metadata of any request issued.
+   */
+  def addRequestHeader(key: String, value: String): AkkaGrpcClient
 }

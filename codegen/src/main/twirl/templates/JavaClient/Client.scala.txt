@@ -46,6 +46,7 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       private final io.grpc.CallOptions options;
       private final Materializer mat;
       private final ExecutionContext ec;
+      private final MetadataImpl defaultMetadata;
 
       private Default@{service.name}Client(GrpcChannel channel, boolean isChannelOwned, ClassicActorSystemProvider sys) {
         this.channel = channel;
@@ -54,30 +55,41 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
         this.mat = SystemMaterializer.get(sys).materializer();
         this.ec = sys.classicSystem().dispatcher();
         this.options = NettyClientUtils.callOptions(settings);
+        this.defaultMetadata = MetadataImpl.empty();
 
         sys.classicSystem().getWhenTerminated().whenComplete((v, e) -> close());
+      }
+
+      private Default@{service.name}Client(GrpcChannel channel, boolean isChannelOwned, GrpcClientSettings settings, io.grpc.CallOptions options, Materializer mat, ExecutionContext ec, MetadataImpl defaultMetadata) {
+        this.channel = channel;
+        this.isChannelOwned = isChannelOwned;
+        this.settings = settings;
+        this.options = options;
+        this.mat = mat;
+        this.ec = ec;
+        this.defaultMetadata = defaultMetadata;
       }
 
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
       private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, ec);
+        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, ec);
       }
     } else {
       @if(method.methodType == akka.grpc.gen.ClientStreaming){
         private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
           return new JavaClientStreamingRequestBuilder<>(
-                               @{method.name}Descriptor, channel, options, settings, mat, ec);
+                               @{method.name}Descriptor, channel, options, settings, defaultMetadata, mat, ec);
         }
       } else if(method.methodType == akka.grpc.gen.ServerStreaming){
         private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
           return new JavaServerStreamingRequestBuilder<>(
-                               @{method.name}Descriptor, channel, options, settings, ec);
+                               @{method.name}Descriptor, channel, options, settings, defaultMetadata, ec);
         }
       } else if(method.methodType == akka.grpc.gen.BidiStreaming){
         private final StreamResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
           return new JavaBidirectionalStreamingRequestBuilder<>(
-                               @{method.name}Descriptor, channel, options, settings, ec);
+                               @{method.name}Descriptor, channel, options, settings, defaultMetadata, ec);
         }
       }
     }
@@ -139,7 +151,29 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
       public java.util.concurrent.CompletionStage<akka.Done> closed() {
         return channel.closedCS();
       }
+
+      /**
+       * The same client instance decorated to add the given key and value to the metadata of any request issued.
+       */
+      public @{service.name}Client addRequestHeader(String key, String value) {
+        return new Default@{service.name}Client(
+          channel,
+          isChannelOwned,
+          settings,
+          options,
+          mat,
+          ec,
+          defaultMetadata.addEntry(key, value));
+      }
   }
+
+   /**
+    * The same client instance decorated to add the given key and value to the metadata of any request issued.
+    */
+   public @{service.name}Client addRequestHeader(String key, String value) {
+     // default implementation ignoring header for source compatibility
+     return this;
+   }
 
 }
 
