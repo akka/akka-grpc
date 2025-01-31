@@ -33,5 +33,8 @@ trait AkkaGrpcClient {
   /**
    * The same client instance decorated to add the given key and value to the metadata of any request issued.
    */
-  def addRequestHeader(key: String, value: String): AkkaGrpcClient
+  def addRequestHeader(key: String, value: String): AkkaGrpcClient = {
+    // dummy implementation to not break compatibility
+    this
+  }
 }
