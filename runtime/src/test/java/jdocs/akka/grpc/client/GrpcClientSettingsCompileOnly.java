@@ -42,5 +42,12 @@ public class GrpcClientSettingsCompileOnly {
         );
         //#sd-settings
 
+        //#apply-client-config
+        // an ActorSystem is required for service discovery
+        GrpcClientSettings.fromConfig(
+                "project.WithSpecificConfiguration", actorSystem
+        );
+        //#apply-client-config
+
     }
 }

@@ -23,13 +23,21 @@ Java
 
 ## By Configuration
 
-Instead a client can be defined in configuration. All client configurations need to be under `akka.grpc.client`
+Instead, a client can be defined in configuration. All client configurations need to be under `akka.grpc.client`
 
 Scala
 :  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
 
 Java
 :  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #client-config }
+
+Create the config under `project.WithSpecificConfiguration` (which can be used to instantiate a client) like this:
+
+Scala
+:  @@snip [GrpcClientSettingsSpec](/runtime/src/test/scala/akka/grpc/GrpcClientSettingsSpec.scala) { #apply-client-config }
+
+Java
+:  @@snip [GrpcClientSettingsCompileOnly](/runtime/src/test/java/jdocs/akka/grpc/client/GrpcClientSettingsCompileOnly.java) { #apply-client-config }
 
 Clients defined in configuration pick up defaults from `reference.conf`:
 

@@ -112,6 +112,12 @@ class GrpcClientSettingsSpec extends AnyWordSpec with Matchers with ScalaFutures
       ActorSystem("test", clientConfig.withFallback(defaultConfig).withFallback(clientWithServiceDiscovery))
     }
 
+    "example client by config" in {
+      //#apply-client-config
+      val settings = GrpcClientSettings.fromConfig(clientName = "project.WithSpecificConfiguration")
+      //#apply-client-config
+    }
+
     "use static service discovery for connectToServiceAt" in {
       val settings = GrpcClientSettings.connectToServiceAt("host.com", 8080)
       val resolved = settings.serviceDiscovery.lookup("any", 1.second).futureValue
