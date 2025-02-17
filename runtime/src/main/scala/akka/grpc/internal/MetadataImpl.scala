@@ -9,6 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.collection.immutable
 import scala.jdk.OptionConverters._
 import akka.annotation.InternalApi
+import akka.annotation.InternalStableApi
 import akka.http.scaladsl.model.{ AttributeKey, HttpHeader, HttpMessage }
 import akka.http.javadsl.{ model => jm }
 import akka.japi.Pair
@@ -230,7 +231,9 @@ class HttpMessageMetadataImpl(message: HttpMessage) extends HeaderMetadataImpl(m
  * @param delegate The underlying Scala metadata instance.
  */
 @InternalApi
-class JavaMetadataImpl(val delegate: Metadata) extends javadsl.Metadata with javadsl.MetadataStatus {
+class JavaMetadataImpl @InternalStableApi() (val delegate: Metadata)
+    extends javadsl.Metadata
+    with javadsl.MetadataStatus {
   override def getText(key: String): Optional[String] =
     delegate.getText(key).toJava
 
