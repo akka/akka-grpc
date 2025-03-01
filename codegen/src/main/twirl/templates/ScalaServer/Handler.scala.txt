@@ -118,11 +118,9 @@ object @{serviceName}Handler {
       import @{service.name}.Serializers._
 
       def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] = {
-        val instrumentedEHandler: ActorSystem => PartialFunction[Throwable, Trailers] = { system =>
-          eHandler(system).andThen { trailer =>
-            spi.onResponse(prefix, method, trailer)
-            trailer
-          }
+        val instrumentedEHandler: ActorSystem => PartialFunction[Throwable, Trailers] = eHandler(_).andThen { trailer =>
+          spi.onResponse(prefix, method, trailer)
+          trailer
         }
         GrpcMarshalling.negotiated(request, (reader, writer) =>
           (method match {
