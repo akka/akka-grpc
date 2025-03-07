@@ -27,7 +27,7 @@ object Dependencies {
     val akkaHttp = "10.7.0"
     val akkaHttpBinary = VersionNumber(akkaHttp).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
-    val grpc = "1.70.0" // checked synced by VersionSyncCheckPlugin
+    val grpc = "1.71.0" // checked synced by VersionSyncCheckPlugin
 
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
