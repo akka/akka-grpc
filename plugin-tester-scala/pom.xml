@@ -161,7 +161,7 @@
 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.7.1</version>
         <executions>
           <execution>
             <id>getClasspathFilenames</id>

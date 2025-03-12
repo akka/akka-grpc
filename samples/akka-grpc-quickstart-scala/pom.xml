@@ -152,7 +152,7 @@
 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.5.3</version>
+        <version>3.7.1</version>
         <executions>
           <execution>
             <id>getClasspathFilenames</id>

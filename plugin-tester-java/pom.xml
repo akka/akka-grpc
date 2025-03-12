@@ -12,7 +12,7 @@
 
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
-    <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
+    <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
     <akka.version>2.10.0</akka.version>
