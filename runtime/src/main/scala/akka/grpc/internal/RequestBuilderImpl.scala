@@ -7,9 +7,12 @@ package akka.grpc.internal
 import java.time.{ Duration => JDuration }
 import java.util.concurrent.{ CompletionStage, TimeUnit }
 import akka.NotUsed
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.{ InternalApi, InternalStableApi }
+import akka.grpc.javadsl
 import akka.grpc.scaladsl.SingleResponseRequestBuilder
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, GrpcSingleResponse }
+import akka.pattern.RetrySettings
 import akka.stream.{ Graph, Materializer, SourceShape }
 import akka.stream.javadsl.{ Source => JavaSource }
 import akka.stream.scaladsl.{ Keep, Sink, Source }
@@ -29,39 +32,77 @@ final class ScalaUnaryRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit ec: ExecutionContext)
+    val headers: MetadataImpl,
+    retrySettings: Option[RetrySettings])(implicit ec: ExecutionContext, system: ClassicActorSystemProvider)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[I, O]
     with MetadataOperations[ScalaUnaryRequestBuilder[I, O]] {
+
+  // for backwards compatibility with clients generated with 2.5.3 and earlier
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings,
+      headers: MetadataImpl)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, headers, None)(ec, null)
+
   @InternalStableApi
   def this(
       descriptor: MethodDescriptor[I, O],
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)(ec, null)
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
 
-  override def invoke(request: I): Future[O] =
-    channel.invoke(request, headers, descriptor, defaultOptions).recoverWith(RequestBuilderImpl.richError)
+  private def systemOrThrow() =
+    if (system eq null)
+      throw new IllegalStateException(
+        "Retry settings cannot be used with clients generated with Akka 2.5.3 and earlier")
+    else system
 
-  override def invokeWithMetadata(request: I): Future[GrpcSingleResponse[O]] =
-    channel
-      .invokeWithMetadata(request, headers, descriptor, callOptionsWithDeadline())
-      .recoverWith(RequestBuilderImpl.richError)
+  override def invoke(request: I): Future[O] = {
+    def callIt() =
+      channel.invoke(request, headers, descriptor, defaultOptions).recoverWith(RequestBuilderImpl.richError)
+    retrySettings match {
+      case None => callIt()
+      case Some(settings) =>
+        akka.pattern.retry(settings)(callIt _)(ec, systemOrThrow().classicSystem.scheduler)
+    }
+  }
+
+  override def invokeWithMetadata(request: I): Future[GrpcSingleResponse[O]] = {
+    def callIt() =
+      channel
+        .invokeWithMetadata(request, headers, descriptor, callOptionsWithDeadline())
+        .recoverWith(RequestBuilderImpl.richError)
+    retrySettings match {
+      case None => callIt()
+      case Some(settings) =>
+        akka.pattern.retry(settings)(callIt _)(ec, systemOrThrow().classicSystem.scheduler)
+    }
+  }
 
   override def withHeaders(headers: MetadataImpl): ScalaUnaryRequestBuilder[I, O] =
-    new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: Duration): SingleResponseRequestBuilder[I, O] =
-    new ScalaUnaryRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (!deadline.isFinite) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  override def withRetry(retrySettings: RetrySettings): SingleResponseRequestBuilder[I, O] =
+    copy(retrySettings = Some(retrySettings))
+
+  override def withRetry(maxRetries: Int): SingleResponseRequestBuilder[I, O] = withRetry(RetrySettings(maxRetries))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers,
+      retrySettings: Option[RetrySettings] = retrySettings): ScalaUnaryRequestBuilder[I, O] =
+    new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 }
 
 /**
@@ -73,10 +114,21 @@ final class JavaUnaryRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit ex: ExecutionContext)
+    val headers: MetadataImpl,
+    retrySettings: Option[RetrySettings])(implicit ex: ExecutionContext, system: ClassicActorSystemProvider)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[I, O]
     with MetadataOperations[JavaUnaryRequestBuilder[I, O]] {
-  private val delegate = new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+  private def delegate =
+    new ScalaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
+
+  // for backwards compatibility with clients generated with 2.5.3 and earlier
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings,
+      headers: MetadataImpl)(implicit ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, headers, None)(ec, null)
 
   @InternalStableApi
   def this(
@@ -84,7 +136,7 @@ final class JavaUnaryRequestBuilder[I, O](
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)(ec, null)
 
   override def invoke(request: I): CompletionStage[O] =
     delegate.invoke(request).asJava
@@ -93,16 +145,24 @@ final class JavaUnaryRequestBuilder[I, O](
     delegate.invokeWithMetadata(request).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaUnaryRequestBuilder[I, O] =
-    new JavaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    new JavaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 
   override def setDeadline(deadline: JDuration): JavaUnaryRequestBuilder[I, O] =
-    new JavaUnaryRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (deadline == null) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  override def withRetry(retrySettings: RetrySettings): javadsl.SingleResponseRequestBuilder[I, O] =
+    copy(retrySettings = Some(retrySettings))
+
+  override def withRetry(maxRetries: Int): javadsl.SingleResponseRequestBuilder[I, O] = withRetry(
+    RetrySettings(maxRetries))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers,
+      retrySettings: Option[RetrySettings] = retrySettings): JavaUnaryRequestBuilder[I, O] =
+    new JavaUnaryRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 }
 
 /**
@@ -114,9 +174,19 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
+    val headers: MetadataImpl,
+    retrySettings: Option[RetrySettings])(implicit mat: Materializer, ec: ExecutionContext)
     extends akka.grpc.scaladsl.SingleResponseRequestBuilder[Source[I, NotUsed], O]
     with MetadataOperations[ScalaClientStreamingRequestBuilder[I, O]] {
+
+  // this is what the generated client scala code uses
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings,
+      headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, headers, None)
 
   @InternalStableApi
   def this(
@@ -124,7 +194,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)
 
   @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
   @InternalStableApi
@@ -134,7 +204,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)
 
   private def callOptionsWithDeadline(): CallOptions =
     NettyClientUtils.callOptionsWithDeadline(defaultOptions, settings)
@@ -143,43 +213,60 @@ final class ScalaClientStreamingRequestBuilder[I, O](
     invokeWithMetadata(request).map(_.value)(ExecutionContext.parasitic).recoverWith(RequestBuilderImpl.richError)
 
   override def invokeWithMetadata(source: Source[I, NotUsed]): Future[GrpcSingleResponse[O]] = {
-    // a bit much overhead here because we are using the flow to represent a single response
-    val src =
-      channel.invokeWithMetadata(source, headers, descriptor, false, callOptionsWithDeadline())
-    val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
-      src
-        // Continue reading to get the trailing headers
-        .via(new CancellationBarrierGraphStage)
-        .toMat(Sink.head)(Keep.both)
-        .run()
+    def invokeIt(): Future[GrpcSingleResponse[O]] = {
+      // a bit much overhead here because we are using the flow to represent a single response
+      val src =
+        channel.invokeWithMetadata(source, headers, descriptor, false, callOptionsWithDeadline())
+      val (metadataFuture: Future[GrpcResponseMetadata], resultFuture: Future[O]) =
+        src
+          // Continue reading to get the trailing headers
+          .via(new CancellationBarrierGraphStage)
+          .toMat(Sink.head)(Keep.both)
+          .run()
 
-    metadataFuture
-      .zip(resultFuture)
-      .map {
-        case (metadata, result) =>
-          new GrpcSingleResponse[O] {
-            def value: O = result
-            def getValue(): O = result
-            def headers = metadata.headers
-            def getHeaders() = metadata.getHeaders()
-            def trailers = metadata.trailers
-            def getTrailers() = metadata.getTrailers()
-          }
-      }(ExecutionContext.parasitic)
-      .recoverWith(RequestBuilderImpl.richError)
+      metadataFuture
+        .zip(resultFuture)
+        .map {
+          case (metadata, result) =>
+            new GrpcSingleResponse[O] {
+              def value: O = result
+              def getValue(): O = result
+              def headers = metadata.headers
+              def getHeaders() = metadata.getHeaders()
+              def trailers = metadata.trailers
+              def getTrailers() = metadata.getTrailers()
+            }
+        }(ExecutionContext.parasitic)
+        .recoverWith(RequestBuilderImpl.richError)
+    }
+
+    retrySettings match {
+      case Some(settings) =>
+        akka.pattern.retry(settings)(invokeIt _)(ec, mat.system.scheduler)
+      case None =>
+        invokeIt()
+    }
   }
 
   override def withHeaders(headers: MetadataImpl): ScalaClientStreamingRequestBuilder[I, O] =
-    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: Duration): ScalaClientStreamingRequestBuilder[I, O] =
-    new ScalaClientStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (!deadline.isFinite) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  override def withRetry(retrySettings: RetrySettings): SingleResponseRequestBuilder[Source[I, NotUsed], O] =
+    copy(retrySettings = Some(retrySettings))
+
+  override def withRetry(maxRetries: Int): SingleResponseRequestBuilder[Source[I, NotUsed], O] = withRetry(
+    RetrySettings(maxRetries))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers,
+      retrySettings: Option[RetrySettings] = retrySettings): ScalaClientStreamingRequestBuilder[I, O] =
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 }
 
 /**
@@ -191,7 +278,8 @@ final class JavaClientStreamingRequestBuilder[I, O](
     channel: InternalChannel,
     defaultOptions: CallOptions,
     settings: GrpcClientSettings,
-    val headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext)
+    val headers: MetadataImpl,
+    retrySettings: Option[RetrySettings])(implicit mat: Materializer, ec: ExecutionContext)
     extends akka.grpc.javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O]
     with MetadataOperations[JavaClientStreamingRequestBuilder[I, O]] {
   @InternalStableApi
@@ -200,7 +288,7 @@ final class JavaClientStreamingRequestBuilder[I, O](
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)
 
   @deprecated("fqMethodName was removed since it can be derived from the descriptor", "1.1.0")
   @InternalStableApi
@@ -210,10 +298,19 @@ final class JavaClientStreamingRequestBuilder[I, O](
       channel: InternalChannel,
       defaultOptions: CallOptions,
       settings: GrpcClientSettings)(implicit mat: Materializer, ec: ExecutionContext) =
-    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty)
+    this(descriptor, channel, defaultOptions, settings, MetadataImpl.empty, None)
 
-  private val delegate =
-    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+  // used by the generated client code
+  def this(
+      descriptor: MethodDescriptor[I, O],
+      channel: InternalChannel,
+      defaultOptions: CallOptions,
+      settings: GrpcClientSettings,
+      headers: MetadataImpl)(implicit mat: Materializer, ec: ExecutionContext) =
+    this(descriptor, channel, defaultOptions, settings, headers, None)
+
+  private def delegate =
+    new ScalaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 
   override def invoke(request: JavaSource[I, NotUsed]): CompletionStage[O] =
     delegate.invoke(request.asScala).asJava
@@ -222,16 +319,25 @@ final class JavaClientStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(request.asScala).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingRequestBuilder[I, O] =
-    new JavaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: JDuration): JavaClientStreamingRequestBuilder[I, O] =
-    new JavaClientStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (deadline == null) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  override def withRetry(
+      retrySettings: RetrySettings): javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O] =
+    copy(retrySettings = Some(retrySettings))
+
+  override def withRetry(maxRetries: Int): javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O] =
+    withRetry(RetrySettings(maxRetries))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers,
+      retrySettings: Option[RetrySettings] = retrySettings): JavaClientStreamingRequestBuilder[I, O] =
+    new JavaClientStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers, retrySettings)
 }
 
 /**
@@ -278,16 +384,17 @@ final class ScalaServerStreamingRequestBuilder[I, O](
       .recoverWithRetries(1, RequestBuilderImpl.richErrorStream)
 
   override def withHeaders(headers: MetadataImpl): ScalaServerStreamingRequestBuilder[I, O] =
-    new ScalaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: Duration): ScalaServerStreamingRequestBuilder[I, O] =
-    new ScalaServerStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (!deadline.isFinite) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers): ScalaServerStreamingRequestBuilder[I, O] =
+    new ScalaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -330,16 +437,17 @@ final class JavaServerStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(source).mapMaterializedValue(_.asJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaServerStreamingRequestBuilder[I, O] =
-    new JavaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: JDuration): JavaServerStreamingRequestBuilder[I, O] =
-    new JavaServerStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (deadline == null) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers): JavaServerStreamingRequestBuilder[I, O] =
+    new JavaServerStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -387,16 +495,17 @@ final class ScalaBidirectionalStreamingRequestBuilder[I, O](
       .recoverWithRetries(1, RequestBuilderImpl.richErrorStream)
 
   override def withHeaders(headers: MetadataImpl): ScalaBidirectionalStreamingRequestBuilder[I, O] =
-    new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: Duration): ScalaBidirectionalStreamingRequestBuilder[I, O] =
-    new ScalaBidirectionalStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (!deadline.isFinite) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers): ScalaBidirectionalStreamingRequestBuilder[I, O] =
+    new ScalaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
@@ -440,16 +549,17 @@ final class JavaBidirectionalStreamingRequestBuilder[I, O](
     delegate.invokeWithMetadata(source.asScala).mapMaterializedValue(_.asJava).asJava
 
   override def withHeaders(headers: MetadataImpl): JavaBidirectionalStreamingRequestBuilder[I, O] =
-    new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
+    copy(headers = headers)
 
   override def setDeadline(deadline: JDuration): JavaBidirectionalStreamingRequestBuilder[I, O] =
-    new JavaBidirectionalStreamingRequestBuilder[I, O](
-      descriptor,
-      channel,
+    copy(defaultOptions =
       if (deadline == null) defaultOptions.withDeadline(null)
-      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS),
-      settings,
-      headers)
+      else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
+
+  private def copy(
+      defaultOptions: CallOptions = defaultOptions,
+      headers: MetadataImpl = headers): JavaBidirectionalStreamingRequestBuilder[I, O] =
+    new JavaBidirectionalStreamingRequestBuilder[I, O](descriptor, channel, defaultOptions, settings, headers)
 }
 
 /**
