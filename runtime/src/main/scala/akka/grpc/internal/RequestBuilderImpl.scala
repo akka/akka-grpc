@@ -69,7 +69,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     retrySettings match {
       case None => callIt()
       case Some(settings) =>
-        akka.pattern.retry(settings)(callIt _)(ec, systemOrThrow().classicSystem.scheduler)
+        akka.pattern.retry(settings)(callIt _)(systemOrThrow())
     }
   }
 
@@ -81,7 +81,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     retrySettings match {
       case None => callIt()
       case Some(settings) =>
-        akka.pattern.retry(settings)(callIt _)(ec, systemOrThrow().classicSystem.scheduler)
+        akka.pattern.retry(settings)(callIt _)(systemOrThrow())
     }
   }
 
@@ -242,7 +242,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
 
     retrySettings match {
       case Some(settings) =>
-        akka.pattern.retry(settings)(invokeIt _)(ec, mat.system.scheduler)
+        akka.pattern.retry(settings)(invokeIt _)(mat.system)
       case None =>
         invokeIt()
     }
