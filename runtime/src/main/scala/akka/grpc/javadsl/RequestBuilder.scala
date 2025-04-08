@@ -58,8 +58,6 @@ trait SingleResponseRequestBuilder[Req, Res] {
 
   /**
    * Use these retry settings to retry if the call fails.
-   *
-   * FIXME something about connection failure which is handled different?
    */
   def withRetry(retrySettings: RetrySettings): SingleResponseRequestBuilder[Req, Res]
 
