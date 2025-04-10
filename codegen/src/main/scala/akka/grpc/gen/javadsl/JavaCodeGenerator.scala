@@ -36,15 +36,28 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     // Currently per-invocation options, intended to become per-service options eventually
     // https://github.com/akka/akka-grpc/issues/451
     val params = request.getParameter.toLowerCase
-    val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
-    val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
+    def paramEnabled(name: String): Boolean =
+      params.contains(name) && !params.contains(s"$name=false")
 
-    val generateScalaHandlerFactory =
-      params.contains("generate_scala_handler_factory") && !params.contains("generate_scala_handler_factory=false")
+    val serverPowerApi = paramEnabled("server_power_apis")
+    val usePlayActions = paramEnabled("use_play_actions")
+    val generateScalaHandlerFactory = paramEnabled("generate_scala_handler_factory")
+    val generateBlockingApis = paramEnabled("blocking_apis")
 
     if (serverPowerApi && generateScalaHandlerFactory) {
       logger.warn(
         "Both server_power_apis and generate_scala_handler_factory enabled. Handler for power API not supported and will not be generated")
+    }
+    if (generateBlockingApis && (serverPowerApi || usePlayActions)) {
+      val ex = new IllegalArgumentException(
+        "blocking_apis can only be combined with generate_scala_handler_factory, no other option")
+      logger.error(ex.getMessage)
+      throw ex
+    }
+    if (generateBlockingApis && !generateScalaHandlerFactory) {
+      val ex = new IllegalArgumentException("blocking_apis must be combined with generate_scala_handler_factory")
+      logger.error(ex.getMessage)
+      throw ex
     }
 
     val codeGenRequest = CodeGenRequest(request)
@@ -57,7 +70,8 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       serviceDesc,
       serverPowerApi,
       usePlayActions,
-      generateScalaHandlerFactory)).toVector
+      asyncReturnValues = !generateBlockingApis,
+      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector
 
     for {
       service <- services

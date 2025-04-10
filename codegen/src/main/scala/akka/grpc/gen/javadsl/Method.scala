@@ -16,6 +16,7 @@ final case class Method(
     inputStreaming: Boolean,
     outputType: Descriptor,
     outputStreaming: Boolean,
+    asyncReturnValue: Boolean,
     comment: Option[String] = None,
     method: MethodDescriptor) {
   import Method._
@@ -51,13 +52,15 @@ final case class Method(
     if (inputStreaming) s"akka.stream.javadsl.Source<${getMessageType(inputType)}, akka.NotUsed>"
     else getMessageType(inputType)
 
-  def getReturnType =
+  def getReturnType = {
     if (outputStreaming) s"akka.stream.javadsl.Source<${getMessageType(outputType)}, akka.NotUsed>"
-    else s"java.util.concurrent.CompletionStage<${getMessageType(outputType)}>"
+    else if (asyncReturnValue) s"java.util.concurrent.CompletionStage<${getMessageType(outputType)}>"
+    else getMessageType(outputType)
+  }
 }
 
 object Method {
-  def apply(request: CodeGenRequest, descriptor: MethodDescriptor): Method = {
+  def apply(request: CodeGenRequest, descriptor: MethodDescriptor, asyncReturnValue: Boolean): Method = {
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
@@ -73,6 +76,7 @@ object Method {
       descriptor.toProto.getClientStreaming,
       descriptor.getOutputType,
       descriptor.toProto.getServerStreaming,
+      asyncReturnValue,
       comment,
       descriptor)
   }

@@ -5,7 +5,9 @@
 @(service: akka.grpc.gen.javadsl.Service)
 
 @{
-  val singleResponse = "import akka.grpc.javadsl.SingleResponseRequestBuilder;"
+  val singleResponse =
+    if(service.asyncReturnValues) "import akka.grpc.javadsl.SingleResponseRequestBuilder;"
+    else  "import akka.grpc.javadsl.SingleBlockingResponseRequestBuilder;"
   val streamResponse = "import akka.grpc.javadsl.StreamResponseRequestBuilder;"
   service.methods.map(_.methodType).map {
       case akka.grpc.gen.Unary => singleResponse

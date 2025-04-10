@@ -6,7 +6,7 @@ package akka.grpc.internal
 
 import akka.actor.ActorSystem
 import akka.actor.ClassicActorSystemProvider
-import akka.annotation.InternalApi
+import akka.annotation.InternalStableApi
 import akka.grpc.Trailers
 import akka.http.scaladsl.model
 import akka.http.scaladsl.model.HttpRequest
@@ -26,8 +26,9 @@ import scala.jdk.FutureConverters.CompletionStageOps
  * Internal abstraction for Akka gRPC integration in Akka SDK. Used only by the generated ScalaHandlerFactory for
  * Java gRPC service bootstrap when the codegen option generateScalaHandlerFactory is set.
  */
-@InternalApi
+@InternalStableApi
 private[akka] object InstancePerRequestPF {
+  // instantiated by generated code so must be kept binary compatible.
   final class GrpcMethod[S](
       val name: String,
       val handle: (
@@ -43,7 +44,8 @@ private[akka] object InstancePerRequestPF {
 /**
  * INTERNAL API
  */
-@InternalApi
+// instantiated and called by generated code so must be kept binary compatible.
+@InternalStableApi
 private[akka] final class InstancePerRequestPF[S](
     factory: HttpRequest => S,
     prefix: String,
