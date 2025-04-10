@@ -1,9 +1,15 @@
+> set scriptedBufferLog := false
 > protocGenerate
+
+# useful to stop here and look at generated sources in tmp project: $ pause
 
 $ exists target/scala-2.13/akka-grpc
 $ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/HelloRequest.java
 $ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/HelloReply.java
 $ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.java
 $ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceScalaHandlerFactory.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClient.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClientPowerApi.java
 
+# make sure the expected non-async APIs are available
 > compile

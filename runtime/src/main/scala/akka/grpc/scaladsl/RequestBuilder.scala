@@ -99,8 +99,6 @@ trait StreamResponseRequestBuilder[Req, Res] {
 
   /**
    * Invoke the gRPC method with the additional metadata added
-   *
-   * FIXME for streaming response this doesn't really make sense, left it to keep parity with single response but maybe it should go
    */
   def invoke(request: Req): Source[Res, NotUsed]
 

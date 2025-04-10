@@ -27,12 +27,14 @@ class JavaServerCodeGenerator extends JavaCodeGenerator {
 
   val generatePlainHandlerFactory: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] =
     (logger, service) => {
-      val b = CodeGeneratorResponse.File.newBuilder()
-      b.setContent(Handler(service, powerApis = false).body)
-      val serverPath = s"${service.packageDir}/${service.name}HandlerFactory.java"
-      b.setName(serverPath)
-      logger.info(s"Generating Akka gRPC service handler for ${service.packageName}.${service.name}")
-      immutable.Seq(b.build)
+      if (!service.generateScalaHandlerFactory) {
+        val b = CodeGeneratorResponse.File.newBuilder()
+        b.setContent(Handler(service, powerApis = false).body)
+        val serverPath = s"${service.packageDir}/${service.name}HandlerFactory.java"
+        b.setName(serverPath)
+        logger.info(s"Generating Akka gRPC service handler for ${service.packageName}.${service.name}")
+        immutable.Seq(b.build)
+      } else immutable.Seq.empty
     }
 
   val generatePowerHandlerFactory: (Logger, Service) => immutable.Seq[CodeGeneratorResponse.File] =
