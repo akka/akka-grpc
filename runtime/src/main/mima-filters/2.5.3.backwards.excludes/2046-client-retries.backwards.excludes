@@ -1,0 +1,3 @@
+# not user extensible
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.SingleResponseRequestBuilder.withRetry")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.SingleResponseRequestBuilder.withRetry")

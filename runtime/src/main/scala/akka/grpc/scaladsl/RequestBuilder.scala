@@ -7,6 +7,7 @@ package akka.grpc.scaladsl
 import akka.NotUsed
 import akka.annotation.{ ApiMayChange, DoNotInherit }
 import akka.grpc.{ GrpcResponseMetadata, GrpcSingleResponse }
+import akka.pattern.RetrySettings
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
@@ -55,6 +56,18 @@ trait SingleResponseRequestBuilder[Req, Res] {
    * @return A new request builder, that will use the supplied deadline when invoked
    */
   def setDeadline(deadline: Duration): SingleResponseRequestBuilder[Req, Res]
+
+  /**
+   * Use these retry settings to retry if the call fails.
+   */
+  def withRetry(retrySettings: RetrySettings): SingleResponseRequestBuilder[Req, Res]
+
+  /**
+   * Set the retry settings for this call. A predifined backoff strategy will be calculated based on the number of maxRetries.
+   *
+   * @param maxRetries The number of retries to make
+   */
+  def withRetry(maxRetries: Int): SingleResponseRequestBuilder[Req, Res]
 }
 
 /**
