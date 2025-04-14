@@ -72,14 +72,25 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
 
   @for(method <- service.methods) {
     @if(method.methodType == akka.grpc.gen.Unary) {
-      private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-        return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, ec);
+      @if(method.asyncReturnValue) {
+        private final SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+          return new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, ec);
+        }
+      } else {
+        private final SingleBlockingResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+          return new JavaSingleBlockingResponseRequestBuilder<>(new JavaUnaryRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, ec));
+        }
       }
     } else {
       @if(method.methodType == akka.grpc.gen.ClientStreaming){
-        private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
-          return new JavaClientStreamingRequestBuilder<>(
-                               @{method.name}Descriptor, channel, options, settings, defaultMetadata, mat, ec);
+        @if(method.asyncReturnValue) {
+          private final SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+            return new JavaClientStreamingRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, mat, ec);
+          }
+        } else {
+          private final SingleBlockingResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
+            return new JavaClientStreamingBlockingResponseRequestBuilder(new JavaClientStreamingRequestBuilder<>(@{method.name}Descriptor, channel, options, settings, defaultMetadata, mat, ec));
+          }
         }
       } else if(method.methodType == akka.grpc.gen.ServerStreaming){
         private final StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}RequestBuilder(akka.grpc.internal.InternalChannel channel){
@@ -109,9 +120,17 @@ public abstract class @{service.name}Client extends @{service.name}ClientPowerAp
          * prefer @{method.name}(@method.inputTypeUnboxed) if possible.
          */
         @if(method.methodType == akka.grpc.gen.Unary) {
-          public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+          @if(method.asyncReturnValue) {
+            public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+          } else {
+            public SingleBlockingResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+          }
         }else if(method.methodType == akka.grpc.gen.ClientStreaming){
-          public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+          @if(method.asyncReturnValue) {
+            public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+          } else {
+            public SingleBlockingResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+          }
         }else if(method.methodType == akka.grpc.gen.ServerStreaming){
           public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
         }else if(method.methodType == akka.grpc.gen.BidiStreaming){

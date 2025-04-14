@@ -19,9 +19,17 @@ public abstract class @{service.name}ClientPowerApi {
      * prefer @{method.name}(@method.inputTypeUnboxed) if possible.
      */
     @if(method.methodType == akka.grpc.gen.Unary) {
-      public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+      @if(method.asyncReturnValue) {
+        public SingleResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+      } else {
+        public SingleBlockingResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
+      }
     } else if(method.methodType == akka.grpc.gen.ClientStreaming){
-      public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+      @if(method.asyncReturnValue) {
+        public SingleResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+      } else {
+        public SingleBlockingResponseRequestBuilder<akka.stream.javadsl.Source<@method.inputTypeUnboxed, akka.NotUsed>, @method.outputTypeUnboxed> @{method.name}()
+      }
     } else if(method.methodType == akka.grpc.gen.ServerStreaming){
       public StreamResponseRequestBuilder<@method.inputTypeUnboxed, @method.outputTypeUnboxed> @{method.name}()
     } else if(method.methodType == akka.grpc.gen.BidiStreaming){

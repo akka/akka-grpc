@@ -21,6 +21,7 @@ final case class Service(
     serverPowerApi: Boolean,
     usePlayActions: Boolean,
     generateScalaHandlerFactory: Boolean,
+    asyncReturnValues: Boolean,
     comment: Option[String] = None) {
   def serializers: Seq[Serializer] = (methods.map(_.deserializer) ++ methods.map(_.serializer)).distinct
   def packageDir = packageName.replace('.', '/')
@@ -33,7 +34,8 @@ object Service {
       serviceDescriptor: ServiceDescriptor,
       serverPowerApi: Boolean,
       usePlayActions: Boolean,
-      generateScalaHandlerFactory: Boolean): Service = {
+      generateScalaHandlerFactory: Boolean,
+      asyncReturnValues: Boolean): Service = {
     val comment = {
       // Use ScalaPB's implicit classes to avoid replicating the logic for comment extraction
       // Note that this be problematic if/when ScalaPB uses scala-specific stuff to do that
@@ -49,10 +51,11 @@ object Service {
       packageName,
       serviceDescriptor.getName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
-      serviceDescriptor.getMethods.asScala.toList.map(method => Method(request, method)),
+      serviceDescriptor.getMethods.asScala.toList.map(method => Method(request, method, asyncReturnValues)),
       serverPowerApi,
       usePlayActions,
       generateScalaHandlerFactory,
+      asyncReturnValues,
       comment)
   }
 
