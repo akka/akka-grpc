@@ -20,7 +20,7 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.7")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.9.3")
 
 // docs
-addSbtPlugin("io.akka" % "sbt-paradox-akka" % "24.10.7")
+addSbtPlugin("io.akka" % "sbt-paradox-akka" % "25.10.0")
 addSbtPlugin("com.lightbend.paradox" % "sbt-paradox-dependencies" % "0.2.4")
 addSbtPlugin("com.lightbend.sbt" % "sbt-publish-rsync" % "0.3")
 addSbtPlugin("com.github.sbt" % "sbt-site-paradox" % "1.7.0")
