@@ -3,7 +3,7 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 enablePlugins(BuildInfoPlugin)
 
-val sbtProtocV = "1.0.7"
+val sbtProtocV = "1.0.8"
 
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
