@@ -14,7 +14,7 @@
     <maven.compiler.release>11</maven.compiler.release>
     <akka.version>2.10.5</akka.version>
     <akka.http.cors.version>0.4.2</akka.http.cors.version>
-    <grpc.version>1.73.0 </grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
+    <grpc.version>1.73.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <proto-google-common.version>2.22.0</proto-google-common.version>
   </properties>
