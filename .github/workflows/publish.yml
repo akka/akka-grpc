@@ -12,7 +12,7 @@ permissions:
 jobs:
   sbt:
     name: sbt publish
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     if: github.event.repository.fork == false
     steps:
       - name: Checkout
@@ -47,7 +47,7 @@ jobs:
 
   gradle-plugin:
     name: Release gradle plugin
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     # only on tagged release, not snapshot
     if: github.event.repository.fork == false && startsWith(github.ref, 'refs/tags/')
     steps:
@@ -71,7 +71,7 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-22.04
+    runs-on: Akka-Default
     if: github.event.repository.fork == false
     steps:
       - name: Checkout

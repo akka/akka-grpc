@@ -11,7 +11,7 @@ buildscript {
     mavenLocal()
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url "https://repo.akka.io/maven/github_actions"
     }
   }
 }
@@ -27,7 +27,7 @@ repositories {
   mavenLocal()
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url "https://repo.akka.io/maven/github_actions"
   }
 }
 

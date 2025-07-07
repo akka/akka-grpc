@@ -13,15 +13,20 @@ By default both client and server are generated and Java or Scala is autodetecte
 
 ### Installation
 
+@@@note
+The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
+@@@
+
 To add the Akka gRPC gradle plugin to a project:
 
+`build.gradle`
 :   @@@vars
 ```gradle
 buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url "https://repo.akka.io/<your token>/secure"
     }
   }
 }
@@ -33,7 +38,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url "https://repo.akka.io/<your token>/secure"
   }
 }
 ```

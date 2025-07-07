@@ -1,5 +1,5 @@
 // for sbt-paradox-akka
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
 
 enablePlugins(BuildInfoPlugin)
 
