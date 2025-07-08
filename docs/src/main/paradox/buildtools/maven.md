@@ -1,5 +1,12 @@
 # Maven
 
+@@@note
+The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
+@@@
+
+To add the Akka gRPC maven plugin to a project:
+
+`pom.xml`
 :   @@@vars
 ```xml
 <project>
@@ -17,14 +24,14 @@
     <repository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
+      <url>https://repo.akka.io/<your token>/secure</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
+      <url>https://repo.akka.io/<your token>/secure</url>
     </pluginRepository>
   </pluginRepositories>
   <dependencies>

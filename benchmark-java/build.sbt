@@ -2,7 +2,7 @@ scalaVersion := "2.13.15"
 
 enablePlugins(AkkaGrpcPlugin)
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
 
 run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
 

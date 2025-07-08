@@ -20,7 +20,7 @@ nativeImageOptions := Seq("--no-fallback", "--verbose", "--initialize-at-build-t
 // sbt tasks, consider https://github.com/spray/sbt-revolver/
 fork := true
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,

@@ -1,15 +1,19 @@
 # sbt
 
+@@@note
+The Akka dependencies are available from Akka’s secure library repository. To access them you need to use a secure, tokenized URL as specified at https://account.akka.io/token.
+@@@
+
 To add the sbt plugin and Akka gRPC dependencies to a project:
 
 :   @@@vars
 ```scala
 // in project/plugins.sbt:
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("https://repo.akka.io/<your token>/secure")
 addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
 //
 // in build.sbt:
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("resolvers += "Akka library repository".at("https://repo.akka.io/<your token>/secure")")
 enablePlugins(AkkaGrpcPlugin)
 ```
 @@@
