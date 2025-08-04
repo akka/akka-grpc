@@ -124,6 +124,18 @@ trait SingleBlockingResponseRequestBuilder[Req, Res] {
    * @return A new request builder, that will use the supplied deadline when invoked
    */
   def setDeadline(deadline: Duration): SingleBlockingResponseRequestBuilder[Req, Res]
+
+  /**
+   * Use these retry settings to retry if the call fails.
+   */
+  def withRetry(retrySettings: RetrySettings): SingleBlockingResponseRequestBuilder[Req, Res]
+
+  /**
+   * Set the retry settings for this call. A predifined backoff strategy will be calculated based on the number of maxRetries.
+   *
+   * @param maxRetries The number of retries to make
+   */
+  def withRetry(maxRetries: Int): SingleBlockingResponseRequestBuilder[Req, Res]
 }
 
 /**

@@ -9,6 +9,7 @@ import akka.annotation.InternalApi
 import akka.annotation.InternalStableApi
 import akka.grpc.GrpcSingleResponse
 import akka.grpc.javadsl.SingleBlockingResponseRequestBuilder
+import akka.pattern.RetrySettings
 import akka.stream.javadsl.{ Source => JavaSource }
 
 import java.time.Duration
@@ -63,6 +64,12 @@ private[akka] final class JavaSingleBlockingResponseRequestBuilder[I, O](delegat
   override def setDeadline(deadline: Duration): SingleBlockingResponseRequestBuilder[I, O] =
     copy(delegate.setDeadline(deadline))
 
+  override def withRetry(retrySettings: RetrySettings): JavaSingleBlockingResponseRequestBuilder[I, O] =
+    copy(delegate.withRetry(retrySettings))
+
+  override def withRetry(maxRetries: Int): JavaSingleBlockingResponseRequestBuilder[I, O] =
+    copy(delegate.withRetry(maxRetries))
+
   override def headers: MetadataImpl = delegate.headers
 
   override def withHeaders(headers: MetadataImpl): JavaSingleBlockingResponseRequestBuilder[I, O] = copy(
@@ -108,6 +115,12 @@ private[akka] final class JavaClientStreamingBlockingResponseRequestBuilder[I, O
 
   override def withHeaders(headers: MetadataImpl): JavaClientStreamingBlockingResponseRequestBuilder[I, O] =
     copy(delegate.withHeaders(headers))
+
+  override def withRetry(retrySettings: RetrySettings): JavaClientStreamingBlockingResponseRequestBuilder[I, O] =
+    copy(delegate.withRetry(retrySettings))
+
+  override def withRetry(maxRetries: Int): JavaClientStreamingBlockingResponseRequestBuilder[I, O] =
+    copy(delegate.withRetry(maxRetries))
 
   private def copy(
       delegate: JavaClientStreamingRequestBuilder[I, O]): JavaClientStreamingBlockingResponseRequestBuilder[I, O] =
