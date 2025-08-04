@@ -9,7 +9,6 @@ import java.util.concurrent.{ CompletionStage, TimeUnit }
 import akka.NotUsed
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.{ InternalApi, InternalStableApi }
-import akka.grpc.javadsl
 import akka.grpc.scaladsl.SingleResponseRequestBuilder
 import akka.grpc.{ GrpcClientSettings, GrpcResponseMetadata, GrpcServiceException, GrpcSingleResponse }
 import akka.pattern.RetrySettings
@@ -152,11 +151,10 @@ final class JavaUnaryRequestBuilder[I, O](
       if (deadline == null) defaultOptions.withDeadline(null)
       else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
 
-  override def withRetry(retrySettings: RetrySettings): javadsl.SingleResponseRequestBuilder[I, O] =
+  override def withRetry(retrySettings: RetrySettings): JavaUnaryRequestBuilder[I, O] =
     copy(retrySettings = Some(retrySettings))
 
-  override def withRetry(maxRetries: Int): javadsl.SingleResponseRequestBuilder[I, O] = withRetry(
-    RetrySettings(maxRetries))
+  override def withRetry(maxRetries: Int): JavaUnaryRequestBuilder[I, O] = withRetry(RetrySettings(maxRetries))
 
   private def copy(
       defaultOptions: CallOptions = defaultOptions,
@@ -326,11 +324,10 @@ final class JavaClientStreamingRequestBuilder[I, O](
       if (deadline == null) defaultOptions.withDeadline(null)
       else defaultOptions.withDeadlineAfter(deadline.toMillis, TimeUnit.MILLISECONDS))
 
-  override def withRetry(
-      retrySettings: RetrySettings): javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O] =
+  override def withRetry(retrySettings: RetrySettings): JavaClientStreamingRequestBuilder[I, O] =
     copy(retrySettings = Some(retrySettings))
 
-  override def withRetry(maxRetries: Int): javadsl.SingleResponseRequestBuilder[JavaSource[I, NotUsed], O] =
+  override def withRetry(maxRetries: Int): JavaClientStreamingRequestBuilder[I, O] =
     withRetry(RetrySettings(maxRetries))
 
   private def copy(

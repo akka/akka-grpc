@@ -1,0 +1,4 @@
+# internals/not for (manual) user extension
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.internal.JavaClientStreamingRequestBuilder.withRetry")
+ProblemFilters.exclude[IncompatibleSignatureProblem]("akka.grpc.internal.JavaUnaryRequestBuilder.withRetry")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.SingleBlockingResponseRequestBuilder.withRetry")
