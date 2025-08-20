@@ -32,7 +32,8 @@ abstract class GrpcProtocolWebBase(subType: String) extends AbstractGrpcProtocol
     HttpResponse(
       status = StatusCodes.OK,
       headers = headers,
-      entity = HttpEntity(contentType, encodeDataToFrameBytes(codec, data, trailer)),
+      entity =
+        HttpEntity.Strict(contentType, encodeDataToFrameBytes(codec, data, trailer), reportContentLength = false),
       protocol = HttpProtocols.`HTTP/1.1`)
 
   private def encodeDataToFrameBytes(codec: Codec, data: ByteString, trailer: Trailer): ByteString = {
