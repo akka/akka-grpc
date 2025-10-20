@@ -161,7 +161,7 @@ public class @{serviceName}HandlerFactory {
           @for(method <- service.methods) {
           case "@method.grpcName":
             response = @{method.unmarshal}(request.entity(), @method.deserializer.name, mat, reader)
-              .@{if(method.outputStreaming) { "thenApply" } else { "thenCompose" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}))
+              .@{if(method.outputStreaming) { "thenApplyAsync" } else { "thenComposeAsync" }}(e -> implementation.@{method.name}(e@{if(powerApis) { ", metadata" } else { "" }}), mat.executionContext())
               .thenApply(e -> @{method.marshal}(e, @method.serializer.name, writer, system, eHandler));
             break;
           }

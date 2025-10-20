@@ -68,6 +68,6 @@ object SingleParameterSink {
 
   def create[T](): javadsl.Sink[T, CompletionStage[T]] = {
     import scala.jdk.FutureConverters._
-    new javadsl.Sink(SingleParameterSink().mapMaterializedValue(_.asJava))
+    javadsl.Sink.fromGraph(SingleParameterSink().mapMaterializedValue(_.asJava))
   }
 }
