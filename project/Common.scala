@@ -98,8 +98,7 @@ object Common extends AutoPlugin {
         "-doc-canonical-base-url",
         "https://doc.akka.io/api/akka-grpc/current/") ++
       (if (scalaBinaryVersion.value.startsWith("3")) {
-         Seq(
-           s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api")
+         Seq(s"-external-mappings:https://docs.oracle.com/en/java/javase/${Dependencies.JavaDocLinkVersion}/docs/api")
        } else if (isJdk17orHigher && scalaBinaryVersion.value.startsWith("2.13")) {
          Seq(
            "-jdk-api-doc-base",
