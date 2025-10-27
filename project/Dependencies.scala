@@ -7,12 +7,11 @@ import buildinfo.BuildInfo
 object Dependencies {
 
   // Java Platform version for JavaDoc creation
-  // sync with Java version in .github/workflows/release.yml#documentation
-  lazy val JavaDocLinkVersion = 17
+  lazy val JavaDocLinkVersion = scala.util.Properties.javaSpecVersion
 
   object Versions {
     val scala212 = "2.12.20"
-    val scala213 = "2.13.15"
+    val scala213 = "2.13.17"
     val scala3 = "3.3.4"
 
     // the order in the list is important because the head will be considered the default.
