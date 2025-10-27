@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.scala-lang:scala-library:2.13.15'
+  implementation 'org.scala-lang:scala-library:2.13.17'
 
   implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.10.5'
   implementation 'com.typesafe.akka:akka-discovery_2.13:2.10.5'
