@@ -1,7 +1,7 @@
 name: Check samples
 
 on:
-  workflow_dispatch:
+  pull_request:
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
