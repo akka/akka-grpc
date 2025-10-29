@@ -1,5 +1,5 @@
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 addSbtPlugin(
-  "com.lightbend.akka.grpc" % "sbt-akka-grpc" % "2.5.7"
+  "com.lightbend.akka.grpc" % "sbt-akka-grpc" % "2.5.8"
 )
