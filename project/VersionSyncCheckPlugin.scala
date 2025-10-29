@@ -23,7 +23,7 @@ object VersionSyncCheckPlugin extends AutoPlugin {
     grpcVersionSyncCheck := versionSyncCheckImpl(
       "gRPC",
       Dependencies.Versions.grpc,
-      raw"""(?i)grpc.?(?i)version.{1,9}(\d+\.\d+\.\d+)""".r.unanchored,
+      raw"""(?i)(?<!akka.)grpc.?(?i)version.{1,9}(\d+\.\d+\.\d+)""".r.unanchored,
       Seq(
         Paths.get("plugin-tester-java/pom.xml"),
         Paths.get("plugin-tester-scala/pom.xml"),
