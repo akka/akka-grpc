@@ -27,7 +27,7 @@ object CopyrightHeader extends AutoPlugin {
 
   // Not determined automatically so that it can be updated in a PR instead of
   // branches randomly starting to fail in the new year
-  val CurrentYear = "2024"
+  val CurrentYear = "2025"
   val CopyrightPattern = "Copyright \\([Cc]\\) (\\d{4}(-\\d{4})?) (Lightbend|Typesafe) Inc. <.*>".r
   val CopyrightHeaderPattern = s"(?s).*${CopyrightPattern}.*".r
 
