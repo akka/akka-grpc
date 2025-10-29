@@ -52,7 +52,7 @@ jobs:
       - name: Akka gRPC Scala native image test app build
         run: |-
           cd native-image-tests/grpc-scala
-          sbt nativeImage -Dakka.grpc.version=`cat ~/.version`
+          sbt nativeImage -Dakka-grpc.version=`cat ~/.version`
           # run the binary, netty client backend
           target/native-image/grpc-scala     
           # akka-http client backend
