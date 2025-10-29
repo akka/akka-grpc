@@ -21,9 +21,9 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io/libraries/akka-core/current/project/downstream-upgrade-strategy.html
-    val akka = "2.10.5"
+    val akka = "2.10.11"
     val akkaBinary = VersionNumber(akka).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
-    val akkaHttp = "10.7.2"
+    val akkaHttp = "10.7.3"
     val akkaHttpBinary = VersionNumber(akkaHttp).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
     val grpc = "1.76.0" // checked synced by VersionSyncCheckPlugin
