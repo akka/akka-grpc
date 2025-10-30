@@ -27,7 +27,7 @@ jobs:
       - name: Setup global resolver
         run: |
           chmod +x ./scripts/setup_global_resolver.sh
-          ./scripts/setup_global_resolver.sh NO_MIRROR
+          ./scripts/setup_global_resolver.sh
 
       - name: Checkout
         # https://github.com/actions/checkout/releases
