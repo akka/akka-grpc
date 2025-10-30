@@ -1,7 +1,10 @@
 name: Check samples
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
+    workflow_dispatch:
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
@@ -68,7 +71,7 @@ jobs:
       - name: Test akka-grpc-quickstart-java
         run: |-
           cd samples/akka-grpc-quickstart-java
-          mvn test -X -nsu -ntp -Dakka-grpc.version=`cat ~/.version` 2>&1
+          mvn test -nsu -ntp -Dakka-grpc.version=`cat ~/.version`
           sbt test -Dakka-grpc.version=`cat ~/.version`
           # not able to override version for gradle
           ./gradlew test
