@@ -30,7 +30,7 @@ jobs:
       - name: Setup global resolver
         run: |
           chmod +x ./scripts/setup_global_resolver.sh
-          ./scripts/setup_global_resolver.sh
+          ./scripts/setup_global_resolver.sh NO_MIRROR
 
       - name: Checkout
         # https://github.com/actions/checkout/releases
