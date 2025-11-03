@@ -39,6 +39,8 @@ import io.grpc.StatusRuntimeException
 import java.net.InetSocketAddress
 import java.security.SecureRandom
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.KeyManager
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -78,7 +80,7 @@ object AkkaHttpClientUtils {
     // https://github.com/akka/akka-grpc/issues/1196
     // https://github.com/akka/akka-grpc/issues/1197
 
-    var roundRobin: Int = 0
+    val roundRobin = new AtomicInteger(0)
     val clientConnectionSettings =
       ClientConnectionSettings(sys).withTransport(ClientTransport.withCustomResolver((host, _) => {
         settings.overrideAuthority.foreach { authority =>
@@ -88,8 +90,8 @@ object AkkaHttpClientUtils {
         settings.serviceDiscovery.lookup(settings.serviceName, 10.seconds).map { resolved =>
           // quasi-roundrobin is nicer than random selection: somewhat lower chance of making
           // an 'unlucky choice' multiple times in a row.
-          roundRobin += 1
-          val target = resolved.addresses(roundRobin % resolved.addresses.size)
+          val nextIndex = roundRobin.incrementAndGet()
+          val target = resolved.addresses(nextIndex % resolved.addresses.size)
           target.address match {
             case Some(address) =>
               new InetSocketAddress(address, target.port.getOrElse(settings.defaultPort))
