@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Lightbend Inc. <https://www.lightbend.com>
+ */
+
 package com.example
 
 import akka.NotUsed
