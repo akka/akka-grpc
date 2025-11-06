@@ -9,6 +9,7 @@ import akka.grpc.Trailers;
 import akka.grpc.scaladsl.InstancePerRequestFactory;
 import akka.http.scaladsl.model.HttpRequest;
 import akka.http.scaladsl.model.HttpResponse;
+import akka.stream.Materializer;
 import scala.Function1;
 import scala.PartialFunction;
 import scala.concurrent.Future;
@@ -18,7 +19,7 @@ public class TestServiceScalaHandlerFactory implements InstancePerRequestFactory
 
 
     @Override
-    public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider) {
+    public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider, Materializer materializer) {
         return null;
     }
 }

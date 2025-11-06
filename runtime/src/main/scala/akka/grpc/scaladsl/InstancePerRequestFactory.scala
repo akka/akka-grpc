@@ -10,6 +10,7 @@ import akka.annotation.DoNotInherit
 import akka.grpc.Trailers
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
+import akka.stream.Materializer
 
 import scala.concurrent.Future
 
@@ -24,10 +25,12 @@ import scala.concurrent.Future
 @DoNotInherit
 @ApiMayChange
 trait InstancePerRequestFactory[S] {
+
   def partialInstancePerRequest(
       serviceFactory: HttpRequest => S,
       prefix: String,
       eHandler: PartialFunction[Throwable, Trailers],
-      systemProvider: ClassicActorSystemProvider): PartialFunction[HttpRequest, Future[HttpResponse]]
+      systemProvider: ClassicActorSystemProvider,
+      materializer: Materializer): PartialFunction[HttpRequest, Future[HttpResponse]]
 
 }

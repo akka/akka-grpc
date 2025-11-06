@@ -270,6 +270,21 @@ lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = 
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"))
   .pluginTestingSettings
 
+lazy val pluginTesterSdkHandler =
+  Project(id = "akka-grpc-plugin-tester-sdk-handler", base = file("plugin-tester-sdk-handler"))
+    .disablePlugins(MimaPlugin, CiReleasePlugin)
+    .settings(Dependencies.pluginTester)
+    .settings(
+      (publish / skip) := true,
+      fork := true,
+      PB.protocVersion := Dependencies.Versions.googleProtobuf,
+      ReflectiveCodeGen.generatedLanguages := Seq("Java"),
+      crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
+      scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
+      Test / parallelExecution := false,
+      ReflectiveCodeGen.codeGeneratorSettings ++= Seq("generate_scala_handler_factory"))
+    .pluginTestingSettings
+
 lazy val root = Project(id = "akka-grpc", base = file("."))
   .disablePlugins(SitePlugin, MimaPlugin, CiReleasePlugin)
   .aggregate(
@@ -281,6 +296,7 @@ lazy val root = Project(id = "akka-grpc", base = file("."))
     interopTests,
     pluginTesterScala,
     pluginTesterJava,
+    pluginTesterSdkHandler,
     benchmarks,
     docs)
   .settings(

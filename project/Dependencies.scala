@@ -157,4 +157,13 @@ object Dependencies {
     Test.scalaTestPlusJunit,
     Test.akkaTestkitTyped,
     GrpcApi.googleApiProtos)
+
+  val sdkPluginTester = l ++= Seq(
+    // usually automatically added by `suggestedDependencies`, which doesn't work with ReflectiveCodeGen
+    Compile.grpcStub,
+    Compile.akkaPki,
+    Runtime.logback,
+    Test.scalaTest,
+    Test.scalaTestPlusJunit,
+    Test.akkaTestkitTyped)
 }
