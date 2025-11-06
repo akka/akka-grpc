@@ -22,9 +22,5 @@ public class TestServiceScalaHandlerFactory implements InstancePerRequestFactory
     public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider, Materializer materializer) {
         return null;
     }
-
-    @Override
-    public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider) {
-        return null;
-    }
+    
 }
