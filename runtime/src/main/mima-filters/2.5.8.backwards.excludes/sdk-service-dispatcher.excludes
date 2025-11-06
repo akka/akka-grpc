@@ -1,0 +1,3 @@
+# incompatible with generated code, but only used in sdk projects so should not be a problem to regenerate on bump
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.scaladsl.InstancePerRequestFactory.partialInstancePerRequest")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.scaladsl.InstancePerRequestFactory.partialInstancePerRequest")
