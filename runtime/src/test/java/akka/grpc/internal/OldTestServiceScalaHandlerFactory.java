@@ -14,12 +14,11 @@ import scala.Function1;
 import scala.PartialFunction;
 import scala.concurrent.Future;
 
-// this would be generated
-@SuppressWarnings("deprecated") // deprecated method must be implemented
-public class TestServiceScalaHandlerFactory implements InstancePerRequestFactory<TestService> {
+// in previous versions of the plugin this would be generated
+public class OldTestServiceScalaHandlerFactory implements InstancePerRequestFactory<TestService> {
 
     @Override
-    public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider, Materializer materializer) {
+    public PartialFunction<HttpRequest, Future<HttpResponse>> partialInstancePerRequest(Function1<HttpRequest, TestService> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider) {
         return null;
     }
     

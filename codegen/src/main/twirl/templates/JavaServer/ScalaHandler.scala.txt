@@ -58,36 +58,36 @@ public final class @{serviceName}ScalaHandlerFactory implements InstancePerReque
     private static final CompletionStage<akka.http.javadsl.model.HttpResponse> unsupportedMediaType = CompletableFuture.completedFuture(
       akka.http.javadsl.model.HttpResponse.create().withStatus(akka.http.javadsl.model.StatusCodes.UNSUPPORTED_MEDIA_TYPE));
 
-
-  /**
+    /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example
      * `Http.get(system).bindAndHandleAsync`. It ends with `StatusCodes.NotFound` if the request is not matching.
      *
      * Use {@@link akka.grpc.javadsl.ServiceHandler#concatOrNotFound} when combining several services.
      */
-  @@SuppressWarnings("All")
-  @@Override
-  public PartialFunction<akka.http.scaladsl.model.HttpRequest, Future<akka.http.scaladsl.model.HttpResponse>> partialInstancePerRequest(Function1<akka.http.scaladsl.model.HttpRequest, @{serviceName}> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider) {
-      InstancePerRequestPF.GrpcMethod[] methods = {
-        new InstancePerRequestPF.GrpcMethod<@{serviceName}>(
-          "@service.methods.head.grpcName",
-          this::@{service.methods.head.name})
-          @for(method <- service.methods.tail) {
-            ,
-            new InstancePerRequestPF.GrpcMethod<@{serviceName}>(
-              "@{method.grpcName}",
-              this::@{method.name})
-          }
-      };
+    @@Override
+    @@SuppressWarnings({"all","unchecked"})
+    public PartialFunction<akka.http.scaladsl.model.HttpRequest, Future<akka.http.scaladsl.model.HttpResponse>> partialInstancePerRequest(Function1<akka.http.scaladsl.model.HttpRequest, @{serviceName}> serviceFactory, String prefix, PartialFunction<Throwable, Trailers> eHandler, ClassicActorSystemProvider systemProvider, Materializer materializer) {
+        InstancePerRequestPF.GrpcMethod[] methods = {
+          new InstancePerRequestPF.GrpcMethod<@{serviceName}>(
+            "@service.methods.head.grpcName",
+            this::@{service.methods.head.name})
+            @for(method <- service.methods.tail) {
+              ,
+              new InstancePerRequestPF.GrpcMethod<@{serviceName}>(
+                "@{method.grpcName}",
+                this::@{method.name})
+            }
+        };
 
-      return new InstancePerRequestPF<@{serviceName}>(
-          serviceFactory,
-          prefix,
-          methods,
-          eHandler,
-          systemProvider
-      );
-  }
+        return new InstancePerRequestPF<@{serviceName}>(
+            serviceFactory,
+            prefix,
+            methods,
+            eHandler,
+            systemProvider,
+            materializer
+        );
+    }
 
     public String getServiceName() {
       return @{service.name}.name;

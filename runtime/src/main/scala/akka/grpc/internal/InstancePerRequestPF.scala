@@ -16,7 +16,7 @@ import akka.stream.Materializer
 import akka.stream.SystemMaterializer
 
 import java.util.concurrent.CompletionStage
-import scala.concurrent.ExecutionContext
+
 import scala.concurrent.Future
 import scala.jdk.FutureConverters.CompletionStageOps
 
@@ -51,12 +51,20 @@ private[akka] final class InstancePerRequestPF[S](
     prefix: String,
     methods: Array[InstancePerRequestPF.GrpcMethod[S]],
     eHandler: PartialFunction[Throwable, Trailers],
-    system: ClassicActorSystemProvider)
+    system: ClassicActorSystemProvider,
+    materializer: Materializer)
     extends PartialFunction[HttpRequest, Future[HttpResponse]] {
-  // Note how the factory and partial function is Akka HTTP scaladsl. This is intentional.
 
-  private val materializer: Materializer = SystemMaterializer(system).materializer
-  private implicit val ec: ExecutionContext = materializer.executionContext
+  // for bin/source comp with existing generated code
+  def this(
+      factory: HttpRequest => S,
+      prefix: String,
+      methods: Array[InstancePerRequestPF.GrpcMethod[S]],
+      eHandler: PartialFunction[Throwable, Trailers],
+      system: ClassicActorSystemProvider) =
+    this(factory, prefix, methods, eHandler, system, SystemMaterializer(system).materializer)
+
+  // Note how the factory and partial function is Akka HTTP scaladsl. This is intentional.
   private val spi = TelemetryExtension(system).spi
   private val javaEHandler: akka.japi.Function[ActorSystem, akka.japi.Function[Throwable, Trailers]] =
     (_: ActorSystem) => { eHandler.apply _ }
