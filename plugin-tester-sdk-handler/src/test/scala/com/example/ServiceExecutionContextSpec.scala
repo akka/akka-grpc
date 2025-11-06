@@ -34,7 +34,7 @@ import scala.jdk.FutureConverters.CompletionStageOps
 
 class ServiceExecutionContextSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
 
-  implicit val system: ActorSystem[Nothing] = ActorSystem[Nothing](
+  implicit val system: ActorSystem[Nothing] = ActorSystem[Any](
     Behaviors.empty,
     "ServiceExecutionContextSpec",
     ConfigFactory.parseString("""
