@@ -1,16 +1,31 @@
-# Akka gRPC
+Akka
+====
+*Akka is a powerful platform that simplifies building and operating highly responsive, resilient, and scalable services.*
 
-Support for building streaming gRPC servers and clients on top
+
+The platform consists of
+* the [**Akka SDK**](https://doc.akka.io/) for straightforward, rapid development with AI assist and automatic clustering. Services built with the Akka SDK are automatically clustered and can be deployed on any infrastructure.
+* and [**Akka Automated Operations**](https://doc.akka.io/operations/akka-platform.html), a managed solution that handles everything for Akka SDK services from auto-elasticity to multi-region high availability running safely within your VPC.
+
+The **Akka SDK** and **Akka Automated Operations** are built upon the foundational [**Akka libraries**](https://doc.akka.io/libraries/akka-dependencies/current/), providing the building blocks for distributed systems.
+
+
+Akka gRPC
+=========
+
+Akka gRPC provides support for building streaming gRPC servers and clients on top
 of Akka Streams.
 
-This library is meant to be used as a building block in projects using the Akka
-toolkit.
+This library is meant to be used as a building block in projects using the Akka libraries.
 
-The Akka family of projects is managed by teams at [Lightbend](https://lightbend.com/) with help from the community.
 
-## Documentation
+Reference Documentation
+-----------------------
 
-- [Akka gRPC reference](https://doc.akka.io/libraries/akka-grpc/current/) documentation 
+The reference documentation for all Akka libraries is available via [doc.akka.io/libraries/](https://doc.akka.io/libraries/), details for the Akka gRPC library
+for [Scala](https://doc.akka.io/libraries/akka-grpc/current/?language=scala) and [Java](https://doc.akka.io/libraries/akka-grpc/current/?language=java).
+
+The current versions of all Akka libraries are listed on the [Akka Dependencies](https://doc.akka.io/libraries/akka-dependencies/current/) page. Releases of the Akka gRPC library in this repository are listed on the [GitHub releases](https://github.com/akka/akka-grpc/releases) page.
 
 ## Project Status
 
