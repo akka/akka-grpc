@@ -71,6 +71,9 @@ object AkkaGrpcPlugin extends AutoPlugin {
       "ScalaPB settings: " + ProtocSettings.scalapb.mkString(", ") + "\n" +
       "Java settings: " + ProtocSettings.protocJava.mkString(", ") + "\n" +
       "Akka gRPC settings: " + GeneratorOption.settings.mkString(", "))
+    val akkaGrpcInclude =
+      settingKey[Seq[String]]("List of glob patterns to include services for code generation. Empty means include all.")
+    val akkaGrpcExclude = settingKey[Seq[String]]("List of glob patterns to exclude services from code generation.")
   }
 
   object autoImport extends Keys
@@ -84,6 +87,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
       akkaGrpcExtraGenerators := Seq.empty,
+      akkaGrpcInclude := Seq.empty,
+      akkaGrpcExclude := Seq.empty,
       libraryDependencies ++= {
         if (akkaGrpcGeneratedLanguages.value.contains(AkkaGrpc.Scala))
           // Make scalapb.proto available for import in user-defined protos for file and package-level options
@@ -124,7 +129,7 @@ object AkkaGrpcPlugin extends AutoPlugin {
         PB.targets ++=
           targetsFor(
             (akkaGrpcCodeGeneratorSettings / target).value,
-            akkaGrpcCodeGeneratorSettings.value,
+            akkaGrpcCodeGeneratorSettings.value ++ generatorOptions(akkaGrpcInclude.value, akkaGrpcExclude.value),
             akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto") ++
       inTask(PB.recompile)(Seq(
@@ -161,6 +166,12 @@ object AkkaGrpcPlugin extends AutoPlugin {
             settings
         })
     }
+
+  private def generatorOptions(include: Seq[String], exclude: Seq[String]): Seq[String] = {
+    val includeOpts = if (include.nonEmpty) Seq(s"include=${include.mkString(";")}") else Nil
+    val excludeOpts = if (exclude.nonEmpty) Seq(s"exclude=${exclude.mkString(";")}") else Nil
+    includeOpts ++ excludeOpts
+  }
 
   // creates a seq of generator and per generator settings
   def generatorsFor(

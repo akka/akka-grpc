@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
@@ -44,6 +44,11 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val generateScalaHandlerFactory = paramEnabled("generate_scala_handler_factory")
     val generateBlockingApis = paramEnabled("blocking_apis")
 
+    val IncludeRegex = """include=([^,]+)""".r
+    val ExcludeRegex = """exclude=([^,]+)""".r
+    val include = IncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val exclude = ExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+
     if (serverPowerApi && generateScalaHandlerFactory) {
       logger.warn(
         "Both server_power_apis and generate_scala_handler_factory enabled. Handler for power API not supported and will not be generated")
@@ -71,7 +76,8 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       serverPowerApi,
       usePlayActions,
       asyncReturnValues = !generateBlockingApis,
-      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector
+      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector.filter(s =>
+      ServiceFilter(s.grpcName, include, exclude))
 
     for {
       service <- services

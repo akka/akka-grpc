@@ -25,6 +25,9 @@ class AkkaGrpcPluginExtension {
 
     List<String> extraGenerators = []
 
+    List<String> include = []
+    List<String> exclude = []
+
     private final Project project
 
     final boolean scala

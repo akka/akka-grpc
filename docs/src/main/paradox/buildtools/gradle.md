@@ -61,9 +61,32 @@ Names and default values are provided.
         usePlayActions = false
         serverPowerApis = false
         extraGenerators = []
+        include = []
+        exclude = []
     }
     ```
     @@@
+
+### Filtering generated services
+
+You can filter which services to generate code for using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`build.gradle`
+:   @@@vars
+    ```gradle
+    akkaGrpc {
+        include = ['com.example.*', 'com.myapp.MyService']
+        exclude = ['com.example.internal.*']
+    }
+    ```
+    @@@
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches all services in the `com.example` package
+- `com.example.MyService` matches a specific service
 
 ### Generating server "power APIs"
 

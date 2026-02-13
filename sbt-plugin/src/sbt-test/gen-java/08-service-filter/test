@@ -1,0 +1,15 @@
+> compile
+
+$ exists target/scala-2.13/akka-grpc
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstService.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstServiceClient.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstServiceHandler.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdService.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceClient.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceHandler.java
+
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondService.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondServiceClient.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondServiceHandler.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthService.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthServiceHandler.java

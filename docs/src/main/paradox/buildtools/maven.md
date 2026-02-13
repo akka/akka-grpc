@@ -104,6 +104,35 @@ Scala
     </plugin>
     ```
 
+### Filtering generated services
+
+You can filter which services to generate code for using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <include>
+            <param>com.example.*</param>
+            <param>com.myapp.MyService</param>
+          </include>
+          <exclude>
+            <param>com.example.internal.*</param>
+          </exclude>
+        </configuration>
+    </plugin>
+    ```
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches all services in the `com.example` package
+- `com.example.MyService` matches a specific service
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metadata, as described

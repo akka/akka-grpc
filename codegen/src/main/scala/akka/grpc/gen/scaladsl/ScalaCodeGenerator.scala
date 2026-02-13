@@ -7,7 +7,7 @@ package akka.grpc.gen.scaladsl
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
@@ -52,6 +52,11 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
+    val IncludeRegex = """include=([^,]+)""".r
+    val ExcludeRegex = """exclude=([^,]+)""".r
+    val include = IncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val exclude = ExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+
     val codeGenRequest = CodeGenRequest(request)
     val services =
       (for {
@@ -63,7 +68,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
         fileDesc,
         serviceDesc,
         serverPowerApi,
-        usePlayActions)).toSeq
+        usePlayActions)).toSeq.filter(s => ServiceFilter(s.grpcName, include, exclude))
 
     for {
       service <- services
