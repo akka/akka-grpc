@@ -52,10 +52,15 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
-    val IncludeRegex = """include=([^,]+)""".r
-    val ExcludeRegex = """exclude=([^,]+)""".r
-    val include = IncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val exclude = ExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val ClientIncludeRegex = """client_include=([^,]+)""".r
+    val ClientExcludeRegex = """client_exclude=([^,]+)""".r
+    val ServerIncludeRegex = """server_include=([^,]+)""".r
+    val ServerExcludeRegex = """server_exclude=([^,]+)""".r
+    val clientInclude = ClientIncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val clientExclude = ClientExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val serverInclude = ServerIncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val serverExclude = ServerExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val filter = serviceFilter(clientInclude, clientExclude, serverInclude, serverExclude)
 
     val codeGenRequest = CodeGenRequest(request)
     val services =
@@ -68,7 +73,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
         fileDesc,
         serviceDesc,
         serverPowerApi,
-        usePlayActions)).toSeq.filter(s => ServiceFilter(s.grpcName, include, exclude))
+        usePlayActions)).toSeq.filter(s => filter(s))
 
     for {
       service <- services
@@ -83,6 +88,19 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
 
     b.build()
   }
+
+  /**
+   * Override to customize which services pass the filter for this generator.
+   * Default (trait/interface): passes if the service matches either client or server filter.
+   */
+  def serviceFilter(
+      clientInclude: List[String],
+      clientExclude: List[String],
+      serverInclude: List[String],
+      serverExclude: List[String]): Service => Boolean =
+    s =>
+      ServiceFilter(s.grpcName, clientInclude, clientExclude) ||
+      ServiceFilter(s.grpcName, serverInclude, serverExclude)
 
   // flags listed in akkaGrpcCodeGeneratorSettings's description
   private def parseParameters(params: String): GeneratorParams =

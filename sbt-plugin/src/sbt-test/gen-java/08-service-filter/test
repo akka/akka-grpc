@@ -1,15 +1,33 @@
 > compile
 
 $ exists target/scala-2.13/akka-grpc
+
+# FirstService: client(F* include, not excluded) + server(*Service include, not excluded)
+# -> trait, client, server all generated
 $ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstService.java
 $ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstServiceClient.java
-$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstServiceHandler.java
-$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdService.java
-$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceClient.java
-$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceHandler.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FirstServiceHandlerFactory.java
 
+# SecondService: client(not in F*) + server(*Service include, but excluded by name)
+# -> nothing generated
 $ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondService.java
 $ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondServiceClient.java
-$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondServiceHandler.java
-$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthService.java
-$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthServiceHandler.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/SecondServiceHandlerFactory.java
+
+# ThirdService: client(not in F*) + server(*Service include, not excluded)
+# -> trait + server generated, no client
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdService.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceClient.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/ThirdServiceHandlerFactory.java
+
+# FourthService: client(F* include, but excluded by exact name) + server(*Service include, not excluded)
+# -> trait + server generated, no client
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthService.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthServiceClient.java
+$ exists target/scala-2.13/akka-grpc/main/example/filter/grpc/FourthServiceHandlerFactory.java
+
+# InternalService: client(not in F*) + server(*Service include, but excluded by Internal* wildcard)
+# -> nothing generated
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/InternalService.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/InternalServiceClient.java
+$ absent target/scala-2.13/akka-grpc/main/example/filter/grpc/InternalServiceHandlerFactory.java

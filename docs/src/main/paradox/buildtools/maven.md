@@ -106,7 +106,7 @@ Scala
 
 ### Filtering generated services
 
-You can filter which services to generate code for using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
 
 `pom.xml`
 :   ```xml
@@ -115,16 +115,24 @@ You can filter which services to generate code for using include and exclude glo
         <artifactId>akka-grpc-maven-plugin</artifactId>
         <version>${akka.grpc.version}</version>
         <configuration>
-          <include>
+          <clientInclude>
             <param>com.example.*</param>
             <param>com.myapp.MyService</param>
-          </include>
-          <exclude>
+          </clientInclude>
+          <clientExclude>
             <param>com.example.internal.*</param>
-          </exclude>
+          </clientExclude>
+          <serverInclude>
+            <param>com.example.MyService</param>
+          </serverInclude>
+          <serverExclude>
+            <param>com.example.internal.*</param>
+          </serverExclude>
         </configuration>
     </plugin>
     ```
+
+The trait/interface is generated for any service that passes either the client or server filter.
 
 If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
 

@@ -5,7 +5,7 @@
 package akka.grpc.gen.javadsl
 
 import scala.collection.immutable
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.JavaServer.txt.ScalaHandler
@@ -13,6 +13,13 @@ import templates.JavaServer.txt.{ Handler, PowerApiInterface }
 
 class JavaServerCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
+
+  override def serviceFilter(
+      clientInclude: List[String],
+      clientExclude: List[String],
+      serverInclude: List[String],
+      serverExclude: List[String]): Service => Boolean =
+    s => ServiceFilter(s.grpcName, serverInclude, serverExclude)
 
   override def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] =
     super.perServiceContent + generatePlainHandlerFactory +

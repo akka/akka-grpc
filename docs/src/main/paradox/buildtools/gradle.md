@@ -61,25 +61,31 @@ Names and default values are provided.
         usePlayActions = false
         serverPowerApis = false
         extraGenerators = []
-        include = []
-        exclude = []
+        clientInclude = []
+        clientExclude = []
+        serverInclude = []
+        serverExclude = []
     }
     ```
     @@@
 
 ### Filtering generated services
 
-You can filter which services to generate code for using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
 
 `build.gradle`
 :   @@@vars
     ```gradle
     akkaGrpc {
-        include = ['com.example.*', 'com.myapp.MyService']
-        exclude = ['com.example.internal.*']
+        clientInclude = ['com.example.*', 'com.myapp.MyService']
+        clientExclude = ['com.example.internal.*']
+        serverInclude = ['com.example.MyService']
+        serverExclude = ['com.example.internal.*']
     }
     ```
     @@@
+
+The trait/interface is generated for any service that passes either the client or server filter.
 
 If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
 

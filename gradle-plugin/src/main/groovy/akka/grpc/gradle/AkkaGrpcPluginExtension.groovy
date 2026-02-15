@@ -25,8 +25,10 @@ class AkkaGrpcPluginExtension {
 
     List<String> extraGenerators = []
 
-    List<String> include = []
-    List<String> exclude = []
+    List<String> clientInclude = []
+    List<String> clientExclude = []
+    List<String> serverInclude = []
+    List<String> serverExclude = []
 
     private final Project project
 

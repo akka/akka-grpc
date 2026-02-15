@@ -6,18 +6,23 @@ option java_outer_classname = "FilterProto";
 
 package filter;
 
-// The first service - should be included
 service FirstService {
     rpc Call (Request) returns (Reply) {}
 }
 
-// The second service - should be excluded
 service SecondService {
     rpc Call (Request) returns (Reply) {}
 }
 
-// The third service - should be included
 service ThirdService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service FourthService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service InternalService {
     rpc Call (Request) returns (Reply) {}
 }
 

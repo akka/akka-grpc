@@ -32,15 +32,23 @@ What language to generate stubs for is also configurable:
 
 ### Filtering generated services
 
-You can filter which services to generate code for using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
 
 ```scala
-// Only generate code for services matching these patterns
-akkaGrpcInclude := Seq("com.example.*", "com.myapp.MyService")
+// Only generate client code for services matching these patterns
+akkaGrpcClientInclude := Seq("com.example.*", "com.myapp.MyService")
 
-// Exclude services matching these patterns (applied after include)
-akkaGrpcExclude := Seq("com.example.internal.*")
+// Exclude services from client code generation (applied after include)
+akkaGrpcClientExclude := Seq("com.example.internal.*")
+
+// Only generate server code for services matching these patterns
+akkaGrpcServerInclude := Seq("com.example.MyService")
+
+// Exclude services from server code generation (applied after include)
+akkaGrpcServerExclude := Seq("com.example.internal.*")
 ```
+
+The trait/interface is generated for any service that passes either the client or server filter.
 
 If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
 

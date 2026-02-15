@@ -44,10 +44,15 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val generateScalaHandlerFactory = paramEnabled("generate_scala_handler_factory")
     val generateBlockingApis = paramEnabled("blocking_apis")
 
-    val IncludeRegex = """include=([^,]+)""".r
-    val ExcludeRegex = """exclude=([^,]+)""".r
-    val include = IncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val exclude = ExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val ClientIncludeRegex = """client_include=([^,]+)""".r
+    val ClientExcludeRegex = """client_exclude=([^,]+)""".r
+    val ServerIncludeRegex = """server_include=([^,]+)""".r
+    val ServerExcludeRegex = """server_exclude=([^,]+)""".r
+    val clientInclude = ClientIncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val clientExclude = ClientExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val serverInclude = ServerIncludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val serverExclude = ServerExcludeRegex.findFirstMatchIn(params).map(_.group(1).split(";").toList).getOrElse(Nil)
+    val filter = serviceFilter(clientInclude, clientExclude, serverInclude, serverExclude)
 
     if (serverPowerApi && generateScalaHandlerFactory) {
       logger.warn(
@@ -76,8 +81,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       serverPowerApi,
       usePlayActions,
       asyncReturnValues = !generateBlockingApis,
-      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector.filter(s =>
-      ServiceFilter(s.grpcName, include, exclude))
+      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector.filter(s => filter(s))
 
     for {
       service <- services
@@ -92,6 +96,19 @@ abstract class JavaCodeGenerator extends CodeGenerator {
 
     b.build()
   }
+
+  /**
+   * Override to customize which services pass the filter for this generator.
+   * Default (trait/interface): passes if the service matches either client or server filter.
+   */
+  def serviceFilter(
+      clientInclude: List[String],
+      clientExclude: List[String],
+      serverInclude: List[String],
+      serverExclude: List[String]): Service => Boolean =
+    s =>
+      ServiceFilter(s.grpcName, clientInclude, clientExclude) ||
+      ServiceFilter(s.grpcName, serverInclude, serverExclude)
 
   def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()

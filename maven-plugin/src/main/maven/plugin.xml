@@ -85,18 +85,32 @@
           <description>If "true", extract the included google.protobuf standard types and add them to protoc import path.</description>
         </parameter>
         <parameter>
-          <name>include</name>
+          <name>clientInclude</name>
           <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>list of glob patterns to include</description>
+          <description>list of glob patterns to include for client code generation</description>
         </parameter>
         <parameter>
-          <name>exclude</name>
+          <name>clientExclude</name>
           <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>list of glob patterns to exclude</description>
+          <description>list of glob patterns to exclude from client code generation</description>
+        </parameter>
+        <parameter>
+          <name>serverInclude</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>list of glob patterns to include for server code generation</description>
+        </parameter>
+        <parameter>
+          <name>serverExclude</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>list of glob patterns to exclude from server code generation</description>
         </parameter>
       </parameters>
       <configuration>
@@ -106,8 +120,10 @@
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
         <generatorSettings implementation="java.util.List" default-value=""/>
         <extraGenerators implementation="java.util.List" default-value=""/>
-        <include implementation="java.util.List" default-value=""/>
-        <exclude implementation="java.util.List" default-value=""/>
+        <clientInclude implementation="java.util.List" default-value=""/>
+        <clientExclude implementation="java.util.List" default-value=""/>
+        <serverInclude implementation="java.util.List" default-value=""/>
+        <serverExclude implementation="java.util.List" default-value=""/>
         <protoPaths default-value="${project.basedir}/src/main/proto,${project.basedir}/src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="${project.build.directory}/generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
 	<protocVersion implementation="java.lang.String" default-value="-v3.25.5">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
@@ -164,18 +180,32 @@
           <description>extra generators to load</description>
         </parameter>
         <parameter>
-          <name>include</name>
+          <name>clientInclude</name>
           <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>list of glob patterns to include</description>
+          <description>list of glob patterns to include for client code generation</description>
         </parameter>
         <parameter>
-          <name>exclude</name>
+          <name>clientExclude</name>
           <type>java.util.List</type>
           <required>false</required>
           <editable>true</editable>
-          <description>list of glob patterns to exclude</description>
+          <description>list of glob patterns to exclude from client code generation</description>
+        </parameter>
+        <parameter>
+          <name>serverInclude</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>list of glob patterns to include for server code generation</description>
+        </parameter>
+        <parameter>
+          <name>serverExclude</name>
+          <type>java.util.List</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>list of glob patterns to exclude from server code generation</description>
         </parameter>
         <parameter>
           <name>protoPaths</name>
@@ -213,8 +243,10 @@
         <generateServer implementation="boolean" default-value="true">${akka-grpc.generate-server}</generateServer>
         <generatorSettings implementation="java.util.List" default-value=""/>
         <extraGenerators implementation="java.util.List" default-value=""/>
-        <include implementation="java.util.List" default-value=""/>
-        <exclude implementation="java.util.List" default-value=""/>
+        <clientInclude implementation="java.util.List" default-value=""/>
+        <clientExclude implementation="java.util.List" default-value=""/>
+        <serverInclude implementation="java.util.List" default-value=""/>
+        <serverExclude implementation="java.util.List" default-value=""/>
         <protoPaths default-value="src/test/proto,src/test/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="target/generated-test-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v3.25.8">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->

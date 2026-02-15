@@ -5,12 +5,19 @@
 package akka.grpc.gen.scaladsl
 
 import scala.collection.immutable
-import akka.grpc.gen.Logger
+import akka.grpc.gen.{ Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import templates.ScalaServer.txt.{ Handler, PowerApiTrait }
 
 class ScalaServerCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-server"
+
+  override def serviceFilter(
+      clientInclude: List[String],
+      clientExclude: List[String],
+      serverInclude: List[String],
+      serverExclude: List[String]): Service => Boolean =
+    s => ServiceFilter(s.grpcName, serverInclude, serverExclude)
 
   override def perServiceContent =
     super.perServiceContent + generatePlainHandler + generatePowerHandler + generatePowerApiTrait

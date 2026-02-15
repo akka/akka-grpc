@@ -118,10 +118,16 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
-  var include: java.util.ArrayList[String] = _
+  var clientInclude: java.util.ArrayList[String] = _
 
   @BeanProperty
-  var exclude: java.util.ArrayList[String] = _
+  var clientExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverExclude: java.util.ArrayList[String] = _
 
   @BeanProperty
   var includeStdTypes: Boolean = _
@@ -190,7 +196,11 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
             else Seq.empty).flatten.distinct
 
-          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(include, exclude)
+          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(
+            clientInclude,
+            clientExclude,
+            serverInclude,
+            serverExclude)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
           Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
@@ -200,7 +210,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           val baseSettings = parseGeneratorSettings(generatorSettings)
           val settings =
             if (generatorSettings.containsKey("flatPackage")) baseSettings else baseSettings :+ "flat_package"
-          val settingsWithFilter = settings ++ genOptions(include, exclude)
+          val settingsWithFilter = settings ++ genOptions(clientInclude, clientExclude, serverInclude, serverExclude)
           val scalapbSettings = settingsWithFilter.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
@@ -315,9 +325,27 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     (jvmGenerator, settings) -> targetPath
   }
 
-  private def genOptions(include: java.util.ArrayList[String], exclude: java.util.ArrayList[String]): Seq[String] = {
-    val includeOpts = if (include != null && !include.isEmpty) Seq(s"include=${include.asScala.mkString(";")}") else Nil
-    val excludeOpts = if (exclude != null && !exclude.isEmpty) Seq(s"exclude=${exclude.asScala.mkString(";")}") else Nil
-    includeOpts ++ excludeOpts
+  private def genOptions(
+      clientInclude: java.util.ArrayList[String],
+      clientExclude: java.util.ArrayList[String],
+      serverInclude: java.util.ArrayList[String],
+      serverExclude: java.util.ArrayList[String]): Seq[String] = {
+    val clientIncludeOpts =
+      if (clientInclude != null && !clientInclude.isEmpty)
+        Seq(s"client_include=${clientInclude.asScala.mkString(";")}")
+      else Nil
+    val clientExcludeOpts =
+      if (clientExclude != null && !clientExclude.isEmpty)
+        Seq(s"client_exclude=${clientExclude.asScala.mkString(";")}")
+      else Nil
+    val serverIncludeOpts =
+      if (serverInclude != null && !serverInclude.isEmpty)
+        Seq(s"server_include=${serverInclude.asScala.mkString(";")}")
+      else Nil
+    val serverExcludeOpts =
+      if (serverExclude != null && !serverExclude.isEmpty)
+        Seq(s"server_exclude=${serverExclude.asScala.mkString(";")}")
+      else Nil
+    clientIncludeOpts ++ clientExcludeOpts ++ serverIncludeOpts ++ serverExcludeOpts
   }
 }
