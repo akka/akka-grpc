@@ -1,5 +1,7 @@
 scalaVersion := "3.3.1"
 
+resolvers += "Scripted Resolver".at(sys.props("scripted.resolver"))
+
 scalacOptions += "-Xfatal-warnings"
 
 enablePlugins(AkkaGrpcPlugin)

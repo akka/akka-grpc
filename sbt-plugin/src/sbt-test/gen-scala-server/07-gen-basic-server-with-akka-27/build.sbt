@@ -1,5 +1,7 @@
 scalaVersion := "2.13.17"
 
+resolvers += "Scripted Resolver".at(sys.props("scripted.resolver"))
+
 enablePlugins(AkkaGrpcPlugin)
 
 dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.10.11"
