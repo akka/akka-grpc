@@ -124,9 +124,10 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
       // pass along token repo to scripted test projects (scripted tests are isolated and not picking that up from
       // global sbt config)
       val akkaRepo = resolvers.value.collectFirst {
-        case repo: MavenRepository if repo.root.contains("repo.akka.io") && repo.root.contains("secure") =>
-          repo.root
-      }
+        case repo: MavenRepository if repo.root.contains("secure") => repo.root
+      }.orElse(resolvers.value.collectFirst {
+        case repo: MavenRepository if repo.root.contains("github_actions") => repo.root
+      })
       akkaRepo.map(repo => s"-Dscripted.resolver=$repo")
     },
     scriptedDependencies := {
