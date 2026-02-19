@@ -1,7 +1,5 @@
 scalaVersion := "2.13.17"
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
-
 enablePlugins(AkkaGrpcPlugin)
 
 dependencyOverrides += "com.typesafe.akka" %% "akka-stream" % "2.10.11"

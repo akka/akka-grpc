@@ -1,7 +1,5 @@
 scalaVersion := "3.3.1"
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
-
 scalacOptions += "-Xfatal-warnings"
 
 enablePlugins(AkkaGrpcPlugin)

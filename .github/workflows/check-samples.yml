@@ -24,13 +24,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: akka/github-actions-scripts
-          path: scripts
-          fetch-depth: 0
+          path: github-actions-scripts
 
       - name: Setup global resolver
         run: |
-          chmod +x ./scripts/setup_global_resolver.sh
-          ./scripts/setup_global_resolver.sh NO_MIRROR
+          chmod +x ./github-actions-scripts/setup_global_resolver.sh
+          ./github-actions-scripts/setup_global_resolver.sh NO_MIRROR
 
       - name: Checkout
         # https://github.com/actions/checkout/releases

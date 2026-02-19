@@ -2,8 +2,6 @@ scalaVersion := "2.13.17"
 
 enablePlugins(AkkaGrpcPlugin)
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
-
 run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps")
 
 // generate both client and server (default) in Java
