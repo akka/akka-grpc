@@ -228,15 +228,23 @@ jobs:
     name: Maven tests
     runs-on: Akka-Default
     steps:
+      - name: Checkout Global Scripts
+        # This MUST be before the main checkout or else the dynver will not work
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          repository: akka/github-actions-scripts
+          path: github-actions-scripts
+
+      - name: Setup global resolver
+        run: |
+          ./github-actions-scripts/setup_global_resolver.sh NO_MIRROR
+          
       - name: Checkout
         # https://github.com/actions/checkout/releases
         # v4.1.1
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           fetch-depth: 0
-
-      - name: Setup global resolver
-        uses: ./.github/actions/global-resolver
 
       - name: Cache Coursier cache
         # https://github.com/coursier/cache-action/releases

@@ -21,14 +21,13 @@ jobs:
     steps:
       - name: Checkout Global Scripts
         # This MUST be before the main checkout or else the dynver will not work
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           repository: akka/github-actions-scripts
           path: github-actions-scripts
 
       - name: Setup global resolver
         run: |
-          chmod +x ./github-actions-scripts/setup_global_resolver.sh
           ./github-actions-scripts/setup_global_resolver.sh NO_MIRROR
 
       - name: Checkout
