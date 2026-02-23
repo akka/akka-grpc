@@ -61,6 +61,9 @@ jobs:
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
+          
+      - name: Setup global resolver
+        uses: ./.github/actions/global-resolver
 
       - name: Set up JDK 11
         # https://github.com/coursier/setup-action/releases
@@ -84,6 +87,9 @@ jobs:
         with:
           # we don't know what commit the last tag was it's safer to get entire repo so previousStableVersion resolves
           fetch-depth: 0
+
+      - name: Setup global resolver
+        uses: ./.github/actions/global-resolver
 
       - name: Set up JDK 25
         # https://github.com/coursier/setup-action/releases
