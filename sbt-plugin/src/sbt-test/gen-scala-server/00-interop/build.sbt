@@ -1,7 +1,5 @@
 scalaVersion := "2.13.17"
 
-resolvers += "Scripted Resolver".at(sys.props("scripted.resolver"))
-
 organization := "com.lightbend.akka.grpc"
 
 val grpcVersion = "1.77.0" // checked synced by VersionSyncCheckPlugin
