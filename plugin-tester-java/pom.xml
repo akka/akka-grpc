@@ -23,21 +23,6 @@
     <proto-google-common-protos.version>2.28.0</proto-google-common-protos.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven/github_actions</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>akka-repository</id>
-      <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven/github_actions</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
     <dependency>
       <groupId>com.lightbend.akka.grpc</groupId>

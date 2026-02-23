@@ -10,9 +10,6 @@ buildscript {
   repositories {
     mavenLocal()
     gradlePluginPortal()
-    maven {
-      url "https://repo.akka.io/maven/github_actions"
-    }
   }
 }
 plugins {
@@ -30,9 +27,6 @@ akkaGrpc {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven {
-    url "https://repo.akka.io/maven/github_actions"
-  }
 }
 
 def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")

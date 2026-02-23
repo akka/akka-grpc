@@ -1,0 +1,14 @@
+name: Setup global resolver for Akka
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout Global Scripts
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      with:
+        repository: akka/github-actions-scripts
+        path: github-actions-scripts
+
+    - name: Setup global resolver
+      run: ./github-actions-scripts/setup_global_resolver.sh sbt-plugin
+      shell: bash

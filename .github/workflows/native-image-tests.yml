@@ -20,6 +20,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup global resolver
+        uses: ./.github/actions/global-resolver
+
       - name: Checkout GitHub merge
         if: github.event.pull_request
         run: |-

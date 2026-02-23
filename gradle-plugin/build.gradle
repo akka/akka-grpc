@@ -45,9 +45,6 @@ jar {
 
 repositories {
   mavenCentral()
-  maven {
-    url "https://repo.akka.io/maven/github_actions"
-  }
 }
 
 dependencies {

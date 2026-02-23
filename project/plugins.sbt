@@ -1,6 +1,4 @@
 // for sbt-paradox-akka
-resolvers += "Akka library repository".at("https://repo.akka.io/maven/github_actions")
-
 enablePlugins(BuildInfoPlugin)
 
 val sbtProtocV = "1.0.8"
