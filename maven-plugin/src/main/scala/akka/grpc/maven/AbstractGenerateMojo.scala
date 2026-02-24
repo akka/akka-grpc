@@ -118,6 +118,18 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var clientInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var clientExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
   var includeStdTypes: Boolean = _
 
   @BeanProperty
@@ -184,26 +196,29 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
             else Seq.empty).flatten.distinct
 
-          val settings = parseGeneratorSettings(generatorSettings)
+          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(
+            clientInclude,
+            clientExclude,
+            serverInclude,
+            serverExclude)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
           Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
         case Scala =>
           // Add flatPackage option as default if it's not set.
+          val baseSettings = parseGeneratorSettings(generatorSettings)
           val settings =
-            if (generatorSettings.containsKey("flatPackage"))
-              parseGeneratorSettings(generatorSettings)
-            else
-              parseGeneratorSettings(generatorSettings) :+ "flat_package"
-          val scalapbSettings = settings.intersect(ProtocSettings.scalapb)
+            if (generatorSettings.containsKey("flatPackage")) baseSettings else baseSettings :+ "flat_package"
+          val settingsWithFilter = settings ++ genOptions(clientInclude, clientExclude, serverInclude, serverExclude)
+          val scalapbSettings = settingsWithFilter.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), scalapbSettings) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settingsWithFilter))
       }
 
       val runProtoc: Seq[String] => Int = args =>
@@ -308,5 +323,29 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     val adapted = new ProtocBridgeCodeGenerator(generator, CodeGenerator.ScalaBinaryVersion("2.12"), logger)
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
+  }
+
+  private def genOptions(
+      clientInclude: java.util.ArrayList[String],
+      clientExclude: java.util.ArrayList[String],
+      serverInclude: java.util.ArrayList[String],
+      serverExclude: java.util.ArrayList[String]): Seq[String] = {
+    val clientIncludeOpts =
+      if (clientInclude != null && !clientInclude.isEmpty)
+        Seq(s"client_include=${clientInclude.asScala.mkString(";")}")
+      else Nil
+    val clientExcludeOpts =
+      if (clientExclude != null && !clientExclude.isEmpty)
+        Seq(s"client_exclude=${clientExclude.asScala.mkString(";")}")
+      else Nil
+    val serverIncludeOpts =
+      if (serverInclude != null && !serverInclude.isEmpty)
+        Seq(s"server_include=${serverInclude.asScala.mkString(";")}")
+      else Nil
+    val serverExcludeOpts =
+      if (serverExclude != null && !serverExclude.isEmpty)
+        Seq(s"server_exclude=${serverExclude.asScala.mkString(";")}")
+      else Nil
+    clientIncludeOpts ++ clientExcludeOpts ++ serverIncludeOpts ++ serverExcludeOpts
   }
 }

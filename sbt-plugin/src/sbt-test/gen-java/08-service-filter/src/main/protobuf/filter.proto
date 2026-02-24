@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "example.filter.grpc";
+option java_outer_classname = "FilterProto";
+
+package filter;
+
+service FirstService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service SecondService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service ThirdService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service FourthService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+service InternalService {
+    rpc Call (Request) returns (Reply) {}
+}
+
+message Request {
+    string name = 1;
+}
+
+message Reply {
+    string message = 1;
+}

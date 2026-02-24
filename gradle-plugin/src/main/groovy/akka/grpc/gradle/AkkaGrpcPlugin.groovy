@@ -126,6 +126,10 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             option "server_power_apis=${akkaGrpcExt.serverPowerApis}"
                             option "use_play_actions=${akkaGrpcExt.usePlayActions}"
                             option "extra_generators=${akkaGrpcExt.extraGenerators.join(';')}"
+                            option "client_include=${akkaGrpcExt.clientInclude.join(';')}"
+                            option "client_exclude=${akkaGrpcExt.clientExclude.join(';')}"
+                            option "server_include=${akkaGrpcExt.serverInclude.join(';')}"
+                            option "server_exclude=${akkaGrpcExt.serverExclude.join(';')}"
                             option "logfile_enc=${URLEncoder.encode(logFile.toString(), "utf-8")}"
                             if (akkaGrpcExt.includeStdTypes) {
                                 option "include_std_types=true"

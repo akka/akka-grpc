@@ -46,6 +46,18 @@ object Main extends App {
   private val extraGenerators: List[String] =
     parameters.getOrElse("extra_generators", "").split(";").toList.filter(_ != "")
 
+  private val clientInclude: List[String] =
+    parameters.getOrElse("client_include", "").split(";").toList.filter(_ != "")
+
+  private val clientExclude: List[String] =
+    parameters.getOrElse("client_exclude", "").split(";").toList.filter(_ != "")
+
+  private val serverInclude: List[String] =
+    parameters.getOrElse("server_include", "").split(";").toList.filter(_ != "")
+
+  private val serverExclude: List[String] =
+    parameters.getOrElse("server_exclude", "").split(";").toList.filter(_ != "")
+
   // Prefer logfile_enc with fallback to logfile
   private val logger: Logger =
     parameters

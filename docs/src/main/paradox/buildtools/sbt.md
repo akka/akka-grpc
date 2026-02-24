@@ -30,6 +30,33 @@ What language to generate stubs for is also configurable:
 
 @@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
 
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+```scala
+// Only generate client code for services matching these patterns
+akkaGrpcClientInclude := Seq("com.example.*", "com.myapp.MyService")
+
+// Exclude services from client code generation (applied after include)
+akkaGrpcClientExclude := Seq("com.example.internal.*")
+
+// Only generate server code for services matching these patterns
+akkaGrpcServerInclude := Seq("com.example.MyService")
+
+// Exclude services from server code generation (applied after include)
+akkaGrpcServerExclude := Seq("com.example.internal.*")
+```
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches all services in the `com.example` package
+- `com.example.MyService` matches a specific service
+
 ### Configurations
 
 By default, the plugin will run generators against `.proto` sources in the `Compile` directories (`src/main/protobuf`), as well as the `Test` ones (`src/test/protobuf`) if there are any.

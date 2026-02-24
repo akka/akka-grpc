@@ -104,6 +104,43 @@ Scala
     </plugin>
     ```
 
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <clientInclude>
+            <param>com.example.*</param>
+            <param>com.myapp.MyService</param>
+          </clientInclude>
+          <clientExclude>
+            <param>com.example.internal.*</param>
+          </clientExclude>
+          <serverInclude>
+            <param>com.example.MyService</param>
+          </serverInclude>
+          <serverExclude>
+            <param>com.example.internal.*</param>
+          </serverExclude>
+        </configuration>
+    </plugin>
+    ```
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches all services in the `com.example` package
+- `com.example.MyService` matches a specific service
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metadata, as described

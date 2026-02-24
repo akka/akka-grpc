@@ -71,6 +71,16 @@ object AkkaGrpcPlugin extends AutoPlugin {
       "ScalaPB settings: " + ProtocSettings.scalapb.mkString(", ") + "\n" +
       "Java settings: " + ProtocSettings.protocJava.mkString(", ") + "\n" +
       "Akka gRPC settings: " + GeneratorOption.settings.mkString(", "))
+    val akkaGrpcClientInclude =
+      settingKey[Seq[String]](
+        "List of glob patterns to include services for client code generation. Empty means include all.")
+    val akkaGrpcClientExclude =
+      settingKey[Seq[String]]("List of glob patterns to exclude services from client code generation.")
+    val akkaGrpcServerInclude =
+      settingKey[Seq[String]](
+        "List of glob patterns to include services for server code generation. Empty means include all.")
+    val akkaGrpcServerExclude =
+      settingKey[Seq[String]]("List of glob patterns to exclude services from server code generation.")
   }
 
   object autoImport extends Keys
@@ -84,6 +94,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
       akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client, AkkaGrpc.Server),
       akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Scala),
       akkaGrpcExtraGenerators := Seq.empty,
+      akkaGrpcClientInclude := Seq.empty,
+      akkaGrpcClientExclude := Seq.empty,
+      akkaGrpcServerInclude := Seq.empty,
+      akkaGrpcServerExclude := Seq.empty,
       libraryDependencies ++= {
         if (akkaGrpcGeneratedLanguages.value.contains(AkkaGrpc.Scala))
           // Make scalapb.proto available for import in user-defined protos for file and package-level options
@@ -124,7 +138,11 @@ object AkkaGrpcPlugin extends AutoPlugin {
         PB.targets ++=
           targetsFor(
             (akkaGrpcCodeGeneratorSettings / target).value,
-            akkaGrpcCodeGeneratorSettings.value,
+            akkaGrpcCodeGeneratorSettings.value ++ generatorOptions(
+              akkaGrpcClientInclude.value,
+              akkaGrpcClientExclude.value,
+              akkaGrpcServerInclude.value,
+              akkaGrpcServerExclude.value),
             akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto") ++
       inTask(PB.recompile)(Seq(
@@ -161,6 +179,18 @@ object AkkaGrpcPlugin extends AutoPlugin {
             settings
         })
     }
+
+  private def generatorOptions(
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Seq[String] = {
+    val clientIncludeOpts = if (clientInclude.nonEmpty) Seq(s"client_include=${clientInclude.mkString(";")}") else Nil
+    val clientExcludeOpts = if (clientExclude.nonEmpty) Seq(s"client_exclude=${clientExclude.mkString(";")}") else Nil
+    val serverIncludeOpts = if (serverInclude.nonEmpty) Seq(s"server_include=${serverInclude.mkString(";")}") else Nil
+    val serverExcludeOpts = if (serverExclude.nonEmpty) Seq(s"server_exclude=${serverExclude.mkString(";")}") else Nil
+    clientIncludeOpts ++ clientExcludeOpts ++ serverIncludeOpts ++ serverExcludeOpts
+  }
 
   // creates a seq of generator and per generator settings
   def generatorsFor(
