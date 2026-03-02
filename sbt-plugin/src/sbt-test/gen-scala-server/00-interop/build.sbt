@@ -2,7 +2,7 @@ scalaVersion := "2.13.17"
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.77.0" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.79.0" // checked synced by VersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",

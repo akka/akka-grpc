@@ -74,5 +74,5 @@ trait MetadataStatus extends Metadata {
   @deprecated(message = "Use the new getParsedDetails overload taking a Java protobuf message type instead")
   def getParsedDetails[K <: scalapb.GeneratedMessage](companion: scalapb.GeneratedMessageCompanion[K]): JList[K]
 
-  def getParsedDetails[K <: com.google.protobuf.GeneratedMessageV3](defaultMessage: K): JList[K]
+  def getParsedDetails[K <: com.google.protobuf.Message](defaultMessage: K): JList[K]
 }
