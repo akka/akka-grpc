@@ -278,7 +278,7 @@ class JavaMetadataImpl @InternalStableApi() (val delegate: Metadata)
   def getParsedDetails[K <: GeneratedMessage](companion: GeneratedMessageCompanion[K]): jList[K] =
     richDelegate.getParsedDetails(companion).asJava
 
-  def getParsedDetails[K <: com.google.protobuf.GeneratedMessageV3](messageType: K): jList[K] = {
+  def getParsedDetails[K <: com.google.protobuf.Message](messageType: K): jList[K] = {
     val parser = messageType.getParserForType
     val messageTypeUrl = s"type.googleapis.com/${messageType.getDescriptorForType.getFullName}"
     richDelegate.details.collect {
