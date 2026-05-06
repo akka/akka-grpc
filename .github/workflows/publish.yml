@@ -10,10 +10,27 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: Akka-Default
+    outputs:
+      release_prep_only: ${{ steps.filter.outputs.release_prep_only }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Detect release-prep-only changes
+        id: filter
+        uses: ./.github/actions/release-prep-only
+
   sbt:
     name: sbt publish
+    needs: changes
     runs-on: Akka-Default
-    if: github.event.repository.fork == false
+    if: |
+      github.event.repository.fork == false &&
+      needs.changes.outputs.release_prep_only != 'true'
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -47,9 +64,13 @@ jobs:
 
   gradle-plugin:
     name: Release gradle plugin
+    needs: changes
     runs-on: Akka-Default
     # only on tagged release, not snapshot
-    if: github.event.repository.fork == false && startsWith(github.ref, 'refs/tags/')
+    if: |
+      github.event.repository.fork == false &&
+      startsWith(github.ref, 'refs/tags/') &&
+      needs.changes.outputs.release_prep_only != 'true'
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
@@ -72,8 +93,11 @@ jobs:
 
   documentation:
     name: Documentation
+    needs: changes
     runs-on: Akka-Default
-    if: github.event.repository.fork == false
+    if: |
+      github.event.repository.fork == false &&
+      needs.changes.outputs.release_prep_only != 'true'
     steps:
       - name: Checkout
         # https://github.com/actions/checkout/releases
