@@ -40,7 +40,7 @@ object Service {
 
     Service(
       fileDesc.fileDescriptorObject.fullName + ".javaDescriptor",
-      fileDesc.scalaPackage.fullName,
+      fileDesc.scalaPackage.fullName.stripPrefix("_root_."),
       serviceClassName,
       (if (fileDesc.getPackage.isEmpty) "" else fileDesc.getPackage + ".") + serviceDescriptor.getName,
       serviceDescriptor.getMethods.asScala.map(method => Method(method)).toList,

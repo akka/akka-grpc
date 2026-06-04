@@ -31,7 +31,7 @@ object Dependencies {
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "4.34.0" // checked synced by VersionSyncCheckPlugin
+    val googleProtobuf = "4.35.0" // checked synced by VersionSyncCheckPlugin
     val googleApi = "2.58.0"
 
     val scalaTest = "3.2.12"
