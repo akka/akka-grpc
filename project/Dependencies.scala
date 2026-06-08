@@ -31,7 +31,7 @@ object Dependencies {
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "4.34.0" // checked synced by VersionSyncCheckPlugin
+    val googleProtobuf = "4.35.0" // checked synced by VersionSyncCheckPlugin
     val googleApi = "2.58.0"
 
     val scalaTest = "3.2.12"
@@ -66,7 +66,6 @@ object Dependencies {
     val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.17"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
-    val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
 
     val plexusBuildApi = "org.sonatype.plexus" % "plexus-build-api" % "0.0.7" % "optional" // Apache v2
   }
@@ -124,13 +123,8 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit)
 
-  val mavenPlugin = l ++= Seq(
-    Compile.slf4jApi,
-    Compile.mavenPluginApi,
-    Compile.mavenCore,
-    Compile.protocJar,
-    Compile.plexusBuildApi,
-    Test.scalaTest)
+  val mavenPlugin =
+    l ++= Seq(Compile.slf4jApi, Compile.mavenPluginApi, Compile.mavenCore, Compile.plexusBuildApi, Test.scalaTest)
 
   val sbtPlugin = Seq(
     l ++= Seq(Compile.scalapbCompilerPlugin),
