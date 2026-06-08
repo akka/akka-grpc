@@ -123,12 +123,8 @@ object Dependencies {
     Test.scalaTest,
     Test.scalaTestPlusJunit)
 
-  val mavenPlugin = l ++= Seq(
-    Compile.slf4jApi,
-    Compile.mavenPluginApi,
-    Compile.mavenCore,
-    Compile.plexusBuildApi,
-    Test.scalaTest)
+  val mavenPlugin =
+    l ++= Seq(Compile.slf4jApi, Compile.mavenPluginApi, Compile.mavenCore, Compile.plexusBuildApi, Test.scalaTest)
 
   val sbtPlugin = Seq(
     l ++= Seq(Compile.scalapbCompilerPlugin),
