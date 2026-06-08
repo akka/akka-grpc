@@ -10,8 +10,11 @@ import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerat
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
 import javax.inject.Inject
+import org.apache.maven.artifact.repository.ArtifactRepository
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.project.MavenProject
+import org.apache.maven.repository.RepositorySystem
 import org.sonatype.plexus.build.incremental.BuildContext
 import protocbridge.{ JvmGenerator, ProtocRunner, Target }
 import scalapb.ScalaPbCodeGenerator
@@ -84,11 +87,16 @@ object AbstractGenerateMojo {
   }
 }
 
-abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
+abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repositorySystem: RepositorySystem)
+    extends AbstractMojo {
   import AbstractGenerateMojo._
 
   @BeanProperty
   var project: MavenProject = _
+
+  @annotation.nowarn("cat=deprecation")
+  @BeanProperty
+  var localRepository: ArtifactRepository = _
 
   @BeanProperty
   var protoPaths: java.util.List[String] = _
@@ -206,9 +214,13 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
       }
 
-      val runProtoc: Seq[String] => Int = args =>
-        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-      val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
+      val runProtoc: Seq[String] => Int = args => {
+        val protocFile = resolveProtocBinary(protocVersion.stripPrefix("-v"))
+        val proc = new ProcessBuilder((protocFile.getAbsolutePath +: args).asJava)
+        proc.inheritIO()
+        proc.start().waitFor()
+      }
+      val protocOptions = Seq.empty[String]
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
@@ -295,6 +307,35 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     } else if (schemas.nonEmpty && generatedTargets.isEmpty) {
       getLog.info("Protobufs files found, but PB.targets is empty.")
     }
+  }
+
+  private def resolveProtocBinary(version: String): File = {
+    val classifier = protocClassifier()
+    val artifact =
+      repositorySystem.createArtifactWithClassifier("com.google.protobuf", "protoc", version, "exe", classifier)
+    val request = new ArtifactResolutionRequest()
+      .setArtifact(artifact)
+      .setLocalRepository(localRepository)
+      .setRemoteRepositories(project.getRemoteArtifactRepositories)
+    repositorySystem.resolve(request)
+    val file = artifact.getFile
+    file.setExecutable(true)
+    file
+  }
+
+  private def protocClassifier(): String = {
+    val os = System.getProperty("os.name").toLowerCase
+    val arch = System.getProperty("os.arch").toLowerCase
+    val osName =
+      if (os.contains("mac") || os.contains("darwin")) "osx"
+      else if (os.contains("linux")) "linux"
+      else if (os.contains("windows")) "windows"
+      else throw new RuntimeException(s"Unsupported OS for protoc: $os")
+    val archName =
+      if (arch == "aarch64" || arch == "arm64") "aarch_64"
+      else if (arch == "x86_64" || arch == "amd64") "x86_64"
+      else throw new RuntimeException(s"Unsupported architecture for protoc: $arch")
+    s"$osName-$archName"
   }
 
   def adaptAkkaGenerator(targetPath: File, generator: CodeGenerator, settings: Seq[String]): Target = {
