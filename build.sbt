@@ -253,7 +253,10 @@ lazy val pluginTesterScala = Project(id = "akka-grpc-plugin-tester-scala", base 
     crossScalaVersions := Dependencies.Versions.CrossScalaForLib,
     scalaVersion := Dependencies.Versions.CrossScalaForLib.head,
     Test / parallelExecution := false,
-    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"))
+    ReflectiveCodeGen.codeGeneratorSettings ++= Seq("flat_package", "server_power_apis"),
+    // descriptor.proto excluded: generated DescriptorProtos conflicts with protobuf-java runtime
+    PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
+      f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto")))
   .pluginTestingSettings
 
 lazy val pluginTesterJava = Project(id = "akka-grpc-plugin-tester-java", base = file("plugin-tester-java"))
