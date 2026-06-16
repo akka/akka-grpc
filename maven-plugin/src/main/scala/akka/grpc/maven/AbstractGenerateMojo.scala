@@ -5,7 +5,7 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
-import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
+import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
@@ -93,35 +93,6 @@ object AbstractGenerateMojo {
     val logger = ProcessLogger(out => System.out.println(out), err => System.err.println(err))
     Process(protocExecutable +: args).!(logger)
   }
-
-  private val VersionRegex = """(\d+(?:\.\d+)+|\d+)""".r
-
-  /**
-   * The protobuf release "train" of a version string, used to check protoc/protobuf-java alignment.
-   *
-   * Normalizes protobuf's dual version scheme: protobuf-java is versioned `3.<train>.<patch>` while
-   * protoc reports `libprotoc <train>.<patch>` (train >= 21) — both map to the same train. Accepts the
-   * protoc-jar `-v` prefix and `libprotoc` output. Returns None when no version can be extracted.
-   */
-  def protocTrainOf(version: String): Option[Int] =
-    Option(version).flatMap(VersionRegex.findFirstIn).map { v =>
-      val segments = v.split('.')
-      if (segments(0) == "3" && segments.length >= 3) segments(1).toInt
-      else segments(0).toInt
-    }
-
-  /** The bare version number of a version string */
-  def displayVersion(version: String): String =
-    Option(version).flatMap(VersionRegex.findFirstIn).getOrElse(version)
-
-  /** Run `<protocExecutable> --version` and return its reported version, or None if it cannot be queried. */
-  def queryProtocVersion(protocExecutable: String): Option[String] = {
-    import scala.sys.process.{ Process, ProcessLogger }
-    val output = new StringBuilder
-    val logger = ProcessLogger(line => output.append(line).append('\n'), line => output.append(line).append('\n'))
-    val exitCode = Process(Seq(protocExecutable, "--version")).!(logger)
-    if (exitCode == 0 && output.nonEmpty) Some(output.toString.trim) else None
-  }
 }
 
 abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
@@ -181,34 +152,15 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   def normalizedProtoPaths = protoPaths.asScala.map(normalize)
 
-  /**
-   * Fail the build if the configured `protocExecutable` is from a different protobuf release than
-   * `protocVersion`. Mixing protoc and protobuf versions is unsupported and leads to confusing failures.
-   */
+  /** Fail the build if the configured `protocExecutable` is from a different protobuf release than `protocVersion`. */
   private def checkProtocExecutableVersion(): Unit = {
     val executable = protocExecutable.trim
-    queryProtocVersion(executable) match {
-      case Some(reported) =>
-        (protocTrainOf(protocVersion), protocTrainOf(reported)) match {
-          case (Some(expected), Some(actual)) if expected != actual =>
-            sys.error(
-              s"The configured protoc executable [$executable] reports version [$reported] (protobuf $actual.x), " +
-              s"which does not match the expected protobuf version [${displayVersion(protocVersion)}] (protobuf " +
-              s"$expected.x) that akka-grpc is built against. Mixing protoc and protobuf versions is unsupported and " +
-              s"leads to build failures. Please use a protoc from the $expected.x release to align it with the " +
-              s"expected protobuf version.")
-          case (Some(_), Some(_)) =>
-            getLog.debug(
-              s"protoc executable [$executable] version [$reported] is aligned with [${displayVersion(protocVersion)}]")
-          case _ =>
-            getLog.warn(
-              s"Could not compare the protoc executable version [$reported] with the expected version " +
-              s"[${displayVersion(protocVersion)}]; skipping the protoc version alignment check.")
-        }
-      case None =>
-        getLog.warn(
-          s"Could not determine the version of the configured protoc executable [$executable]; " +
-          s"skipping the protoc version alignment check.")
+    ProtocVersion.checkAlignment(executable, protocVersion, ProtocVersion.queryVersion(executable)) match {
+      case ProtocVersion.Alignment.Misaligned(message)   => sys.error(message)
+      case ProtocVersion.Alignment.Undetermined(message) => getLog.warn(message)
+      case ProtocVersion.Alignment.Aligned =>
+        getLog.debug(
+          s"protoc executable [$executable] version is aligned with [${ProtocVersion.display(protocVersion)}]")
     }
   }
 

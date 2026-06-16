@@ -55,34 +55,4 @@ class ProtocSpec extends AnyWordSpec with Matchers {
       AbstractGenerateMojo.runLocalProtoc("false", Seq.empty) shouldBe 1
     }
   }
-
-  "Extracting the protobuf release train" should {
-    "read protobuf-java style versions" in {
-      AbstractGenerateMojo.protocTrainOf("3.25.8") shouldBe Some(25)
-      AbstractGenerateMojo.protocTrainOf("3.21.0") shouldBe Some(21)
-    }
-    "read the protoc-jar '-v' prefixed version" in {
-      AbstractGenerateMojo.protocTrainOf("-v3.25.8") shouldBe Some(25)
-    }
-    "read 'protoc --version' output" in {
-      AbstractGenerateMojo.protocTrainOf("libprotoc 25.8") shouldBe Some(25)
-      AbstractGenerateMojo.protocTrainOf("libprotoc 29.0") shouldBe Some(29)
-    }
-    "treat the 3.<train> and <train> schemes as the same train" in {
-      AbstractGenerateMojo.protocTrainOf("3.25.8") shouldBe AbstractGenerateMojo.protocTrainOf("libprotoc 25.8")
-    }
-    "return None when there is no version" in {
-      AbstractGenerateMojo.protocTrainOf("libprotoc") shouldBe None
-      AbstractGenerateMojo.protocTrainOf(null) shouldBe None
-    }
-  }
-
-  "Displaying a version" should {
-    "drop the protoc-jar '-v' prefix" in {
-      AbstractGenerateMojo.displayVersion("-v3.25.8") shouldBe "3.25.8"
-    }
-    "leave a bare version unchanged" in {
-      AbstractGenerateMojo.displayVersion("3.25.8") shouldBe "3.25.8"
-    }
-  }
 }
