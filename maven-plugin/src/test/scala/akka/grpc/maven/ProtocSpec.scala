@@ -35,4 +35,54 @@ class ProtocSpec extends AnyWordSpec with Matchers {
       AbstractGenerateMojo.parseGeneratorSettings(settings.asJava) shouldBe Seq("flat_package", "server_power_apis")
     }
   }
+
+  "Selecting the protoc runner" should {
+    "use the local protoc when an executable is set" in {
+      AbstractGenerateMojo.useLocalProtoc("/usr/bin/protoc") shouldBe true
+    }
+
+    "fall back to the downloaded protoc when not set" in {
+      AbstractGenerateMojo.useLocalProtoc(null) shouldBe false
+      AbstractGenerateMojo.useLocalProtoc("") shouldBe false
+      AbstractGenerateMojo.useLocalProtoc("   ") shouldBe false
+    }
+  }
+
+  "Running a local protoc" should {
+    "execute the given binary and return its exit code" in {
+      // 'true' and 'false' are standard POSIX utilities returning 0 and 1 respectively
+      AbstractGenerateMojo.runLocalProtoc("true", Seq.empty) shouldBe 0
+      AbstractGenerateMojo.runLocalProtoc("false", Seq.empty) shouldBe 1
+    }
+  }
+
+  "Extracting the protobuf release train" should {
+    "read protobuf-java style versions" in {
+      AbstractGenerateMojo.protocTrainOf("3.25.8") shouldBe Some(25)
+      AbstractGenerateMojo.protocTrainOf("3.21.0") shouldBe Some(21)
+    }
+    "read the protoc-jar '-v' prefixed version" in {
+      AbstractGenerateMojo.protocTrainOf("-v3.25.8") shouldBe Some(25)
+    }
+    "read 'protoc --version' output" in {
+      AbstractGenerateMojo.protocTrainOf("libprotoc 25.8") shouldBe Some(25)
+      AbstractGenerateMojo.protocTrainOf("libprotoc 29.0") shouldBe Some(29)
+    }
+    "treat the 3.<train> and <train> schemes as the same train" in {
+      AbstractGenerateMojo.protocTrainOf("3.25.8") shouldBe AbstractGenerateMojo.protocTrainOf("libprotoc 25.8")
+    }
+    "return None when there is no version" in {
+      AbstractGenerateMojo.protocTrainOf("libprotoc") shouldBe None
+      AbstractGenerateMojo.protocTrainOf(null) shouldBe None
+    }
+  }
+
+  "Displaying a version" should {
+    "drop the protoc-jar '-v' prefix" in {
+      AbstractGenerateMojo.displayVersion("-v3.25.8") shouldBe "3.25.8"
+    }
+    "leave a bare version unchanged" in {
+      AbstractGenerateMojo.displayVersion("3.25.8") shouldBe "3.25.8"
+    }
+  }
 }
