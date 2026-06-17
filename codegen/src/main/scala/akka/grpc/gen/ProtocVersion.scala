@@ -31,14 +31,18 @@ object ProtocVersion {
   /** Runs `<executablePath> --version` and returns its reported version; throws if the executable cannot be run. */
   def queryVersion(executablePath: String): String = {
 
-    import scala.sys.process.{ Process, ProcessLogger }
+    import java.io.File
+    import scala.sys.process.{ BasicIO, Process, ProcessIO }
     import scala.util.control.NonFatal
 
-    val output = new StringBuilder
-    val logger = ProcessLogger(line => output.append(line).append('\n'), line => output.append(line).append('\n'))
+    if (executablePath.contains(File.separator) && !new File(executablePath).exists())
+      throw new RuntimeException(s"The configured protoc executable [$executablePath] does not exist.")
+
+    val output = new StringBuffer
+    val io = new ProcessIO(BasicIO.input(connect = false), BasicIO.processFully(output), BasicIO.processFully(output))
 
     val exitCode =
-      try Process(Seq(executablePath, "--version")).!(logger)
+      try Process(Seq(executablePath, "--version")).run(io).exitValue()
       catch {
         case NonFatal(e) =>
           throw new RuntimeException(

@@ -67,5 +67,9 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
     "throw when the executable cannot be run" in {
       a[RuntimeException] should be thrownBy ProtocVersion.queryVersion("akka-grpc-no-such-protoc-binary")
     }
+    "report that a path-like executable does not exist" in {
+      val thrown = the[RuntimeException] thrownBy ProtocVersion.queryVersion("/no/such/path/protoc")
+      thrown.getMessage should include("does not exist")
+    }
   }
 }
