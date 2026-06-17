@@ -28,36 +28,53 @@ object ProtocVersion {
   def display(version: String): String =
     Option(version).flatMap(VersionRegex.findFirstIn).getOrElse(version)
 
-  /** Runs `<executablePath> --version` and returns its reported version, or None if it cannot be queried. */
-  def queryVersion(executablePath: String): Option[String] = {
+  /** Runs `<executablePath> --version` and returns its reported version; throws if the executable cannot be run. */
+  def queryVersion(executablePath: String): String = {
+
     import scala.sys.process.{ Process, ProcessLogger }
+    import scala.util.control.NonFatal
+
     val output = new StringBuilder
     val logger = ProcessLogger(line => output.append(line).append('\n'), line => output.append(line).append('\n'))
-    val exitCode = Process(Seq(executablePath, "--version")).!(logger)
-    if (exitCode == 0 && output.nonEmpty) Some(output.toString.trim) else None
+
+    val exitCode =
+      try Process(Seq(executablePath, "--version")).!(logger)
+      catch {
+        case NonFatal(e) =>
+          throw new RuntimeException(
+            s"Could not run the configured protoc executable [$executablePath] to determine its version: ${e.getMessage}",
+            e)
+      }
+
+    if (exitCode != 0)
+      throw new RuntimeException(
+        s"The configured protoc executable [$executablePath] exited with code $exitCode when queried with --version.")
+
+    val reported = output.toString.trim
+    if (reported.isEmpty)
+      throw new RuntimeException(
+        s"The configured protoc executable [$executablePath] produced no output when queried with --version.")
+
+    reported
   }
 
   /** Checks whether a protoc executable's reported version belongs to the same protobuf release as the expected version. */
-  def checkAlignment(executableLabel: String, expectedVersion: String, reportedVersion: Option[String]): Alignment =
-    reportedVersion match {
-      case None =>
+  def checkAlignment(executableLabel: String, expectedVersion: String, reportedVersion: String): Alignment =
+    (trainOf(expectedVersion), trainOf(reportedVersion)) match {
+
+      case (Some(expected), Some(actual)) if expected != actual =>
+        Alignment.Misaligned(
+          s"The configured protoc executable [$executableLabel] reports version [$reportedVersion] (protobuf $actual.x), " +
+          s"which does not match the expected protobuf version [${display(expectedVersion)}] (protobuf $expected.x) " +
+          s"that akka-grpc is built against. Mixing protoc and protobuf versions is unsupported and leads to build " +
+          s"failures. Please use a protoc from the $expected.x release to align it with the expected protobuf version.")
+
+      case (Some(_), Some(_)) =>
+        Alignment.Aligned
+
+      case _ =>
         Alignment.Undetermined(
-          s"Could not determine the version of the configured protoc executable [$executableLabel]; " +
-          s"skipping the protoc version alignment check.")
-      case Some(reported) =>
-        (trainOf(expectedVersion), trainOf(reported)) match {
-          case (Some(expected), Some(actual)) if expected != actual =>
-            Alignment.Misaligned(
-              s"The configured protoc executable [$executableLabel] reports version [$reported] (protobuf $actual.x), " +
-              s"which does not match the expected protobuf version [${display(expectedVersion)}] (protobuf $expected.x) " +
-              s"that akka-grpc is built against. Mixing protoc and protobuf versions is unsupported and leads to build " +
-              s"failures. Please use a protoc from the $expected.x release to align it with the expected protobuf version.")
-          case (Some(_), Some(_)) =>
-            Alignment.Aligned
-          case _ =>
-            Alignment.Undetermined(
-              s"Could not compare the protoc executable version [$reported] with the expected version " +
-              s"[${display(expectedVersion)}]; skipping the protoc version alignment check.")
-        }
+          s"Could not compare the protoc executable version [$reportedVersion] with the expected version " +
+          s"[${display(expectedVersion)}]; skipping the protoc version alignment check.")
     }
 }

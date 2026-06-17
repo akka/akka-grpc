@@ -46,14 +46,11 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
 
   "Checking alignment" should {
     "be aligned within the same release train" in {
-      ProtocVersion.checkAlignment(
-        "protoc",
-        "-v3.25.8",
-        Some("libprotoc 25.1")) shouldBe ProtocVersion.Alignment.Aligned
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 25.1") shouldBe ProtocVersion.Alignment.Aligned
     }
 
     "be misaligned across release trains" in {
-      ProtocVersion.checkAlignment("protoc", "-v3.25.8", Some("libprotoc 29.0")) match {
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 29.0") match {
         case ProtocVersion.Alignment.Misaligned(message) =>
           message should include("protobuf 29.x")
           message should include("3.25.8")
@@ -61,13 +58,14 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
       }
     }
 
-    "be undetermined when the version cannot be queried" in {
-      ProtocVersion.checkAlignment("protoc", "-v3.25.8", None) shouldBe a[ProtocVersion.Alignment.Undetermined]
-    }
-
     "be undetermined when the reported version cannot be parsed" in {
-      ProtocVersion
-        .checkAlignment("protoc", "-v3.25.8", Some("libprotoc")) shouldBe a[ProtocVersion.Alignment.Undetermined]
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc") shouldBe a[ProtocVersion.Alignment.Undetermined]
+    }
+  }
+
+  "Querying the version" should {
+    "throw when the executable cannot be run" in {
+      a[RuntimeException] should be thrownBy ProtocVersion.queryVersion("akka-grpc-no-such-protoc-binary")
     }
   }
 }
