@@ -81,4 +81,21 @@ object ProtocVersion {
           s"Could not compare the protoc executable version [$reportedVersion] with the expected version " +
           s"[${display(expectedVersion)}]; skipping the protoc version alignment check.")
     }
+
+  private val verified = java.util.concurrent.ConcurrentHashMap.newKeySet[String]()
+
+  /**
+   * Verifies that the protoc executable matches the expected version,
+   * at most once per pair in this JVM; throws on a mismatch.
+   */
+  def verify(executablePath: String, expectedVersion: String, warnFunc: String => Unit): Unit = {
+    val key = s"$executablePath@$expectedVersion"
+    // only successful checks are cached, so a mismatch keeps failing until the configuration is fixed
+    if (!verified.contains(key))
+      checkAlignment(executablePath, expectedVersion, queryVersion(executablePath)) match {
+        case Alignment.Misaligned(message)   => throw new RuntimeException(message)
+        case Alignment.Undetermined(message) => warnFunc(message); verified.add(key)
+        case Alignment.Aligned               => verified.add(key)
+      }
+  }
 }

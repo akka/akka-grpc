@@ -152,22 +152,11 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   def normalizedProtoPaths = protoPaths.asScala.map(normalize)
 
-  /** Fail the build if the configured `protocExecutable` is from a different protobuf release than `protocVersion`. */
-  private def checkProtocExecutableVersion(): Unit = {
-    val executable = protocExecutable.trim
-    ProtocVersion.checkAlignment(executable, protocVersion, ProtocVersion.queryVersion(executable)) match {
-      case ProtocVersion.Alignment.Misaligned(message)   => sys.error(message)
-      case ProtocVersion.Alignment.Undetermined(message) => getLog.warn(message)
-      case ProtocVersion.Alignment.Aligned =>
-        getLog.debug(
-          s"protoc executable [$executable] version is aligned with [${ProtocVersion.display(protocVersion)}]")
-    }
-  }
-
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
 
-    if (useLocalProtoc(protocExecutable)) checkProtocExecutableVersion()
+    if (useLocalProtoc(protocExecutable))
+      ProtocVersion.verify(protocExecutable.trim, protocVersion, message => getLog.warn(message))
 
     var directoryFound = false
 

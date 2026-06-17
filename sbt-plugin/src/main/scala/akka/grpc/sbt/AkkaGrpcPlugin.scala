@@ -147,16 +147,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
         resources := managedResources.value ++ unmanagedResources.value)))
 
   /** Fail the build if the resolved protoc executable is from a different protobuf release than the expected version. */
-  private def checkProtocVersion(protocExecutable: File, expectedVersion: String, log: Logger): Unit = {
-    val executable = protocExecutable.getPath
-    ProtocVersion.checkAlignment(executable, expectedVersion, ProtocVersion.queryVersion(executable)) match {
-      case ProtocVersion.Alignment.Misaligned(message)   => sys.error(message)
-      case ProtocVersion.Alignment.Undetermined(message) => log.warn(message)
-      case ProtocVersion.Alignment.Aligned =>
-        log.debug(
-          s"protoc executable [$executable] version is aligned with [${ProtocVersion.display(expectedVersion)}]")
-    }
-  }
+  private def checkProtocVersion(protocExecutable: File, expectedVersion: String, log: Logger): Unit =
+    ProtocVersion.verify(protocExecutable.getPath, expectedVersion, message => log.warn(message))
 
   def targetsFor(
       targetPath: File,
