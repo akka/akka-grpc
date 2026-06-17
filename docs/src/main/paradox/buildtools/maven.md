@@ -124,8 +124,9 @@ To additionally generate server "power APIs" that have access to request metadat
 
 ## Proto source directory
 
-By default the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be changed with the `protoPaths` setting,
-which is a relative path to the project basedir. The below configuration overrides the proto path to be only `src/main/protobuf`:
+By default, the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be 
+changed with the `protoPaths` setting, which is a relative path to the project basedir. The below configuration 
+overrides the proto path to be only `src/main/protobuf`:
 
 `pom.xml`
 :   ```xml
@@ -143,11 +144,8 @@ which is a relative path to the project basedir. The below configuration overrid
 
 ## Using a local `protoc` executable
 
-By default, the plugin downloads `protoc` (via [protoc-jar](https://github.com/os72/protoc-jar)). If the
-download is not possible — for example behind an authenticated proxy/repository, or on a platform without a
-matching pre-built binary — you can point the plugin at a `protoc` executable already present on the machine
-with the `protocExecutable` setting. When set, it is used instead of the downloaded `protoc` and the
-`protocVersion` setting is ignored.
+By default, the plugin downloads `protoc`. If the download is not possible — for example behind an authenticated 
+proxy/repository, or on a platform without a matching pre-built binary — you can point the plugin at a `protoc` executable already present on the machine with the `protocExecutable` setting. When set, it is used instead of the downloaded `protoc`.
 
 `pom.xml`
 :   ```xml
