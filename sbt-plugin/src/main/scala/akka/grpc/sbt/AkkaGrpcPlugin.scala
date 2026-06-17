@@ -7,7 +7,7 @@ package akka.grpc.sbt
 import akka.grpc.gen.CodeGenerator.ScalaBinaryVersion
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
-import akka.grpc.gen.{ BuildInfo, ProtocSettings, Logger => GenLogger }
+import akka.grpc.gen.{ BuildInfo, ProtocSettings, ProtocVersion, Logger => GenLogger }
 import protocbridge.Generator
 import sbt.Keys._
 import sbt._
@@ -93,11 +93,13 @@ object AkkaGrpcPlugin extends AutoPlugin {
       Compile / PB.recompile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
+        checkProtocVersion((Compile / PB.protocExecutable).value, (Compile / PB.protocVersion).value, streams.value.log)
         (Compile / PB.recompile).value
       },
       Test / PB.recompile := {
         // hack to get our (dirty) hands on a proper sbt logger before running the generators
         generatorLogger.logger = streams.value.log
+        checkProtocVersion((Test / PB.protocExecutable).value, (Test / PB.protocVersion).value, streams.value.log)
         (Test / PB.recompile).value
       },
       PB.protocVersion := BuildInfo.googleProtobufVersion)
@@ -143,6 +145,18 @@ object AkkaGrpcPlugin extends AutoPlugin {
           Defaults.collectFiles(unmanagedResourceDirectories, includeFilter, excludeFilter).value
         },
         resources := managedResources.value ++ unmanagedResources.value)))
+
+  /** Fail the build if the resolved protoc executable is from a different protobuf release than the expected version. */
+  private def checkProtocVersion(protocExecutable: File, expectedVersion: String, log: Logger): Unit = {
+    val executable = protocExecutable.getPath
+    ProtocVersion.checkAlignment(executable, expectedVersion, ProtocVersion.queryVersion(executable)) match {
+      case ProtocVersion.Alignment.Misaligned(message)   => sys.error(message)
+      case ProtocVersion.Alignment.Undetermined(message) => log.warn(message)
+      case ProtocVersion.Alignment.Aligned =>
+        log.debug(
+          s"protoc executable [$executable] version is aligned with [${ProtocVersion.display(expectedVersion)}]")
+    }
+  }
 
   def targetsFor(
       targetPath: File,
