@@ -78,6 +78,13 @@
           <description>The proto compiler version</description>
         </parameter>
         <parameter>
+          <name>protocExecutable</name>
+          <type>string</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Path to a local protoc executable. When set, it is used instead of the downloaded protoc.</description>
+        </parameter>
+        <parameter>
           <name>includeStdTypes</name>
           <type>boolean</type>
           <required>false</required>
@@ -94,7 +101,9 @@
         <extraGenerators implementation="java.util.List" default-value=""/>
         <protoPaths default-value="${project.basedir}/src/main/proto,${project.basedir}/src/main/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="${project.build.directory}/generated-sources">${akka-grpc.outputDirectory}</outputDirectory>
-	<protocVersion implementation="java.lang.String" default-value="-v3.25.8">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
+        <!-- checked synced by VersionSyncCheckPlugin -->
+        <protocVersion implementation="java.lang.String" default-value="-v3.25.8">${akka-grpc.protoc-version}</protocVersion>
+        <protocExecutable implementation="java.lang.String">${akka-grpc.protoc-executable}</protocExecutable>
         <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
@@ -169,6 +178,13 @@
           <description>The proto compiler version</description>
         </parameter>
         <parameter>
+          <name>protocExecutable</name>
+          <type>string</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>Path to a local protoc executable. When set, it is used instead of the downloaded protoc.</description>
+        </parameter>
+        <parameter>
           <name>includeStdTypes</name>
           <type>boolean</type>
           <required>false</required>
@@ -186,6 +202,7 @@
         <protoPaths default-value="src/test/proto,src/test/protobuf">${akka-grpc.protoPaths}</protoPaths>
         <outputDirectory default-value="target/generated-test-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v3.25.8">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
+        <protocExecutable implementation="java.lang.String">${akka-grpc.protoc-executable}</protocExecutable>
         <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
