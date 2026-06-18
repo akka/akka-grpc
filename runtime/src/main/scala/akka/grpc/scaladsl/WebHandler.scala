@@ -19,9 +19,9 @@ import akka.http.scaladsl.server.Directives.cors
 @ApiMayChange
 object WebHandler {
 
-  /** Default CORS settings to use for grpc-web */
+  /** Default CORS settings to use for grpc-web. Credentialed CORS is disabled by default. */
   def defaultCorsSettings(as: ClassicActorSystemProvider): CorsSettings = CorsSettings(as)
-    .withAllowCredentials(true)
+    .withAllowCredentials(false)
     .withAllowedMethods(immutable.Set(HttpMethods.POST, HttpMethods.OPTIONS))
     .withExposedHeaders(immutable.Set(headers.`Status`.name, headers.`Status-Message`.name, `Content-Encoding`.name))
     .withAllowedHeaders(immutable
