@@ -73,14 +73,16 @@ object AkkaGrpcPlugin extends AutoPlugin {
       "Akka gRPC settings: " + GeneratorOption.settings.mkString(", "))
     val akkaGrpcClientInclude =
       settingKey[Seq[String]](
-        "List of glob patterns to include services for client code generation. Empty means include all.")
+        "List of glob patterns to include services for client code generation. Empty includes all.")
     val akkaGrpcClientExclude =
-      settingKey[Seq[String]]("List of glob patterns to exclude services from client code generation.")
+      settingKey[Seq[String]](
+        "List of glob patterns to exclude services from client code generation. Empty excludes none.")
     val akkaGrpcServerInclude =
       settingKey[Seq[String]](
-        "List of glob patterns to include services for server code generation. Empty means include all.")
+        "List of glob patterns to include services for server code generation. Empty includes all.")
     val akkaGrpcServerExclude =
-      settingKey[Seq[String]]("List of glob patterns to exclude services from server code generation.")
+      settingKey[Seq[String]](
+        "List of glob patterns to exclude services from server code generation. Empty excludes none.")
   }
 
   object autoImport extends Keys
@@ -141,10 +143,10 @@ object AkkaGrpcPlugin extends AutoPlugin {
           targetsFor(
             (akkaGrpcCodeGeneratorSettings / target).value,
             akkaGrpcCodeGeneratorSettings.value ++ generatorOptions(
-              akkaGrpcClientInclude.value,
-              akkaGrpcClientExclude.value,
-              akkaGrpcServerInclude.value,
-              akkaGrpcServerExclude.value),
+              "client_include" -> akkaGrpcClientInclude.value,
+              "client_exclude" -> akkaGrpcClientExclude.value,
+              "server_include" -> akkaGrpcServerInclude.value,
+              "server_exclude" -> akkaGrpcServerExclude.value),
             akkaGrpcGenerators.value),
         PB.protoSources += sourceDirectory.value / "proto") ++
       inTask(PB.recompile)(Seq(
@@ -186,17 +188,8 @@ object AkkaGrpcPlugin extends AutoPlugin {
         })
     }
 
-  private def generatorOptions(
-      clientInclude: Seq[String],
-      clientExclude: Seq[String],
-      serverInclude: Seq[String],
-      serverExclude: Seq[String]): Seq[String] = {
-    val clientIncludeOpts = if (clientInclude.nonEmpty) Seq(s"client_include=${clientInclude.mkString(";")}") else Nil
-    val clientExcludeOpts = if (clientExclude.nonEmpty) Seq(s"client_exclude=${clientExclude.mkString(";")}") else Nil
-    val serverIncludeOpts = if (serverInclude.nonEmpty) Seq(s"server_include=${serverInclude.mkString(";")}") else Nil
-    val serverExcludeOpts = if (serverExclude.nonEmpty) Seq(s"server_exclude=${serverExclude.mkString(";")}") else Nil
-    clientIncludeOpts ++ clientExcludeOpts ++ serverIncludeOpts ++ serverExcludeOpts
-  }
+  private def generatorOptions(entries: (String, Seq[String])*): Seq[String] =
+    entries.collect { case (key, values) if values.nonEmpty => s"$key=${values.mkString(";")}" }
 
   // creates a seq of generator and per generator settings
   def generatorsFor(

@@ -57,6 +57,12 @@ Examples:
 - `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
 - `com.example.MyService` matches a specific service
 
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate entries:
+
+```sbt
+akkaGrpcServerInclude := Seq("com.example.Foo", "com.example.Bar")
+```
+
 ### Configurations
 
 By default, the plugin will run generators against `.proto` sources in the `Compile` directories (`src/main/protobuf`), as well as the `Test` ones (`src/test/protobuf`) if there are any.

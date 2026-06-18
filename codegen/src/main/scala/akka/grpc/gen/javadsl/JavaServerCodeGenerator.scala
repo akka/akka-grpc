@@ -15,11 +15,13 @@ class JavaServerCodeGenerator extends JavaCodeGenerator {
   override def name = "akka-grpc-javadsl-server"
 
   override def serviceFilter(
-      clientInclude: List[String],
-      clientExclude: List[String],
-      serverInclude: List[String],
-      serverExclude: List[String]): Service => Boolean =
-    s => ServiceFilter(s.grpcName, serverInclude, serverExclude)
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val serverMatch = ServiceFilter.compile(serverInclude, serverExclude)
+    s => serverMatch(s.grpcName)
+  }
 
   override def perServiceContent: Set[(Logger, Service) => immutable.Seq[CodeGeneratorResponse.File]] =
     super.perServiceContent + generatePlainHandlerFactory +

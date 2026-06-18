@@ -14,11 +14,13 @@ trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-client"
 
   override def serviceFilter(
-      clientInclude: List[String],
-      clientExclude: List[String],
-      serverInclude: List[String],
-      serverExclude: List[String]): Service => Boolean =
-    s => ServiceFilter(s.grpcName, clientInclude, clientExclude)
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val clientMatch = ServiceFilter.compile(clientInclude, clientExclude)
+    s => clientMatch(s.grpcName)
+  }
 
   override def perServiceContent = super.perServiceContent + generateStub
 

@@ -96,13 +96,14 @@ abstract class JavaCodeGenerator extends CodeGenerator {
    * Default (trait/interface): passes if the service matches either client or server filter.
    */
   def serviceFilter(
-      clientInclude: List[String],
-      clientExclude: List[String],
-      serverInclude: List[String],
-      serverExclude: List[String]): Service => Boolean =
-    s =>
-      ServiceFilter(s.grpcName, clientInclude, clientExclude) ||
-      ServiceFilter(s.grpcName, serverInclude, serverExclude)
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val clientMatch = ServiceFilter.compile(clientInclude, clientExclude)
+    val serverMatch = ServiceFilter.compile(serverInclude, serverExclude)
+    s => clientMatch(s.grpcName) || serverMatch(s.grpcName)
+  }
 
   def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()

@@ -94,6 +94,14 @@ Examples:
 - `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
 - `com.example.MyService` matches a specific service
 
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate entries:
+
+```gradle
+akkaGrpc {
+    serverInclude = ['com.example.Foo', 'com.example.Bar']
+}
+```
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metadata, as described
