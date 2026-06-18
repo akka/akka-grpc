@@ -35,4 +35,24 @@ class ProtocSpec extends AnyWordSpec with Matchers {
       AbstractGenerateMojo.parseGeneratorSettings(settings.asJava) shouldBe Seq("flat_package", "server_power_apis")
     }
   }
+
+  "Selecting the protoc runner" should {
+    "use the local protoc when an executable is set" in {
+      AbstractGenerateMojo.useLocalProtoc("/usr/bin/protoc") shouldBe true
+    }
+
+    "fall back to the downloaded protoc when not set" in {
+      AbstractGenerateMojo.useLocalProtoc(null) shouldBe false
+      AbstractGenerateMojo.useLocalProtoc("") shouldBe false
+      AbstractGenerateMojo.useLocalProtoc("   ") shouldBe false
+    }
+  }
+
+  "Running a local protoc" should {
+    "execute the given binary and return its exit code" in {
+      // 'true' and 'false' are standard POSIX utilities returning 0 and 1 respectively
+      AbstractGenerateMojo.runLocalProtoc("true", Seq.empty) shouldBe 0
+      AbstractGenerateMojo.runLocalProtoc("false", Seq.empty) shouldBe 1
+    }
+  }
 }

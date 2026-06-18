@@ -5,7 +5,7 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
-import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
+import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
@@ -82,6 +82,17 @@ object AbstractGenerateMojo {
       "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
     }
   }
+
+  def useLocalProtoc(protocExecutable: String): Boolean =
+    protocExecutable != null && protocExecutable.trim.nonEmpty
+
+  def runLocalProtoc(protocExecutable: String, args: Seq[String]): Int = {
+    // Run a local protoc binary, routing its output through `System.out`/`System.err` so that the
+    // surrounding capture and error parsing keep working as they do for the protoc-jar runner.
+    import scala.sys.process.{ Process, ProcessLogger }
+    val logger = ProcessLogger(out => System.out.println(out), err => System.err.println(err))
+    Process(protocExecutable +: args).!(logger)
+  }
 }
 
 abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
@@ -135,6 +146,10 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   @BeanProperty
   var protocVersion: String = _
 
+  // Path to a local protoc executable. When set, it is used instead of the protoc-jar download.
+  @BeanProperty
+  var protocExecutable: String = _
+
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
 
   //https://maven.apache.org/plugin-developers/common-bugs.html#Resolving_Relative_Paths
@@ -151,6 +166,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
+
+    if (useLocalProtoc(protocExecutable))
+      ProtocVersion.verify(protocExecutable.trim, protocVersion, message => getLog.warn(message))
 
     var directoryFound = false
 
@@ -221,8 +239,12 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settingsWithFilter))
       }
 
-      val runProtoc: Seq[String] => Int = args =>
-        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      val runProtoc: Seq[String] => Int =
+        if (useLocalProtoc(protocExecutable)) {
+          getLog.info(s"Using local protoc executable [$protocExecutable]")
+          args => runLocalProtoc(protocExecutable.trim, args)
+        } else
+          args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
       val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)

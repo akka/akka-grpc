@@ -161,8 +161,9 @@ To additionally generate server "power APIs" that have access to request metadat
 
 ## Proto source directory
 
-By default the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be changed with the `protoPaths` setting,
-which is a relative path to the project basedir. The below configuration overrides the proto path to be only `src/main/protobuf`:
+By default, the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be 
+changed with the `protoPaths` setting, which is a relative path to the project basedir. The below configuration 
+overrides the proto path to be only `src/main/protobuf`:
 
 `pom.xml`
 :   ```xml
@@ -177,6 +178,30 @@ which is a relative path to the project basedir. The below configuration overrid
         </configuration>
     </plugin>
     ```
+
+## Using a local `protoc` executable
+
+By default, the plugin downloads `protoc`. If the download is not possible — for example behind an authenticated 
+proxy/repository, or on a platform without a matching pre-built binary — you can point the plugin at a `protoc` executable already present on the machine with the `protocExecutable` setting. When set, it is used instead of the downloaded `protoc`.
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <protocExecutable>/usr/bin/protoc</protocExecutable>
+        </configuration>
+    </plugin>
+    ```
+
+The value may also be provided on the command line via `-Dakka-grpc.protoc-executable=...`.
+
+The configured executable must belong to the same protobuf release as `protocVersion`. The plugin runs
+`protoc --version` and fails the build if they belong to different releases, since mixing protoc and protobuf 
+versions is unsupported and leads to build failures. Patch differences within the same release (for example `25.1` 
+vs `25.8`) are allowed.
 
 ## Loading proto files from artifacts
 

@@ -120,6 +120,15 @@ lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
     scriptedLaunchOpts ++= sys.props.collect { case (k @ "sbt.ivy.home", v) => s"-D$k=$v" }.toSeq,
+    scriptedLaunchOpts ++= {
+      // pass along token repo to scripted test projects (scripted tests are isolated and not picking that up from
+      // global sbt config)
+      val akkaRepo = resolvers.value.collectFirst {
+        case repo: MavenRepository if repo.root.contains("repo.akka.io") && repo.root.contains("secure") =>
+          repo.root
+      }
+      akkaRepo.map(repo => s"-Dscripted.resolver=$repo")
+    },
     scriptedDependencies := {
       val p1 = publishLocal.value
       val p2 = (codegen / publishLocal).value

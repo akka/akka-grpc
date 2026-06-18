@@ -114,6 +114,12 @@ protoc executable instead:
 PB.protocExecutable := file("/usr/local/bin/protoc")
 ```
 
+@@@ note
+
+The local `protoc` must belong to the same protobuf release as the version Akka gRPC is built against (`PB.protocVersion`). The plugin runs `protoc --version` and fails the build with a clear message if they belong to different releases, since mixing protoc and protobuf versions is unsupported and leads to build failures. Patch differences within the same release (for example `25.1` vs `25.8`) are allowed.
+
+@@@
+
 Available parameters are listed in the [ScalaPB documentation](https://scalapb.github.io/sbt-settings.html).
 
 ### `sbt-protoc` settings
