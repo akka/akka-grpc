@@ -52,18 +52,9 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
-    // Extract filter patterns from the original (non-lowercased) parameter string
-    // to preserve case in service name patterns, since grpcName is case-sensitive
-    val rawParams = request.getParameter
-    val ClientIncludeRegex = """(?i)client_include=([^,]+)""".r
-    val ClientExcludeRegex = """(?i)client_exclude=([^,]+)""".r
-    val ServerIncludeRegex = """(?i)server_include=([^,]+)""".r
-    val ServerExcludeRegex = """(?i)server_exclude=([^,]+)""".r
-    val clientInclude = ClientIncludeRegex.findFirstMatchIn(rawParams).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val clientExclude = ClientExcludeRegex.findFirstMatchIn(rawParams).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val serverInclude = ServerIncludeRegex.findFirstMatchIn(rawParams).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val serverExclude = ServerExcludeRegex.findFirstMatchIn(rawParams).map(_.group(1).split(";").toList).getOrElse(Nil)
-    val filter = serviceFilter(clientInclude, clientExclude, serverInclude, serverExclude)
+    val patterns = ServiceFilter.parsePatterns(request.getParameter)
+    val filter =
+      serviceFilter(patterns.clientInclude, patterns.clientExclude, patterns.serverInclude, patterns.serverExclude)
 
     val codeGenRequest = CodeGenRequest(request)
     val services =
