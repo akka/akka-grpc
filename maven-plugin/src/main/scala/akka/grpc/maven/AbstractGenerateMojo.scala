@@ -129,6 +129,18 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var clientInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var clientExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
   var includeStdTypes: Boolean = _
 
   @BeanProperty
@@ -202,26 +214,33 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
             else Seq.empty).flatten.distinct
 
-          val settings = parseGeneratorSettings(generatorSettings)
+          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
           Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
         case Scala =>
           // Add flatPackage option as default if it's not set.
+          val baseSettings = parseGeneratorSettings(generatorSettings)
           val settings =
-            if (generatorSettings.containsKey("flatPackage"))
-              parseGeneratorSettings(generatorSettings)
-            else
-              parseGeneratorSettings(generatorSettings) :+ "flat_package"
-          val scalapbSettings = settings.intersect(ProtocSettings.scalapb)
+            if (generatorSettings.containsKey("flatPackage")) baseSettings else baseSettings :+ "flat_package"
+          val settingsWithFilter = settings ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
+          val scalapbSettings = settingsWithFilter.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), scalapbSettings) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settingsWithFilter))
       }
 
       val runProtoc: Seq[String] => Int =
@@ -331,4 +350,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }
+
+  private def genOptions(entries: (String, java.util.ArrayList[String])*): Seq[String] =
+    entries.collect {
+      case (key, values) if values != null && !values.isEmpty => s"$key=${values.asScala.mkString(";")}"
+    }
 }

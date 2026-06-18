@@ -104,6 +104,52 @@ Scala
     </plugin>
     ```
 
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <clientInclude>
+            <param>com.example.*</param>
+            <param>com.myapp.MyService</param>
+          </clientInclude>
+          <clientExclude>
+            <param>com.example.internal.*</param>
+          </clientExclude>
+          <serverInclude>
+            <param>com.example.MyService</param>
+          </serverInclude>
+          <serverExclude>
+            <param>com.example.internal.*</param>
+          </serverExclude>
+        </configuration>
+    </plugin>
+    ```
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
+- `com.example.MyService` matches a specific service
+
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate `<param>` entries:
+
+```xml
+<serverInclude>
+    <param>com.example.Foo</param>
+    <param>com.example.Bar</param>
+</serverInclude>
+```
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metadata, as described

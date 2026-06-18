@@ -7,7 +7,7 @@ package akka.grpc.gen.scaladsl
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.collection.immutable
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import scalapb.compiler.GeneratorParams
 import protocbridge.Artifact
@@ -52,6 +52,10 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
 
+    val patterns = ServiceFilter.parsePatterns(request.getParameter)
+    val filter =
+      serviceFilter(patterns.clientInclude, patterns.clientExclude, patterns.serverInclude, patterns.serverExclude)
+
     val codeGenRequest = CodeGenRequest(request)
     val services =
       (for {
@@ -63,7 +67,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
         fileDesc,
         serviceDesc,
         serverPowerApi,
-        usePlayActions)).toSeq
+        usePlayActions)).toSeq.filter(s => filter(s))
 
     for {
       service <- services
@@ -77,6 +81,20 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     staticContent(logger, services).map(b.addFile)
 
     b.build()
+  }
+
+  /**
+   * Override to customize which services pass the filter for this generator.
+   * Default (trait/interface): passes if the service matches either client or server filter.
+   */
+  def serviceFilter(
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val clientMatch = ServiceFilter.compile(clientInclude, clientExclude)
+    val serverMatch = ServiceFilter.compile(serverInclude, serverExclude)
+    s => clientMatch(s.grpcName) || serverMatch(s.grpcName)
   }
 
   // flags listed in akkaGrpcCodeGeneratorSettings's description
