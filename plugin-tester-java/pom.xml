@@ -16,10 +16,10 @@
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
     <akka.version>2.10.11</akka.version>
-    <grpc.version>1.77.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
+    <grpc.version>1.77.1</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
-    <protobuf-java.version>3.22.2</protobuf-java.version>
+    <protobuf-java.version>3.25.9</protobuf-java.version>
     <proto-google-common-protos.version>2.28.0</proto-google-common-protos.version>
   </properties>
 

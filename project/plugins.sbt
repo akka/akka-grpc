@@ -8,7 +8,7 @@ buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
-addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.8")
+addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.9")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.3.1")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
@@ -29,4 +29,4 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.3.2024011
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
 
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.18"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.20"
