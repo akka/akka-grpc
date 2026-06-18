@@ -138,7 +138,7 @@ If `include` is empty, all services are included. The `exclude` patterns are app
 
 Examples:
 - `*` matches any service name
-- `com.example.*` matches all services in the `com.example` package
+- `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
 - `com.example.MyService` matches a specific service
 
 ### Generating server "power APIs"
