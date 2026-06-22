@@ -1,0 +1,6 @@
+# Java reserved keywords used as proto method names should be mangled
+# (suffix `_`) so that the generated Java identifier is valid and compiles.
+> compile
+
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterService.java
+$ exists target/scala-2.13/akka-grpc/main/example/myapp/helloworld/grpc/GreeterServiceClient.java
