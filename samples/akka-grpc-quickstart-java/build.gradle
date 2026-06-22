@@ -9,7 +9,7 @@ buildscript {
 plugins {
   id 'java'
   id 'application'
-  id 'com.lightbend.akka.grpc.gradle' version '2.5.10'
+  id 'com.lightbend.akka.grpc.gradle' version '2.5.11'
 }
 repositories {
   mavenCentral()
