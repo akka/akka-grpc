@@ -8,6 +8,9 @@
 package @service.packageName
 
 import scala.concurrent.ExecutionContext
+import scala.util.Success
+
+import io.grpc.Status
 
 import akka.grpc.scaladsl.{ GrpcExceptionHandler, GrpcMarshalling }
 import akka.grpc.Trailers
@@ -114,7 +117,11 @@ object @{serviceName}Handler {
 
       import @{service.name}.Serializers._
 
-      def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] =
+      def handle(request: model.HttpRequest, method: String): scala.concurrent.Future[model.HttpResponse] = {
+        val instrumentedEHandler: ActorSystem => PartialFunction[Throwable, Trailers] = eHandler(_).andThen { trailer =>
+          spi.onResponse(prefix, method, trailer)
+          trailer
+        }
         GrpcMarshalling.negotiated(request, (reader, writer) =>
           (method match {
             @for(method <- service.methods) {
@@ -122,12 +129,16 @@ object @{serviceName}Handler {
                 @{if(powerApis) { "val metadata = MetadataBuilder.fromHttpMessage(request)" } else { "" }}
                 @{method.unmarshal}(request.entity)(@method.deserializer.name, mat, reader)
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.nameSafe}(_@{if(powerApis) { ", metadata" } else { "" }}))
-                  .map(e => @{method.marshal}(e, eHandler)(@method.serializer.name, writer, system))
+                  .map(e => @{method.marshal}(e, instrumentedEHandler)(@method.serializer.name, writer, system))
             }
             case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
-          .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(system, writer))
+          .andThen {
+            case Success(_) => spi.onResponse(prefix, method, Trailers(Status.OK))
+          }
+          .recoverWith(GrpcExceptionHandler.from(instrumentedEHandler(system.classicSystem))(system, writer))
       ).getOrElse(unsupportedMediaType)
+      }
 
       def isThisService(path: model.Uri.Path): Boolean =
         path match {

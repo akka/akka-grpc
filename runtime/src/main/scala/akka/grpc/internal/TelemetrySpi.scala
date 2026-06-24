@@ -13,6 +13,7 @@ import akka.actor.{
   ExtensionIdProvider
 }
 import akka.annotation.{ InternalApi, InternalStableApi }
+import akka.grpc.Trailers
 import akka.http.javadsl.model.HttpRequest
 
 import scala.annotation.nowarn
@@ -61,6 +62,7 @@ private[internal] object TelemetrySpi {
 trait TelemetrySpi {
   @nowarn
   def onRequest[T <: HttpRequest](prefix: String, method: String, request: T): T = request
+  def onResponse(prefix: String, method: String, trailers: Trailers): Unit = ()
 }
 
 @InternalApi

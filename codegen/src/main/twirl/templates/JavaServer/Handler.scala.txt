@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import io.grpc.Status;
+
 import akka.japi.function.Function;
 import akka.actor.ActorSystem;
 import akka.actor.ClassicActorSystemProvider;
@@ -141,7 +143,18 @@ public class @{serviceName}HandlerFactory {
           String method = segments.next();
           if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
           else {
-            return handle(spi.onRequest(prefix, method, req), method, implementation, mat, eHandler, system);
+            final akka.japi.Function<ActorSystem, akka.japi.Function<Throwable, Trailers>> instrumentedEHandler = s -> {
+              return t -> {
+                final Trailers ts = eHandler.apply(s).apply(t);
+                spi.onResponse(prefix, method, ts);
+
+                return ts;
+              };
+            };
+            return handle(spi.onRequest(prefix, method, req), method, implementation, mat, instrumentedEHandler, system)
+              .whenComplete((resp, e) -> {
+                if (resp != null && e == null) spi.onResponse(prefix, method, new Trailers(Status.OK));
+              });
           }
         } else {
           return notFound;
