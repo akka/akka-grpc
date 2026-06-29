@@ -14,11 +14,11 @@ sbt
 :   @@@vars
 ```scala
 // in project/plugins.sbt:
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("<url from https://account.akka.io/token>")
 addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
 //
 // in build.sbt:
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("<url from https://account.akka.io/token>")
 enablePlugins(AkkaGrpcPlugin)
 ```
 @@@
@@ -30,7 +30,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url "<url from https://account.akka.io/token>"
     }
   }
 }
@@ -42,7 +42,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url "<url from https://account.akka.io/token>"
   }
 }
 ```
@@ -66,14 +66,14 @@ Maven
     <repository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
+      <url><url from https://account.akka.io/token></url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/maven</url>
+      <url><url from https://account.akka.io/token></url>
     </pluginRepository>
   </pluginRepositories>
   <dependencies>

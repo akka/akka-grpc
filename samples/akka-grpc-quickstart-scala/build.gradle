@@ -2,7 +2,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
     }
   }
 }
@@ -14,7 +14,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
   }
 }
 
