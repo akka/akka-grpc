@@ -51,6 +51,7 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
     // flags listed in akkaGrpcCodeGeneratorSettings's description
     val serverPowerApi = params.contains("server_power_apis") && !params.contains("server_power_apis=false")
     val usePlayActions = params.contains("use_play_actions") && !params.contains("use_play_actions=false")
+    val scala3Sources = params.contains("scala3_sources")
 
     val patterns = ServiceFilter.parsePatterns(request.getParameter)
     val filter =
@@ -67,7 +68,8 @@ abstract class ScalaCodeGenerator extends CodeGenerator {
         fileDesc,
         serviceDesc,
         serverPowerApi,
-        usePlayActions)).toSeq.filter(s => filter(s))
+        usePlayActions,
+        scala3Sources)).toSeq.filter(s => filter(s))
 
     for {
       service <- services
