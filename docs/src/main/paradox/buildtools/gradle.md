@@ -26,7 +26,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/<your token>/secure"
+      url "<url from https://account.akka.io/token>"
     }
   }
 }
@@ -38,7 +38,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/<your token>/secure"
+    url "<url from https://account.akka.io/token>"
   }
 }
 ```
