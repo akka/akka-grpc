@@ -24,14 +24,14 @@ To add the Akka gRPC maven plugin to a project:
     <repository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/<your token>/secure</url>
+      <url><url from https://account.akka.io/token></url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/<your token>/secure</url>
+      <url><url from https://account.akka.io/token></url>
     </pluginRepository>
   </pluginRepositories>
   <dependencies>
