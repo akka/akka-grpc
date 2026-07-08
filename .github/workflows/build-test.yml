@@ -107,6 +107,8 @@ jobs:
           cp .jvmopts-ghactions .jvmopts
           sbt ++${{ matrix.scalaVersion }}.* test
 
+      - name: Artifact BOM validation
+        uses: akka/github-actions-scripts/artifact_bom_validation@main
 
   test-sbt:
     name: sbt scripted tests
