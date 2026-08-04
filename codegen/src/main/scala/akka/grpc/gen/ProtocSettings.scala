@@ -17,5 +17,6 @@ object ProtocSettings {
     "ascii_format_to_string",
     "no_lenses",
     "retain_source_code_info",
-    "grpc")
+    "grpc",
+    "scala3_sources")
 }

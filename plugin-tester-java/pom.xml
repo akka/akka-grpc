@@ -19,7 +19,7 @@
     <grpc.version>1.82.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
-    <protobuf-java.version>3.22.2</protobuf-java.version>
+    <protobuf-java.version>4.35.0</protobuf-java.version>
     <proto-google-common-protos.version>2.28.0</proto-google-common-protos.version>
   </properties>
 

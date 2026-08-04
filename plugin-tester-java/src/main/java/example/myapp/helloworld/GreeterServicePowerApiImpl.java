@@ -75,6 +75,12 @@ public class GreeterServicePowerApiImpl implements GreeterServicePowerApi {
     return in.map(request -> HelloReply.newBuilder().setMessage("Hello, " + authTaggedName(request, metadata)).build());
   }
 
+  @Override
+  public CompletionStage<HelloReply> switch_(HelloRequest in, Metadata metadata) {
+    HelloReply reply = HelloReply.newBuilder().setMessage("Switched, " + authTaggedName(in, metadata)).build();
+    return CompletableFuture.completedFuture(reply);
+  }
+
   // Bare-bones just for GRPC metadata demonstration purposes
   private boolean isAuthenticated(Metadata metadata) {
     return metadata.getText("authorization").isPresent();

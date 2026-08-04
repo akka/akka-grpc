@@ -1,0 +1,87 @@
+/*
+ * Copyright (C) 2025 Lightbend Inc. <https://www.lightbend.com>
+ */
+
+package akka.grpc.gen
+
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
+class ProtocVersionSpec extends AnyWordSpec with Matchers {
+
+  "Extracting the protobuf release train" should {
+    "read protobuf-java style versions" in {
+      ProtocVersion.trainOf("3.25.8") shouldBe Some(25)
+      ProtocVersion.trainOf("3.21.0") shouldBe Some(21)
+    }
+
+    "read the protoc-jar '-v' prefixed version" in {
+      ProtocVersion.trainOf("-v3.25.8") shouldBe Some(25)
+    }
+
+    "read 'protoc --version' output" in {
+      ProtocVersion.trainOf("libprotoc 25.8") shouldBe Some(25)
+      ProtocVersion.trainOf("libprotoc 29.0") shouldBe Some(29)
+    }
+
+    "treat the 3.<train> and <train> schemes as the same train" in {
+      ProtocVersion.trainOf("3.25.8") shouldBe ProtocVersion.trainOf("libprotoc 25.8")
+    }
+
+    "return None when there is no version" in {
+      ProtocVersion.trainOf("libprotoc") shouldBe None
+      ProtocVersion.trainOf(null) shouldBe None
+    }
+  }
+
+  "Displaying a version" should {
+    "drop the protoc-jar '-v' prefix" in {
+      ProtocVersion.display("-v3.25.8") shouldBe "3.25.8"
+    }
+
+    "leave a bare version unchanged" in {
+      ProtocVersion.display("3.25.8") shouldBe "3.25.8"
+    }
+  }
+
+  "Checking alignment" should {
+    "be aligned within the same release train" in {
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 25.1") shouldBe ProtocVersion.Alignment.Aligned
+    }
+
+    "be misaligned across release trains" in {
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 29.0") match {
+        case ProtocVersion.Alignment.Misaligned(message) =>
+          message should include("protobuf 29.x")
+          message should include("3.25.8")
+        case other => fail(s"expected Misaligned, got $other")
+      }
+    }
+
+    "be undetermined when the reported version cannot be parsed" in {
+      ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc") shouldBe a[ProtocVersion.Alignment.Undetermined]
+    }
+  }
+
+  "Querying the version" should {
+    "throw when the executable cannot be run" in {
+      a[RuntimeException] should be thrownBy ProtocVersion.queryVersion("akka-grpc-no-such-protoc-binary")
+    }
+
+    "report that a path-like executable does not exist" in {
+      val thrown = the[RuntimeException] thrownBy ProtocVersion.queryVersion("/no/such/path/protoc")
+      thrown.getMessage should include("does not exist")
+    }
+  }
+
+  "Verifying once" should {
+    "propagate the failure when the executable cannot be run" in {
+      var warned = false
+      val thrown =
+        the[RuntimeException] thrownBy ProtocVersion.verify("/no/such/path/protoc", "-v3.25.8", _ => warned = true)
+      thrown.getMessage should include("does not exist")
+
+      warned shouldBe false
+    }
+  }
+}

@@ -1,3 +1,4 @@
 scalaVersion := "2.13.18"
 
+resolvers ++= sys.props.get("scripted.resolver").map(resolver => "Scripted Resolver".at(resolver))
 enablePlugins(AkkaGrpcPlugin)

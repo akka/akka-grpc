@@ -1,6 +1,6 @@
 import akka.grpc.Dependencies
 import akka.grpc.Dependencies.Versions.scala212
-import akka.grpc.ProjectExtensions._
+import akka.grpc.ProjectExtensions.*
 import akka.grpc.build.ReflectiveCodeGen
 import sbt.Keys.scalaVersion
 import com.geirsson.CiReleasePlugin
@@ -24,10 +24,13 @@ ThisBuild / assemblyMergeStrategy := {
     oldStrategy(x)
 }
 
+ThisBuild / makeBomIncludeDependencies := true
+
 val akkaGrpcCodegenId = "akka-grpc-codegen"
 lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .enablePlugins(SbtTwirl, BuildInfoPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .enablePlugins(ArtifactBomPlugin)
   .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.codegen)
   .settings(resolvers += Resolver.sbtPluginRepo("releases"))
@@ -72,6 +75,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
     Test / PB.targets += (scalapb.gen() -> (Test / sourceManaged).value))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .enablePlugins(ArtifactBomPlugin)
   .disablePlugins(CiReleasePlugin)
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
@@ -97,11 +101,13 @@ lazy val scalapbProtocPlugin = Project(id = akkaGrpcProtocPluginId, base = file(
   .settings(addArtifact((Compile / assembly / artifact), assembly))
   .settings(addArtifact(Artifact(akkaGrpcProtocPluginId, "bat", "bat", "bat"), mkBatAssemblyTask))
   .enablePlugins(ReproducibleBuildsPlugin)
+  .enablePlugins(ArtifactBomPlugin)
   .disablePlugins(CiReleasePlugin)
 
 lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven-plugin"))
   .enablePlugins(akka.grpc.SbtMavenPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .enablePlugins(ArtifactBomPlugin)
   .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.mavenPlugin)
   .settings(
@@ -114,12 +120,22 @@ lazy val mavenPlugin = Project(id = "akka-grpc-maven-plugin", base = file("maven
 lazy val sbtPlugin = Project(id = "sbt-akka-grpc", base = file("sbt-plugin"))
   .enablePlugins(SbtPlugin)
   .enablePlugins(ReproducibleBuildsPlugin)
+  .enablePlugins(ArtifactBomPlugin)
   .disablePlugins(MimaPlugin, CiReleasePlugin)
   .settings(Dependencies.sbtPlugin)
   .settings(
     /** And for scripted tests: */
     scriptedLaunchOpts += ("-Dproject.version=" + version.value),
     scriptedLaunchOpts ++= sys.props.collect { case (k @ "sbt.ivy.home", v) => s"-D$k=$v" }.toSeq,
+    scriptedLaunchOpts ++= {
+      // pass along token repo to scripted test projects (scripted tests are isolated and not picking that up from
+      // global sbt config)
+      val akkaRepo = resolvers.value.collectFirst {
+        case repo: MavenRepository if repo.root.contains("repo.akka.io") && repo.root.contains("secure") =>
+          repo.root
+      }
+      akkaRepo.map(repo => s"-Dscripted.resolver=$repo")
+    },
     scriptedDependencies := {
       val p1 = publishLocal.value
       val p2 = (codegen / publishLocal).value
