@@ -1,7 +1,7 @@
 name := "akka-grpc-quickstart-scala"
 
 version := "1.0"
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
 
 val akkaVersion = "2.10.11"
 
