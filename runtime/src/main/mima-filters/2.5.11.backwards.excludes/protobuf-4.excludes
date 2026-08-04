@@ -1,0 +1,8 @@
+# Reflection classes not expected to be used directly
+ProblemFilters.exclude[MissingTypesProblem]("grpc.reflection.v1alpha.reflection.*")
+ProblemFilters.exclude[IncompatibleTemplateDefProblem]("grpc.reflection.v1alpha.reflection.*")
+# Internals
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.internal.JavaMetadataImpl.getParsedDetails")
+# TODO possibly problematic and not really safe to filter, this is public API, but deprecated method?
+ProblemFilters.exclude[IncompatibleMethTypeProblem]("akka.grpc.javadsl.MetadataStatus.getParsedDetails")
+ProblemFilters.exclude[ReversedMissingMethodProblem]("akka.grpc.javadsl.MetadataStatus.getParsedDetails")
