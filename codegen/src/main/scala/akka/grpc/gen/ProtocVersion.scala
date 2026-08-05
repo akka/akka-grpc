@@ -18,9 +18,10 @@ object ProtocVersion {
   /** The protobuf release "train" of a version string, or None if none can be extracted. */
   def trainOf(version: String): Option[Int] =
     Option(version).flatMap(VersionRegex.findFirstIn).map { v =>
-      // protobuf-java is versioned `3.<train>.<patch>` while protoc reports `<train>.<patch>` (train >= 21)
+      // protobuf-java is versioned `<major>.<train>.<patch>` (3.25.8, 4.35.0) while
+      // `protoc --version` reports `<train>.<patch>` (25.8, 35.0) for train >= 21
       val segments = v.split('.')
-      if (segments(0) == "3" && segments.length >= 3) segments(1).toInt
+      if (segments.length >= 3) segments(1).toInt
       else segments(0).toInt
     }
 
@@ -68,10 +69,11 @@ object ProtocVersion {
 
       case (Some(expected), Some(actual)) if expected != actual =>
         Alignment.Misaligned(
-          s"The configured protoc executable [$executableLabel] reports version [$reportedVersion] (protobuf $actual.x), " +
-          s"which does not match the expected protobuf version [${display(expectedVersion)}] (protobuf $expected.x) " +
-          s"that akka-grpc is built against. Mixing protoc and protobuf versions is unsupported and leads to build " +
-          s"failures. Please use a protoc from the $expected.x release to align it with the expected protobuf version.")
+          s"The configured protoc executable [$executableLabel] reports version [$reportedVersion] (protobuf release " +
+          s"$actual.x), which does not match the expected protobuf version [${display(expectedVersion)}] (protobuf " +
+          s"release $expected.x) that akka-grpc is built against. Mixing protoc and protobuf versions is unsupported " +
+          s"and leads to build failures. Please use a protoc from the protobuf $expected.x release to align it with " +
+          s"the expected protobuf version.")
 
       case (Some(_), Some(_)) =>
         Alignment.Aligned

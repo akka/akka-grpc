@@ -13,6 +13,8 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
     "read protobuf-java style versions" in {
       ProtocVersion.trainOf("3.25.8") shouldBe Some(25)
       ProtocVersion.trainOf("3.21.0") shouldBe Some(21)
+      ProtocVersion.trainOf("4.35.0") shouldBe Some(35)
+      ProtocVersion.trainOf("4.26.1") shouldBe Some(26)
     }
 
     "read the protoc-jar '-v' prefixed version" in {
@@ -22,10 +24,13 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
     "read 'protoc --version' output" in {
       ProtocVersion.trainOf("libprotoc 25.8") shouldBe Some(25)
       ProtocVersion.trainOf("libprotoc 29.0") shouldBe Some(29)
+      ProtocVersion.trainOf("libprotoc 35.0") shouldBe Some(35)
+      ProtocVersion.trainOf("libprotoc 3.19.4") shouldBe Some(19)
     }
 
-    "treat the 3.<train> and <train> schemes as the same train" in {
+    "treat the <major>.<train> and <train> schemes as the same train" in {
       ProtocVersion.trainOf("3.25.8") shouldBe ProtocVersion.trainOf("libprotoc 25.8")
+      ProtocVersion.trainOf("4.35.0") shouldBe ProtocVersion.trainOf("libprotoc 35.0")
     }
 
     "return None when there is no version" in {
@@ -47,14 +52,27 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
   "Checking alignment" should {
     "be aligned within the same release train" in {
       ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 25.1") shouldBe ProtocVersion.Alignment.Aligned
+      ProtocVersion.checkAlignment("protoc", "4.35.0", "libprotoc 35.0") shouldBe ProtocVersion.Alignment.Aligned
     }
 
     "be misaligned across release trains" in {
       ProtocVersion.checkAlignment("protoc", "-v3.25.8", "libprotoc 29.0") match {
         case ProtocVersion.Alignment.Misaligned(message) =>
-          message should include("protobuf 29.x")
+          message should include("release 29.x")
           message should include("3.25.8")
         case other => fail(s"expected Misaligned, got $other")
+      }
+    }
+
+    "be misaligned for a protoc predating the protobuf 4.x versioning scheme" in {
+      // protoc reported `3.<train>.<patch>` up to train 20 and `<train>.<patch>` from 21 on
+      ProtocVersion.checkAlignment("protoc", "4.35.0", "libprotoc 3.19.4") match {
+        case ProtocVersion.Alignment.Misaligned(message) => message should include("release 19.x")
+        case other                                       => fail(s"expected Misaligned, got $other")
+      }
+      ProtocVersion.checkAlignment("protoc", "4.35.0", "libprotoc 21.12") match {
+        case ProtocVersion.Alignment.Misaligned(message) => message should include("release 21.x")
+        case other                                       => fail(s"expected Misaligned, got $other")
       }
     }
 
