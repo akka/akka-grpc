@@ -41,6 +41,13 @@
       <artifactId>grpc-stub</artifactId>
       <version>${grpc.version}</version>
     </dependency>
+
+    <!-- std types -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>4.35.0</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
