@@ -19,6 +19,7 @@ import org.sonatype.plexus.build.incremental.BuildContext
 import protocbridge.{ JvmGenerator, ProtocRunner, Target }
 import scalapb.ScalaPbCodeGenerator
 
+import scala.annotation.nowarn
 import scala.beans.BeanProperty
 import scala.util.control.NoStackTrace
 
@@ -98,6 +99,7 @@ object AbstractGenerateMojo {
   }
 }
 
+@nowarn("cat=deprecation")
 abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repositorySystem: RepositorySystem)
     extends AbstractMojo {
   import AbstractGenerateMojo._
@@ -105,7 +107,7 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
   @BeanProperty
   var project: MavenProject = _
 
-  @annotation.nowarn("cat=deprecation")
+  @nowarn("cat=deprecation")
   @BeanProperty
   var localRepository: ArtifactRepository = _
 

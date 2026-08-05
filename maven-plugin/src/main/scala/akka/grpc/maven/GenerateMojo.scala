@@ -8,6 +8,9 @@ import javax.inject.Inject
 import org.apache.maven.repository.RepositorySystem
 import org.sonatype.plexus.build.incremental.BuildContext
 
+import scala.annotation.nowarn
+
+@nowarn("cat=deprecation")
 class GenerateMojo @Inject() (buildContext: BuildContext, repositorySystem: RepositorySystem)
     extends AbstractGenerateMojo(buildContext, repositorySystem) {
   override def addGeneratedSourceRoot(generatedSourcesDir: String): Unit = {
