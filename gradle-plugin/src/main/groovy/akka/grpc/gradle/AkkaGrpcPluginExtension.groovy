@@ -21,7 +21,6 @@ class AkkaGrpcPluginExtension {
     boolean generatePlay = false
     boolean serverPowerApis = false
     boolean usePlayActions = false
-    boolean includeStdTypes = false
 
     List<String> extraGenerators = []
 

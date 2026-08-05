@@ -100,7 +100,6 @@
           <generatorSettings>
             <serverPowerApis>true</serverPowerApis>
           </generatorSettings>
-          <includeStdTypes>true</includeStdTypes>
           <protoPaths>
             <protoPath>src/main/proto</protoPath>
             <protoPath>src/main/protobuf</protoPath>

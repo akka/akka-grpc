@@ -131,9 +131,6 @@ class AkkaGrpcPlugin implements Plugin<Project> {
                             if (akkaGrpcExt.serverInclude) { option "server_include=${akkaGrpcExt.serverInclude.join(';')}" }
                             if (akkaGrpcExt.serverExclude) { option "server_exclude=${akkaGrpcExt.serverExclude.join(';')}" }
                             option "logfile_enc=${URLEncoder.encode(logFile.toString(), "utf-8")}"
-                            if (akkaGrpcExt.includeStdTypes) {
-                                option "include_std_types=true"
-                            }
                             if (akkaGrpcExt.generatePlay) {
                                 option "generate_play=true"
                             }

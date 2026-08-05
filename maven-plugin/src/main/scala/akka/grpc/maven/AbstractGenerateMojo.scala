@@ -149,9 +149,6 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
   var serverExclude: java.util.ArrayList[String] = _
 
   @BeanProperty
-  var includeStdTypes: Boolean = _
-
-  @BeanProperty
   var protocVersion: String = _
 
   // Path to a local protoc executable. When set, it is used instead of the protoc-jar download.
@@ -263,9 +260,8 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
             proc.start().waitFor()
           }
         }
-      val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
 
-      compile(runProtoc, schemas, protoDir, protocOptions, targets)
+      compile(runProtoc, schemas, protoDir, Seq.empty, targets)
     }
   }
 
