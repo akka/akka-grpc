@@ -37,6 +37,10 @@ service GreeterService {
      * on several lines
      * with non-empty heading/trailing line */
     rpc StreamHellos (stream HelloRequest) returns (stream HelloReply) {}
+
+    // Method name that collides with the Java keyword `switch`; codegen
+    // appends `_` to produce a valid Java identifier (matching grpc-java).
+    rpc Switch (HelloRequest) returns (HelloReply) {}
 }
 
 // The request message containing the user's name.

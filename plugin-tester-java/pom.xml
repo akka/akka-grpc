@@ -16,10 +16,10 @@
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
     <akka.http.cors.version>1.1.0</akka.http.cors.version>
     <akka.version>2.10.11</akka.version>
-    <grpc.version>1.79.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
+    <grpc.version>1.82.0</grpc.version> <!-- checked synced by VersionSyncCheckPlugin -->
     <project.encoding>UTF-8</project.encoding>
     <build-helper-maven-plugin>3.3.0</build-helper-maven-plugin>
-    <protobuf-java.version>3.22.2</protobuf-java.version>
+    <protobuf-java.version>4.35.0</protobuf-java.version>
     <proto-google-common-protos.version>2.28.0</proto-google-common-protos.version>
   </properties>
 
@@ -40,6 +40,13 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
       <version>${grpc.version}</version>
+    </dependency>
+
+    <!-- std types -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf-java.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -75,15 +82,6 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
-                  <groupId>com.google.protobuf</groupId>
-                  <artifactId>protobuf-java</artifactId>
-                  <version>${protobuf-java.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
-                  <includes>**/*.proto</includes>
-                </artifactItem>
                 <artifactItem>
                   <groupId>com.google.api.grpc</groupId>
                   <artifactId>proto-google-common-protos</artifactId>

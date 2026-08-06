@@ -5,13 +5,22 @@
 package akka.grpc.gen.scaladsl
 
 import scala.collection.immutable
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.CodeGeneratorResponse
 import protocbridge.Artifact
 import templates.ScalaClient.txt._
 
 trait ScalaClientCodeGenerator extends ScalaCodeGenerator {
   override def name = "akka-grpc-scaladsl-client"
+
+  override def serviceFilter(
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val clientMatch = ServiceFilter.compile(clientInclude, clientExclude)
+    s => clientMatch(s.grpcName)
+  }
 
   override def perServiceContent = super.perServiceContent + generateStub
 

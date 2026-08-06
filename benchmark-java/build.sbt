@@ -1,4 +1,4 @@
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
 
 enablePlugins(AkkaGrpcPlugin)
 
@@ -7,7 +7,7 @@ run / javaOptions ++= List("-Xms1g", "-Xmx1g", "-XX:+PrintGCDetails", "-XX:+Prin
 // generate both client and server (default) in Java
 akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 
-val grpcVersion = "1.79.0" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.82.0" // checked synced by VersionSyncCheckPlugin
 
 val runtimeProject = ProjectRef(file("../"), "akka-grpc-runtime")
 

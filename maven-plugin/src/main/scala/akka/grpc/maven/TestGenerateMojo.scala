@@ -5,9 +5,14 @@
 package akka.grpc.maven
 
 import javax.inject.Inject
+import org.apache.maven.repository.RepositorySystem
 import org.sonatype.plexus.build.incremental.BuildContext
 
-class TestGenerateMojo @Inject() (buildContext: BuildContext) extends AbstractGenerateMojo(buildContext) {
+import scala.annotation.nowarn
+
+@nowarn("cat=deprecation")
+class TestGenerateMojo @Inject() (buildContext: BuildContext, repositorySystem: RepositorySystem)
+    extends AbstractGenerateMojo(buildContext, repositorySystem) {
   override def addGeneratedSourceRoot(generatedSourcesDir: String): Unit = {
     project.addTestCompileSourceRoot(generatedSourcesDir)
   }

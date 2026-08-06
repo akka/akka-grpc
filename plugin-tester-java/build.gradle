@@ -20,7 +20,6 @@ akkaGrpc {
   generateClient = true
   generateServer = true
   serverPowerApis = true // This isn't default
-  includeStdTypes = true // This isn't default
   extraGenerators = [ ]
 }
 

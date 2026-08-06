@@ -24,14 +24,14 @@ To add the Akka gRPC maven plugin to a project:
     <repository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/<your token>/secure</url>
+      <url><url from https://account.akka.io/token></url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>akka-repository</id>
       <name>Akka library repository</name>
-      <url>https://repo.akka.io/<your token>/secure</url>
+      <url><url from https://account.akka.io/token></url>
     </pluginRepository>
   </pluginRepositories>
   <dependencies>
@@ -104,6 +104,52 @@ Scala
     </plugin>
     ```
 
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <clientInclude>
+            <param>com.example.*</param>
+            <param>com.myapp.MyService</param>
+          </clientInclude>
+          <clientExclude>
+            <param>com.example.internal.*</param>
+          </clientExclude>
+          <serverInclude>
+            <param>com.example.MyService</param>
+          </serverInclude>
+          <serverExclude>
+            <param>com.example.internal.*</param>
+          </serverExclude>
+        </configuration>
+    </plugin>
+    ```
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
+- `com.example.MyService` matches a specific service
+
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate `<param>` entries:
+
+```xml
+<serverInclude>
+    <param>com.example.Foo</param>
+    <param>com.example.Bar</param>
+</serverInclude>
+```
+
 ### Generating server "power APIs"
 
 To additionally generate server "power APIs" that have access to request metadata, as described
@@ -124,8 +170,9 @@ To additionally generate server "power APIs" that have access to request metadat
 
 ## Proto source directory
 
-By default the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be changed with the `protoPaths` setting,
-which is a relative path to the project basedir. The below configuration overrides the proto path to be only `src/main/protobuf`:
+By default, the plugin looks for `.proto`-files under `src/main/protobuf` (and `src/main/proto`). This can be 
+changed with the `protoPaths` setting, which is a relative path to the project basedir. The below configuration 
+overrides the proto path to be only `src/main/protobuf`:
 
 `pom.xml`
 :   ```xml
@@ -140,6 +187,54 @@ which is a relative path to the project basedir. The below configuration overrid
         </configuration>
     </plugin>
     ```
+
+## Using a local `protoc` executable
+
+By default, the plugin downloads `protoc`. If the download is not possible — for example behind an authenticated 
+proxy/repository, or on a platform without a matching pre-built binary — you can point the plugin at a `protoc` executable already present on the machine with the `protocExecutable` setting. When set, it is used instead of the downloaded `protoc`.
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <protocExecutable>/usr/bin/protoc</protocExecutable>
+        </configuration>
+    </plugin>
+    ```
+
+The value may also be provided on the command line via `-Dakka-grpc.protoc-executable=...`.
+
+The configured executable must belong to the same protobuf release as `protocVersion`. The plugin runs
+`protoc --version` and fails the build if they belong to different releases, since mixing protoc and protobuf 
+versions is unsupported and leads to build failures. Patch differences within the same release (for example `25.1` 
+vs `25.8`) are allowed.
+
+## Using the standard protobuf types
+
+The `protoc` executable the plugin downloads does not come with the `google.protobuf` standard types
+(`timestamp.proto`, `duration.proto`, `any.proto` and friends), so importing one of those in your own `.proto` files
+fails with `File not found` unless you make the definitions available. Set `includeStdTypes` to `true` to let the
+plugin extract them from the `protobuf-java` artifact matching `protocVersion` and put them on the `protoc` import
+path:
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <includeStdTypes>true</includeStdTypes>
+        </configuration>
+    </plugin>
+    ```
+
+The standard types are only put on the import path, no code is generated for them. For Java, add a dependency on
+`com.google.protobuf:protobuf-java` for the pre-compiled classes; for Scala, the pre-compiled classes come with
+the `scalapb-runtime` dependency of `akka-grpc-runtime`.
 
 ## Loading proto files from artifacts
 

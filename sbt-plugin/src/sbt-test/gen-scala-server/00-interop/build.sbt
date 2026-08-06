@@ -1,8 +1,10 @@
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
+
+resolvers ++= sys.props.get("scripted.resolver").map(resolver => "Scripted Resolver".at(resolver))
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.79.0" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.82.0" // checked synced by VersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",

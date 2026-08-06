@@ -60,4 +60,9 @@ public class RichErrorNativeImpl implements GreeterService {
     public Source<HelloReply, NotUsed> streamHellos(Source<HelloRequest, NotUsed> in) {
         return null;
     }
+
+    @Override
+    public CompletionStage<HelloReply> switch_(HelloRequest in) {
+        return null;
+    }
 }

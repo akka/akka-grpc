@@ -5,11 +5,11 @@ import org.gradle.api.Project
 
 class AkkaGrpcPluginExtension {
 
-    static final String PROTOC_VERSION = "4.34.0" // checked synced by VersionSyncCheckPlugin
+    static final String PROTOC_VERSION = "4.35.0" // checked synced by VersionSyncCheckPlugin
 
     static final String PROTOC_PLUGIN_SCALA_VERSION = "2.12"
 
-    static final String GRPC_VERSION = "1.79.0" // checked synced by VersionSyncCheckPlugin
+    static final String GRPC_VERSION = "1.82.0" // checked synced by VersionSyncCheckPlugin
 
     static final String PLUGIN_CODE = 'com.lightbend.akka.grpc.gradle'
 
@@ -21,9 +21,13 @@ class AkkaGrpcPluginExtension {
     boolean generatePlay = false
     boolean serverPowerApis = false
     boolean usePlayActions = false
-    boolean includeStdTypes = false
 
     List<String> extraGenerators = []
+
+    List<String> clientInclude = []
+    List<String> clientExclude = []
+    List<String> serverInclude = []
+    List<String> serverExclude = []
 
     private final Project project
 

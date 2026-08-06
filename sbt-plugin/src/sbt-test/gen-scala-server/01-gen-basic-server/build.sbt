@@ -1,4 +1,6 @@
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
+
+resolvers ++= sys.props.get("scripted.resolver").map(resolver => "Scripted Resolver".at(resolver))
 
 scalacOptions += "-Xfatal-warnings"
 

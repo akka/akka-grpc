@@ -2,24 +2,24 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
     }
   }
 }
 plugins {
   id 'java'
   id 'application'
-  id 'com.lightbend.akka.grpc.gradle' version '2.5.10'
+  id 'com.lightbend.akka.grpc.gradle' version '2.5.11'
 }
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
   }
 }
 
 dependencies {
-  implementation 'org.scala-lang:scala-library:2.13.17'
+  implementation 'org.scala-lang:scala-library:2.13.18'
 
   implementation 'com.typesafe.akka:akka-actor-typed_2.13:2.10.11'
   implementation 'com.typesafe.akka:akka-discovery_2.13:2.10.11'

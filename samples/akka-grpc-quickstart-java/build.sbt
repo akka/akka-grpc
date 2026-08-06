@@ -1,9 +1,9 @@
 name := "akka-grpc-quickstart-java"
 version := "1.0"
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
 
 val akkaVersion = "2.10.11"
-lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.5.10")
+lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.5.11")
 
 enablePlugins(AkkaGrpcPlugin)
 
@@ -15,7 +15,7 @@ akkaGrpcGeneratedLanguages := Seq(AkkaGrpc.Java)
 // sbt tasks, consider https://github.com/spray/sbt-revolver/
 fork := true
 
-resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+resolvers += "Akka library repository".at("REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token")
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,

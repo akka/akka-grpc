@@ -5,17 +5,24 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
-import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
+import java.nio.file.{ Files, StandardCopyOption }
+import java.util.jar.JarFile
+import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
 import javax.inject.Inject
+import org.apache.maven.artifact.Artifact
+import org.apache.maven.artifact.repository.ArtifactRepository
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.project.MavenProject
+import org.apache.maven.repository.RepositorySystem
 import org.sonatype.plexus.build.incremental.BuildContext
 import protocbridge.{ JvmGenerator, ProtocRunner, Target }
 import scalapb.ScalaPbCodeGenerator
 
+import scala.annotation.nowarn
 import scala.beans.BeanProperty
 import scala.util.control.NoStackTrace
 
@@ -82,13 +89,63 @@ object AbstractGenerateMojo {
       "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
     }
   }
+
+  def useLocalProtoc(protocExecutable: String): Boolean =
+    protocExecutable != null && protocExecutable.trim.nonEmpty
+
+  private val StdTypesPath = "google/protobuf/"
+
+  /**
+   * The `protoc` binary published to Maven Central is the bare executable, without the `include` directory that the
+   * protobuf release archives ship, so the `google.protobuf` standard types have to be put on the protoc import path
+   * separately. The very same definitions are packaged as resources in the `protobuf-java` artifact.
+   *
+   * @return the `.proto` files extracted from the jar into `targetDir`
+   */
+  def extractStdTypes(protobufJavaJar: File, targetDir: File): Seq[File] = {
+    import scala.jdk.CollectionConverters._
+    val targetPath = targetDir.getCanonicalFile.toPath
+    val jar = new JarFile(protobufJavaJar)
+    try {
+      jar
+        .entries()
+        .asScala
+        .filter(entry =>
+          !entry.isDirectory && entry.getName.startsWith(StdTypesPath) && entry.getName.endsWith(".proto"))
+        .map { entry =>
+          val target = new File(targetDir, entry.getName).getCanonicalFile
+          if (!target.toPath.startsWith(targetPath))
+            sys.error(s"Refusing to extract [${entry.getName}] from [$protobufJavaJar] outside of [$targetDir]")
+          target.getParentFile.mkdirs()
+          val in = jar.getInputStream(entry)
+          try Files.copy(in, target.toPath, StandardCopyOption.REPLACE_EXISTING)
+          finally in.close()
+          target
+        }
+        .toVector
+    } finally jar.close()
+  }
+
+  def runLocalProtoc(protocExecutable: String, args: Seq[String]): Int = {
+    // Run a local protoc binary, routing its output through `System.out`/`System.err` so that the
+    // surrounding capture and error parsing keep working as they do for the downloaded protoc.
+    import scala.sys.process.{ Process, ProcessLogger }
+    val logger = ProcessLogger(out => System.out.println(out), err => System.err.println(err))
+    Process(protocExecutable +: args).!(logger)
+  }
 }
 
-abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) extends AbstractMojo {
+@nowarn("cat=deprecation")
+abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repositorySystem: RepositorySystem)
+    extends AbstractMojo {
   import AbstractGenerateMojo._
 
   @BeanProperty
   var project: MavenProject = _
+
+  @nowarn("cat=deprecation")
+  @BeanProperty
+  var localRepository: ArtifactRepository = _
 
   @BeanProperty
   var protoPaths: java.util.List[String] = _
@@ -118,10 +175,26 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var clientInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var clientExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
   var includeStdTypes: Boolean = _
 
   @BeanProperty
   var protocVersion: String = _
+
+  // Path to a local protoc executable. When set, it is used instead of the downloaded protoc.
+  @BeanProperty
+  var protocExecutable: String = _
 
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
 
@@ -140,7 +213,13 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
 
+    if (useLocalProtoc(protocExecutable))
+      ProtocVersion.verify(protocExecutable.trim, protocVersion, message => getLog.warn(message))
+
     var directoryFound = false
+
+    // extracted at most once per execution, and only when there actually is something to generate
+    lazy val protocOptions = if (includeStdTypes) stdTypesIncludeOption() else Seq.empty
 
     normalizedProtoPaths.foreach { protoDir =>
       // verify proto dir exists
@@ -157,13 +236,17 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
           }
         }
         addGeneratedSourceRoot(generatedSourcesDir)
-        generate(chosenLanguage, compileSourceRoot, protoDir)
+        generate(chosenLanguage, compileSourceRoot, protoDir, protocOptions)
       }
     }
     if (!directoryFound) sys.error(s"None of protobuf sources directories $protoPaths do not exist")
   }
 
-  private def generate(language: Language, generatedSourcesDir: File, protoDir: File): Unit = {
+  private def generate(
+      language: Language,
+      generatedSourcesDir: File,
+      protoDir: File,
+      protocOptions: => Seq[String]): Unit = {
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
@@ -184,34 +267,64 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
             else Seq.empty).flatten.distinct
 
-          val settings = parseGeneratorSettings(generatorSettings)
+          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
           Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
         case Scala =>
           // Add flatPackage option as default if it's not set.
+          val baseSettings = parseGeneratorSettings(generatorSettings)
           val settings =
-            if (generatorSettings.containsKey("flatPackage"))
-              parseGeneratorSettings(generatorSettings)
-            else
-              parseGeneratorSettings(generatorSettings) :+ "flat_package"
-          val scalapbSettings = settings.intersect(ProtocSettings.scalapb)
+            if (generatorSettings.containsKey("flatPackage")) baseSettings else baseSettings :+ "flat_package"
+          val settingsWithFilter = settings ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
+          val scalapbSettings = settingsWithFilter.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), scalapbSettings) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settingsWithFilter))
       }
 
-      val runProtoc: Seq[String] => Int = args =>
-        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
-      val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
+      val runProtoc: Seq[String] => Int =
+        if (useLocalProtoc(protocExecutable)) {
+          getLog.info(s"Using local protoc executable [$protocExecutable]")
+          args => runLocalProtoc(protocExecutable.trim, args)
+        } else {
+          { args =>
+            val protocFile = resolveProtocBinary(protocVersion.stripPrefix("-v"))
+            val proc = new ProcessBuilder((protocFile.getAbsolutePath +: args).asJava)
+            proc.inheritIO()
+            proc.start().waitFor()
+          }
+        }
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
+  }
+
+  private def stdTypesIncludeOption(): Seq[String] = {
+    val version = protocVersion.stripPrefix("-v")
+    val protobufJavaJar = resolveArtifactFile(
+      repositorySystem.createArtifact("com.google.protobuf", "protobuf-java", version, "jar"))
+    val stdTypesDir = new File(normalize(project.getBuild.getDirectory), "akka-grpc-std-types")
+    val extracted = extractStdTypes(protobufJavaJar, stdTypesDir)
+    if (extracted.isEmpty)
+      sys.error(s"No google/protobuf standard type definitions found in [$protobufJavaJar]")
+    getLog.info(
+      "Extracted %d google.protobuf standard types from [%s] to [%s]"
+        .format(extracted.size, protobufJavaJar.getName, stdTypesDir))
+    Seq("-I" + stdTypesDir.getCanonicalPath)
   }
 
   private[this] def executeProtoc(
@@ -297,6 +410,41 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     }
   }
 
+  private def resolveProtocBinary(version: String): File = {
+    val classifier = protocClassifier()
+    val file = resolveArtifactFile(
+      repositorySystem.createArtifactWithClassifier("com.google.protobuf", "protoc", version, "exe", classifier))
+    file.setExecutable(true)
+    file
+  }
+
+  private def resolveArtifactFile(artifact: Artifact): File = {
+    val request = new ArtifactResolutionRequest()
+      .setArtifact(artifact)
+      .setLocalRepository(localRepository)
+      .setRemoteRepositories(project.getRemoteArtifactRepositories)
+    val result = repositorySystem.resolve(request)
+    if (!result.isSuccess || artifact.getFile == null)
+      sys.error(
+        s"Could not resolve artifact [$artifact]: ${result.getExceptions.asScala.map(_.getMessage).mkString(", ")}")
+    artifact.getFile
+  }
+
+  private def protocClassifier(): String = {
+    val os = System.getProperty("os.name").toLowerCase
+    val arch = System.getProperty("os.arch").toLowerCase
+    val osName =
+      if (os.contains("mac") || os.contains("darwin")) "osx"
+      else if (os.contains("linux")) "linux"
+      else if (os.contains("windows")) "windows"
+      else throw new RuntimeException(s"Unsupported OS for protoc: $os")
+    val archName =
+      if (arch == "aarch64" || arch == "arm64") "aarch_64"
+      else if (arch == "x86_64" || arch == "amd64") "x86_64"
+      else throw new RuntimeException(s"Unsupported architecture for protoc: $arch")
+    s"$osName-$archName"
+  }
+
   def adaptAkkaGenerator(targetPath: File, generator: CodeGenerator, settings: Seq[String]): Target = {
     val logger = new Logger {
       def debug(text: String): Unit = getLog.debug(text)
@@ -309,4 +457,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }
+
+  private def genOptions(entries: (String, java.util.ArrayList[String])*): Seq[String] =
+    entries.collect {
+      case (key, values) if values != null && !values.isEmpty => s"$key=${values.asScala.mkString(";")}"
+    }
 }
