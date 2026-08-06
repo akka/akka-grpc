@@ -74,7 +74,7 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf</artifactId>
-                <version>1.77.1</version>
+                <version>1.83.0</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
@@ -177,7 +177,7 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.77.1</version>
+            <version>1.83.0</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
