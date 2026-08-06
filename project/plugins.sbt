@@ -6,7 +6,7 @@ val sbtProtocV = "1.0.8"
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
+addSbtPlugin("com.github.sbt" % "sbt-header" % "5.11.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.9")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.4.1")
