@@ -85,6 +85,13 @@
           <description>Path to a local protoc executable. When set, it is used instead of the downloaded protoc.</description>
         </parameter>
         <parameter>
+          <name>includeStdTypes</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If "true", extract the google.protobuf standard types from protobuf-java and add them to the protoc import path.</description>
+        </parameter>
+        <parameter>
           <name>clientInclude</name>
           <type>java.util.List</type>
           <required>false</required>
@@ -129,6 +136,7 @@
         <!-- checked synced by VersionSyncCheckPlugin -->
 	    <protocVersion implementation="java.lang.String" default-value="-v4.35.0">${akka-grpc.protoc-version}</protocVersion>
         <protocExecutable implementation="java.lang.String">${akka-grpc.protoc-executable}</protocExecutable>
+        <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
     <mojo>
@@ -236,6 +244,13 @@
           <editable>true</editable>
           <description>Path to a local protoc executable. When set, it is used instead of the downloaded protoc.</description>
         </parameter>
+        <parameter>
+          <name>includeStdTypes</name>
+          <type>boolean</type>
+          <required>false</required>
+          <editable>true</editable>
+          <description>If "true", extract the google.protobuf standard types from protobuf-java and add them to the protoc import path.</description>
+        </parameter>
       </parameters>
       <configuration>
         <project implementation="" default-value="${project}"/>
@@ -252,6 +267,7 @@
         <outputDirectory default-value="target/generated-test-sources">${akka-grpc.outputDirectory}</outputDirectory>
         <protocVersion implementation="java.lang.String" default-value="-v4.35.0">${akka-grpc.protoc-version}</protocVersion> <!-- checked synced by VersionSyncCheckPlugin -->
         <protocExecutable implementation="java.lang.String">${akka-grpc.protoc-executable}</protocExecutable>
+        <includeStdTypes implementation="boolean" default-value="false" />
       </configuration>
     </mojo>
   </mojos>

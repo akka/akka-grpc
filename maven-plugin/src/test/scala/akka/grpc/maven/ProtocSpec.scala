@@ -4,6 +4,10 @@
 
 package akka.grpc.maven
 
+import java.io.{ File, FileOutputStream }
+import java.nio.file.Files
+import java.util.jar.{ JarEntry, JarOutputStream }
+
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -45,6 +49,35 @@ class ProtocSpec extends AnyWordSpec with Matchers {
       AbstractGenerateMojo.useLocalProtoc(null) shouldBe false
       AbstractGenerateMojo.useLocalProtoc("") shouldBe false
       AbstractGenerateMojo.useLocalProtoc("   ") shouldBe false
+    }
+  }
+
+  "Extracting the standard types" should {
+    "pick the google/protobuf definitions out of a protobuf-java jar" in {
+      val jar = File.createTempFile("protobuf-java", ".jar")
+      jar.deleteOnExit()
+      val out = new JarOutputStream(new FileOutputStream(jar))
+      try {
+        Seq(
+          "google/protobuf/timestamp.proto",
+          "google/protobuf/any.proto",
+          "google/protobuf/Timestamp.class",
+          "META-INF/MANIFEST.MF").foreach { name =>
+          out.putNextEntry(new JarEntry(name))
+          out.write(name.getBytes("UTF-8"))
+          out.closeEntry()
+        }
+      } finally out.close()
+
+      val targetDir = Files.createTempDirectory("std-types").toFile
+      val extracted = AbstractGenerateMojo.extractStdTypes(jar, targetDir)
+
+      extracted.map(_.getName).toSet shouldBe Set("timestamp.proto", "any.proto")
+      extracted.foreach { file =>
+        file.getParentFile.getCanonicalPath shouldBe new File(targetDir, "google/protobuf").getCanonicalPath
+      }
+      new String(Files.readAllBytes(new File(targetDir, "google/protobuf/any.proto").toPath), "UTF-8") shouldBe
+      "google/protobuf/any.proto"
     }
   }
 

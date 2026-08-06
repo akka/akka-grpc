@@ -212,6 +212,30 @@ The configured executable must belong to the same protobuf release as `protocVer
 versions is unsupported and leads to build failures. Patch differences within the same release (for example `25.1` 
 vs `25.8`) are allowed.
 
+## Using the standard protobuf types
+
+The `protoc` executable the plugin downloads does not come with the `google.protobuf` standard types
+(`timestamp.proto`, `duration.proto`, `any.proto` and friends), so importing one of those in your own `.proto` files
+fails with `File not found` unless you make the definitions available. Set `includeStdTypes` to `true` to let the
+plugin extract them from the `protobuf-java` artifact matching `protocVersion` and put them on the `protoc` import
+path:
+
+`pom.xml`
+:   ```xml
+    <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <includeStdTypes>true</includeStdTypes>
+        </configuration>
+    </plugin>
+    ```
+
+The standard types are only put on the import path, no code is generated for them. For Java, add a dependency on
+`com.google.protobuf:protobuf-java` for the pre-compiled classes; for Scala, the pre-compiled classes come with
+the `scalapb-runtime` dependency of `akka-grpc-runtime`.
+
 ## Loading proto files from artifacts
 
 Instead of duplicating the `.proto` definitions between server and client projects, you can add artifacts that contain proto definitions to your build.

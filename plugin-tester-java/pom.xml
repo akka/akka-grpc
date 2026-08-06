@@ -46,7 +46,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>4.35.0</version>
+      <version>${protobuf-java.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -83,15 +83,6 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.google.protobuf</groupId>
-                  <artifactId>protobuf-java</artifactId>
-                  <version>${protobuf-java.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/proto</outputDirectory>
-                  <includes>**/*.proto</includes>
-                </artifactItem>
-                <artifactItem>
                   <groupId>com.google.api.grpc</groupId>
                   <artifactId>proto-google-common-protos</artifactId>
                   <version>${proto-google-common-protos.version}</version>
@@ -127,6 +118,7 @@
             <!-- not possible to use together with power APIs -->
             <generateScalaHandlerFactory>false</generateScalaHandlerFactory>
           </generatorSettings>
+          <includeStdTypes>true</includeStdTypes>
           <language>Java</language>
           <!--  #all-proto-paths -->
           <protoPaths>

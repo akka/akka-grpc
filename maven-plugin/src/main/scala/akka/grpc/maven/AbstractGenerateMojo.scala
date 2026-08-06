@@ -5,11 +5,14 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
+import java.nio.file.{ Files, StandardCopyOption }
+import java.util.jar.JarFile
 import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
 import javax.inject.Inject
+import org.apache.maven.artifact.Artifact
 import org.apache.maven.artifact.repository.ArtifactRepository
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.AbstractMojo
@@ -90,6 +93,39 @@ object AbstractGenerateMojo {
   def useLocalProtoc(protocExecutable: String): Boolean =
     protocExecutable != null && protocExecutable.trim.nonEmpty
 
+  private val StdTypesPath = "google/protobuf/"
+
+  /**
+   * The `protoc` binary published to Maven Central is the bare executable, without the `include` directory that the
+   * protobuf release archives ship, so the `google.protobuf` standard types have to be put on the protoc import path
+   * separately. The very same definitions are packaged as resources in the `protobuf-java` artifact.
+   *
+   * @return the `.proto` files extracted from the jar into `targetDir`
+   */
+  def extractStdTypes(protobufJavaJar: File, targetDir: File): Seq[File] = {
+    import scala.jdk.CollectionConverters._
+    val targetPath = targetDir.getCanonicalFile.toPath
+    val jar = new JarFile(protobufJavaJar)
+    try {
+      jar
+        .entries()
+        .asScala
+        .filter(entry =>
+          !entry.isDirectory && entry.getName.startsWith(StdTypesPath) && entry.getName.endsWith(".proto"))
+        .map { entry =>
+          val target = new File(targetDir, entry.getName).getCanonicalFile
+          if (!target.toPath.startsWith(targetPath))
+            sys.error(s"Refusing to extract [${entry.getName}] from [$protobufJavaJar] outside of [$targetDir]")
+          target.getParentFile.mkdirs()
+          val in = jar.getInputStream(entry)
+          try Files.copy(in, target.toPath, StandardCopyOption.REPLACE_EXISTING)
+          finally in.close()
+          target
+        }
+        .toVector
+    } finally jar.close()
+  }
+
   def runLocalProtoc(protocExecutable: String, args: Seq[String]): Int = {
     // Run a local protoc binary, routing its output through `System.out`/`System.err` so that the
     // surrounding capture and error parsing keep working as they do for the protoc-jar runner.
@@ -151,9 +187,12 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
   var serverExclude: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var includeStdTypes: Boolean = _
+
+  @BeanProperty
   var protocVersion: String = _
 
-  // Path to a local protoc executable. When set, it is used instead of the protoc-jar download.
+  // Path to a local protoc executable. When set, it is used instead of the downloaded protoc.
   @BeanProperty
   var protocExecutable: String = _
 
@@ -179,6 +218,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
 
     var directoryFound = false
 
+    // extracted at most once per execution, and only when there actually is something to generate
+    lazy val protocOptions = if (includeStdTypes) stdTypesIncludeOption() else Seq.empty
+
     normalizedProtoPaths.foreach { protoDir =>
       // verify proto dir exists
       if (protoDir.exists()) {
@@ -194,13 +236,17 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
           }
         }
         addGeneratedSourceRoot(generatedSourcesDir)
-        generate(chosenLanguage, compileSourceRoot, protoDir)
+        generate(chosenLanguage, compileSourceRoot, protoDir, protocOptions)
       }
     }
     if (!directoryFound) sys.error(s"None of protobuf sources directories $protoPaths do not exist")
   }
 
-  private def generate(language: Language, generatedSourcesDir: File, protoDir: File): Unit = {
+  private def generate(
+      language: Language,
+      generatedSourcesDir: File,
+      protoDir: File,
+      protocOptions: => Seq[String]): Unit = {
     val scanner = buildContext.newScanner(protoDir, true)
     scanner.setIncludes(Array("**/*.proto"))
     scanner.scan()
@@ -263,8 +309,22 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
           }
         }
 
-      compile(runProtoc, schemas, protoDir, Seq.empty, targets)
+      compile(runProtoc, schemas, protoDir, protocOptions, targets)
     }
+  }
+
+  private def stdTypesIncludeOption(): Seq[String] = {
+    val version = protocVersion.stripPrefix("-v")
+    val protobufJavaJar = resolveArtifactFile(
+      repositorySystem.createArtifact("com.google.protobuf", "protobuf-java", version, "jar"))
+    val stdTypesDir = new File(normalize(project.getBuild.getDirectory), "akka-grpc-std-types")
+    val extracted = extractStdTypes(protobufJavaJar, stdTypesDir)
+    if (extracted.isEmpty)
+      sys.error(s"No google/protobuf standard type definitions found in [$protobufJavaJar]")
+    getLog.info(
+      "Extracted %d google.protobuf standard types from [%s] to [%s]"
+        .format(extracted.size, protobufJavaJar.getName, stdTypesDir))
+    Seq("-I" + stdTypesDir.getCanonicalPath)
   }
 
   private[this] def executeProtoc(
@@ -352,16 +412,22 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext, repos
 
   private def resolveProtocBinary(version: String): File = {
     val classifier = protocClassifier()
-    val artifact =
-      repositorySystem.createArtifactWithClassifier("com.google.protobuf", "protoc", version, "exe", classifier)
+    val file = resolveArtifactFile(
+      repositorySystem.createArtifactWithClassifier("com.google.protobuf", "protoc", version, "exe", classifier))
+    file.setExecutable(true)
+    file
+  }
+
+  private def resolveArtifactFile(artifact: Artifact): File = {
     val request = new ArtifactResolutionRequest()
       .setArtifact(artifact)
       .setLocalRepository(localRepository)
       .setRemoteRepositories(project.getRemoteArtifactRepositories)
-    repositorySystem.resolve(request)
-    val file = artifact.getFile
-    file.setExecutable(true)
-    file
+    val result = repositorySystem.resolve(request)
+    if (!result.isSuccess || artifact.getFile == null)
+      sys.error(
+        s"Could not resolve artifact [$artifact]: ${result.getExceptions.asScala.map(_.getMessage).mkString(", ")}")
+    artifact.getFile
   }
 
   private def protocClassifier(): String = {
