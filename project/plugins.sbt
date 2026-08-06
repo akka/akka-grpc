@@ -26,7 +26,7 @@ addSbtPlugin("com.lightbend.sbt" % "sbt-publish-rsync" % "0.3")
 addSbtPlugin("com.github.sbt" % "sbt-site-paradox" % "1.7.0")
 
 // For RawText
-libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.3.202401111512-r"
+libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.5.202508271544-r"
 
 // scripted testing
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
