@@ -54,6 +54,11 @@ With the default parameters and target set by Akka gRPC, additions to your `buil
 
 @@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/10-scalapb-validate/build.sbt) { #setup }
 
+Since `scalapb-validate-codegen` is built against ScalaPB 0.11.x you will also need to allow its
+`compilerplugin` dependency to be evicted by the 1.0.x version Akka gRPC uses, in `project/plugins.sbt`:
+
+@@snip[plugins.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/10-scalapb-validate/project/plugins.sbt) { #plugin-setup }
+
 The `validate_at_construction` option can be particularly interesting in a server-side context
 since method implementations will automatically receive pre-validated requests and will not
 be able to return invalid responses. [Rule-based type customization](https://scalapb.github.io/docs/validation/#rule-based-type-customization)

@@ -6,9 +6,11 @@ import scalapb.GeneratorOption._
 
 enablePlugins(AkkaGrpcPlugin)
 
-// FIXME not yet available for 1.0.0.alpha
-// libraryDependencies +=
-//   "com.thesamet.scalapb" %% "scalapb-validate-core" % scalapb.validate.compiler.BuildInfo.version % "protobuf"
-// Compile / PB.targets +=
-//  scalapb.validate.gen(FlatPackage) -> (Compile / akkaGrpcCodeGeneratorSettings / target).value
+libraryDependencies +=
+  "com.thesamet.scalapb" %% "scalapb-validate-core" % scalapb.validate.compiler.BuildInfo.version % "protobuf"
+Compile / PB.targets +=
+  scalapb.validate.gen(FlatPackage) -> (Compile / akkaGrpcCodeGeneratorSettings / target).value
+
+// scalapb-validate-core is built against scalapb-runtime 0.11.x, allow eviction to the 1.0.x Akka gRPC uses
+libraryDependencySchemes += "com.thesamet.scalapb" %% "scalapb-runtime" % "always"
 //#setup
