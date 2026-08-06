@@ -106,15 +106,13 @@ akkaGrpcCodeGeneratorSettings += "single_line_to_proto_string"
 Akka gRPC uses the `protoc` tool to pass `.proto` definitions
 to various code generation components,
 via [ScalaPB](https://scalapb.github.io)'s
-[sbt-protoc](https://github.com/thesamet/sbt-protoc) and
-[protoc-jar](https://github.com/os72/protoc-jar/). This will
-automatically download the right `protoc` for your system
-during the build.
+[sbt-protoc](https://github.com/thesamet/sbt-protoc). This will
+automatically download the right `protoc` for your system from
+Maven Central during the build.
 
-If `protoc-jar` fails to download `protoc` for your system, for
-example because it is not available for your architecture or
-due to network restrictions, you can explicitly specify a local
-protoc executable instead:
+If the download fails, for example because `protoc` is not
+available for your architecture or due to network restrictions,
+you can explicitly specify a local protoc executable instead:
 
 ```scala
 PB.protocExecutable := file("/usr/local/bin/protoc")

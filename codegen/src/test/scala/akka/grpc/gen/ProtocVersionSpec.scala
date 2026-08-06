@@ -17,7 +17,7 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
       ProtocVersion.trainOf("4.26.1") shouldBe Some(26)
     }
 
-    "read the protoc-jar '-v' prefixed version" in {
+    "read the '-v' prefixed version the protocVersion setting uses" in {
       ProtocVersion.trainOf("-v3.25.8") shouldBe Some(25)
     }
 
@@ -40,7 +40,7 @@ class ProtocVersionSpec extends AnyWordSpec with Matchers {
   }
 
   "Displaying a version" should {
-    "drop the protoc-jar '-v' prefix" in {
+    "drop the '-v' prefix" in {
       ProtocVersion.display("-v3.25.8") shouldBe "3.25.8"
     }
 

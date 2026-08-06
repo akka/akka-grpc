@@ -128,7 +128,7 @@ object AbstractGenerateMojo {
 
   def runLocalProtoc(protocExecutable: String, args: Seq[String]): Int = {
     // Run a local protoc binary, routing its output through `System.out`/`System.err` so that the
-    // surrounding capture and error parsing keep working as they do for the protoc-jar runner.
+    // surrounding capture and error parsing keep working as they do for the downloaded protoc.
     import scala.sys.process.{ Process, ProcessLogger }
     val logger = ProcessLogger(out => System.out.println(out), err => System.err.println(err))
     Process(protocExecutable +: args).!(logger)
