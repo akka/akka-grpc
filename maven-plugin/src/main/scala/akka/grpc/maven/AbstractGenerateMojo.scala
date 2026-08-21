@@ -5,6 +5,7 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
+import java.util.Locale
 import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
@@ -78,8 +79,8 @@ object AbstractGenerateMojo {
    */
   def parseGeneratorSettings(generatorSettings: java.util.Map[String, String]): Seq[String] = {
     import scala.jdk.CollectionConverters._
-    generatorSettings.asScala.filter(_._2.toLowerCase() != "false").keys.toSeq.map { params =>
-      "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
+    generatorSettings.asScala.filter(_._2.toLowerCase(Locale.ROOT) != "false").keys.toSeq.map { params =>
+      "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase(Locale.ROOT)}"))
     }
   }
 
