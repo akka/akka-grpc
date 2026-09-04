@@ -13,6 +13,7 @@ import akka.grpc.GrpcClientSettings
 
 import io.grpc.{ ConnectivityState, ManagedChannel }
 
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ Future, Promise }
 
 /**
@@ -56,6 +57,9 @@ object ChannelUtils {
 
   /**
    * INTERNAL API
+   *
+   * @param scheduleOnce used to run the connecting-timeout watchdog (see `connectingTimeout`); takes a delay
+   *                     and the task to run after that delay
    */
   @InternalApi
   private[akka] def monitorChannel(
@@ -63,7 +67,31 @@ object ChannelUtils {
       done: Promise[Done],
       channel: ManagedChannel,
       maxConnectionAttempts: Option[Int],
-      log: LoggingAdapter): Unit = {
+      connectingTimeout: Duration,
+      log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Unit): Unit = {
+
+    // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943):
+    // if the TCP connection is established but the peer never completes the TLS/HTTP2 handshake,
+    // the channel can stay CONNECTING forever, and since it never reaches TRANSIENT_FAILURE the
+    // connectionAttempts counter below never advances either. Abandon such stuck attempts after
+    // `connectingTimeout` by forcing the channel back to IDLE (tearing down the wedged
+    // subchannel) and immediately requesting a fresh connection.
+    def watchForStuckConnecting(): Unit = connectingTimeout match {
+      case timeout: FiniteDuration =>
+        scheduleOnce(
+          timeout,
+          () =>
+            if (channel.getState(false) == ConnectivityState.CONNECTING) {
+              log.warning(
+                "gRPC client channel has been CONNECTING for more than {}, abandoning the stuck connection " +
+                "attempt and starting a new one (see akka.grpc.client config setting 'connecting-timeout')",
+                timeout)
+              channel.enterIdle()
+              channel.getState(true)
+            })
+      case _ => // connecting-timeout is 'infinite': watchdog disabled
+    }
+
     def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
       log.debug(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
       val newAttemptOpt = currentState match {
@@ -82,7 +110,11 @@ object ChannelUtils {
           done.trySuccess(Done)
           None
 
-        case ConnectivityState.IDLE | ConnectivityState.CONNECTING =>
+        case ConnectivityState.CONNECTING =>
+          watchForStuckConnecting()
+          Some(connectionAttempts)
+
+        case ConnectivityState.IDLE =>
           Some(connectionAttempts)
       }
       newAttemptOpt.foreach { attempts =>

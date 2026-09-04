@@ -7,7 +7,7 @@ package akka.grpc.internal
 import java.util.concurrent.TimeUnit
 import akka.Done
 import akka.event.{ LoggingAdapter, NoLogging }
-import akka.grpc.internal.ChannelUtilsSpec.FakeChannel
+import akka.grpc.internal.ChannelUtilsSpec.{ FakeChannel, ManualScheduler }
 import io.grpc.ConnectivityState._
 import io.grpc._
 import org.scalatest.concurrent.ScalaFutures
@@ -16,6 +16,7 @@ import org.scalatest.wordspec.AnyWordSpec
 
 import scala.annotation.nowarn
 import scala.concurrent.Promise
+import scala.concurrent.duration._
 import scala.util.Failure
 
 object ChannelUtilsSpec {
@@ -24,6 +25,8 @@ object ChannelUtilsSpec {
     var closed = false
     var nextResponse = stateResponses
     var currentCallBack: Runnable = null
+    var enterIdleCalls = 0
+    var requestConnectionCalls = 0
     override def shutdown(): ManagedChannel = {
       closed = true
       this
@@ -37,7 +40,10 @@ object ChannelUtilsSpec {
         callOptions: CallOptions): ClientCall[RequestT, ResponseT] = ???
     override def authority(): String = ???
 
+    override def enterIdle(): Unit = enterIdleCalls += 1
+
     override def getState(requestConnection: Boolean): ConnectivityState = {
+      if (requestConnection) requestConnectionCalls += 1
       val next = nextResponse.head
       nextResponse = nextResponse.tail
       next
@@ -52,11 +58,24 @@ object ChannelUtilsSpec {
       callb.run()
     }
   }
+
+  /** Captures scheduled watchdog tasks so tests can trigger them manually instead of waiting on a real clock. */
+  class ManualScheduler {
+    private var scheduled: List[() => Unit] = Nil
+    val schedule: (FiniteDuration, () => Unit) => Unit = (_, task) => scheduled ::= task
+    def scheduledCount: Int = scheduled.size
+    def runScheduled(): Unit = {
+      val toRun = scheduled.reverse
+      scheduled = Nil
+      toRun.foreach(_())
+    }
+  }
 }
 
 class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
   "Channel monitor" should {
     val log: LoggingAdapter = NoLogging
+    val noopSchedule: (FiniteDuration, () => Unit) => Unit = (_, _) => ()
 
     "should fail if enter into failure configured number of times" in {
       val promiseReady = Promise[Unit]()
@@ -64,7 +83,7 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       val fakeChannel = new FakeChannel(
         Stream(IDLE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE, CONNECTING, TRANSIENT_FAILURE))
 
-      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)(noopSchedule)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promiseReady.isCompleted shouldEqual false
@@ -98,7 +117,7 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
             TRANSIENT_FAILURE,
             CONNECTING,
             TRANSIENT_FAILURE))
-      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)(noopSchedule)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promiseReady.isCompleted shouldEqual false
@@ -139,7 +158,7 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       val promiseReady = Promise[Unit]()
       val promiseDone = Promise[Done]()
       val fakeChannel = new FakeChannel(Stream(IDLE, CONNECTING, READY) ++ Stream.continually(SHUTDOWN))
-      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), log)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)(noopSchedule)
       // IDLE => CONNECTING
       fakeChannel.runCallBack()
       promiseReady.isCompleted shouldEqual false
@@ -153,6 +172,46 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       promiseReady.isCompleted shouldEqual true
       promiseDone.isCompleted shouldEqual true
       promiseDone.future.futureValue shouldEqual Done
+    }
+
+    "should not schedule a connecting watchdog when connecting-timeout is infinite" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
+      var scheduleCalls = 0
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)((_, _) =>
+        scheduleCalls += 1)
+      scheduleCalls shouldEqual 0
+    }
+
+    "should abandon a connection stuck CONNECTING once connecting-timeout elapses" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      // Never leaves CONNECTING on its own - only the watchdog firing can move things along.
+      val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
+      val scheduler = new ManualScheduler
+
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+      scheduler.scheduledCount shouldEqual 1
+      fakeChannel.enterIdleCalls shouldEqual 0
+
+      // connecting-timeout elapses while still CONNECTING
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1
+      fakeChannel.requestConnectionCalls should be >= 1
+    }
+
+    "should leave a connection alone if it left CONNECTING before connecting-timeout elapses" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      val fakeChannel = new FakeChannel(Stream(CONNECTING, READY, READY))
+      val scheduler = new ManualScheduler
+
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+
+      // by the time the watchdog fires, the channel already became READY
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 0
     }
   }
 }
