@@ -6,6 +6,7 @@ package akka.grpc.internal
 
 import java.util.concurrent.TimeUnit
 import akka.Done
+import akka.actor.Cancellable
 import akka.event.{ LoggingAdapter, NoLogging }
 import akka.grpc.internal.ChannelUtilsSpec.{ FakeChannel, ManualScheduler }
 import io.grpc.ConnectivityState._
@@ -61,13 +62,27 @@ object ChannelUtilsSpec {
 
   /** Captures scheduled watchdog tasks so tests can trigger them manually instead of waiting on a real clock. */
   class ManualScheduler {
-    private var scheduled: List[() => Unit] = Nil
-    val schedule: (FiniteDuration, () => Unit) => Unit = (_, task) => scheduled ::= task
+    private class FakeCancellable extends Cancellable {
+      @volatile private var cancelled = false
+      override def cancel(): Boolean = {
+        val wasPending = !cancelled
+        cancelled = true
+        wasPending
+      }
+      override def isCancelled: Boolean = cancelled
+    }
+    private case class Scheduled(task: () => Unit, cancellable: FakeCancellable)
+    private var scheduled: List[Scheduled] = Nil
+    val schedule: (FiniteDuration, () => Unit) => Cancellable = (_, task) => {
+      val cancellable = new FakeCancellable
+      scheduled ::= Scheduled(task, cancellable)
+      cancellable
+    }
     def scheduledCount: Int = scheduled.size
     def runScheduled(): Unit = {
       val toRun = scheduled.reverse
       scheduled = Nil
-      toRun.foreach(_())
+      toRun.foreach(s => if (!s.cancellable.isCancelled) s.task())
     }
   }
 }
@@ -75,7 +90,11 @@ object ChannelUtilsSpec {
 class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
   "Channel monitor" should {
     val log: LoggingAdapter = NoLogging
-    val noopSchedule: (FiniteDuration, () => Unit) => Unit = (_, _) => ()
+    val neverCancelled: Cancellable = new Cancellable {
+      override def cancel(): Boolean = false
+      override def isCancelled: Boolean = false
+    }
+    val noopSchedule: (FiniteDuration, () => Unit) => Cancellable = (_, _) => neverCancelled
 
     "should fail if enter into failure configured number of times" in {
       val promiseReady = Promise[Unit]()
@@ -179,8 +198,10 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       val promiseDone = Promise[Done]()
       val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
       var scheduleCalls = 0
-      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)((_, _) =>
-        scheduleCalls += 1)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), Duration.Inf, log)((_, _) => {
+        scheduleCalls += 1
+        neverCancelled
+      })
       scheduleCalls shouldEqual 0
     }
 
@@ -212,6 +233,30 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       // by the time the watchdog fires, the channel already became READY
       scheduler.runScheduled()
       fakeChannel.enterIdleCalls shouldEqual 0
+    }
+
+    "should cancel a stale connecting watchdog so it cannot abandon a later, unrelated CONNECTING episode" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      // Episode 1: CONNECTING -> READY -> IDLE. Episode 2 then starts a brand new, legitimate
+      // CONNECTING that is still ongoing when episode 1's (long-expired) watchdog would fire.
+      val fakeChannel = new FakeChannel(Stream(CONNECTING, READY, IDLE, CONNECTING) ++ Stream.continually(CONNECTING))
+      val scheduler = new ManualScheduler
+
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+      // CONNECTING (episode 1) => READY: must cancel episode 1's watchdog
+      fakeChannel.runCallBack()
+      // READY => IDLE
+      fakeChannel.runCallBack()
+      // IDLE => CONNECTING (episode 2): schedules a fresh watchdog
+      fakeChannel.runCallBack()
+
+      fakeChannel.enterIdleCalls shouldEqual 0
+      // If episode 1's stale watchdog weren't cancelled, it would ALSO fire here (mistaking
+      // episode 2's fresh CONNECTING for its own) and abandon episode 2 prematurely, on top of
+      // episode 2's own (legitimate) watchdog - i.e. enterIdleCalls would incorrectly be 2.
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1
     }
   }
 }

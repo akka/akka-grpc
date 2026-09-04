@@ -6,6 +6,7 @@ package akka.grpc.internal
 
 import akka.Done
 
+import akka.actor.Cancellable
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.event.LoggingAdapter
@@ -68,7 +69,7 @@ object ChannelUtils {
       channel: ManagedChannel,
       maxConnectionAttempts: Option[Int],
       connectingTimeout: Duration,
-      log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Unit): Unit = {
+      log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Cancellable): Unit = {
 
     // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943):
     // if the TCP connection is established but the peer never completes the TLS/HTTP2 handshake,
@@ -76,24 +77,33 @@ object ChannelUtils {
     // connectionAttempts counter below never advances either. Abandon such stuck attempts after
     // `connectingTimeout` by forcing the channel back to IDLE (tearing down the wedged
     // subchannel) and immediately requesting a fresh connection.
-    def watchForStuckConnecting(): Unit = connectingTimeout match {
+    //
+    // The returned Cancellable must be cancelled as soon as this particular CONNECTING episode
+    // ends (see `monitor` below) - otherwise a stale timer from an earlier episode could fire
+    // during a later, legitimate CONNECTING episode (e.g. after a normal idle-and-reconnect
+    // cycle) and abandon it prematurely, even though that one hasn't been stuck at all.
+    def watchForStuckConnecting(): Option[Cancellable] = connectingTimeout match {
       case timeout: FiniteDuration =>
-        scheduleOnce(
-          timeout,
-          () =>
-            if (channel.getState(false) == ConnectivityState.CONNECTING) {
-              log.warning(
-                "gRPC client channel has been CONNECTING for more than {}, abandoning the stuck connection " +
-                "attempt and starting a new one (see akka.grpc.client config setting 'connecting-timeout')",
-                timeout)
-              channel.enterIdle()
-              channel.getState(true)
-            })
-      case _ => // connecting-timeout is 'infinite': watchdog disabled
+        Some(
+          scheduleOnce(
+            timeout,
+            () =>
+              if (channel.getState(false) == ConnectivityState.CONNECTING) {
+                log.warning(
+                  "gRPC client channel has been CONNECTING for more than {}, abandoning the stuck connection " +
+                  "attempt and starting a new one (see akka.grpc.client config setting 'connecting-timeout')",
+                  timeout)
+                channel.enterIdle()
+                channel.getState(true)
+              }))
+      case _ => None // connecting-timeout is 'infinite': watchdog disabled
     }
 
     def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
       log.debug(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
+      val pendingWatchdog =
+        if (currentState == ConnectivityState.CONNECTING) watchForStuckConnecting() else None
+
       val newAttemptOpt = currentState match {
         case ConnectivityState.TRANSIENT_FAILURE =>
           if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
@@ -111,14 +121,19 @@ object ChannelUtils {
           None
 
         case ConnectivityState.CONNECTING =>
-          watchForStuckConnecting()
           Some(connectionAttempts)
 
         case ConnectivityState.IDLE =>
           Some(connectionAttempts)
       }
       newAttemptOpt.foreach { attempts =>
-        channel.notifyWhenStateChanged(currentState, () => monitor(channel.getState(false), attempts))
+        channel.notifyWhenStateChanged(
+          currentState,
+          () => {
+            // currentState has just been left behind - any watchdog scheduled for it is now moot.
+            pendingWatchdog.foreach(_.cancel())
+            monitor(channel.getState(false), attempts)
+          })
       }
     }
     monitor(channel.getState(false), 0)
