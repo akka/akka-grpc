@@ -12,7 +12,7 @@ object Dependencies {
   object Versions {
     val scala212 = "2.12.20"
     val scala213 = "2.13.17"
-    val scala3 = "3.3.7"
+    val scala3 = "3.3.8"
 
     // the order in the list is important because the head will be considered the default.
     val CrossScalaForLib = Seq(scala213, scala3)
@@ -36,7 +36,7 @@ object Dependencies {
 
     val scalaTest = "3.2.12"
 
-    val maven = "3.9.10"
+    val maven = "3.9.16"
   }
 
   object Compile {
