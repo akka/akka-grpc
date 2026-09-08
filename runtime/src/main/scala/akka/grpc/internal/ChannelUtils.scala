@@ -92,17 +92,9 @@ object ChannelUtils {
       // the same episode, double-counting the attempt or acting on stale data.
       val advanced = new AtomicBoolean(false)
 
-      // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943):
-      // if the TCP connection is established but the peer never completes the TLS/HTTP2 handshake,
-      // the channel can stay CONNECTING forever, and since it never reaches TRANSIENT_FAILURE it
-      // would otherwise never count as a failed attempt either. Abandon such stuck attempts after
-      // `connectingTimeout` by forcing the channel back to IDLE (tearing down the wedged
-      // subchannel) and immediately requesting a fresh connection - counted as a failed attempt.
-      //
-      // The returned Cancellable must be cancelled as soon as this particular CONNECTING episode
-      // ends (see below) - otherwise a stale timer from an earlier episode could fire during a
-      // later, legitimate CONNECTING episode (e.g. after a normal idle-and-reconnect cycle) and
-      // abandon it prematurely, even though that one hasn't been stuck at all.
+      // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943), so
+      // a connection stuck mid-handshake would otherwise never reach TRANSIENT_FAILURE and never
+      // count as a failed attempt.
       val pendingWatchdog: Option[Cancellable] =
         if (currentState != ConnectivityState.CONNECTING) None
         else
@@ -114,6 +106,12 @@ object ChannelUtils {
                   () =>
                     // Check state before claiming `advanced`: if we're not actually stuck, we must
                     // NOT prevent the real notifyWhenStateChanged callback from doing its job below.
+                    //
+                    // Note: getState(false) here and enterIdle() below are not atomic - grpc-java
+                    // exposes no "abandon only if still CONNECTING" primitive - so in a narrow
+                    // window where the handshake completes concurrently with this check, we could
+                    // force a just-READY connection back to IDLE. Harmless (the client immediately
+                    // reconnects) but wasteful; accepted given the API available to us.
                     if (channel.getState(false) == ConnectivityState.CONNECTING && advanced
                         .compareAndSet(false, true)) {
                       log.warning(

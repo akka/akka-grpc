@@ -30,20 +30,10 @@ import scala.util.Success
 import scala.util.Try
 
 /**
- * Reproducer for Zoho case #16428: a Netty-backed akka-grpc client can get permanently wedged
- * with its ManagedChannel stuck in CONNECTING when the peer accepts the TCP connection but never
- * completes the HTTP/2 handshake (e.g. a middlebox/firewall that black-holes the connection after
- * the TCP handshake). Because the grpc-java subchannel never transitions to TRANSIENT_FAILURE,
- * akka-grpc's own connection-attempts counter (`ChannelUtils.monitorChannel`) never advances, so
- * the client never gives up and retries on its own either - it's just stuck, forever, even once
- * the peer is perfectly healthy again.
- *
- * Both tests below run the exact same scenario - a peer that is initially a black hole and later
- * becomes a real, healthy `GreeterService` on the same port - and differ only in whether
- * `GrpcClientSettings.connectingTimeout` (the fix) is enabled:
- *   - with it disabled (`Duration.Inf`), the client never notices the peer became healthy
- *   - with it enabled, the client abandons the stuck attempt on its own and a later attempt
- *     succeeds against the now-healthy peer
+ * A Netty-backed akka-grpc client can get permanently wedged in CONNECTING if the peer accepts
+ * the TCP connection but never completes the HTTP/2 handshake: grpc-java has no timeout for that
+ * state, so the channel never reaches TRANSIENT_FAILURE and the client never retries on its own -
+ * even once the peer becomes healthy again.
  */
 class StuckConnectingReproducerSpec
     extends ScalaTestWithActorTestKit("""
@@ -133,7 +123,7 @@ class StuckConnectingReproducerSpec
 
   "A Netty-backed akka-grpc client whose peer is initially a black hole and later becomes healthy" should {
 
-    "NOT recover on its own when connecting-timeout is disabled (reproduces Zoho #16428)" in {
+    "NOT recover on its own when connecting-timeout is disabled" in {
       runSwapScenario(connectingTimeout = Duration.Inf, within = 3.seconds) shouldBe false
     }
 
