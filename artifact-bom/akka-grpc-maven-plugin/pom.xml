@@ -29,11 +29,7 @@
             <dependency>
                 <groupId>com.google.errorprone</groupId>
                 <artifactId>error_prone_annotations</artifactId>
-<<<<<<< HEAD
                 <version>2.50.0</version>
-=======
-                <version>2.47.0</version>
->>>>>>> ec459e6d (boms)
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -43,11 +39,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-<<<<<<< HEAD
-                <version>33.6.0-android</version>
-=======
                 <version>33.6.0-jre</version>
->>>>>>> ec459e6d (boms)
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -290,11 +282,7 @@
         <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
-<<<<<<< HEAD
             <version>2.50.0</version>
-=======
-            <version>2.47.0</version>
->>>>>>> ec459e6d (boms)
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -304,11 +292,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-<<<<<<< HEAD
-            <version>33.6.0-android</version>
-=======
             <version>33.6.0-jre</version>
->>>>>>> ec459e6d (boms)
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
