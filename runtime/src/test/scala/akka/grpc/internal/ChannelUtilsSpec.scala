@@ -28,6 +28,7 @@ object ChannelUtilsSpec {
     var currentCallBack: Runnable = null
     var enterIdleCalls = 0
     var requestConnectionCalls = 0
+    var enterIdleThrows: Option[Throwable] = None
     override def shutdown(): ManagedChannel = {
       closed = true
       this
@@ -41,7 +42,10 @@ object ChannelUtilsSpec {
         callOptions: CallOptions): ClientCall[RequestT, ResponseT] = ???
     override def authority(): String = ???
 
-    override def enterIdle(): Unit = enterIdleCalls += 1
+    override def enterIdle(): Unit = {
+      enterIdleCalls += 1
+      enterIdleThrows.foreach(throw _)
+    }
 
     override def getState(requestConnection: Boolean): ConnectivityState = {
       if (requestConnection) requestConnectionCalls += 1
@@ -281,6 +285,28 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       promiseReady.isCompleted shouldEqual true
       promiseReady.future.value.get shouldBe a[Failure[_]]
       promiseReady.future.failed.value.get.get.getMessage should startWith("Unable to establish connection")
+    }
+
+    "should fail the promises instead of hanging forever if abandoning a stuck connection throws" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
+      // e.g. a concurrent close() of the channel while the watchdog is abandoning it.
+      fakeChannel.enterIdleThrows = Some(new RuntimeException("boom"))
+      val scheduler = new ManualScheduler
+
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+      promiseReady.isCompleted shouldEqual false
+
+      // Without a try/catch around the abandon-and-retry block, `advanced` would already be
+      // claimed by this point, silencing the "normal" notifyWhenStateChanged callback too - so
+      // the promises would never complete and the client would hang forever with no signal.
+      scheduler.runScheduled()
+      promiseReady.isCompleted shouldEqual true
+      promiseReady.future.value.get shouldBe a[Failure[_]]
+      val failure = promiseReady.future.failed.value.get.get
+      failure shouldBe a[ClientConnectionException]
+      failure.getCause.getMessage shouldEqual "boom"
     }
   }
 }

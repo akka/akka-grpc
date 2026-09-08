@@ -17,6 +17,7 @@ import io.grpc.{ ConnectivityState, ManagedChannel }
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ Future, Promise }
+import scala.util.control.NonFatal
 
 /**
  * Used to indicate that a gRPC client can not establish a connection
@@ -119,9 +120,22 @@ object ChannelUtils {
                         "connection attempt and starting a new one (see akka.grpc.client config setting " +
                         "'connecting-timeout')",
                         timeout)
-                      failOrKeepGoing(connectionAttempts + 1).foreach { attempts =>
-                        channel.enterIdle()
-                        monitor(channel.getState(true), attempts)
+                      try {
+                        failOrKeepGoing(connectionAttempts + 1).foreach { attempts =>
+                          channel.enterIdle()
+                          monitor(channel.getState(true), attempts)
+                        }
+                      } catch {
+                        case NonFatal(e) =>
+                          // `advanced` is already claimed at this point, so the "normal"
+                          // notifyWhenStateChanged callback for this episode will never run
+                          // either - without this, a failure here (e.g. a concurrent close())
+                          // would silence both paths and hang the client forever with no signal,
+                          // the exact failure mode this watchdog exists to fix.
+                          log.error(e, "Failed to abandon a connection stuck CONNECTING, giving up")
+                          val ex = new ClientConnectionException("Unable to establish connection: " + e.getMessage)
+                          ex.initCause(e)
+                          ready.tryFailure(ex) || done.tryFailure(ex)
                       }
                     }))
             case _ => None // connecting-timeout is 'infinite': watchdog disabled
