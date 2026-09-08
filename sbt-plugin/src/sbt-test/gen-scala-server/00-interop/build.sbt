@@ -4,7 +4,7 @@ resolvers ++= sys.props.get("scripted.resolver").map(resolver => "Scripted Resol
 
 organization := "com.lightbend.akka.grpc"
 
-val grpcVersion = "1.77.1" // checked synced by VersionSyncCheckPlugin
+val grpcVersion = "1.83.0" // checked synced by VersionSyncCheckPlugin
 
 libraryDependencies ++= Seq(
   "io.grpc" % "grpc-interop-testing" % grpcVersion % "protobuf-src",
@@ -23,9 +23,12 @@ enablePlugins(AkkaGrpcPlugin)
 // https://github.com/scalapb/ScalaPB/issues/243#issuecomment-279769902
 // Therefore we exclude it here.
 // FIXME descriptor.proto is excluded because of EnumType issue https://github.com/scalapb/ScalaPB/issues/1557
+// java_features.proto is excluded because ScalaPB's bundled descriptor.proto types don't include
+// FeatureSet yet (protobuf-java 4.x, pulled in transitively by newer grpc-java), and it is unused by us
 PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
   f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto") ||
   f.getAbsolutePath.endsWith("google/protobuf/empty.proto") ||
+  f.getAbsolutePath.endsWith("google/protobuf/java_features.proto") ||
   // grpc-interop pulls in proto files with unfulfilled transitive deps it seems, so skip them as well
   f.getParent.contains("envoy"))
 
