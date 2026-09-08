@@ -86,11 +86,8 @@ object ChannelUtils {
     def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
       log.debug(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
 
-      // Both the watchdog below and the "normal" state-change callback registered further down
-      // can end up deciding what happens next for this one CONNECTING episode - whichever fires
-      // first should win, and the other must become a no-op (guarded by this flag). Without it, a
-      // watchdog-driven continuation and the notifyWhenStateChanged-driven one could both fire for
-      // the same episode, double-counting the attempt or acting on stale data.
+      // Whichever of the watchdog below or the state-change callback further down fires first
+      // for this CONNECTING episode wins; the other becomes a no-op, guarded by this flag.
       val advanced = new AtomicBoolean(false)
 
       // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943), so
@@ -105,14 +102,10 @@ object ChannelUtils {
                 scheduleOnce(
                   timeout,
                   () =>
-                    // Check state before claiming `advanced`: if we're not actually stuck, we must
-                    // NOT prevent the real notifyWhenStateChanged callback from doing its job below.
-                    //
-                    // Note: getState(false) here and enterIdle() below are not atomic - grpc-java
-                    // exposes no "abandon only if still CONNECTING" primitive - so in a narrow
-                    // window where the handshake completes concurrently with this check, we could
-                    // force a just-READY connection back to IDLE. Harmless (the client immediately
-                    // reconnects) but wasteful; accepted given the API available to us.
+                    // Order matters: check state before claiming `advanced`, else a spurious win
+                    // here silences the real callback too. Also racy with enterIdle() below (no
+                    // atomic "abandon only if still stuck" primitive) - worst case forces a
+                    // just-READY connection back to IDLE, harmlessly.
                     if (channel.getState(false) == ConnectivityState.CONNECTING && advanced
                         .compareAndSet(false, true)) {
                       log.warning(
@@ -127,11 +120,8 @@ object ChannelUtils {
                         }
                       } catch {
                         case NonFatal(e) =>
-                          // `advanced` is already claimed at this point, so the "normal"
-                          // notifyWhenStateChanged callback for this episode will never run
-                          // either - without this, a failure here (e.g. a concurrent close())
-                          // would silence both paths and hang the client forever with no signal,
-                          // the exact failure mode this watchdog exists to fix.
+                          // `advanced` is already claimed, so the real callback won't run either -
+                          // without this, a failure here would hang the client forever, unsignalled.
                           log.error(e, "Failed to abandon a connection stuck CONNECTING, giving up")
                           val ex = new ClientConnectionException("Unable to establish connection: " + e.getMessage)
                           ex.initCause(e)
