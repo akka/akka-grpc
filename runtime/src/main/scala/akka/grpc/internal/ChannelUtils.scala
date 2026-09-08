@@ -14,6 +14,7 @@ import akka.grpc.GrpcClientSettings
 
 import io.grpc.{ ConnectivityState, ManagedChannel }
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ Future, Promise }
 
@@ -71,46 +72,66 @@ object ChannelUtils {
       connectingTimeout: Duration,
       log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Cancellable): Unit = {
 
-    // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943):
-    // if the TCP connection is established but the peer never completes the TLS/HTTP2 handshake,
-    // the channel can stay CONNECTING forever, and since it never reaches TRANSIENT_FAILURE the
-    // connectionAttempts counter below never advances either. Abandon such stuck attempts after
-    // `connectingTimeout` by forcing the channel back to IDLE (tearing down the wedged
-    // subchannel) and immediately requesting a fresh connection.
-    //
-    // The returned Cancellable must be cancelled as soon as this particular CONNECTING episode
-    // ends (see `monitor` below) - otherwise a stale timer from an earlier episode could fire
-    // during a later, legitimate CONNECTING episode (e.g. after a normal idle-and-reconnect
-    // cycle) and abandon it prematurely, even though that one hasn't been stuck at all.
-    def watchForStuckConnecting(): Option[Cancellable] = connectingTimeout match {
-      case timeout: FiniteDuration =>
-        Some(
-          scheduleOnce(
-            timeout,
-            () =>
-              if (channel.getState(false) == ConnectivityState.CONNECTING) {
-                log.warning(
-                  "gRPC client channel has been CONNECTING for more than {}, abandoning the stuck connection " +
-                  "attempt and starting a new one (see akka.grpc.client config setting 'connecting-timeout')",
-                  timeout)
-                channel.enterIdle()
-                channel.getState(true)
-              }))
-      case _ => None // connecting-timeout is 'infinite': watchdog disabled
-    }
+    // A connection attempt that never counts as a failure keeps the client retrying forever,
+    // even if the user configured maxConnectionAttempts to fail fast - so a watchdog-abandoned
+    // attempt is counted exactly like a TRANSIENT_FAILURE.
+    def failOrKeepGoing(nextAttempts: Int): Option[Int] =
+      if (maxConnectionAttempts.contains(nextAttempts)) {
+        val ex = new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]")
+        ready.tryFailure(ex) || done.tryFailure(ex)
+        None
+      } else Some(nextAttempts)
 
     def monitor(currentState: ConnectivityState, connectionAttempts: Int): Unit = {
       log.debug(s"monitoring with state $currentState and connectionAttempts $connectionAttempts")
-      val pendingWatchdog =
-        if (currentState == ConnectivityState.CONNECTING) watchForStuckConnecting() else None
+
+      // Both the watchdog below and the "normal" state-change callback registered further down
+      // can end up deciding what happens next for this one CONNECTING episode - whichever fires
+      // first should win, and the other must become a no-op (guarded by this flag). Without it, a
+      // watchdog-driven continuation and the notifyWhenStateChanged-driven one could both fire for
+      // the same episode, double-counting the attempt or acting on stale data.
+      val advanced = new AtomicBoolean(false)
+
+      // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943):
+      // if the TCP connection is established but the peer never completes the TLS/HTTP2 handshake,
+      // the channel can stay CONNECTING forever, and since it never reaches TRANSIENT_FAILURE it
+      // would otherwise never count as a failed attempt either. Abandon such stuck attempts after
+      // `connectingTimeout` by forcing the channel back to IDLE (tearing down the wedged
+      // subchannel) and immediately requesting a fresh connection - counted as a failed attempt.
+      //
+      // The returned Cancellable must be cancelled as soon as this particular CONNECTING episode
+      // ends (see below) - otherwise a stale timer from an earlier episode could fire during a
+      // later, legitimate CONNECTING episode (e.g. after a normal idle-and-reconnect cycle) and
+      // abandon it prematurely, even though that one hasn't been stuck at all.
+      val pendingWatchdog: Option[Cancellable] =
+        if (currentState != ConnectivityState.CONNECTING) None
+        else
+          connectingTimeout match {
+            case timeout: FiniteDuration =>
+              Some(
+                scheduleOnce(
+                  timeout,
+                  () =>
+                    // Check state before claiming `advanced`: if we're not actually stuck, we must
+                    // NOT prevent the real notifyWhenStateChanged callback from doing its job below.
+                    if (channel.getState(false) == ConnectivityState.CONNECTING && advanced
+                        .compareAndSet(false, true)) {
+                      log.warning(
+                        "gRPC client channel has been CONNECTING for more than {}, abandoning the stuck " +
+                        "connection attempt and starting a new one (see akka.grpc.client config setting " +
+                        "'connecting-timeout')",
+                        timeout)
+                      failOrKeepGoing(connectionAttempts + 1).foreach { attempts =>
+                        channel.enterIdle()
+                        monitor(channel.getState(true), attempts)
+                      }
+                    }))
+            case _ => None // connecting-timeout is 'infinite': watchdog disabled
+          }
 
       val newAttemptOpt = currentState match {
         case ConnectivityState.TRANSIENT_FAILURE =>
-          if (maxConnectionAttempts.contains(connectionAttempts + 1)) {
-            val ex = new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]")
-            ready.tryFailure(ex) || done.tryFailure(ex)
-            None
-          } else Some(connectionAttempts + 1)
+          failOrKeepGoing(connectionAttempts + 1)
 
         case ConnectivityState.READY =>
           ready.trySuccess(())
@@ -129,11 +150,12 @@ object ChannelUtils {
       newAttemptOpt.foreach { attempts =>
         channel.notifyWhenStateChanged(
           currentState,
-          () => {
-            // currentState has just been left behind - any watchdog scheduled for it is now moot.
-            pendingWatchdog.foreach(_.cancel())
-            monitor(channel.getState(false), attempts)
-          })
+          () =>
+            if (advanced.compareAndSet(false, true)) {
+              // currentState has just been left behind - any watchdog scheduled for it is moot.
+              pendingWatchdog.foreach(_.cancel())
+              monitor(channel.getState(false), attempts)
+            })
       }
     }
     monitor(channel.getState(false), 0)

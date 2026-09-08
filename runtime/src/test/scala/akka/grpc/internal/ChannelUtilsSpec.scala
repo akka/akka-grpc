@@ -258,5 +258,29 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       scheduler.runScheduled()
       fakeChannel.enterIdleCalls shouldEqual 1
     }
+
+    "should count a watchdog-abandoned attempt towards maxConnectionAttempts, same as a TRANSIENT_FAILURE" in {
+      val promiseReady = Promise[Unit]()
+      val promiseDone = Promise[Done]()
+      // A peer that only ever hangs mid-handshake: never legitimately leaves CONNECTING on its
+      // own, so only the watchdog can ever move things along.
+      val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
+      val scheduler = new ManualScheduler
+
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+
+      // 1st watchdog cycle: attempt 1 of 2, not exhausted yet - abandons and retries.
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1
+      promiseReady.isCompleted shouldEqual false
+
+      // 2nd watchdog cycle: attempt 2 of 2 - exhausted, so this must give up instead of retrying
+      // again, exactly like two TRANSIENT_FAILUREs in a row would with maxConnectionAttempts = 2.
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1 // no 3rd attempt - already gave up
+      promiseReady.isCompleted shouldEqual true
+      promiseReady.future.value.get shouldBe a[Failure[_]]
+      promiseReady.future.failed.value.get.get.getMessage should startWith("Unable to establish connection")
+    }
   }
 }
