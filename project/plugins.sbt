@@ -6,16 +6,16 @@ val sbtProtocV = "1.0.8"
 buildInfoKeys := Seq[BuildInfoKey]("sbtProtocVersion" -> sbtProtocV)
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.0")
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.10.0")
+addSbtPlugin("com.github.sbt" % "sbt-header" % "5.11.0")
 addSbtPlugin("com.thesamet" % "sbt-protoc" % sbtProtocV)
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.0.9")
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.3.1")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.4.1")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4")
-addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.32")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.7")
-addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.9.3")
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.6")
+addSbtPlugin("net.bzzt" % "sbt-reproducible-builds" % "0.35")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.8")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.12.0")
 // create pom.xml for scanning tools
 addSbtPlugin("io.akka.sbt" % "sbt-artifact-bom" % "0.2.0")
 
