@@ -162,8 +162,11 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),
     // grpc-interop pulls in proto files with unfulfilled transitive deps it seems
     // FIXME descriptor.proto is excluded because of EnumType issue https://github.com/scalapb/ScalaPB/issues/1557
+    // java_features.proto is excluded because ScalaPB's bundled descriptor.proto types don't include
+    // FeatureSet yet (protobuf-java 4.x, pulled in transitively by newer grpc-java), and it is unused by us
     PB.generate / excludeFilter := new SimpleFileFilter((f: File) =>
       f.getAbsolutePath.endsWith("google/protobuf/descriptor.proto") ||
+      f.getAbsolutePath.endsWith("google/protobuf/java_features.proto") ||
       f.getParent.contains("envoy")),
     PB.protocVersion := Dependencies.Versions.googleProtobuf,
     // This project should use 'publish/skip := true', but we need
