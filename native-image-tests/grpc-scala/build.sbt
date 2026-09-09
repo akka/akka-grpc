@@ -11,7 +11,11 @@ enablePlugins(AkkaGrpcPlugin)
 enablePlugins(NativeImagePlugin)
 nativeImageJvm := "graalvm-community"
 nativeImageVersion := "21.0.2"
-nativeImageOptions := Seq("--no-fallback", "--verbose", "--initialize-at-build-time=ch.qos.logback")
+nativeImageOptions := Seq(
+  "--no-fallback",
+  "--verbose",
+  "--initialize-at-build-time=ch.qos.logback",
+  "--initialize-at-build-time=org.slf4j.MarkerFactory")
 
 // Run in a separate JVM, to make sure sbt waits until all threads have
 // finished before returning.
