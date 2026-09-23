@@ -16,9 +16,13 @@ import scala.concurrent.Future
  * Cross-cutting logic around gRPC service calls, such as authentication, logging or metrics.
  *
  * The interceptor runs before the request is unmarshalled. It can reject the call by returning a failed future,
- * for example with a [[akka.grpc.GrpcServiceException]], which is turned into a gRPC error response. It can pass
- * information to a PowerApi service implementation by adding request attributes, which are then available through
- * [[Metadata.attribute]]. It can also wrap the response future to observe the outcome of the call.
+ * for example with a [[akka.grpc.GrpcServiceException]], which is turned into a gRPC error response using the
+ * default exception mapping of [[GrpcExceptionHandler]]. It can pass information to a Power API service
+ * implementation by adding request attributes, which are then available through [[Metadata.attribute]]. It can
+ * also wrap the response future to observe the outcome of the call.
+ *
+ * The interceptor is called on the connection thread and must not block. The request entity is a stream that can
+ * only be consumed once, so an interceptor that reads it must not pass the same request to `next`.
  *
  * Errors in streamed responses happen after the response future has completed and are not visible to interceptors.
  */
@@ -51,10 +55,8 @@ object ServerInterceptor {
     else {
       val intercepted =
         ServerInterceptorSupport(handler, interceptors.map(i => i.intercept(_, _, _, _)), system)
-      new PartialFunction[HttpRequest, Future[HttpResponse]] {
-        override def isDefinedAt(request: HttpRequest): Boolean = handler.isDefinedAt(request)
-        override def apply(request: HttpRequest): Future[HttpResponse] = intercepted(request)
-      }
+
+      { case request if handler.isDefinedAt(request) => intercepted(request) }
     }
   }
 }

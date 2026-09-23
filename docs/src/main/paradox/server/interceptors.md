@@ -16,6 +16,12 @@ that continues with the rest of the chain and the service implementation. It can
 Interceptors do not see the unmarshalled request or response messages. Errors in a streamed response happen
 after the response has completed and are not visible to the interceptor.
 
+A failure from an interceptor is mapped with the default exception mapping of @apidoc[GrpcExceptionHandler$],
+a custom exception handler given to the service handler does not apply to it.
+
+The interceptor is called on the connection thread and must not block. The request entity is a stream that can
+only be consumed once, so an interceptor that reads it must not pass the same request to `next`.
+
 ## Defining an interceptor
 
 Scala
@@ -38,7 +44,8 @@ Java
 @@@ div { .group-java }
 
 The Java variant takes the `ServiceDescription` of the service so that calls to other services pass through
-untouched and can be handled by the other handlers in `ServiceHandler.concatOrNotFound`.
+untouched and can be handled by the other handlers in `ServiceHandler.concatOrNotFound`. For a service registered
+under a custom prefix, pass the prefix instead of the `ServiceDescription`.
 
 @@@
 
@@ -51,6 +58,13 @@ Scala
 
 Java
 :   @@snip [ServerInterceptorTest.java](/interop-tests/src/test/java/akka/grpc/javadsl/ServerInterceptorTest.java) { #all-services }
+
+@@@ div { .group-java }
+
+Calls to services the combined handler does not know also pass through the interceptors, before the handler
+answers them with 404.
+
+@@@
 
 Several interceptors can be given to one call. The first one is the outermost, so it sees the request first
 and the response last.

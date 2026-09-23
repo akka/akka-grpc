@@ -13,19 +13,23 @@ import akka.http.javadsl.model.HttpResponse
 import akka.http.scaladsl.{ model => smodel }
 import akka.japi.function.{ Function => JFunction }
 
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
 import scala.annotation.varargs
-import scala.util.control.NonFatal
+import scala.concurrent.Future
+import scala.jdk.FutureConverters._
 
 /**
  * Cross-cutting logic around gRPC service calls, such as authentication, logging or metrics.
  *
  * The interceptor runs before the request is unmarshalled. It can reject the call by returning a failed
  * `CompletionStage`, for example with a [[akka.grpc.GrpcServiceException]], which is turned into a gRPC error
- * response. It can pass information to a PowerApi service implementation by adding request attributes, which are
- * then available through [[Metadata.getAttribute]]. It can also wrap the response to observe the outcome of the call.
+ * response using the default exception mapping of [[GrpcExceptionHandler]]. It can pass information to a Power API
+ * service implementation by adding request attributes, which are then available through [[Metadata.getAttribute]].
+ * It can also wrap the response to observe the outcome of the call.
+ *
+ * The interceptor is called on the connection thread and must not block. The request entity is a stream that can
+ * only be consumed once, so an interceptor that reads it must not pass the same request to `next`.
  *
  * Errors in streamed responses happen after the response has completed and are not visible to interceptors.
  */
@@ -38,41 +42,29 @@ trait ServerInterceptor {
    * @param methodName the gRPC method name from the request path
    * @param next the rest of the chain, ending with the service handler
    */
+  @throws(classOf[Exception])
   def intercept(
       serviceName: String,
       methodName: String,
       request: HttpRequest,
-      next: java.util.function.Function[HttpRequest, CompletionStage[HttpResponse]]): CompletionStage[HttpResponse]
+      next: JFunction[HttpRequest, CompletionStage[HttpResponse]]): CompletionStage[HttpResponse]
 }
 
 @ApiMayChange
 object ServerInterceptors {
   private type Handler = JFunction[HttpRequest, CompletionStage[HttpResponse]]
-  private type Chain = (String, String, HttpRequest) => CompletionStage[HttpResponse]
 
   /**
    * Wraps a handler so that all gRPC calls reaching it pass through the interceptors, for example a handler for
-   * several services combined with [[ServiceHandler.concatOrNotFound]]. The first interceptor is the outermost.
+   * several services combined with [[ServiceHandler.concatOrNotFound]]. Calls to unknown services also pass through
+   * the interceptors before the handler answers with 404. The first interceptor is the outermost.
    */
   @varargs
   def intercept(handler: Handler, system: ClassicActorSystemProvider, interceptors: ServerInterceptor*): Handler = {
     if (interceptors.isEmpty) handler
     else {
-      val errorMapper = new ServerInterceptorSupport.ErrorMapper(system)
-      val chain = interceptors.foldRight[Chain]((_, _, request) => handler(request)) {
-        (interceptor, next) => (service, method, request) =>
-          interceptor.intercept(service, method, request, next(service, method, _))
-      }
-
-      request =>
-        ServerInterceptorSupport.serviceAndMethod(request.asInstanceOf[smodel.HttpRequest].uri.path) match {
-          case None => handler(request)
-          case Some((service, method)) =>
-            val result =
-              try chain(service, method, request)
-              catch { case NonFatal(e) => CompletableFuture.failedFuture[HttpResponse](e) }
-            result.exceptionally(e => errorMapper.errorResponse(request.asInstanceOf[smodel.HttpRequest], e))
-        }
+      val intercepted = ServerInterceptorSupport(asScala(handler), interceptors.map(asScala), system)
+      request => (intercepted(request.asInstanceOf[smodel.HttpRequest]): Future[HttpResponse]).asJava
     }
   }
 
@@ -86,16 +78,40 @@ object ServerInterceptors {
       service: ServiceDescription,
       handler: Handler,
       system: ClassicActorSystemProvider,
+      interceptors: ServerInterceptor*): Handler =
+    intercept(service.name, handler, system, interceptors: _*)
+
+  /**
+   * Wraps the handler of a single service registered under a custom prefix so that only calls to that prefix pass
+   * through the interceptors.
+   */
+  @varargs
+  def intercept(
+      prefix: String,
+      handler: Handler,
+      system: ClassicActorSystemProvider,
       interceptors: ServerInterceptor*): Handler = {
     if (interceptors.isEmpty) handler
     else {
       val intercepted = intercept(handler, system, interceptors: _*)
       request =>
-        if (ServerInterceptorSupport
-            .serviceName(request.asInstanceOf[smodel.HttpRequest].uri.path)
-            .contains(service.name))
+        if (ServerInterceptorSupport.serviceName(request.asInstanceOf[smodel.HttpRequest].uri.path).contains(prefix))
           intercepted(request)
         else handler(request)
     }
   }
+
+  private def asScala(handler: Handler): ServerInterceptorSupport.Handler =
+    request => handler(request).asScala.asInstanceOf[Future[smodel.HttpResponse]]
+
+  private def asScala(interceptor: ServerInterceptor): ServerInterceptorSupport.Interceptor =
+    (service, method, request, next) =>
+      interceptor
+        .intercept(
+          service,
+          method,
+          request,
+          r => (next(r.asInstanceOf[smodel.HttpRequest]): Future[HttpResponse]).asJava)
+        .asScala
+        .asInstanceOf[Future[smodel.HttpResponse]]
 }
