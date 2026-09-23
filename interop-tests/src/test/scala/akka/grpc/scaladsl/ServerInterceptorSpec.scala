@@ -120,6 +120,14 @@ class ServerInterceptorSpec
       grpcStatus(handler(sayHelloRequest()).futureValue) shouldBe Some(Status.Code.INTERNAL.value.toString)
     }
 
+    "reject an invalid path under the service without calling the interceptors" in {
+      val handler =
+        ServerInterceptor.intercept(GreeterServiceHandler.partial(new CountingGreeterServiceImpl), requireToken)
+      val request = sayHelloRequest().withUri(s"https://localhost/${GreeterService.name}/SayHello/extra")
+
+      grpcStatus(handler(request).futureValue) shouldBe Some(Status.Code.INVALID_ARGUMENT.value.toString)
+    }
+
     "answer with unsupported media type when rejecting a non-gRPC request" in {
       val handler =
         ServerInterceptor.intercept(GreeterServiceHandler.partial(new CountingGreeterServiceImpl), requireToken)
