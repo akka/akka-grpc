@@ -14,12 +14,14 @@ that continues with the rest of the chain and the service implementation. It can
  * Observe the outcome by transforming the response returned by `next`.
 
 Interceptors do not see the unmarshalled request or response messages. Errors in a streamed response happen
-after the response has completed and are not visible to the interceptor.
+after the response headers are sent and are not visible to the interceptor.
 
-A failure from an interceptor is mapped with the default exception mapping of @apidoc[GrpcExceptionHandler$],
-a custom exception handler given to the service handler does not apply to it.
+A failure from an interceptor is mapped with the default exception mapping of @apidoc[GrpcExceptionHandler$].
+A custom exception handler given to the service handler does not apply to it.
 
-The interceptor is called on the connection thread and must not block. The request entity is a stream that can
+Calls with a path deeper than `/service/method` are rejected with `INVALID_ARGUMENT` without reaching the handler.
+
+The interceptor is called from the server stream and must not block. The request entity is a stream that can
 only be consumed once, so an interceptor that reads it must not pass the same request to `next`.
 
 ## Defining an interceptor
@@ -51,7 +53,9 @@ under a custom prefix, pass the prefix instead of the `ServiceDescription`.
 
 ## Applying interceptors to all services
 
-Wrap the combined handler instead. Every call reaching it passes through the interceptors:
+Wrap the combined handler instead. Every call reaching it passes through the interceptors, including calls to
+server reflection and health check services. An authentication interceptor applied this way also rejects
+health checks that do not carry credentials.
 
 Scala
 :   @@snip [ServerInterceptorSpec.scala](/interop-tests/src/test/scala/akka/grpc/scaladsl/ServerInterceptorSpec.scala) { #all-services }

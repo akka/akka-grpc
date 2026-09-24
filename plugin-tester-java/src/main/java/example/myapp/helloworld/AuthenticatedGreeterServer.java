@@ -67,10 +67,8 @@ class AuthenticatedGreeterServer {
       if (validToken) {
         return next.apply(request);
       } else {
-        CompletableFuture<HttpResponse> rejected = new CompletableFuture<>();
-        rejected.completeExceptionally(new GrpcServiceException(
+        return CompletableFuture.failedFuture(new GrpcServiceException(
             Status.UNAUTHENTICATED.withDescription("Missing or invalid token for " + serviceName + "/" + methodName)));
-        return rejected;
       }
     };
     //#interceptor

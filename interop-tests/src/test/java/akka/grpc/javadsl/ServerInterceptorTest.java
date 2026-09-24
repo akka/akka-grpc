@@ -48,11 +48,8 @@ public class ServerInterceptorTest extends JUnitSuite {
   }
 
   private static final ServerInterceptor rejectAll =
-      (service, method, request, next) -> {
-        CompletableFuture<HttpResponse> rejected = new CompletableFuture<>();
-        rejected.completeExceptionally(new GrpcServiceException(Status.UNAUTHENTICATED));
-        return rejected;
-      };
+      (service, method, request, next) ->
+          CompletableFuture.failedFuture(new GrpcServiceException(Status.UNAUTHENTICATED));
 
   private static final GreeterService impl =
       new GreeterService() {
@@ -130,6 +127,42 @@ public class ServerInterceptorTest extends JUnitSuite {
     HttpResponse other = call(handler, sayHello("other.Service"));
     assertEquals(
         Optional.of(String.valueOf(Status.Code.UNAUTHENTICATED.value())), grpcStatus(other));
+  }
+
+  @Test
+  public void prefixInterceptorRejectsOwnPrefixOnly() throws Exception {
+    String prefix = "custom.Prefix";
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler =
+        ServerInterceptors.intercept(
+            prefix, GreeterServiceHandlerFactory.create(impl, prefix, system), system, rejectAll);
+
+    HttpResponse rejected = call(handler, sayHello(prefix));
+    assertEquals(
+        Optional.of(String.valueOf(Status.Code.UNAUTHENTICATED.value())), grpcStatus(rejected));
+
+    HttpResponse other = call(handler, sayHello(GreeterService.name));
+    assertEquals(StatusCodes.NOT_FOUND, other.status());
+  }
+
+  @Test
+  public void failureInDependentStageIsMapped() throws Exception {
+    ServerInterceptor denyAfterCall =
+        (service, method, request, next) ->
+            next.apply(request)
+                .thenApply(
+                    response -> {
+                      throw new GrpcServiceException(Status.PERMISSION_DENIED);
+                    });
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler =
+        ServerInterceptors.intercept(
+            GreeterService.description,
+            GreeterServiceHandlerFactory.create(impl, system),
+            system,
+            denyAfterCall);
+
+    HttpResponse response = call(handler, sayHello(GreeterService.name));
+    assertEquals(
+        Optional.of(String.valueOf(Status.Code.PERMISSION_DENIED.value())), grpcStatus(response));
   }
 
   @Test
