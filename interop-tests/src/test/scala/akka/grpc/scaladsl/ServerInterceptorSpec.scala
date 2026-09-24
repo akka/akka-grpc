@@ -120,6 +120,22 @@ class ServerInterceptorSpec
       grpcStatus(handler(sayHelloRequest()).futureValue) shouldBe Some(Status.Code.INTERNAL.value.toString)
     }
 
+    "let outer interceptors see a synchronous throw from an inner interceptor as a failed future" in {
+      @volatile var outerSawFailure = false
+      val outer: ServerInterceptor = (_, _, request, next) =>
+        next(request).recoverWith {
+          case e =>
+            outerSawFailure = true
+            Future.failed(e)
+        }(system.dispatcher)
+      val throwing: ServerInterceptor = (_, _, _, _) => throw new GrpcServiceException(Status.UNAUTHENTICATED)
+      val handler =
+        ServerInterceptor.intercept(GreeterServiceHandler.partial(new CountingGreeterServiceImpl), outer, throwing)
+
+      grpcStatus(handler(sayHelloRequest()).futureValue) shouldBe Some(Status.Code.UNAUTHENTICATED.value.toString)
+      outerSawFailure shouldBe true
+    }
+
     "reject an invalid path under the service without calling the interceptors" in {
       val handler =
         ServerInterceptor.intercept(GreeterServiceHandler.partial(new CountingGreeterServiceImpl), requireToken)
