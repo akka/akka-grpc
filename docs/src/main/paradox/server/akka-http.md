@@ -25,19 +25,10 @@ Scala
 Java
 :  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java) { #http-route }
 
-### Akka gRPC route
+### Securing the Akka gRPC service
 
-We create the Akka gRPC service implementation, and convert it to a @apidoc[Route$] as well:
-
-Scala
-:  @@snip [AuthenticatedGreeterServer.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala) { #grpc-route }
-
-Java
-:  @@snip [AuthenticatedGreeterServer.java](/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java) { #grpc-route }
-
-### Securing the Akka gRPC route
-
-We can wrap the gRPC route just like any @apidoc[Route$], applying the authorization:
+The token check is a @ref[server interceptor](interceptors.md) so that rejected calls get a proper gRPC status.
+We wrap the service handler with it and convert the result to a @apidoc[Route$]:
 
 Scala
 :  @@snip [AuthenticatedGreeterServer.scala](/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala) { #grpc-protected }
@@ -195,12 +186,3 @@ java.util.NoSuchElementException: next on empty iterator
   Request : HttpRequest(HttpMethod(POST),http://127.0.0.1/helloworld.GreeterService/SayHello,Vector(TE: trailers, User-Agent: grpc-java-netty/1.45.1, grpc-accept-encoding: gzip),HttpEntity.Chunked(application/grpc),HttpProtocol(HTTP/2.0))
   Response: Complete(HttpResponse(200 OK,List(grpc-encoding: gzip),HttpEntity.Chunked(application/grpc+proto),HttpProtocol(HTTP/1.1)))
 ```
-
-## Future work
-
-For in-depth akka-grpc/akka-http integration we currently need to pass information from the Akka HTTP route
-into the service implementation constructor, and construct a new Handler for each request.
-This pattern is shown in an example above.
-
-In the future we plan to provide a nicer API for this, for example we could pass the
-Akka HTTP attributes (introduced in 10.2.0) as Metadata when using the PowerApi.
