@@ -2,8 +2,8 @@ plugins {
   id 'groovy'
   id 'java-gradle-plugin'
   id 'maven-publish'
-  id 'com.palantir.git-version' version '0.10.1'
-  id 'com.gradle.plugin-publish' version '0.11.0'
+  id 'com.palantir.git-version' version '5.1.0'
+  id 'com.gradle.plugin-publish' version '2.2.1'
 }
 
 group = "com.lightbend.akka.grpc"
@@ -14,25 +14,22 @@ def finalVersion = (tag == versionDetails().lastTag.substring(1)) ? tag : tag.re
 
 version = finalVersion
 
+java {
+  // keep the plugin usable for builds running on Java 11
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
+
 gradlePlugin {
+  website = 'https://doc.akka.io/libraries/akka-grpc/current/'
+  vcsUrl = 'https://github.com/akka/akka-grpc'
   plugins {
     akkaGrpcPlugin {
       id = 'com.lightbend.akka.grpc.gradle'
       implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
-    }
-  }
-}
-
-pluginBundle {
-  website = 'https://doc.akka.io/libraries/akka-grpc/current/'
-  vcsUrl = 'https://github.com/akka/akka-grpc'
-  description = 'Building streaming gRPC servers and clients on top of Akka Streams'
-  tags = ['akka', 'streams', 'reactive']
-
-  plugins {
-    akkaGrpcPlugin {
-      id = 'com.lightbend.akka.grpc.gradle'
       displayName = 'Akka gRPC'
+      description = 'Building streaming gRPC servers and clients on top of Akka Streams'
+      tags.set(['akka', 'streams', 'reactive'])
     }
   }
 }
@@ -48,16 +45,20 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.google.protobuf:protobuf-gradle-plugin:0.8.19'
+  implementation 'com.google.protobuf:protobuf-gradle-plugin:0.10.0'
   implementation 'commons-lang:commons-lang:2.6'
-  testImplementation('org.spockframework:spock-core:1.3-groovy-2.5')
+  testImplementation platform('org.spockframework:spock-bom:2.5-groovy-4.0')
+  testImplementation 'org.spockframework:spock-core'
+  testImplementation 'org.spockframework:spock-junit4'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
+  useJUnitPlatform()
   systemProperty 'akkaGrpcTest.pluginVersion', project.version
   testLogging {
     events "passed", "skipped", "failed"
-    exceptionFormat "full"
+    exceptionFormat = "full"
     showStandardStreams = false
   }
 }

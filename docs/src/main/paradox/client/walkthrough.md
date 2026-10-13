@@ -30,7 +30,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "<url from https://account.akka.io/token>"
+      url = "<url from https://account.akka.io/token>"
     }
   }
 }
@@ -42,7 +42,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "<url from https://account.akka.io/token>"
+    url = "<url from https://account.akka.io/token>"
   }
 }
 ```

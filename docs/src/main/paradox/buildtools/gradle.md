@@ -11,6 +11,12 @@ Consult [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugi
 The plugin can generate either Java or Scala classes, and then server and or client for the corresponding language.
 By default both client and server are generated and Java or Scala is autodetected depending on the presence of source files with language extension in `src/main`.
 
+@@@note
+The plugin requires Gradle 7.6 or later, including Gradle 9. Akka gRPC 2.5.12 and earlier fail to load on Gradle 9 with
+`NoClassDefFoundError: org/gradle/util/VersionNumber`. Upgrade Akka gRPC to use Gradle 9. Older versions of the plugin
+supported Gradle 5.6 and later, so builds on Gradle versions before 7.6 must upgrade Gradle together with Akka gRPC.
+@@@
+
 ### Installation
 
 @@@note
@@ -26,7 +32,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "<url from https://account.akka.io/token>"
+      url = "<url from https://account.akka.io/token>"
     }
   }
 }
@@ -38,7 +44,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "<url from https://account.akka.io/token>"
+    url = "<url from https://account.akka.io/token>"
   }
 }
 ```
@@ -149,7 +155,7 @@ Build script needs a custom task
     ```build.gradle
     task runServer(type: JavaExec) {
       classpath = sourceSets.main.runtimeClasspath
-      main = 'com.example.helloworld.GreeterServer'
+      mainClass = 'com.example.helloworld.GreeterServer'
     }
     ```
     @@@

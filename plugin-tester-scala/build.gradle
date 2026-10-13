@@ -25,8 +25,7 @@ repositories {
   mavenCentral()
 }
 
-def scalaVersion = org.gradle.util.VersionNumber.parse(System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13")
-def scalaBinaryVersion = "${scalaVersion.major}.${scalaVersion.minor}"
+def scalaBinaryVersion = (System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13").tokenize('.').take(2).join('.')
 def akkaVersion = "2.10.11"
 def protoGoogleCommonVersion = "2.22.0"
 
