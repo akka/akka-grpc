@@ -139,6 +139,21 @@ By default the plugin looks for `.proto` files under
 Loading `.proto` files from other directories could be configured [using settings](https://github.com/google/protobuf-gradle-plugin#customizing-source-directories)
 of `protobuf-gradle-plugin`.
 
+## Generated sources directory
+
+The generated sources are written to `build/generated/sources/proto/<source set>/<generator>`, for example
+`build/generated/sources/proto/main/akkaGrpc` for the Akka gRPC classes, and `java` or `scalapb` for the message classes.
+They are added to the source sets, so builds and IDEs importing the Gradle project pick them up without further configuration.
+
+@@@note
+Akka gRPC 2.5.12 and earlier used `protobuf-gradle-plugin` 0.8.x, which generated sources to `build/generated/source/proto`
+(`source` instead of `sources`). Update any IDE settings or scripts that refer to the old path.
+
+The base directory can no longer be changed: `protobuf { generatedFilesBaseDir = ... }` fails with
+`Cannot set the value of read-only property 'generatedFilesBaseDir'`. Remove the setting, and copy the generated
+sources with a separate task if they are needed in another location.
+@@@
+
 ## Loading proto files from artifacts
 
 In gRPC it is common to make the version of the protocol you are supporting

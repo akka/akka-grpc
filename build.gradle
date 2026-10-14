@@ -1,0 +1,4 @@
+
+protobuf {
+  generatedFilesBaseDir = "$projectDir/src/generated"
+}
