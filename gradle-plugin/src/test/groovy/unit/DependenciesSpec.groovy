@@ -1,5 +1,6 @@
 package unit
 
+import akka.grpc.gradle.AkkaGrpcPlugin
 import akka.grpc.gradle.AkkaGrpcPluginExtension
 import helper.BaseSpec
 import org.gradle.api.Project
@@ -14,10 +15,15 @@ class DependenciesSpec extends BaseSpec {
 
     static final String PROTOC_PLUGIN_CODEGEN = "akkaGrpc"
 
+    // the version the plugin resolves akka-grpc artifacts with, e.g. with `-SNAPSHOT` for unreleased versions
+    static String expectedVersion(AkkaGrpcPluginExtension ext) {
+        new AkkaGrpcPlugin().getBaselineVersion(ext.pluginVersion)
+    }
+
     def checkCodegen(Dependency d, AkkaGrpcPluginExtension ext) {
         assert d.group == "com.lightbend.akka.grpc"
         assert d.name == "akka-grpc-codegen_${PROTOC_PLUGIN_SCALA_VERSION}"
-        assert d.version == ext.pluginVersion
+        assert d.version == expectedVersion(ext)
         true
     }
 
@@ -26,7 +32,7 @@ class DependenciesSpec extends BaseSpec {
     def checkScalapb(Dependency d, AkkaGrpcPluginExtension ext) {
         assert d.group == "com.lightbend.akka.grpc"
         assert d.name == "akka-grpc-scalapb-protoc-plugin_${PROTOC_PLUGIN_SCALA_VERSION}"
-        assert d.version == ext.pluginVersion
+        assert d.version == expectedVersion(ext)
         true
     }
 
@@ -82,7 +88,7 @@ class DependenciesSpec extends BaseSpec {
         project.evaluate()
         then: "added to configuration"
         def deps = project.configurations.implementation.dependencies
-        deps.any { it.name == "akka-grpc-runtime_$scala" && it.version == akkaGrpcExt.pluginVersion }
+        deps.any { it.name == "akka-grpc-runtime_$scala" && it.version == expectedVersion(akkaGrpcExt) }
         deps.any { it.name == "grpc-stub" && it.version == GRPC_VERSION }
         where:
         plugin || scala

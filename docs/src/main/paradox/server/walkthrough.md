@@ -28,7 +28,7 @@ Gradle
       repositories {
         gradlePluginPortal()
         maven {
-          url "<url from https://account.akka.io/token>"
+          url = "<url from https://account.akka.io/token>"
         }
       }
     }
@@ -40,7 +40,7 @@ Gradle
     repositories {
       mavenCentral()
       maven {
-        url "<url from https://account.akka.io/token>"
+        url = "<url from https://account.akka.io/token>"
       }
     }
     ```

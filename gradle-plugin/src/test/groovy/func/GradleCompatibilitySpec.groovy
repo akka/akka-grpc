@@ -24,7 +24,7 @@ class GradleCompatibilitySpec extends BaseSpec {
     }
 
     @Unroll
-    void 'should succeed for version #gradleVersion greater than 5.6'() {
+    void 'should succeed for version #gradleVersion greater than or equal to 7.6'() {
         given:
         createBuildFolder()
         generateBuildScripts()
@@ -33,19 +33,19 @@ class GradleCompatibilitySpec extends BaseSpec {
         then:
         result.task(":tasks").outcome == TaskOutcome.SUCCESS
         where:
-        gradleVersion << ["5.6", "5.6.4", "6.4.1"]
+        gradleVersion << ["7.6", "7.6.6", "8.14.6", "9.8.1"]
     }
 
     @Unroll
-    void 'should fail for version #gradleVersion less than 5.6'() {
+    void 'should fail for version #gradleVersion less than 7.6'() {
         given:
         createBuildFolder()
         generateBuildScripts()
         when:
         BuildResult result = executeGradleTaskWithVersion('tasks', gradleVersion, true)
         then:
-        result.output.contains("Gradle version is ${gradleVersion}. Minimum supported version is 5.6")
+        result.output.contains("Gradle version is ${gradleVersion}. Minimum supported version is 7.6")
         where:
-        gradleVersion << ["5.5", "4.0"]
+        gradleVersion << ["7.5.1"]
     }
 }
