@@ -21,11 +21,11 @@ class AkkaGrpcPlugin implements Plugin<Project> {
     Project project
 
     // e.g. `2.5.12-3-abcdef12` has a qualifier, `2.5.12` does not
-    static boolean hasQualifier(String version) {
+    private static boolean hasQualifier(String version) {
         version ==~ /\d+(\.\d+)*-.+/
     }
 
-    // workaround for test projects, when one only neesd to tests a new plugin version without rebuilding dependencies.
+    // workaround for test projects, when one only needs to test a new plugin version without rebuilding dependencies.
     String getBaselineVersion(String pluginVersion) {
         def pv = System.getProperty("akka.grpc.baseline.version", pluginVersion)
         if (hasQualifier(pv)) {
@@ -57,11 +57,6 @@ class AkkaGrpcPlugin implements Plugin<Project> {
 
         project.repositories {
             mavenCentral()
-            if (hasQualifier(baselineVersion)) {
-                maven {
-                    url = "https://oss.sonatype.org/content/repositories/snapshots"
-                }
-            }
         }
 
         String assemblySuffix = SystemUtils.IS_OS_WINDOWS ? "bat" : "jar"
@@ -81,23 +76,18 @@ class AkkaGrpcPlugin implements Plugin<Project> {
             }
         }
 
-        String generatedMainDir = "${project.protobuf.generatedFilesBaseDir}/main"
-
-        project.sourceSets {
-            main {
-                if (akkaGrpcExt.scala) {
+        // the protobuf plugin adds the generated sources to the java source set, Scala sources need adding to scala
+        if (akkaGrpcExt.scala) {
+            String generatedMainDir = "${project.protobuf.generatedFilesBaseDir}/main"
+            project.sourceSets {
+                main {
                     scala {
                         srcDir "${generatedMainDir}/akkaGrpc"
                         srcDir "${generatedMainDir}/scalapb"
                     }
-                } else {
-                    java {
-                        srcDir "${generatedMainDir}/akkaGrpc"
-                        srcDir "${generatedMainDir}/java"
-                    }
                 }
+                //TODO add test sources
             }
-            //TODO add test sources
         }
 
         project.protobuf {

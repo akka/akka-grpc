@@ -160,6 +160,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate Gradle wrappers
+        # https://github.com/gradle/actions/releases
+        uses: gradle/actions/wrapper-validation@v6
+
       - name: Setup global resolver
         uses: ./.github/actions/global-resolver
 

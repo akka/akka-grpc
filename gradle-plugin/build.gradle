@@ -29,7 +29,7 @@ gradlePlugin {
       implementationClass = 'akka.grpc.gradle.AkkaGrpcPlugin'
       displayName = 'Akka gRPC'
       description = 'Building streaming gRPC servers and clients on top of Akka Streams'
-      tags.set(['akka', 'streams', 'reactive'])
+      tags = ['akka', 'streams', 'reactive']
     }
   }
 }
