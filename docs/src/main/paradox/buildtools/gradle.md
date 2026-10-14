@@ -12,9 +12,8 @@ The plugin can generate either Java or Scala classes, and then server and or cli
 By default both client and server are generated and Java or Scala is autodetected depending on the presence of source files with language extension in `src/main`.
 
 @@@note
-The plugin requires Gradle 7.6 or later, including Gradle 9. Akka gRPC 2.5.12 and earlier fail to load on Gradle 9 with
-`NoClassDefFoundError: org/gradle/util/VersionNumber`. Upgrade Akka gRPC to use Gradle 9. Older versions of the plugin
-supported Gradle 5.6 and later, so builds on Gradle versions before 7.6 must upgrade Gradle together with Akka gRPC.
+Gradle 9 is supported from Akka gRPC 2.5.13, which requires Gradle 7.6 or later (earlier versions supported Gradle 5.6 and later).
+Earlier versions fail on Gradle 9 with `NoClassDefFoundError: org/gradle/util/VersionNumber`.
 @@@
 
 ### Installation
@@ -146,10 +145,10 @@ The generated sources are written to `build/generated/sources/proto/<source set>
 They are added to the source sets, so builds and IDEs importing the Gradle project pick them up without further configuration.
 
 @@@note
-Akka gRPC 2.5.12 and earlier used `protobuf-gradle-plugin` 0.8.x, which generated sources to `build/generated/source/proto`
+Before Akka gRPC 2.5.13 the plugin used `protobuf-gradle-plugin` 0.8.x, which generated sources to `build/generated/source/proto`
 (`source` instead of `sources`). Update any IDE settings or scripts that refer to the old path.
 
-The base directory can no longer be changed: `protobuf { generatedFilesBaseDir = ... }` fails with
+Since 2.5.13 the base directory can no longer be changed: `protobuf { generatedFilesBaseDir = ... }` fails with
 `Cannot set the value of read-only property 'generatedFilesBaseDir'`. Remove the setting, and copy the generated
 sources with a separate task if they are needed in another location.
 @@@
