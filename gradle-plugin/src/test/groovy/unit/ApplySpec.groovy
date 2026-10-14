@@ -29,10 +29,18 @@ class ApplySpec extends BaseSpec {
         log = projectDir.newFile("build/akka-grpc-gradle-plugin.log")
     }
 
+    // TestKit builds use their own Gradle user home, so pass on the init scripts that
+    // add repositories (in CI the Akka repository and the locally published akka-grpc artifacts)
+    static List<String> initScriptArgs() {
+        def initDir = new File(System.getProperty("user.home"), ".gradle/init.d")
+        def scripts = initDir.listFiles({ File f -> f.name.endsWith(".gradle") } as FileFilter) ?: []
+        scripts.sort().collectMany { ["--init-script", it.absolutePath] }
+    }
+
     BuildResult executeGradleTask(String task) {
         def runner = GradleRunner.create().forwardOutput()
             .withProjectDir(projectDir.root)
-            .withArguments("--stacktrace", task)
+            .withArguments(initScriptArgs() + ["--stacktrace", task])
             .withPluginClasspath()
             .withDebug(true)
         runner.build()

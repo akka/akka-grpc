@@ -193,7 +193,7 @@ jobs:
           cp .jvmopts-ghactions .jvmopts
           sbt akka-grpc-codegen/publishM2 akka-grpc-scalapb-protoc-plugin/publishM2 +akka-grpc-runtime/publishM2
           cd gradle-plugin
-          ./gradlew clean publishToMavenLocal --console=plain --info --stacktrace
+          ./gradlew clean test publishToMavenLocal --console=plain --info --stacktrace
           find ~/.m2 | grep gradle
 
       - name: Test Gradle Java ${{ matrix.SCALA_VERSION }}
