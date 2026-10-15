@@ -29,6 +29,8 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext => ShadedNettySslContext }
 import io.grpc.CallOptions
 import io.grpc.MethodDescriptor
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 
 import java.util
 import java.util.concurrent.TimeUnit
@@ -184,6 +186,17 @@ object NettyClientUtils {
     if (settings.eagerConnection)
       channel.getState(true)
 
+    // grpc-java may have released the channel executor once shut down, so new calls must not reach it
+    def closedFailure(): Option[StatusRuntimeException] =
+      if (channel.isShutdown) {
+        val cause = channelClosedPromise.future.value.flatMap(_.failed.toOption).orNull
+        Some(
+          Status.UNAVAILABLE
+            .withDescription(s"Channel to [${settings.serviceName}] closed")
+            .withCause(cause)
+            .asRuntimeException())
+      } else None
+
     new InternalChannel {
       override def shutdown() = channel.shutdown()
       override def done = channelClosedPromise.future
@@ -192,29 +205,35 @@ object NettyClientUtils {
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[O] = {
-        val listener = new UnaryCallAdapter[O]
-        val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
-        call.start(listener, headers.toGoogleGrpcMetadata())
-        call.sendMessage(request)
-        call.halfClose()
-        call.request(2)
-        listener.future
-      }
+          options: CallOptions): Future[O] =
+        closedFailure() match {
+          case Some(failure) => Future.failed(failure)
+          case None =>
+            val listener = new UnaryCallAdapter[O]
+            val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+            call.start(listener, headers.toGoogleGrpcMetadata())
+            call.sendMessage(request)
+            call.halfClose()
+            call.request(2)
+            listener.future
+        }
 
       override def invokeWithMetadata[I, O](
           request: I,
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
-          options: CallOptions): Future[GrpcSingleResponse[O]] = {
-        val listener = new UnaryCallWithMetadataAdapter[O]
-        val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
-        call.start(listener, headers.toGoogleGrpcMetadata())
-        call.sendMessage(request)
-        call.halfClose()
-        call.request(2)
-        listener.future
-      }
+          options: CallOptions): Future[GrpcSingleResponse[O]] =
+        closedFailure() match {
+          case Some(failure) => Future.failed(failure)
+          case None =>
+            val listener = new UnaryCallWithMetadataAdapter[O]
+            val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+            call.start(listener, headers.toGoogleGrpcMetadata())
+            call.sendMessage(request)
+            call.halfClose()
+            call.request(2)
+            listener.future
+        }
 
       override def invokeWithMetadata[I, O](
           source: Source[I, NotUsed],
@@ -233,7 +252,14 @@ object NettyClientUtils {
           descriptor: MethodDescriptor[I, O],
           streamingResponse: Boolean,
           options: CallOptions): Flow[I, O, Future[GrpcResponseMetadata]] =
-        Flow.fromGraph(new AkkaNettyGrpcClientGraphStage(descriptor, channel, options, streamingResponse, headers))
+        Flow.fromGraph(
+          new AkkaNettyGrpcClientGraphStage(
+            descriptor,
+            channel,
+            () => closedFailure(),
+            options,
+            streamingResponse,
+            headers))
 
     }
   }
