@@ -52,6 +52,7 @@ object ConnectingTimeoutGiveUpSpec {
           val drainer = new Thread(() => {
             val buf = new Array[Byte](4096)
             Try { while (s.getInputStream.read(buf) >= 0) {} }
+            ()
           })
           drainer.setDaemon(true)
           drainer.start()
