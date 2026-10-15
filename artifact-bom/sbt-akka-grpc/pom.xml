@@ -74,17 +74,17 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-api</artifactId>
-                <version>1.83.0</version>
+                <version>1.83.1</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf</artifactId>
-                <version>1.83.0</version>
+                <version>1.83.1</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf-lite</artifactId>
-                <version>1.83.0</version>
+                <version>1.83.1</version>
             </dependency>
             <dependency>
                 <groupId>org.jspecify</groupId>
@@ -187,17 +187,17 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-api</artifactId>
-            <version>1.83.0</version>
+            <version>1.83.1</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.83.0</version>
+            <version>1.83.1</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf-lite</artifactId>
-            <version>1.83.0</version>
+            <version>1.83.1</version>
         </dependency>
         <dependency>
             <groupId>org.jspecify</groupId>
