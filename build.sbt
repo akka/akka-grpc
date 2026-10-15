@@ -157,6 +157,9 @@ lazy val interopTests = Project(id = "akka-grpc-interop-tests", base = file("int
   .settings(
     // All io.grpc servers want to bind to port :8080
     Test / parallelExecution := false,
+    // run in a separate JVM with a predictable heap, grpc-java interop tests give up when heap headroom is low
+    Test / fork := true,
+    Test / javaOptions += "-Xmx1g",
     ReflectiveCodeGen.generatedLanguages := Seq("Scala", "Java"),
     ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
     ReflectiveCodeGen.codeGeneratorSettings ++= Seq("server_power_apis"),

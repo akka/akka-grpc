@@ -5,6 +5,8 @@
 package akka.grpc.interop
 
 import io.grpc.StatusRuntimeException
+import org.junit.AssumptionViolatedException
+import org.scalatest.exceptions.TestCanceledException
 import org.scalatest.{ Assertion, Succeeded }
 
 import scala.util.control.NonFatal
@@ -70,7 +72,10 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
       } catch {
         case ex: AssertionError                => throw ex // expected to see these
         case ex: UnsupportedOperationException => throw ex // these as well
-        case ex: Throwable                     =>
+        case ex: AssumptionViolatedException   =>
+          // grpc-java gives up (e.g. assumeEnoughMemory needs 64 MB heap headroom), skip rather than fail
+          cancel(ex.getMessage, ex)
+        case ex: Throwable =>
           // give us some hints what is wrong with everything else
           println("Exception: " + ex.getClass.getName + ": " + ex.getMessage)
           throw ex
@@ -85,7 +90,8 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
         e.printStackTrace()
         if (e.getCause == null) fail(e.getMessage)
         else fail(e.getMessage, e.getCause)
-      case NonFatal(t) => fail(t)
+      case e: TestCanceledException => throw e
+      case NonFatal(t)              => fail(t)
     }
 
   private def runGrpcClient(client: GrpcClient, args: Array[String]): Unit =
@@ -97,6 +103,7 @@ class GrpcInteropTests(serverProvider: GrpcServerProvider, clientProvider: GrpcC
         block
         Succeeded
       } catch {
+        case e: TestCanceledException      => throw e
         case NonFatal(_) if expectedToFail => pending
         case NonFatal(e) =>
           e.printStackTrace()
