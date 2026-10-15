@@ -223,10 +223,12 @@ class ConnectingTimeoutGiveUpSpec
         eventually(ingress.accepted.get shouldBe 1)
         Thread.sleep(500) // let it reach READY
       } finally ingress.close() // connections now refused
-      // reconnect attempt is refused, which with connection-attempts = 1 means giving up
-      call(channel)
-
-      val failure = channel.done.failed.futureValue
+      // reconnect attempt is refused, which with connection-attempts = 1 means giving up.
+      // Keep calling, a single call could race with the dropped connection still looking READY
+      val caller = system.scheduler.scheduleWithFixedDelay(Duration.Zero, 200.millis)(() => call(channel))
+      val failure =
+        try channel.done.failed.futureValue
+        finally caller.cancel()
       failure shouldBe a[ClientConnectionException]
       // the channel itself is shut down too, so calls fail fast with the give-up reason
       eventually {
