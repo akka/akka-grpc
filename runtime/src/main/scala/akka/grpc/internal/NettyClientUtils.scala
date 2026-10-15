@@ -42,8 +42,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import scala.util.Failure
-import scala.util.Success
 
 /**
  * INTERNAL API
@@ -172,15 +170,6 @@ object NettyClientUtils {
       settings.connectingTimeout,
       log) { (delay, task) =>
       system.scheduler.scheduleOnce(delay)(task())
-    }
-
-    channelReadyPromise.future.onComplete {
-      case Success(()) =>
-      // OK!
-      case Failure(e) =>
-        // shutdown is idempotent in ManagedChannelImpl
-        channel.shutdown()
-        channelClosedPromise.tryFailure(e)
     }
 
     if (settings.eagerConnection)

@@ -15,6 +15,10 @@ When using a direct client (not load balanced) when the connection breaks you ca
 of reconnection attempts.  If that limit is reached, the client will shutdown.  The default number of attempts to 
 reconnect is infinite and configurable via `GrpcClientSettings`'s `connectionAttempts`.
 
+A connection attempt that gets stuck while connecting (for example when the TCP connection is accepted but the
+TLS/HTTP2 handshake never completes) is abandoned and retried after `connecting-timeout`, such abandoned attempts
+do not count towards `connectionAttempts`.
+
 The client offers a method `closed()` that returns a @scala[`Future`]@java[`CompletionStage`] 
 that will complete once the client is explicitly closed after invoking `close()`.  The returned @scala[`Future`]@java[`CompletionStage`]
 will complete with a failure when the maximum number of `connectionAttempts` (which causes a shutdown).

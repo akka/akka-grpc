@@ -282,6 +282,7 @@ final class GrpcClientSettings private (
   /**
    * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
    * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Abandoned attempts do not count towards `connectionAttempts`.
    * Only supported for the Netty client backend. Use `Duration.Inf` to disable.
    */
   def withConnectingTimeout(value: Duration): GrpcClientSettings = copy(connectingTimeout = value)
@@ -289,6 +290,7 @@ final class GrpcClientSettings private (
   /**
    * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
    * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Abandoned attempts do not count towards `connectionAttempts`.
    * Only supported for the Netty client backend.
    */
   def withConnectingTimeout(value: java.time.Duration): GrpcClientSettings =
