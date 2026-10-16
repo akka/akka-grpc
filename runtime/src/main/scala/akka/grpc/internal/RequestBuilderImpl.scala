@@ -68,7 +68,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     retrySettings match {
       case None => callIt()
       case Some(settings) =>
-        akka.pattern.retry(settings)(callIt _)(systemOrThrow())
+        akka.pattern.retry(RequestBuilderImpl.unlessClosed(settings, channel))(callIt _)(systemOrThrow())
     }
   }
 
@@ -80,7 +80,7 @@ final class ScalaUnaryRequestBuilder[I, O](
     retrySettings match {
       case None => callIt()
       case Some(settings) =>
-        akka.pattern.retry(settings)(callIt _)(systemOrThrow())
+        akka.pattern.retry(RequestBuilderImpl.unlessClosed(settings, channel))(callIt _)(systemOrThrow())
     }
   }
 
@@ -240,7 +240,7 @@ final class ScalaClientStreamingRequestBuilder[I, O](
 
     retrySettings match {
       case Some(settings) =>
-        akka.pattern.retry(settings)(invokeIt _)(mat.system)
+        akka.pattern.retry(RequestBuilderImpl.unlessClosed(settings, channel))(invokeIt _)(mat.system)
       case None =>
         invokeIt()
     }
@@ -587,5 +587,9 @@ object RequestBuilderImpl {
     case ex: StatusRuntimeException => GrpcServiceException(ex)
     case other                      => other
   }
+
+  // no point retrying once the client is closed, every attempt would fail
+  private[internal] def unlessClosed(settings: RetrySettings, channel: InternalChannel): RetrySettings =
+    settings.withDecider(e => !channel.done.isCompleted && settings.shouldRetry(e))
 
 }
