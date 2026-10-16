@@ -59,11 +59,13 @@ trait SingleResponseRequestBuilder[Req, Res] {
 
   /**
    * Use these retry settings to retry if the call fails.
+   * No further retries are made once the client is closed.
    */
   def withRetry(retrySettings: RetrySettings): SingleResponseRequestBuilder[Req, Res]
 
   /**
    * Set the retry settings for this call. A predifined backoff strategy will be calculated based on the number of maxRetries.
+   * No further retries are made once the client is closed.
    *
    * @param maxRetries The number of retries to make
    */
