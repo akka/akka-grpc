@@ -24,9 +24,9 @@ infinite and configurable via `GrpcClientSettings`'s `connectionAttempts`. Faile
   `connecting-timeout`, this also covers a TCP connection that is never answered.
 * The count is reset when the client becomes connected.
 
-When the client gives up it is shut down, also if it had been connected before. After that, all calls on the client
-fail with status `UNAVAILABLE`, with the `ClientConnectionException` as cause, and a new client must be created
-to connect again.
+When the client gives up it is shut down, also if it had been connected before. Calls waiting for a connection
+fail with status `UNAVAILABLE`, later calls on the client fail with status `UNAVAILABLE` with the
+`ClientConnectionException` as cause, and a new client must be created to connect again.
 
 The client offers a method `closed()` that returns a @scala[`Future`]@java[`CompletionStage`] 
 that will complete once the client is explicitly closed after invoking `close()`.  The returned @scala[`Future`]@java[`CompletionStage`]

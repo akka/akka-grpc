@@ -17,7 +17,7 @@ import scala.util.Try
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import com.typesafe.config.ConfigFactory
-import io.grpc.{ CallOptions, MethodDescriptor }
+import io.grpc.{ CallOptions, MethodDescriptor, StatusRuntimeException }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.matchers.should.Matchers
@@ -175,6 +175,17 @@ class ConnectingTimeoutGiveUpSpec
         val callFailure = call(channel).failed.futureValue
         callFailure.getMessage should include("closed")
         callFailure.getCause shouldBe failure
+      } finally ingress.close()
+    }
+
+    "fail calls waiting for the connection when giving up while the handshake hangs" in {
+      val ingress = new FakeIngress(Hang)
+      try {
+        val channel = NettyClientUtils.createChannel(settings(ingress.port).withConnectionAttempts(2), system.log)
+        // no deadline, so only the give-up can complete it
+        val waiting = channel.invoke("x", MetadataImpl.empty, dummyMethod, CallOptions.DEFAULT)
+        channel.done.failed.futureValue shouldBe a[ClientConnectionException]
+        waiting.failed.futureValue shouldBe a[StatusRuntimeException]
       } finally ingress.close()
     }
 

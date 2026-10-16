@@ -35,7 +35,10 @@ object ChannelUtilsSpec {
     }
     override def isShutdown: Boolean = ???
     override def isTerminated: Boolean = ???
-    override def shutdownNow(): ManagedChannel = ???
+    override def shutdownNow(): ManagedChannel = {
+      closed = true
+      this
+    }
     override def awaitTermination(timeout: Long, unit: TimeUnit): Boolean = ???
     override def newCall[RequestT, ResponseT](
         methodDescriptor: MethodDescriptor[RequestT, ResponseT],

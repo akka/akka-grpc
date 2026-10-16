@@ -73,11 +73,12 @@ object ChannelUtils {
       connectingTimeout: Duration,
       log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Cancellable): Unit = {
 
-    // Fail done before shutting down, so that the resulting SHUTDOWN can't complete it successfully
+    // Fail done before shutting down, so that the resulting SHUTDOWN can't complete it successfully.
+    // shutdownNow, as an orderly shutdown would leave calls waiting for a connection hanging forever.
     def giveUp(ex: ClientConnectionException): Unit = {
       ready.tryFailure(ex)
       done.tryFailure(ex)
-      channel.shutdown()
+      channel.shutdownNow()
     }
 
     def failOrKeepGoing(nextAttempts: Int): Option[Int] =
