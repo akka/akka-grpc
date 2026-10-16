@@ -282,6 +282,7 @@ final class GrpcClientSettings private (
   /**
    * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
    * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Abandoned attempts count towards `connectionAttempts`.
    * Only supported for the Netty client backend. Use `Duration.Inf` to disable.
    */
   def withConnectingTimeout(value: Duration): GrpcClientSettings = copy(connectingTimeout = value)
@@ -289,6 +290,7 @@ final class GrpcClientSettings private (
   /**
    * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
    * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Abandoned attempts count towards `connectionAttempts`.
    * Only supported for the Netty client backend.
    */
   def withConnectingTimeout(value: java.time.Duration): GrpcClientSettings =
@@ -316,9 +318,11 @@ final class GrpcClientSettings private (
     withLoadBalancingPolicy(loadBalancingType)
 
   /**
-   * How many times to retry establishing a connection before failing the client
-   * Failure can be monitored using client.stopped and monitoring the Future/CompletionStage.
-   * An exponentially increasing backoff is used between attempts.
+   * The number of failed connection attempts after which the client gives up, `-1` to retry indefinitely
+   * (the default). Each time the channel enters TRANSIENT_FAILURE and each attempt abandoned because of
+   * `connectingTimeout` counts, the count is reset once connected.
+   * When giving up, the client is shut down, `closed()` fails with a `ClientConnectionException`
+   * and all calls fail with UNAVAILABLE, a new client must be created to connect again.
    */
   def withConnectionAttempts(value: Int): GrpcClientSettings =
     copy(connectionAttempts = Some(value))
