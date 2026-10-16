@@ -20,11 +20,9 @@ import scala.concurrent.{ Future, Promise }
 import scala.util.control.NonFatal
 
 /**
- * Used to indicate that a gRPC client can not establish a connection
- * after the configured number of attempts.
- *
- * Can be caught to re-create the client if it is likely that
- * your service discovery mechanism will resolve to different instances.
+ * Used to indicate that a gRPC client gave up establishing a connection after the configured
+ * number of `connection-attempts`, which is only the case if a limit is set (the default is to retry forever).
+ * The client is shut down when giving up, so a new client must be created to connect again.
  */
 class ClientConnectionException(msg: String) extends RuntimeException(msg)
 
