@@ -12,16 +12,26 @@ attempt, If a connection the `ServiceDiscovery` will be used and a new host may 
 When using client-side @ref[load balancing](details.md#load-balancing) the reconnection loop will run indefinitely.
 
 When using a direct client (not load balanced) when the connection breaks you can set up a maximum number 
-of reconnection attempts.  If that limit is reached, the client will shutdown.  The default number of attempts to 
-reconnect is infinite and configurable via `GrpcClientSettings`'s `connectionAttempts`.
+of failed connection attempts.  If that limit is reached, the client gives up. The default number of attempts is
+infinite and configurable via `GrpcClientSettings`'s `connectionAttempts`. Failed attempts are counted as follows:
 
-A connection attempt that gets stuck while connecting (for example when the TCP connection is accepted but the
-TLS/HTTP2 handshake never completes) is abandoned and retried after `connecting-timeout`, such abandoned attempts
-do not count towards `connectionAttempts`.
+* Each time the channel enters the `TRANSIENT_FAILURE` state counts as one failed attempt. The channel keeps
+  retrying in the background while in that state, so for example a refused connection, a TLS failure or a name
+  that does not resolve counts only once for as long as the problem lasts.
+* When the client stays in the `CONNECTING` state for longer than `connecting-timeout` (Netty client only), for
+  example because the TCP connection is accepted but the TLS/HTTP2 handshake never completes, the attempt is
+  abandoned, counted as a failed attempt, and a new attempt is started. Since Netty's own TCP connect timeout of 30 seconds is longer than the default
+  `connecting-timeout`, this also covers a TCP connection that is never answered.
+* The count is reset when the client becomes connected.
+
+When the client gives up it is shut down, also if it had been connected before. After that, all calls on the client
+fail with status `UNAVAILABLE`, with the `ClientConnectionException` as cause, and a new client must be created
+to connect again.
 
 The client offers a method `closed()` that returns a @scala[`Future`]@java[`CompletionStage`] 
 that will complete once the client is explicitly closed after invoking `close()`.  The returned @scala[`Future`]@java[`CompletionStage`]
-will complete with a failure when the maximum number of `connectionAttempts` (which causes a shutdown).
+will instead complete with a `ClientConnectionException` failure when the client gives up because the maximum number
+of `connectionAttempts` was reached.
 
 ## Shared Channels
 

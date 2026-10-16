@@ -94,9 +94,9 @@ object ChannelUtils {
       val advanced = new AtomicBoolean(false)
 
       // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943), so
-      // a connection stuck mid-handshake would otherwise never be retried. Abandoning it does not count
-      // as a failed attempt: a peer that accepts TCP but never completes the handshake must not make
-      // the client give up, just like a refused connection doesn't (pick_first stays in TRANSIENT_FAILURE).
+      // a connection stuck mid-handshake would otherwise never reach TRANSIENT_FAILURE and never
+      // count as a failed attempt. An abandoned attempt counts like a TRANSIENT_FAILURE, so that a
+      // configured maxConnectionAttempts can fail fast.
       val pendingWatchdog: Option[Cancellable] =
         if (currentState != ConnectivityState.CONNECTING) None
         else
@@ -118,8 +118,10 @@ object ChannelUtils {
                         "'connecting-timeout')",
                         timeout)
                       try {
-                        channel.enterIdle()
-                        monitor(channel.getState(true), connectionAttempts)
+                        failOrKeepGoing(connectionAttempts + 1).foreach { attempts =>
+                          channel.enterIdle()
+                          monitor(channel.getState(true), attempts)
+                        }
                       } catch {
                         case NonFatal(e) =>
                           // `advanced` is already claimed, so the real callback won't run either -

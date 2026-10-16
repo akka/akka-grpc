@@ -112,11 +112,19 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
         }
       }
       override def preStart(): Unit = closedFailure() match {
-        case Some(failure) =>
-          matVal.tryFailure(failure)
-          failStage(failure)
+        case Some(failure) => failCall(failure)
         case None =>
-          startCall()
+          try startCall()
+          catch {
+            // a call racing a shutdown can pass the check above and then fail in grpc-java
+            case e: StatusRuntimeException => failCall(closedFailure().getOrElse(e))
+          }
+      }
+
+      private def failCall(failure: Throwable): Unit = {
+        call = null
+        matVal.tryFailure(failure)
+        failStage(failure)
       }
 
       private def startCall(): Unit = {

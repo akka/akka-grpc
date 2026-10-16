@@ -265,25 +265,31 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
       fakeChannel.enterIdleCalls shouldEqual 1
     }
 
-    "should not count a watchdog-abandoned attempt towards maxConnectionAttempts" in {
+    "should count a watchdog-abandoned attempt towards maxConnectionAttempts, same as a TRANSIENT_FAILURE" in {
       val promiseReady = Promise[Unit]()
       val promiseDone = Promise[Done]()
-      // A peer that only ever hangs mid-handshake: only the watchdog can ever move things along.
+      // A peer that only ever hangs mid-handshake: never legitimately leaves CONNECTING on its
+      // own, so only the watchdog can ever move things along.
       val fakeChannel = new FakeChannel(Stream.continually(CONNECTING))
       val scheduler = new ManualScheduler
 
       ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
 
-      (1 to 5).foreach { n =>
-        scheduler.runScheduled()
-        fakeChannel.enterIdleCalls shouldEqual n
-        promiseReady.isCompleted shouldEqual false
-        promiseDone.isCompleted shouldEqual false
-      }
-      fakeChannel.closed shouldEqual false
+      // 1st watchdog cycle: attempt 1 of 2, not exhausted yet - abandons and retries.
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1
+      promiseReady.isCompleted shouldEqual false
+
+      // 2nd watchdog cycle: attempt 2 of 2 - exhausted, so this must give up instead of retrying
+      // again, exactly like two TRANSIENT_FAILUREs in a row would with maxConnectionAttempts = 2.
+      scheduler.runScheduled()
+      fakeChannel.enterIdleCalls shouldEqual 1 // no 3rd attempt - already gave up
+      promiseReady.future.failed.value.get.get.getMessage shouldEqual "Unable to establish connection after [2] attempts"
+      promiseDone.future.failed.value.get.get shouldBe a[ClientConnectionException]
+      fakeChannel.closed shouldEqual true
     }
 
-    "should keep the attempt count across a watchdog-abandoned attempt" in {
+    "should count watchdog-abandoned attempts and TRANSIENT_FAILUREs together" in {
       val promiseReady = Promise[Unit]()
       val promiseDone = Promise[Done]()
       val fakeChannel = new FakeChannel(
@@ -297,19 +303,19 @@ class ChannelUtilsSpec extends AnyWordSpec with Matchers with ScalaFutures {
           TRANSIENT_FAILURE))
       val scheduler = new ManualScheduler
 
-      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(2), 20.seconds, log)(scheduler.schedule)
+      ChannelUtils.monitorChannel(promiseReady, promiseDone, fakeChannel, Some(3), 20.seconds, log)(scheduler.schedule)
       // CONNECTING => FAILURE (attempt 1)
       fakeChannel.runCallBack()
       // FAILURE => CONNECTING
       fakeChannel.runCallBack()
-      // stuck CONNECTING, abandoned by the watchdog
+      // stuck CONNECTING, abandoned by the watchdog (attempt 2)
       scheduler.runScheduled()
       fakeChannel.enterIdleCalls shouldEqual 1
       promiseReady.isCompleted shouldEqual false
       promiseDone.isCompleted shouldEqual false
-      // CONNECTING => FAILURE (attempt 2)
+      // CONNECTING => FAILURE (attempt 3)
       fakeChannel.runCallBack()
-      promiseReady.future.failed.value.get.get.getMessage shouldEqual "Unable to establish connection after [2] attempts"
+      promiseReady.future.failed.value.get.get.getMessage shouldEqual "Unable to establish connection after [3] attempts"
       promiseDone.future.failed.value.get.get shouldBe a[ClientConnectionException]
       fakeChannel.closed shouldEqual true
     }

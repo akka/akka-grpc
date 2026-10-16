@@ -88,9 +88,18 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
     channel
   }
 
+  // UNAVAILABLE alone is also what grpc-java reports while its executor is still alive
+  private def assertClosedFailure(failure: Throwable): Unit = {
+    failure shouldBe a[StatusRuntimeException]
+    val status = failure.asInstanceOf[StatusRuntimeException].getStatus
+    status.getCode shouldBe Status.Code.UNAVAILABLE
+    status.getDescription should include("closed")
+    status.getCause shouldBe a[ClientConnectionException]
+  }
+
   "A Netty client channel shut down after running out of connection attempts" should {
 
-    "fail new streaming calls with UNAVAILABLE" in {
+    "fail new streaming calls with UNAVAILABLE caused by the connection failure" in {
       val channel = channelClosedAfterConnectionAttempts()
 
       val failure = channel
@@ -104,11 +113,10 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         .failed
         .futureValue
 
-      failure shouldBe a[StatusRuntimeException]
-      failure.asInstanceOf[StatusRuntimeException].getStatus.getCode shouldBe Status.Code.UNAVAILABLE
+      assertClosedFailure(failure)
     }
 
-    "fail new unary calls with UNAVAILABLE" in {
+    "fail new unary calls with UNAVAILABLE caused by the connection failure" in {
       val channel = channelClosedAfterConnectionAttempts()
 
       val failure = channel
@@ -120,8 +128,7 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         .failed
         .futureValue
 
-      failure shouldBe a[StatusRuntimeException]
-      failure.asInstanceOf[StatusRuntimeException].getStatus.getCode shouldBe Status.Code.UNAVAILABLE
+      assertClosedFailure(failure)
     }
 
     "fail new unary calls with metadata with UNAVAILABLE caused by the connection failure" in {
@@ -136,10 +143,7 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         .failed
         .futureValue
 
-      failure shouldBe a[StatusRuntimeException]
-      val status = failure.asInstanceOf[StatusRuntimeException].getStatus
-      status.getCode shouldBe Status.Code.UNAVAILABLE
-      status.getCause shouldBe a[ClientConnectionException]
+      assertClosedFailure(failure)
     }
   }
 

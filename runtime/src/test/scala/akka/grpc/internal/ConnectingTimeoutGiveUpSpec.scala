@@ -89,8 +89,8 @@ object ConnectingTimeoutGiveUpSpec {
 }
 
 /**
- * Connections abandoned by the connecting-timeout watchdog must not count towards connection-attempts,
- * and whenever akka-grpc does give up, the channel must be shut down as well.
+ * Connections abandoned by the connecting-timeout watchdog count towards connection-attempts, the default of
+ * retrying indefinitely keeps a client alive, and whenever akka-grpc does give up, the channel is shut down as well.
  */
 class ConnectingTimeoutGiveUpSpec
     extends AnyWordSpec
@@ -112,7 +112,6 @@ class ConnectingTimeoutGiveUpSpec
     GrpcClientSettings
       .connectToServiceAt("127.0.0.1", port)
       .withTls(false)
-      .withConnectionAttempts(3)
       .withConnectingTimeout(1.second)
       .withEagerConnection(true)
 
@@ -134,11 +133,10 @@ class ConnectingTimeoutGiveUpSpec
 
   "A Netty client channel with connecting-timeout" should {
 
-    "keep retrying, not give up, when the handshake hangs and connect once the remote recovers (plaintext)" in {
+    "by default keep retrying when the handshake hangs and connect once the remote recovers (plaintext)" in {
       val ingress = new FakeIngress(Hang)
       try {
         val channel = NettyClientUtils.createChannel(settings(ingress.port), system.log)
-        // well over connection-attempts x connecting-timeout
         Thread.sleep(6000)
         info(s"accepted connections while hanging: ${ingress.accepted.get}")
         channel.done.isCompleted shouldBe false
@@ -153,7 +151,7 @@ class ConnectingTimeoutGiveUpSpec
       } finally ingress.close()
     }
 
-    "keep retrying, not give up, when the TLS handshake hangs" in {
+    "by default keep retrying when the TLS handshake hangs" in {
       val ingress = new FakeIngress(Hang)
       try {
         val channel = NettyClientUtils.createChannel(settings(ingress.port).withTls(true), system.log)
@@ -166,11 +164,27 @@ class ConnectingTimeoutGiveUpSpec
       } finally ingress.close()
     }
 
+    "give up after connection-attempts abandoned attempts when the handshake hangs" in {
+      val ingress = new FakeIngress(Hang)
+      try {
+        val channel = NettyClientUtils.createChannel(settings(ingress.port).withConnectionAttempts(3), system.log)
+        val failure = channel.done.failed.futureValue
+        failure shouldBe a[ClientConnectionException]
+        failure.getMessage shouldBe "Unable to establish connection after [3] attempts"
+        ingress.accepted.get shouldBe 3
+        val callFailure = call(channel).failed.futureValue
+        callFailure.getMessage should include("closed")
+        callFailure.getCause shouldBe failure
+      } finally ingress.close()
+    }
+
     "hang in CONNECTING but never give up when connecting-timeout is infinite" in {
       val ingress = new FakeIngress(Hang)
       try {
         val channel =
-          NettyClientUtils.createChannel(settings(ingress.port).withConnectingTimeout(Duration.Inf), system.log)
+          NettyClientUtils.createChannel(
+            settings(ingress.port).withConnectionAttempts(1).withConnectingTimeout(Duration.Inf),
+            system.log)
         Thread.sleep(4000)
         channel.done.isCompleted shouldBe false
         ingress.accepted.get shouldBe 1
@@ -179,17 +193,17 @@ class ConnectingTimeoutGiveUpSpec
       } finally ingress.close()
     }
 
-    "never give up against a refused port, sticky TRANSIENT_FAILURE is only counted once" in {
+    "not give up against a refused port with connection-attempts > 1, sticky TRANSIENT_FAILURE is only counted once" in {
       val port = unusedPort()
-      val channel = NettyClientUtils.createChannel(settings(port), system.log)
-      // much longer than 3 x 1s connecting-timeout, and grpc-java keeps retrying with backoff meanwhile
+      val channel = NettyClientUtils.createChannel(settings(port).withConnectionAttempts(3), system.log)
+      // grpc-java keeps retrying with backoff meanwhile, staying in TRANSIENT_FAILURE
       Thread.sleep(4000)
       channel.done.isCompleted shouldBe false
       channel.shutdown()
       channel.done.futureValue
     }
 
-    "after having been READY, keep retrying hanging reconnects and recover once the remote does" in {
+    "by default, after having been READY, keep retrying hanging reconnects and recover once the remote does" in {
       val ingress = new FakeIngress(Http2)
       try {
         val channel = NettyClientUtils.createChannel(settings(ingress.port), system.log)

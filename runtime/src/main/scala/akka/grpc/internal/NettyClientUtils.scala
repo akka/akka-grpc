@@ -186,6 +186,17 @@ object NettyClientUtils {
             .asRuntimeException())
       } else None
 
+    // a call racing a shutdown can pass the check above and then fail in grpc-java
+    def failFastIfClosed[T](call: => Future[T]): Future[T] =
+      closedFailure() match {
+        case Some(failure) => Future.failed(failure)
+        case None =>
+          try call
+          catch {
+            case e: StatusRuntimeException => Future.failed(closedFailure().getOrElse(e))
+          }
+      }
+
     new InternalChannel {
       override def shutdown() = channel.shutdown()
       override def done = channelClosedPromise.future
@@ -195,16 +206,14 @@ object NettyClientUtils {
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[O] =
-        closedFailure() match {
-          case Some(failure) => Future.failed(failure)
-          case None =>
-            val listener = new UnaryCallAdapter[O]
-            val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
-            call.start(listener, headers.toGoogleGrpcMetadata())
-            call.sendMessage(request)
-            call.halfClose()
-            call.request(2)
-            listener.future
+        failFastIfClosed {
+          val listener = new UnaryCallAdapter[O]
+          val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+          call.start(listener, headers.toGoogleGrpcMetadata())
+          call.sendMessage(request)
+          call.halfClose()
+          call.request(2)
+          listener.future
         }
 
       override def invokeWithMetadata[I, O](
@@ -212,16 +221,14 @@ object NettyClientUtils {
           headers: MetadataImpl,
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[GrpcSingleResponse[O]] =
-        closedFailure() match {
-          case Some(failure) => Future.failed(failure)
-          case None =>
-            val listener = new UnaryCallWithMetadataAdapter[O]
-            val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
-            call.start(listener, headers.toGoogleGrpcMetadata())
-            call.sendMessage(request)
-            call.halfClose()
-            call.request(2)
-            listener.future
+        failFastIfClosed {
+          val listener = new UnaryCallWithMetadataAdapter[O]
+          val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
+          call.start(listener, headers.toGoogleGrpcMetadata())
+          call.sendMessage(request)
+          call.halfClose()
+          call.request(2)
+          listener.future
         }
 
       override def invokeWithMetadata[I, O](
