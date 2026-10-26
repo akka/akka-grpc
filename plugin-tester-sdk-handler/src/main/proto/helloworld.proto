@@ -10,6 +10,8 @@ package helloworld;
 service GreeterService {
     rpc SayHello (HelloRequest) returns (HelloReply) {}
     rpc ItKeepsReplying (HelloRequest) returns (stream HelloReply) {}
+    rpc ItKeepsTalking (stream HelloRequest) returns (HelloReply) {}
+    rpc StreamHellos (stream HelloRequest) returns (stream HelloReply) {}
 }
 message HelloRequest {
     string name = 1;

@@ -6,6 +6,7 @@ package akka.grpc.internal
 
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.HttpEntity
+import akka.http.javadsl.model.{ HttpRequest => JHttpRequest }
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.testkit.TestKit
@@ -80,18 +81,30 @@ class InstancePerRequestPFSpec
 
     "pass the interceptor from the request attribute to methods created with an interceptor" in {
       val seenInterceptors = new ConcurrentLinkedQueue[InvocationInterceptor]()
+      val recording = new RecordingInterceptor
+      val constructedInsideInterceptor = new ConcurrentLinkedQueue[Boolean]()
       val pf = pfWith(
+        { _ =>
+          constructedInsideInterceptor.add(recording.inside)
+          new TestServiceImpl
+        },
         new InstancePerRequestPF.GrpcMethod[TestService](
           "Echo",
-          { (_, _, _, _, request, interceptor) =>
+          { (instanceFactory, _, _, _, request, interceptor) =>
             seenInterceptors.add(interceptor)
             CompletableFuture.completedFuture(
-              interceptor.intercept(request, "Echo", () => HttpResponse(entity = "intercepted")))
+              interceptor.intercept(
+                request,
+                "Echo",
+                () => {
+                  instanceFactory.get()
+                  HttpResponse(entity = "intercepted")
+                }))
           }))
 
-      val recording = new RecordingInterceptor
-      pf.apply(echoRequest.addAttribute(InvocationInterceptor.AttributeKey, recording)).futureValue
+      pf.apply(echoRequest.addAttribute(InvocationInterceptor.Key, recording)).futureValue
       recording.calls.asScala.toList shouldBe List("Echo")
+      constructedInsideInterceptor.asScala.toList shouldBe List(true)
 
       pf.apply(echoRequest).futureValue
       seenInterceptors.asScala.toList shouldBe List(recording, InvocationInterceptor.NoOp)
@@ -100,12 +113,13 @@ class InstancePerRequestPFSpec
     "invoke methods created without an interceptor when the interceptor attribute is set" in {
       // generated code from before InvocationInterceptor was introduced uses this constructor
       val pf = pfWith(
+        _ => new TestServiceImpl,
         new InstancePerRequestPF.GrpcMethod[TestService](
           "Echo",
           { (_, _, _, _, _) => CompletableFuture.completedFuture(HttpResponse(entity = "old")) }))
 
       val recording = new RecordingInterceptor
-      val response = pf.apply(echoRequest.addAttribute(InvocationInterceptor.AttributeKey, recording)).futureValue
+      val response = pf.apply(echoRequest.addAttribute(InvocationInterceptor.Key, recording)).futureValue
       response.entity.asInstanceOf[HttpEntity.Strict].getData.utf8String should ===("old")
       recording.calls shouldBe empty
     }
@@ -114,9 +128,9 @@ class InstancePerRequestPFSpec
 
   private val echoRequest = HttpRequest(uri = "https://example.com/com.akka.grpc.TestService/Echo")
 
-  private def pfWith(method: InstancePerRequestPF.GrpcMethod[TestService]) =
+  private def pfWith(factory: HttpRequest => TestService, method: InstancePerRequestPF.GrpcMethod[TestService]) =
     new InstancePerRequestPF[TestService](
-      _ => new TestServiceImpl,
+      factory,
       "com.akka.grpc.TestService",
       Array(method),
       PartialFunction.empty,
@@ -124,9 +138,12 @@ class InstancePerRequestPFSpec
 
   private final class RecordingInterceptor extends InvocationInterceptor {
     val calls = new ConcurrentLinkedQueue[String]()
-    override def intercept[T](request: akka.http.javadsl.model.HttpRequest, method: String, call: Supplier[T]): T = {
+    @volatile var inside = false
+    override def intercept[T](request: JHttpRequest, method: String, call: Supplier[T]): T = {
       calls.add(method)
-      call.get()
+      inside = true
+      try call.get()
+      finally inside = false
     }
   }
 
