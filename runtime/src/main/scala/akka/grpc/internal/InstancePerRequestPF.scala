@@ -29,7 +29,7 @@ import scala.jdk.FutureConverters.CompletionStageOps
 @InternalStableApi
 private[akka] object InstancePerRequestPF {
   // instantiated by generated code so must be kept binary compatible.
-  final class GrpcMethod[S](
+  final class GrpcMethod[S] private (
       val name: String,
       val handle: (
           // service instance
@@ -38,7 +38,41 @@ private[akka] object InstancePerRequestPF {
           akka.japi.Function[akka.actor.ActorSystem, akka.japi.Function[java.lang.Throwable, akka.grpc.Trailers]],
           Materializer,
           ClassicActorSystemProvider,
-          akka.http.javadsl.model.HttpRequest) => CompletionStage[akka.http.javadsl.model.HttpResponse])
+          akka.http.javadsl.model.HttpRequest) => CompletionStage[akka.http.javadsl.model.HttpResponse],
+      private[internal] val interceptedHandle: (
+          S,
+          akka.japi.Function[akka.actor.ActorSystem, akka.japi.Function[java.lang.Throwable, akka.grpc.Trailers]],
+          Materializer,
+          ClassicActorSystemProvider,
+          akka.http.javadsl.model.HttpRequest,
+          InvocationInterceptor) => CompletionStage[akka.http.javadsl.model.HttpResponse]) {
+
+    // used by generated code from before InvocationInterceptor was introduced
+    def this(
+        name: String,
+        handle: (
+            S,
+            akka.japi.Function[akka.actor.ActorSystem, akka.japi.Function[java.lang.Throwable, akka.grpc.Trailers]],
+            Materializer,
+            ClassicActorSystemProvider,
+            akka.http.javadsl.model.HttpRequest) => CompletionStage[akka.http.javadsl.model.HttpResponse]) =
+      this(name, handle, (s, eHandler, mat, system, request, _) => handle(s, eHandler, mat, system, request))
+
+    def this(
+        name: String,
+        interceptedHandle: (
+            S,
+            akka.japi.Function[akka.actor.ActorSystem, akka.japi.Function[java.lang.Throwable, akka.grpc.Trailers]],
+            Materializer,
+            ClassicActorSystemProvider,
+            akka.http.javadsl.model.HttpRequest,
+            InvocationInterceptor) => CompletionStage[akka.http.javadsl.model.HttpResponse]) =
+      this(
+        name,
+        (s, eHandler, mat, system, request) =>
+          interceptedHandle(s, eHandler, mat, system, request, InvocationInterceptor.NoOp),
+        interceptedHandle)
+  }
 }
 
 /**
@@ -96,8 +130,9 @@ private[akka] final class InstancePerRequestPF[S](
     methodByName.get(method) match {
       case Some(grpcMethod) =>
         val implementation = factory(request)
+        val interceptor = request.attribute(InvocationInterceptor.AttributeKey).getOrElse(InvocationInterceptor.NoOp)
         grpcMethod
-          .handle(implementation, javaEHandler, materializer, system, request)
+          .interceptedHandle(implementation, javaEHandler, materializer, system, request, interceptor)
           .asScala
           .asInstanceOf[Future[HttpResponse]] // HTTP scaladsl response is always javadsl
       case None =>

@@ -15,7 +15,11 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.function.Supplier
 import scala.concurrent.ExecutionException
+import scala.jdk.CollectionConverters._
 
 class InstancePerRequestPFSpec
     extends TestKit(ActorSystem("InstancePerRequestPFSpec"))
@@ -74,6 +78,56 @@ class InstancePerRequestPFSpec
       echoResponse.entity.asInstanceOf[HttpEntity.Strict].getData.utf8String should ===("hello")
     }
 
+    "pass the interceptor from the request attribute to methods created with an interceptor" in {
+      val seenInterceptors = new ConcurrentLinkedQueue[InvocationInterceptor]()
+      val pf = pfWith(
+        new InstancePerRequestPF.GrpcMethod[TestService](
+          "Echo",
+          { (_, _, _, _, request, interceptor) =>
+            seenInterceptors.add(interceptor)
+            CompletableFuture.completedFuture(
+              interceptor.intercept(request, "Echo", () => HttpResponse(entity = "intercepted")))
+          }))
+
+      val recording = new RecordingInterceptor
+      pf.apply(echoRequest.addAttribute(InvocationInterceptor.AttributeKey, recording)).futureValue
+      recording.calls.asScala.toList shouldBe List("Echo")
+
+      pf.apply(echoRequest).futureValue
+      seenInterceptors.asScala.toList shouldBe List(recording, InvocationInterceptor.NoOp)
+    }
+
+    "invoke methods created without an interceptor when the interceptor attribute is set" in {
+      // generated code from before InvocationInterceptor was introduced uses this constructor
+      val pf = pfWith(
+        new InstancePerRequestPF.GrpcMethod[TestService](
+          "Echo",
+          { (_, _, _, _, _) => CompletableFuture.completedFuture(HttpResponse(entity = "old")) }))
+
+      val recording = new RecordingInterceptor
+      val response = pf.apply(echoRequest.addAttribute(InvocationInterceptor.AttributeKey, recording)).futureValue
+      response.entity.asInstanceOf[HttpEntity.Strict].getData.utf8String should ===("old")
+      recording.calls shouldBe empty
+    }
+
+  }
+
+  private val echoRequest = HttpRequest(uri = "https://example.com/com.akka.grpc.TestService/Echo")
+
+  private def pfWith(method: InstancePerRequestPF.GrpcMethod[TestService]) =
+    new InstancePerRequestPF[TestService](
+      _ => new TestServiceImpl,
+      "com.akka.grpc.TestService",
+      Array(method),
+      PartialFunction.empty,
+      system)
+
+  private final class RecordingInterceptor extends InvocationInterceptor {
+    val calls = new ConcurrentLinkedQueue[String]()
+    override def intercept[T](request: akka.http.javadsl.model.HttpRequest, method: String, call: Supplier[T]): T = {
+      calls.add(method)
+      call.get()
+    }
   }
 
   override protected def afterAll(): Unit = {

@@ -94,11 +94,11 @@ public final class @{serviceName}ScalaHandlerFactory implements InstancePerReque
     }
 
      @for(method <- service.methods) {
-       private CompletionStage<akka.http.javadsl.model.HttpResponse> @{method.name}(@{serviceName} instance, akka.japi.Function<akka.actor.ActorSystem,akka.japi.Function<java.lang.Throwable,akka.grpc.Trailers>> eHandler, Materializer mat, ClassicActorSystemProvider systemProvider, akka.http.javadsl.model.HttpRequest request) {
+       private CompletionStage<akka.http.javadsl.model.HttpResponse> @{method.name}(@{serviceName} instance, akka.japi.Function<akka.actor.ActorSystem,akka.japi.Function<java.lang.Throwable,akka.grpc.Trailers>> eHandler, Materializer mat, ClassicActorSystemProvider systemProvider, akka.http.javadsl.model.HttpRequest request, akka.grpc.internal.InvocationInterceptor interceptor) {
          return GrpcMarshalling.negotiated(request, (reader, writer) -> {
            final CompletionStage<akka.http.javadsl.model.HttpResponse> response =
               @{method.unmarshal}(request.entity(), @method.deserializer.name, mat, reader)
-              .@{if(method.outputStreaming || !method.asyncReturnValue) { "thenApplyAsync" } else { "thenComposeAsync" }}(e -> instance.@{method.name}(e), mat.executionContext())
+              .@{if(method.outputStreaming || !method.asyncReturnValue) { "thenApplyAsync" } else { "thenComposeAsync" }}(e -> interceptor.intercept(request, "@method.grpcName", () -> instance.@{method.name}(e)), mat.executionContext())
               .thenApply(e -> @{method.marshal}(e, @method.serializer.name, writer, systemProvider.classicSystem(), eHandler));
 
             // note, the other impls cover the Not implemented with the ehandler as well
