@@ -9,16 +9,22 @@ import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.grpc.GrpcClientSettings
+import akka.grpc.GrpcServiceException
+import akka.grpc.internal.GrpcProtocolNative
 import akka.grpc.internal.InvocationInterceptor
 import akka.grpc.scaladsl.GrpcExceptionHandler
 import akka.http.javadsl.model.{ HttpRequest => JHttpRequest }
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.model.HttpMethods
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.stream.scaladsl.Sink
+import akka.util.ByteString
 import com.typesafe.config.ConfigFactory
+import io.grpc.Status
 import example.myapp.helloworld.grpc.GreeterService
 import example.myapp.helloworld.grpc.GreeterServiceClient
 import example.myapp.helloworld.grpc.GreeterServiceScalaHandlerFactory
@@ -39,6 +45,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 import scala.jdk.FutureConverters.CompletionStageOps
+import scala.util.Try
 
 object InvocationInterceptorSpec {
   final case class Reply(constructed: String, invoked: String, later: String, thread: String)
@@ -143,7 +150,7 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
 
   "The SDK instance per request handler" should {
 
-    "create the instance and invoke unary methods through the interceptor from the request attribute" in {
+    "invoke unary methods through the interceptor from the request attribute, creating the instance outside of it" in {
       intercepted.clear()
       val reply = parse(
         interceptedClient
@@ -153,7 +160,7 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
           .asScala
           .futureValue)
 
-      reply.constructed shouldBe "intercepted-SayHello"
+      reply.constructed shouldBe NotIntercepted
       reply.invoked shouldBe "intercepted-SayHello"
       intercepted.asScala.toList shouldBe List(("SayHello", reply.thread, "unary"))
     }
@@ -180,7 +187,7 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
         .map(parse)
 
       replies should have size 1
-      replies.head.constructed shouldBe "intercepted-ItKeepsReplying"
+      replies.head.constructed shouldBe NotIntercepted
       replies.head.invoked shouldBe "intercepted-ItKeepsReplying"
       replies.head.later shouldBe NotIntercepted
       intercepted.asScala.toList shouldBe List(("ItKeepsReplying", replies.head.thread, "streaming"))
@@ -196,7 +203,7 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
           .asScala
           .futureValue)
 
-      reply.constructed shouldBe "intercepted-ItKeepsTalking"
+      reply.constructed shouldBe NotIntercepted
       reply.invoked shouldBe "intercepted-ItKeepsTalking"
       reply.later shouldBe s"$NotIntercepted,$NotIntercepted"
       intercepted.asScala.toList shouldBe List(("ItKeepsTalking", reply.thread, "client-streaming"))
@@ -214,10 +221,36 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
         .map(parse)
 
       replies should have size 2
-      replies.map(_.constructed).distinct shouldBe Seq("intercepted-StreamHellos")
+      replies.map(_.constructed).distinct shouldBe Seq(NotIntercepted)
       replies.map(_.invoked).distinct shouldBe Seq("intercepted-StreamHellos")
       replies.map(_.later).distinct shouldBe Seq(NotIntercepted)
       intercepted.asScala.toList shouldBe List(("StreamHellos", replies.head.thread, "bidi"))
+    }
+
+    "create the instance before unmarshalling the request, so a denial wins over a malformed body" in {
+      // the Akka runtime runs ACL and JWT checks in the factory
+      val denyingPf = new GreeterServiceScalaHandlerFactory().partialInstancePerRequest(
+        _ => throw new GrpcServiceException(Status.PERMISSION_DENIED),
+        "",
+        GrpcExceptionHandler.defaultMapper(system.classicSystem),
+        system,
+        Materializer(system))
+      // gRPC frame header for a 3 byte message, followed by bytes that are not a valid protobuf message
+      val malformedBody = ByteString(0, 0, 0, 0, 3, 0xff, 0xff, 0xff)
+      val request = HttpRequest(
+        method = HttpMethods.POST,
+        uri = "/helloworld.GreeterService/SayHello",
+        entity = HttpEntity(GrpcProtocolNative.contentType, malformedBody))
+
+      val grpcStatus =
+        Future
+          .fromTry(Try(denyingPf(request.addAttribute(InvocationInterceptor.Key, TestInterceptor))))
+          .flatten
+          .map(_.headers.find(_.is("grpc-status")).map(_.value.toInt))(system.executionContext)
+          .recover { case e: GrpcServiceException => Some(e.status.getCode.value) }(system.executionContext)
+          .futureValue
+
+      grpcStatus shouldBe Some(Status.Code.PERMISSION_DENIED.value)
     }
 
     "create the instance and invoke methods directly when there is no interceptor attribute" in {

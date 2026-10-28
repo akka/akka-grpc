@@ -90,21 +90,15 @@ class InstancePerRequestPFSpec
         },
         new InstancePerRequestPF.GrpcMethod[TestService](
           "Echo",
-          { (instanceFactory, _, _, _, request, interceptor) =>
+          { (_, _, _, _, request, interceptor) =>
             seenInterceptors.add(interceptor)
             CompletableFuture.completedFuture(
-              interceptor.intercept(
-                request,
-                "Echo",
-                () => {
-                  instanceFactory.get()
-                  HttpResponse(entity = "intercepted")
-                }))
+              interceptor.intercept(request, "Echo", () => HttpResponse(entity = "intercepted")))
           }))
 
       pf.apply(echoRequest.addAttribute(InvocationInterceptor.Key, recording)).futureValue
       recording.calls.asScala.toList shouldBe List("Echo")
-      constructedInsideInterceptor.asScala.toList shouldBe List(true)
+      constructedInsideInterceptor.asScala.toList shouldBe List(false)
 
       pf.apply(echoRequest).futureValue
       seenInterceptors.asScala.toList shouldBe List(recording, InvocationInterceptor.NoOp)

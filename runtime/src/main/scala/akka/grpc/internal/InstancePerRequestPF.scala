@@ -33,8 +33,8 @@ private[akka] object InstancePerRequestPF {
   final class GrpcMethod[S](
       val name: String,
       private[internal] val handleWithInterceptor: (
-          // creates the service instance, called inside the interceptor
-          java.util.function.Supplier[S],
+          // service instance, created before the request is unmarshalled, outside of the interceptor
+          S,
           // exception handler
           akka.japi.Function[akka.actor.ActorSystem, akka.japi.Function[java.lang.Throwable, akka.grpc.Trailers]],
           Materializer,
@@ -51,7 +51,7 @@ private[akka] object InstancePerRequestPF {
             Materializer,
             ClassicActorSystemProvider,
             akka.http.javadsl.model.HttpRequest) => CompletionStage[akka.http.javadsl.model.HttpResponse]) =
-      this(name, (factory, eHandler, mat, system, request, _) => handle(factory.get(), eHandler, mat, system, request))
+      this(name, (instance, eHandler, mat, system, request, _) => handle(instance, eHandler, mat, system, request))
 
     // only kept for binary compatibility, not used by InstancePerRequestPF
     def handle: (
@@ -61,7 +61,7 @@ private[akka] object InstancePerRequestPF {
         ClassicActorSystemProvider,
         akka.http.javadsl.model.HttpRequest) => CompletionStage[akka.http.javadsl.model.HttpResponse] =
       (s, eHandler, mat, system, request) =>
-        handleWithInterceptor(() => s, eHandler, mat, system, request, InvocationInterceptor.NoOp)
+        handleWithInterceptor(s, eHandler, mat, system, request, InvocationInterceptor.NoOp)
   }
 }
 
@@ -119,9 +119,11 @@ private[akka] final class InstancePerRequestPF[S](
   private def handle(request: HttpRequest, method: String): scala.concurrent.Future[HttpResponse] =
     methodByName.get(method) match {
       case Some(grpcMethod) =>
+        // created before unmarshalling, the factory may deny the request (ACL, JWT) by throwing
+        val instance = factory(request)
         val interceptor = request.attribute(InvocationInterceptor.Key).getOrElse(InvocationInterceptor.NoOp)
         grpcMethod
-          .handleWithInterceptor(() => factory(request), javaEHandler, materializer, system, request, interceptor)
+          .handleWithInterceptor(instance, javaEHandler, materializer, system, request, interceptor)
           .asScala
           .asInstanceOf[Future[HttpResponse]] // HTTP scaladsl response is always javadsl
       case None =>

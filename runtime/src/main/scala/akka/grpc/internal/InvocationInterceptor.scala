@@ -13,9 +13,10 @@ import java.util.function.Supplier
 /**
  * INTERNAL API
  *
- * Wraps the creation of the service instance and the invocation of each user service method in the generated SDK
- * ScalaHandlerFactory, both run synchronously inside `intercept` on the same thread. Picked up from the request
- * attribute [[InvocationInterceptor.Key]], when not present [[InvocationInterceptor.NoOp]] is used.
+ * Wraps the invocation of each user service method in the generated SDK ScalaHandlerFactory, run synchronously inside
+ * `intercept` on the same thread. Picked up from the request attribute [[InvocationInterceptor.Key]], when not present
+ * [[InvocationInterceptor.NoOp]] is used. The service instance is created before the request is unmarshalled, outside
+ * of the interceptor.
  *
  * Only that synchronous part is covered. User code that runs later, on other threads, runs outside of the interceptor:
  * continuations of a returned `CompletionStage`, the stages of a returned `Source` and the processing of the incoming
@@ -30,7 +31,7 @@ trait InvocationInterceptor {
    *
    * @param request the incoming request, its entity is already consumed, or being consumed, and must not be read
    * @param method the gRPC method name, without the service name, for example `SayHello`
-   * @param call creates the service instance and invokes the user service method
+   * @param call invokes the user service method
    */
   def intercept[T](request: HttpRequest, method: String, call: Supplier[T]): T
 }
