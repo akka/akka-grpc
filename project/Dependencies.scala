@@ -33,6 +33,7 @@ object Dependencies {
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.25.9" // checked synced by VersionSyncCheckPlugin
     val googleApi = "2.64.1"
+    val guava = "33.7.2"
 
     val scalaTest = "3.2.12"
 
@@ -56,6 +57,10 @@ object Dependencies {
     val grpcStub = "io.grpc" % "grpc-stub" % Versions.grpc
     val grpcNettyShaded = "io.grpc" % "grpc-netty-shaded" % Versions.grpc
     val grpcProtobuf = "io.grpc" % "grpc-protobuf" % Versions.grpc
+
+    // grpc only brings in guava 33.6.0, which has known vulnerabilities
+    val guava = "com.google.guava" % "guava" % s"${Versions.guava}-android"
+    val guavaJre = "com.google.guava" % "guava" % s"${Versions.guava}-jre"
 
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
@@ -105,6 +110,7 @@ object Dependencies {
     Compile.scalapbCompilerPlugin,
     Protobuf.protobufJava, // or else scalapb pulls older version in transitively
     Compile.grpcProtobuf,
+    Compile.guava,
     Test.scalaTest)
 
   val runtime = l ++= Seq(
@@ -114,6 +120,7 @@ object Dependencies {
     Compile.grpcCore,
     Compile.grpcStub % "provided", // comes from the generators
     Compile.grpcNettyShaded,
+    Compile.guava,
     Compile.akkaStream,
     Compile.akkaHttpCore,
     Compile.akkaHttp,
@@ -130,6 +137,7 @@ object Dependencies {
     Compile.mavenCore,
     Compile.protocJar,
     Compile.plexusBuildApi,
+    Compile.guavaJre,
     Test.scalaTest)
 
   val sbtPlugin = Seq(
