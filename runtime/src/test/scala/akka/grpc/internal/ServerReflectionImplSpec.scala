@@ -18,6 +18,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class ServerReflectionImplSpec
@@ -27,6 +28,9 @@ class ServerReflectionImplSpec
     with ScalaFutures
     with BeforeAndAfterAll
     with OptionValues {
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(2, Seconds)), interval = scaled(Span(5, Millis)))
+
   import ServerReflectionImpl._
   "The Server Reflection implementation utilities" should {
     "split strings up until the next dot" in {
