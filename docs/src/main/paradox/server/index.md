@@ -10,6 +10,7 @@ Get our Quickstart project (available for @ref[Scala](../quickstart-scala/index.
  * [gRPC-Web](grpc-web.md)
  * [Server Reflection](reflection.md)
  * [Akka HTTP interop](akka-http.md)
+ * [Interceptors](interceptors.md)
  * [Details](details.md)
  * [Kubernetes](kubernetes.md)
 

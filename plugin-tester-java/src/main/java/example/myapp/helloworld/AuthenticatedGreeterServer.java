@@ -4,9 +4,15 @@
 
 package example.myapp.helloworld;
 
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import akka.http.javadsl.model.StatusCodes;
+import akka.grpc.GrpcServiceException;
+import akka.grpc.javadsl.ServerInterceptor;
+import akka.grpc.javadsl.ServerInterceptors;
+import akka.grpc.javadsl.ServerReflection;
+import akka.grpc.javadsl.ServiceHandler;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -19,6 +25,7 @@ import akka.http.javadsl.server.Route;
 import akka.japi.function.Function;
 import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
+import io.grpc.Status;
 
 import example.myapp.helloworld.grpc.GreeterService;
 import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory;
@@ -53,31 +60,39 @@ class AuthenticatedGreeterServer {
     );
     //#http-route
 
-    //#grpc-route
-    // Instantiate implementation
+    //#interceptor
+    // An interceptor that rejects calls without the right token
+    ServerInterceptor requireToken = (serviceName, methodName, request, next) -> {
+      boolean validToken = request.getHeader("token").map(header -> header.value().equals("XYZ")).orElse(false);
+      if (validToken) {
+        return next.apply(request);
+      } else {
+        return CompletableFuture.failedFuture(new GrpcServiceException(
+            Status.UNAUTHENTICATED.withDescription("Missing or invalid token for " + serviceName + "/" + methodName)));
+      }
+    };
+    //#interceptor
+
+    //#grpc-protected
+    // Create service handlers, the interceptor only applies to the greeter service
     GreeterService impl = new GreeterServiceImpl(mat);
-    Function<HttpRequest, CompletionStage<HttpResponse>> handler = GreeterServiceHandlerFactory.create(impl, sys);
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler =
+      ServiceHandler.concatOrNotFound(
+        ServerInterceptors.intercept(
+          GreeterService.description,
+          GreeterServiceHandlerFactory.create(impl, sys),
+          sys,
+          requireToken),
+        ServerReflection.create(Collections.singletonList(GreeterService.description), sys));
 
     // As a Route
     Route handlerRoute = handle(handler);
-    //#grpc-route
-
-    //#grpc-protected
-    // Protect the handler route
-    Route protectedHandler =
-      headerValueByName("token", token -> {
-        if ("XYZ".equals(token)) {
-          return handlerRoute;
-        } else {
-          return complete(StatusCodes.UNAUTHORIZED);
-        }
-      });
     //#grpc-protected
 
     //#combined
     Route finalRoute = concat(
       authentication,
-      protectedHandler
+      handlerRoute
     );
 
     return Http.get(sys)

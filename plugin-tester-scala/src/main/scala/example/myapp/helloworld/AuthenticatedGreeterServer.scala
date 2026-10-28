@@ -5,12 +5,18 @@
 package example.myapp.helloworld
 
 import akka.actor.ActorSystem
+import akka.grpc.GrpcServiceException
+import akka.grpc.scaladsl.ServerInterceptor
+import akka.grpc.scaladsl.ServerReflection
+import akka.grpc.scaladsl.ServiceHandler
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.server.{ Directive0, Route }
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import com.typesafe.config.ConfigFactory
 import example.myapp.helloworld.grpc._
+import io.grpc.Status
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -41,30 +47,31 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
     }
     //#http-route
 
-    //#grpc-route
-    // Create service handlers
+    //#interceptor
+    // An interceptor that rejects calls without the right token
+    val requireToken: ServerInterceptor = (serviceName, methodName, request, next) =>
+      request.headers.find(_.name == "token") match {
+        case Some(header) if header.value == "XYZ" => next(request)
+        case _ =>
+          Future.failed(
+            new GrpcServiceException(
+              Status.UNAUTHENTICATED.withDescription(s"Missing or invalid token for $serviceName/$methodName")))
+      }
+    //#interceptor
+
+    //#grpc-protected
+    // Create service handlers, the interceptor only applies to the greeter service
     val handler: HttpRequest => Future[HttpResponse] =
-      GreeterServiceHandler(new GreeterServiceImpl())
+      ServiceHandler.concatOrNotFound(
+        ServerInterceptor.intercept(GreeterServiceHandler.partial(new GreeterServiceImpl()), requireToken),
+        ServerReflection.partial(List(GreeterService)))
 
     // As a Route
     val handlerRoute: Route = handle(handler)
-    //#grpc-route
-
-    //#grpc-protected
-    // A directive to authorize calls
-    val authorizationDirective: Directive0 =
-      headerValueByName("token").flatMap { token =>
-        if (token == "XYZ") pass
-        else reject
-      }
     //#grpc-protected
 
     //#combined
-    val route = concat(
-      authenticationRoute,
-      authorizationDirective {
-        handlerRoute
-      })
+    val route = concat(authenticationRoute, handlerRoute)
 
     // Bind service handler servers to localhost:8082
     val binding = Http().newServerAt("127.0.0.1", 8082).bind(route)
