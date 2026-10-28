@@ -5,13 +5,16 @@ import org.gradle.api.Project
 
 class AkkaGrpcPluginExtension {
 
-    static final String PROTOC_VERSION = "3.25.8" // checked synced by VersionSyncCheckPlugin
+    static final String PROTOC_VERSION = "3.25.9" // checked synced by VersionSyncCheckPlugin
 
     static final String PROTOC_PLUGIN_SCALA_VERSION = "2.12"
 
-    static final String GRPC_VERSION = "1.77.0" // checked synced by VersionSyncCheckPlugin
+    static final String GRPC_VERSION = "1.83.1" // checked synced by VersionSyncCheckPlugin
 
     static final String PLUGIN_CODE = 'com.lightbend.akka.grpc.gradle'
+
+    // protobuf-gradle-plugin 0.10.x requires Gradle 7.6+
+    static final String MIN_GRADLE_VERSION = "7.6"
 
     // workaround for tests, where there's no jar and MANIFEST.MF can't be read
     final String pluginVersion = System.getProperty("akkaGrpcTest.pluginVersion", AkkaGrpcPlugin.class.package.implementationVersion)
@@ -24,6 +27,11 @@ class AkkaGrpcPluginExtension {
     boolean includeStdTypes = false
 
     List<String> extraGenerators = []
+
+    List<String> clientInclude = []
+    List<String> clientExclude = []
+    List<String> serverInclude = []
+    List<String> serverExclude = []
 
     private final Project project
 

@@ -5,7 +5,8 @@
 package akka.grpc.maven
 
 import java.io.{ ByteArrayOutputStream, File, PrintStream }
-import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings }
+import java.util.Locale
+import akka.grpc.gen.{ CodeGenerator, Logger, ProtocSettings, ProtocVersion }
 import akka.grpc.gen.javadsl.{ JavaClientCodeGenerator, JavaInterfaceCodeGenerator, JavaServerCodeGenerator }
 import akka.grpc.gen.scaladsl.{ ScalaClientCodeGenerator, ScalaServerCodeGenerator, ScalaTraitCodeGenerator }
 
@@ -78,9 +79,20 @@ object AbstractGenerateMojo {
    */
   def parseGeneratorSettings(generatorSettings: java.util.Map[String, String]): Seq[String] = {
     import scala.jdk.CollectionConverters._
-    generatorSettings.asScala.filter(_._2.toLowerCase() != "false").keys.toSeq.map { params =>
-      "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase()}"))
+    generatorSettings.asScala.filter(_._2.toLowerCase(Locale.ROOT) != "false").keys.toSeq.map { params =>
+      "[A-Z]".r.replaceAllIn(params, (s => s"_${s.group(0).toLowerCase(Locale.ROOT)}"))
     }
+  }
+
+  def useLocalProtoc(protocExecutable: String): Boolean =
+    protocExecutable != null && protocExecutable.trim.nonEmpty
+
+  def runLocalProtoc(protocExecutable: String, args: Seq[String]): Int = {
+    // Run a local protoc binary, routing its output through `System.out`/`System.err` so that the
+    // surrounding capture and error parsing keep working as they do for the protoc-jar runner.
+    import scala.sys.process.{ Process, ProcessLogger }
+    val logger = ProcessLogger(out => System.out.println(out), err => System.err.println(err))
+    Process(protocExecutable +: args).!(logger)
   }
 }
 
@@ -118,10 +130,26 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
   var extraGenerators: java.util.ArrayList[String] = _
 
   @BeanProperty
+  var clientInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var clientExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverInclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
+  var serverExclude: java.util.ArrayList[String] = _
+
+  @BeanProperty
   var includeStdTypes: Boolean = _
 
   @BeanProperty
   var protocVersion: String = _
+
+  // Path to a local protoc executable. When set, it is used instead of the protoc-jar download.
+  @BeanProperty
+  var protocExecutable: String = _
 
   def addGeneratedSourceRoot(generatedSourcesDir: String): Unit
 
@@ -139,6 +167,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
 
   override def execute(): Unit = {
     val chosenLanguage = parseLanguage(language)
+
+    if (useLocalProtoc(protocExecutable))
+      ProtocVersion.verify(protocExecutable.trim, protocVersion, message => getLog.warn(message))
 
     var directoryFound = false
 
@@ -184,30 +215,41 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
             if (generateClient) Seq(JavaInterfaceCodeGenerator, JavaClientCodeGenerator)
             else Seq.empty).flatten.distinct
 
-          val settings = parseGeneratorSettings(generatorSettings)
+          val settings = parseGeneratorSettings(generatorSettings) ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
           val javaSettings = settings.intersect(ProtocSettings.protocJava)
 
           Seq[Target](Target(protocbridge.gens.java, generatedSourcesDir, javaSettings)) ++
           glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
         case Scala =>
           // Add flatPackage option as default if it's not set.
+          val baseSettings = parseGeneratorSettings(generatorSettings)
           val settings =
-            if (generatorSettings.containsKey("flatPackage"))
-              parseGeneratorSettings(generatorSettings)
-            else
-              parseGeneratorSettings(generatorSettings) :+ "flat_package"
-          val scalapbSettings = settings.intersect(ProtocSettings.scalapb)
+            if (generatorSettings.containsKey("flatPackage")) baseSettings else baseSettings :+ "flat_package"
+          val settingsWithFilter = settings ++ genOptions(
+            "client_include" -> clientInclude,
+            "client_exclude" -> clientExclude,
+            "server_include" -> serverInclude,
+            "server_exclude" -> serverExclude)
+          val scalapbSettings = settingsWithFilter.intersect(ProtocSettings.scalapb)
 
           val glueGenerators = Seq(
             if (generateServer) Seq(ScalaTraitCodeGenerator, ScalaServerCodeGenerator) else Seq.empty,
             if (generateClient) Seq(ScalaTraitCodeGenerator, ScalaClientCodeGenerator) else Seq.empty).flatten.distinct
           // TODO whitelist scala generator parameters instead of blacklist
           Seq[Target]((JvmGenerator("scala", ScalaPbCodeGenerator), scalapbSettings) -> generatedSourcesDir) ++
-          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settings))
+          glueGenerators.map(g => adaptAkkaGenerator(generatedSourcesDir, g, settingsWithFilter))
       }
 
-      val runProtoc: Seq[String] => Int = args =>
-        com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
+      val runProtoc: Seq[String] => Int =
+        if (useLocalProtoc(protocExecutable)) {
+          getLog.info(s"Using local protoc executable [$protocExecutable]")
+          args => runLocalProtoc(protocExecutable.trim, args)
+        } else
+          args => com.github.os72.protocjar.Protoc.runProtoc(protocVersion +: args.toArray)
       val protocOptions = if (includeStdTypes) Seq("--include_std_types") else Seq.empty
 
       compile(runProtoc, schemas, protoDir, protocOptions, targets)
@@ -309,4 +351,9 @@ abstract class AbstractGenerateMojo @Inject() (buildContext: BuildContext) exten
     val jvmGenerator = JvmGenerator(generator.name, adapted)
     (jvmGenerator, settings) -> targetPath
   }
+
+  private def genOptions(entries: (String, java.util.ArrayList[String])*): Seq[String] =
+    entries.collect {
+      case (key, values) if values != null && !values.isEmpty => s"$key=${values.asScala.mkString(";")}"
+    }
 }

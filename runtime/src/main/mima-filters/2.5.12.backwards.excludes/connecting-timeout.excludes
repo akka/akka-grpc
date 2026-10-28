@@ -1,0 +1,2 @@
+# connecting-timeout setting (watchdog for a channel stuck in CONNECTING), internal constructor
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.GrpcClientSettings.this")

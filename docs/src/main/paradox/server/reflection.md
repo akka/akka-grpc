@@ -4,7 +4,7 @@
 
 This feature is **experimental** (@github[Issue #850](#850)).
 
-It implements version v1alpha of the [upstream standard](https://github.com/grpc/grpc/blob/master/src/proto/grpc/reflection/v1alpha/reflection.proto),
+It implements version v1alpha of the [upstream standard](https://github.com/grpc/grpc-proto/blob/master/grpc/reflection/v1/reflection.proto),
 so we might expect subsequent versions of the service to emerge. Also,
 the Java/Scala API's to enable this feature may still change in further
 versions of Akka gRPC, and future versions of this feature may not work with

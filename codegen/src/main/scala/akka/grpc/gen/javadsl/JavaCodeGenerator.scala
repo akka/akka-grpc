@@ -4,7 +4,7 @@
 
 package akka.grpc.gen.javadsl
 
-import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger }
+import akka.grpc.gen.{ BuildInfo, CodeGenerator, Logger, ServiceFilter }
 import com.google.protobuf.compiler.PluginProtos.{ CodeGeneratorRequest, CodeGeneratorResponse }
 import protocbridge.Artifact
 import templates.JavaCommon.txt.ApiInterface
@@ -44,6 +44,10 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     val generateScalaHandlerFactory = paramEnabled("generate_scala_handler_factory")
     val generateBlockingApis = paramEnabled("blocking_apis")
 
+    val patterns = ServiceFilter.parsePatterns(request.getParameter)
+    val filter =
+      serviceFilter(patterns.clientInclude, patterns.clientExclude, patterns.serverInclude, patterns.serverExclude)
+
     if (serverPowerApi && generateScalaHandlerFactory) {
       logger.warn(
         "Both server_power_apis and generate_scala_handler_factory enabled. Handler for power API not supported and will not be generated")
@@ -71,7 +75,7 @@ abstract class JavaCodeGenerator extends CodeGenerator {
       serverPowerApi,
       usePlayActions,
       asyncReturnValues = !generateBlockingApis,
-      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector
+      generateScalaHandlerFactory = generateScalaHandlerFactory)).toVector.filter(s => filter(s))
 
     for {
       service <- services
@@ -85,6 +89,20 @@ abstract class JavaCodeGenerator extends CodeGenerator {
     staticContent(logger, services).map(b.addFile)
 
     b.build()
+  }
+
+  /**
+   * Override to customize which services pass the filter for this generator.
+   * Default (trait/interface): passes if the service matches either client or server filter.
+   */
+  def serviceFilter(
+      clientInclude: Seq[String],
+      clientExclude: Seq[String],
+      serverInclude: Seq[String],
+      serverExclude: Seq[String]): Service => Boolean = {
+    val clientMatch = ServiceFilter.compile(clientInclude, clientExclude)
+    val serverMatch = ServiceFilter.compile(serverInclude, serverExclude)
+    s => clientMatch(s.grpcName) || serverMatch(s.grpcName)
   }
 
   def generateServiceInterface(service: Service): CodeGeneratorResponse.File = {

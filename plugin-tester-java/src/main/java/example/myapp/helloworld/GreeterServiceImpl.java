@@ -73,5 +73,11 @@ public class GreeterServiceImpl implements GreeterService {
     System.out.println("sayHello to stream...");
     return in.map(request -> HelloReply.newBuilder().setMessage("Hello, " + request.getName()).build());
   }
+
+  @Override
+  public CompletionStage<HelloReply> switch_(HelloRequest in) {
+    HelloReply reply = HelloReply.newBuilder().setMessage("Switched, " + in.getName()).build();
+    return CompletableFuture.completedFuture(reply);
+  }
 }
 //#full-service-impl

@@ -7,12 +7,11 @@ import akka.grpc.Dependencies.Versions.{ scala212, scala213, scala3 }
 import com.lightbend.paradox.projectinfo.ParadoxProjectInfoPluginKeys.projectInfoVersion
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import com.typesafe.tools.mima.plugin.MimaKeys._
-import xerial.sbt.Sonatype
 
 object Common extends AutoPlugin {
   override def trigger = allRequirements
 
-  override def requires = JvmPlugin && Sonatype
+  override def requires = JvmPlugin
 
   private val consoleDisabledOptions = Seq("-Xfatal-warnings", "-Ywarn-unused", "-Ywarn-unused-import")
 

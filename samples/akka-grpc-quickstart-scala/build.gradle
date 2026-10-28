@@ -2,19 +2,19 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/maven"
+      url = "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
     }
   }
 }
 plugins {
   id 'java'
   id 'application'
-  id 'com.lightbend.akka.grpc.gradle' version '2.5.10'
+  id 'com.lightbend.akka.grpc.gradle' version '2.5.13'
 }
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/maven"
+    url = "REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token"
   }
 }
 
@@ -40,14 +40,14 @@ dependencies {
 task runServer(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 
-  main = 'com.example.helloworld.GreeterServer'
+  mainClass = 'com.example.helloworld.GreeterServer'
 }
 
 
 task runClient(type: JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
 
-  main = 'com.example.helloworld.GreeterClient'
+  mainClass = 'com.example.helloworld.GreeterClient'
 
   // arguments to pass to the application
   if (project.hasProperty("GreeterClient.user"))
@@ -55,5 +55,5 @@ task runClient(type: JavaExec) {
 }
 
 application {
-  mainClassName = 'com.example.helloworld.GreeterServer'
+  mainClass = 'com.example.helloworld.GreeterServer'
 }

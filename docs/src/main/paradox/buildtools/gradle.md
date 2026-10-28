@@ -11,6 +11,11 @@ Consult [protobuf-gradle-plugin](https://github.com/google/protobuf-gradle-plugi
 The plugin can generate either Java or Scala classes, and then server and or client for the corresponding language.
 By default both client and server are generated and Java or Scala is autodetected depending on the presence of source files with language extension in `src/main`.
 
+@@@note
+Gradle 9 is supported from Akka gRPC 2.5.13, which requires Gradle 7.6 or later (earlier versions supported Gradle 5.6 and later).
+Earlier versions fail on Gradle 9 with `NoClassDefFoundError: org/gradle/util/VersionNumber`.
+@@@
+
 ### Installation
 
 @@@note
@@ -26,7 +31,7 @@ buildscript {
   repositories {
     gradlePluginPortal()
     maven {
-      url "https://repo.akka.io/<your token>/secure"
+      url = "<url from https://account.akka.io/token>"
     }
   }
 }
@@ -38,7 +43,7 @@ plugins {
 repositories {
   mavenCentral()
   maven {
-    url "https://repo.akka.io/<your token>/secure"
+    url = "<url from https://account.akka.io/token>"
   }
 }
 ```
@@ -61,9 +66,46 @@ Names and default values are provided.
         usePlayActions = false
         serverPowerApis = false
         extraGenerators = []
+        clientInclude = []
+        clientExclude = []
+        serverInclude = []
+        serverExclude = []
     }
     ```
     @@@
+
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+`build.gradle`
+:   @@@vars
+    ```gradle
+    akkaGrpc {
+        clientInclude = ['com.example.*', 'com.myapp.MyService']
+        clientExclude = ['com.example.internal.*']
+        serverInclude = ['com.example.MyService']
+        serverExclude = ['com.example.internal.*']
+    }
+    ```
+    @@@
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
+- `com.example.MyService` matches a specific service
+
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate entries:
+
+```gradle
+akkaGrpc {
+    serverInclude = ['com.example.Foo', 'com.example.Bar']
+}
+```
 
 ### Generating server "power APIs"
 
@@ -96,6 +138,21 @@ By default the plugin looks for `.proto` files under
 Loading `.proto` files from other directories could be configured [using settings](https://github.com/google/protobuf-gradle-plugin#customizing-source-directories)
 of `protobuf-gradle-plugin`.
 
+## Generated sources directory
+
+The generated sources are written to `build/generated/sources/proto/<source set>/<generator>`, for example
+`build/generated/sources/proto/main/akkaGrpc` for the Akka gRPC classes, and `java` or `scalapb` for the message classes.
+They are added to the source sets, so builds and IDEs importing the Gradle project pick them up without further configuration.
+
+@@@note
+Before Akka gRPC 2.5.13 the plugin used `protobuf-gradle-plugin` 0.8.x, which generated sources to `build/generated/source/proto`
+(`source` instead of `sources`). Update any IDE settings or scripts that refer to the old path.
+
+Since 2.5.13 the base directory can no longer be changed: `protobuf { generatedFilesBaseDir = ... }` fails with
+`Cannot set the value of read-only property 'generatedFilesBaseDir'`. Remove the setting, and copy the generated
+sources with a separate task if they are needed in another location.
+@@@
+
 ## Loading proto files from artifacts
 
 In gRPC it is common to make the version of the protocol you are supporting
@@ -112,7 +169,7 @@ Build script needs a custom task
     ```build.gradle
     task runServer(type: JavaExec) {
       classpath = sourceSets.main.runtimeClasspath
-      main = 'com.example.helloworld.GreeterServer'
+      mainClass = 'com.example.helloworld.GreeterServer'
     }
     ```
     @@@

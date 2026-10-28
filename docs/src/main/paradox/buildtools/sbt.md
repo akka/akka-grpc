@@ -9,11 +9,11 @@ To add the sbt plugin and Akka gRPC dependencies to a project:
 :   @@@vars
 ```scala
 // in project/plugins.sbt:
-resolvers += "Akka library repository".at("https://repo.akka.io/<your token>/secure")
+resolvers += "Akka library repository".at("<url from https://account.akka.io/token>")
 addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % "$project.version$")
 //
 // in build.sbt:
-resolvers += "Akka library repository".at("resolvers += "Akka library repository".at("https://repo.akka.io/<your token>/secure")")
+resolvers += "Akka library repository".at("resolvers += "Akka library repository".at("<url from https://account.akka.io/token>")")
 enablePlugins(AkkaGrpcPlugin)
 ```
 @@@
@@ -29,6 +29,39 @@ It can be configured to just generate either server or client like so:
 What language to generate stubs for is also configurable:
 
 @@snip[build.sbt](/sbt-plugin/src/sbt-test/gen-scala-server/00-interop/build.sbt) { #languages-scala #languages-java #languages-both }
+
+### Filtering generated services
+
+You can filter which services to generate client or server code for independently, using include and exclude glob patterns. The patterns match against the full gRPC service name (e.g., `com.example.MyService`).
+
+```scala
+// Only generate client code for services matching these patterns
+akkaGrpcClientInclude := Seq("com.example.*", "com.myapp.MyService")
+
+// Exclude services from client code generation (applied after include)
+akkaGrpcClientExclude := Seq("com.example.internal.*")
+
+// Only generate server code for services matching these patterns
+akkaGrpcServerInclude := Seq("com.example.MyService")
+
+// Exclude services from server code generation (applied after include)
+akkaGrpcServerExclude := Seq("com.example.internal.*")
+```
+
+The trait/interface is generated for any service that passes either the client or server filter.
+
+If `include` is empty, all services are included. The `exclude` patterns are applied to the result of `include`.
+
+Examples:
+- `*` matches any service name
+- `com.example.*` matches any service whose name starts with `com.example.` (including services in nested packages such as `com.example.sub.MyService`, since `*` matches across `.`)
+- `com.example.MyService` matches a specific service
+
+Patterns must not contain commas (the brace-alternation syntax `{A,B}` is therefore not supported). To match several explicit names, list them as separate entries:
+
+```sbt
+akkaGrpcServerInclude := Seq("com.example.Foo", "com.example.Bar")
+```
 
 ### Configurations
 
@@ -86,6 +119,12 @@ protoc executable instead:
 ```scala
 PB.protocExecutable := file("/usr/local/bin/protoc")
 ```
+
+@@@ note
+
+The local `protoc` must belong to the same protobuf release as the version Akka gRPC is built against (`PB.protocVersion`). The plugin runs `protoc --version` and fails the build with a clear message if they belong to different releases, since mixing protoc and protobuf versions is unsupported and leads to build failures. Patch differences within the same release (for example `25.1` vs `25.8`) are allowed.
+
+@@@
 
 Available parameters are listed in the [ScalaPB documentation](https://scalapb.github.io/sbt-settings.html).
 

@@ -152,6 +152,7 @@ object GrpcClientSettings {
       getOptionalString(clientConfiguration, "trusted").map(SSLContextUtils.trustManagerFromResource),
       None,
       getPotentiallyInfiniteDuration(clientConfiguration, "deadline"),
+      getPotentiallyInfiniteDuration(clientConfiguration, "connecting-timeout"),
       getOptionalString(clientConfiguration, "user-agent"),
       clientConfiguration.getBoolean("use-tls"),
       getOptionalString(clientConfiguration, "load-balancing-policy"),
@@ -209,6 +210,7 @@ final class GrpcClientSettings private (
     val trustManager: Option[TrustManager],
     val sslContextProvider: Option[() => SSLContext],
     val deadline: Duration,
+    val connectingTimeout: Duration,
     val userAgent: Option[String],
     val useTls: Boolean,
     val loadBalancingPolicy: Option[String],
@@ -276,6 +278,21 @@ final class GrpcClientSettings private (
    * Each call will have this deadline.
    */
   def withDeadline(value: java.time.Duration): GrpcClientSettings = copy(deadline = Duration.fromNanos(value.toNanos))
+
+  /**
+   * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
+   * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Only supported for the Netty client backend. Use `Duration.Inf` to disable.
+   */
+  def withConnectingTimeout(value: Duration): GrpcClientSettings = copy(connectingTimeout = value)
+
+  /**
+   * If a connection attempt gets stuck in the CONNECTING state for longer than this duration,
+   * the client abandons that attempt and starts a new one rather than waiting on it forever.
+   * Only supported for the Netty client backend.
+   */
+  def withConnectingTimeout(value: java.time.Duration): GrpcClientSettings =
+    copy(connectingTimeout = Duration.fromNanos(value.toNanos))
 
   /**
    * Provides a custom `User-Agent` for the application.
@@ -360,6 +377,7 @@ final class GrpcClientSettings private (
       trustManager: Option[TrustManager] = trustManager,
       sslContextProvider: Option[() => SSLContext] = sslContextProvider,
       deadline: Duration = deadline,
+      connectingTimeout: Duration = connectingTimeout,
       userAgent: Option[String] = userAgent,
       useTls: Boolean = useTls,
       resolveTimeout: FiniteDuration = resolveTimeout,
@@ -382,6 +400,7 @@ final class GrpcClientSettings private (
       sslContext = sslContext,
       trustManager = trustManager,
       sslContextProvider = sslContextProvider,
+      connectingTimeout = connectingTimeout,
       userAgent = userAgent,
       useTls = useTls,
       resolveTimeout = resolveTimeout,

@@ -82,11 +82,11 @@ jobs:
       - name: Setup global resolver
         uses: ./.github/actions/global-resolver
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         # https://github.com/coursier/setup-action/releases
         uses: coursier/setup-action@v3.0.0
         with:
-          jvm: temurin:1.11.0.17
+          jvm: temurin:1.17.0.20
 
       - name: Publish Plugin to Gradle Plugin Repository
         run: cd gradle-plugin && ./gradlew publishPlugins -Pgradle.publish.key='${{ secrets.GRADLE_PUBLISH_KEY }}' -Pgradle.publish.secret='${{ secrets.GRADLE_SECRET }}'

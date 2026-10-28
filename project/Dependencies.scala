@@ -12,7 +12,7 @@ object Dependencies {
   object Versions {
     val scala212 = "2.12.20"
     val scala213 = "2.13.17"
-    val scala3 = "3.3.7"
+    val scala3 = "3.3.8"
 
     // the order in the list is important because the head will be considered the default.
     val CrossScalaForLib = Seq(scala213, scala3)
@@ -26,17 +26,17 @@ object Dependencies {
     val akkaHttp = "10.7.3"
     val akkaHttpBinary = VersionNumber(akkaHttp).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
-    val grpc = "1.77.0" // checked synced by VersionSyncCheckPlugin
+    val grpc = "1.83.1" // checked synced by VersionSyncCheckPlugin
 
     // Even referenced explicitly in the sbt-plugin's sbt-tests
     // If changing this, remember to update protoc plugin version to align in
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
-    val googleProtobuf = "3.25.8" // checked synced by VersionSyncCheckPlugin
-    val googleApi = "2.58.0"
+    val googleProtobuf = "3.25.9" // checked synced by VersionSyncCheckPlugin
+    val googleApi = "2.64.1"
 
     val scalaTest = "3.2.12"
 
-    val maven = "3.9.10"
+    val maven = "3.9.16"
   }
 
   object Compile {
@@ -63,7 +63,7 @@ object Dependencies {
       .exclude("io.grpc", "grpc-alts")
       .exclude("io.grpc", "grpc-xds")
 
-    val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.17"
+    val slf4jApi = "org.slf4j" % "slf4j-api" % "2.0.18"
     val mavenPluginApi = "org.apache.maven" % "maven-plugin-api" % Versions.maven // Apache v2
     val mavenCore = "org.apache.maven" % "maven-core" % Versions.maven // Apache v2
     val protocJar = "com.github.os72" % "protoc-jar" % "3.11.4"
@@ -82,7 +82,7 @@ object Dependencies {
   }
 
   object Runtime {
-    val logback = "ch.qos.logback" % "logback-classic" % "1.5.18" % "runtime" // Eclipse 1.0
+    val logback = "ch.qos.logback" % "logback-classic" % "1.6.3" % "runtime" // Eclipse 1.0
   }
 
   object Protobuf {

@@ -21,10 +21,6 @@ final case class Method(
     method: MethodDescriptor) {
   import Method._
 
-  require(
-    !ReservedWords.contains(name),
-    s"The method name `$name` is a reserved word in Java, please change it in your proto")
-
   def deserializer = Serializer(method, inputType)
   def serializer = Serializer(method, outputType)
 
@@ -81,8 +77,13 @@ object Method {
       descriptor)
   }
 
-  private def methodName(name: String) =
-    name.head.toLower +: name.tail
+  private def methodName(name: String) = {
+    val lowerCased = name.head.toLower +: name.tail
+    // Append `_` if the name would otherwise collide with a Java reserved word,
+    // matching grpc-java's behavior so the generated identifier stays valid.
+    if (ReservedWords.contains(lowerCased)) lowerCased + "_"
+    else lowerCased
+  }
 
   def messageType(t: Descriptor) =
     "_root_." + t.getFile.getOptions.getJavaPackage + "." + Service.protoName(t.getFile) + "." + t.getName
@@ -149,6 +150,8 @@ object Method {
     "float",
     "native",
     "super",
-    "while")
+    "while",
+    "true",
+    "false")
 
 }

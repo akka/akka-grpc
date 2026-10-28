@@ -162,7 +162,15 @@ object NettyClientUtils {
     val channelReadyPromise = Promise[Unit]()
     val channelClosedPromise = Promise[Done]()
 
-    ChannelUtils.monitorChannel(channelReadyPromise, channelClosedPromise, channel, connectionAttempts, log)
+    ChannelUtils.monitorChannel(
+      channelReadyPromise,
+      channelClosedPromise,
+      channel,
+      connectionAttempts,
+      settings.connectingTimeout,
+      log) { (delay, task) =>
+      system.scheduler.scheduleOnce(delay)(task())
+    }
 
     channelReadyPromise.future.onComplete {
       case Success(()) =>
