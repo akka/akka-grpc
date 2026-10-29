@@ -45,7 +45,6 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 import scala.jdk.FutureConverters.CompletionStageOps
-import scala.util.Try
 
 object InvocationInterceptorSpec {
   final case class Reply(constructed: String, invoked: String, later: String, thread: String)
@@ -228,6 +227,7 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
     }
 
     "create the instance before unmarshalling the request, so a denial wins over a malformed body" in {
+      intercepted.clear()
       // the Akka runtime runs ACL and JWT checks in the factory
       val denyingPf = new GreeterServiceScalaHandlerFactory().partialInstancePerRequest(
         _ => throw new GrpcServiceException(Status.PERMISSION_DENIED),
@@ -237,20 +237,20 @@ class InvocationInterceptorSpec extends AnyWordSpec with Matchers with ScalaFutu
         Materializer(system))
       // gRPC frame header for a 3 byte message, followed by bytes that are not a valid protobuf message
       val malformedBody = ByteString(0, 0, 0, 0, 3, 0xff, 0xff, 0xff)
-      val request = HttpRequest(
-        method = HttpMethods.POST,
-        uri = "/helloworld.GreeterService/SayHello",
-        entity = HttpEntity(GrpcProtocolNative.contentType, malformedBody))
 
-      val grpcStatus =
-        Future
-          .fromTry(Try(denyingPf(request.addAttribute(InvocationInterceptor.Key, TestInterceptor))))
-          .flatten
-          .map(_.headers.find(_.is("grpc-status")).map(_.value.toInt))(system.executionContext)
-          .recover { case e: GrpcServiceException => Some(e.status.getCode.value) }(system.executionContext)
-          .futureValue
+      for (method <- List("SayHello", "ItKeepsReplying", "ItKeepsTalking", "StreamHellos")) {
+        val request = HttpRequest(
+          method = HttpMethods.POST,
+          uri = s"/helloworld.GreeterService/$method",
+          entity = HttpEntity(GrpcProtocolNative.contentType, malformedBody))
 
-      grpcStatus shouldBe Some(Status.Code.PERMISSION_DENIED.value)
+        // the factory runs on the calling thread, so the denial is thrown rather than returned as a failed future
+        val denied = intercept[GrpcServiceException] {
+          denyingPf(request.addAttribute(InvocationInterceptor.Key, TestInterceptor))
+        }
+        withClue(method) { denied.status.getCode shouldBe Status.Code.PERMISSION_DENIED }
+      }
+      intercepted.isEmpty shouldBe true
     }
 
     "create the instance and invoke methods directly when there is no interceptor attribute" in {
