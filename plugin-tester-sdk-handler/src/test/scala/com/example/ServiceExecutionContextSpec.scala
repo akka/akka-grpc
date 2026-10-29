@@ -65,6 +65,12 @@ class ServiceExecutionContextSpec extends AnyWordSpec with Matchers with ScalaFu
             // thread name in the running stream (materialized by akka grpc)
             .map(_ => replyWithCurrentThreadName()))
     }
+
+    override def itKeepsTalking(in: Source[HelloRequest, NotUsed]): CompletionStage[HelloReply] =
+      CompletableFuture.completedFuture(replyWithCurrentThreadName())
+
+    override def streamHellos(in: Source[HelloRequest, NotUsed]): Source[HelloReply, NotUsed] =
+      Source.single(replyWithCurrentThreadName())
   }
 
   "The SDK instance per request handler" should {
