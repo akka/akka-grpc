@@ -99,6 +99,7 @@ object @{serviceName}Handler {
      */
     def withServerReflection(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
         akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
+          system,
           @{serviceName}Handler.partial(implementation),
           akka.grpc.scaladsl.ServerReflection.partial(List(@{service.name})))
 }

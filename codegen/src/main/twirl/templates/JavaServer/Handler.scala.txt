@@ -109,6 +109,7 @@ public class @{serviceName}HandlerFactory {
     @@SuppressWarnings("unchecked")
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> createWithServerReflection(@serviceName implementation, ClassicActorSystemProvider system) {
       return akka.grpc.javadsl.ServiceHandler.concatOrNotFound(
+          system,
           @{serviceName}HandlerFactory.create(implementation, system),
           akka.grpc.javadsl.ServerReflection.create(
             java.util.Collections.singletonList(@{service.name}.description),

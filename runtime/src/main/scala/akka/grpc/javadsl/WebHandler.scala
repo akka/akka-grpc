@@ -10,7 +10,7 @@ import java.util.concurrent.CompletionStage
 import akka.NotUsed
 import akka.actor.ClassicActorSystemProvider
 import akka.annotation.ApiMayChange
-import akka.grpc.javadsl.ServiceHandler.{ concatOrNotFound, notFound, unsupportedMediaType }
+import akka.grpc.javadsl.ServiceHandler.{ concatOrNotFound, unsupportedMediaType }
 import akka.http.javadsl.marshalling.Marshaller
 import akka.http.javadsl.model.{ HttpRequest, HttpResponse }
 import akka.http.javadsl.server.Route
@@ -69,11 +69,7 @@ object WebHandler {
       corsSettings: CorsSettings): JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
     import scala.jdk.CollectionConverters._
 
-    val discardNotFound: JFunction[HttpRequest, CompletionStage[HttpResponse]] = (req: HttpRequest) => {
-      req.discardEntityBytes(mat)
-      notFound
-    }
-    val servicesHandler = concatOrNotFound(handlers.asScala.toList :+ discardNotFound: _*)
+    val servicesHandler = concatOrNotFound(as, handlers.asScala.toList: _*)
     val servicesRoute = RouteAdapter(MarshallingDirectives.handleWith(servicesHandler.apply(_)))
     val handler = asyncHandler(cors(corsSettings, () => servicesRoute), as, mat)
     (req: HttpRequest) =>

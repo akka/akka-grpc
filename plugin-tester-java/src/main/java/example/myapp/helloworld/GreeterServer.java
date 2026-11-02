@@ -53,7 +53,7 @@ class GreeterServer {
       ServerReflection.create(List.of(GreeterService.description), sys);
 
     Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
-      ServiceHandler.concatOrNotFound(GreeterServiceHandlerFactory.create(impl, sys), reflectionPartial);
+      ServiceHandler.concatOrNotFound(sys, GreeterServiceHandlerFactory.create(impl, sys), reflectionPartial);
 
     return Http
       .get(sys)

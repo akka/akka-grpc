@@ -19,6 +19,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.GrpcProtocolNative
 import akka.grpc.internal.GrpcProtocolWeb
+import akka.grpc.javadsl.{ ServiceHandler => JServiceHandler }
 import akka.grpc.javadsl.{ WebHandler => JWebHandler }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.ContentType
@@ -101,6 +102,21 @@ class RejectedRequestEntitySpec
 
     "read the entity of a request for an unknown service" in {
       expectRead(unknownService, GrpcProtocolNative.contentType, Nil)
+    }
+  }
+
+  "concatOrNotFound with the actor system" should {
+    "read the entity of a request that no Scala handler matches" in {
+      val handler =
+        ServiceHandler.concatOrNotFound(system, GreeterServiceHandler.partial(new CountingGreeterServiceImpl))
+
+      expectEntityRead(handler)(unknownService, GrpcProtocolNative.contentType, Nil)
+    }
+
+    "read the entity of a request that no Java handler matches" in {
+      val handler = JServiceHandler.concatOrNotFound(system, javaHandler)
+
+      expectEntityRead(request => handler(request).asScala)(unknownService, GrpcProtocolNative.contentType, Nil)
     }
   }
 

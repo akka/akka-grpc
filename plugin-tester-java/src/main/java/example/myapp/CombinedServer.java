@@ -47,7 +47,7 @@ class CombinedServer {
         EchoServiceHandlerFactory.create(new EchoServiceImpl(), sys);
       @SuppressWarnings("unchecked")
       Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
-        ServiceHandler.concatOrNotFound(greeterService, echoService);
+        ServiceHandler.concatOrNotFound(sys, greeterService, echoService);
 
       Http.get(sys)
           .newServerAt("127.0.0.1", 8090)
