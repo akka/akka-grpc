@@ -30,7 +30,7 @@ It features:
 
 ## Project Status
 
-Akka gRPC is supported for users with an [Akka license](https://akka.io/pricing).
+Akka gRPC is supported for users with an [Akka license](https://akka.io/subscription).
 
 Both client- and server-side APIs are based on Akka Streams.
 
