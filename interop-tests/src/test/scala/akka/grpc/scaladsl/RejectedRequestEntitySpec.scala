@@ -5,6 +5,7 @@
 package akka.grpc.scaladsl
 
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -14,6 +15,7 @@ import scala.jdk.FutureConverters._
 import scala.util.Try
 
 import akka.Done
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.GrpcProtocolNative
 import akka.grpc.internal.GrpcProtocolWeb
@@ -142,19 +144,32 @@ class RejectedRequestEntitySpec
   "Scala GrpcMarshalling" should {
     val serializer = GreeterService.Serializers.HelloRequestSerializer
 
+    // a route alternative may read the entity after the unmarshaller of an earlier alternative refused it
+    def expectEntityNotConsumed(unmarshal: HttpRequest => Future[_])(
+        contentType: ContentType.Binary,
+        headers: immutable.Seq[HttpHeader]): Unit = {
+      val materialized = new AtomicInteger
+      val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+        materialized.incrementAndGet()
+        NotUsed
+      }
+      val request = HttpRequest(HttpMethods.POST, method, headers, HttpEntity.Chunked.fromData(contentType, body))
+
+      // an unsupported content type makes these throw instead of returning a failed future
+      Future.fromTry(Try(unmarshal(request))).flatten.failed.futureValue
+      materialized.get shouldBe 0
+    }
+
     Seq[(String, HttpRequest => Future[_])](
       "unmarshal" -> (request => GrpcMarshalling.unmarshal(request)(serializer, mat)),
       "unmarshalStream" -> (request => GrpcMarshalling.unmarshalStream(request)(serializer, mat))).foreach {
       case (name, unmarshal) =>
-        // an unsupported content type makes these throw instead of returning a failed future
-        val expectRead = expectEntityRead(request => Future.fromTry(Try(unmarshal(request))).flatten) _
-
-        s"read the entity in $name when the content type is not supported" in {
-          expectRead(method, ContentTypes.`application/octet-stream`, Nil)
+        s"not consume the entity in $name when the content type is not supported" in {
+          expectEntityNotConsumed(unmarshal)(ContentTypes.`application/octet-stream`, Nil)
         }
 
-        s"read the entity in $name when the encoding is not supported" in {
-          expectRead(method, GrpcProtocolNative.contentType, unsupportedEncoding :: Nil)
+        s"not consume the entity in $name when the encoding is not supported" in {
+          expectEntityNotConsumed(unmarshal)(GrpcProtocolNative.contentType, unsupportedEncoding :: Nil)
         }
     }
   }
