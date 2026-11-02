@@ -4,13 +4,20 @@
 
 package akka.grpc.internal
 
+import akka.Done
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.HttpEntity
 import akka.http.javadsl.model.{ HttpRequest => JHttpRequest }
+import akka.http.scaladsl.model.ContentTypes
+import akka.http.scaladsl.model.HttpEntity.Chunked
+import akka.http.scaladsl.model.HttpMethods
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.HttpResponse
+import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
 import akka.testkit.TestProbe
+import akka.util.ByteString
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -20,6 +27,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Supplier
 import scala.concurrent.ExecutionException
+import scala.concurrent.Promise
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 
 class InstancePerRequestPFSpec
@@ -118,6 +127,29 @@ class InstancePerRequestPFSpec
       recording.calls shouldBe empty
     }
 
+    Seq("an unknown method" -> "Unknown", "an invalid path" -> "Echo/extra").foreach {
+      case (description, path) =>
+        s"read the entity of a request for $description" in {
+          val pf = new InstancePerRequestPF[TestService](
+            _ => new TestServiceImpl,
+            "com.akka.grpc.TestService",
+            Array.empty[InstancePerRequestPF.GrpcMethod[TestService]],
+            PartialFunction.empty,
+            system)
+          val read = Promise[Done]()
+          val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+            read.trySuccess(Done)
+            NotUsed
+          }
+          val request = HttpRequest(
+            HttpMethods.POST,
+            s"https://example.com/com.akka.grpc.TestService/$path",
+            entity = Chunked.fromData(ContentTypes.`application/octet-stream`, body))
+
+          pf.apply(request).failed.futureValue
+          read.future.futureValue(timeout(3.seconds)) shouldBe Done
+        }
+    }
   }
 
   private val echoRequest = HttpRequest(uri = "https://example.com/com.akka.grpc.TestService/Echo")

@@ -166,12 +166,13 @@ public class @{serviceName}HandlerFactory {
             break;
           }
           default:
+            request.discardEntityBytes(mat);
             CompletableFuture<akka.http.javadsl.model.HttpResponse> result = new CompletableFuture<>();
             result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
             response = result;
         }
         return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, system));
-      })
+      }, mat)
       .orElseGet(() -> unsupportedMediaType);
     }
   }

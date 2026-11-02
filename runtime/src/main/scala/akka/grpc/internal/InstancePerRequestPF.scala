@@ -110,6 +110,7 @@ private[akka] final class InstancePerRequestPF[S](
       case model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)) =>
         handle(spi.onRequest(prefix, method, request), method)
       case _ =>
+        request.discardEntityBytes(materializer)
         scala.concurrent.Future.failed(
           new akka.grpc.GrpcServiceException(
             io.grpc.Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [${request.uri.path}]")))
@@ -127,6 +128,7 @@ private[akka] final class InstancePerRequestPF[S](
           .asScala
           .asInstanceOf[Future[HttpResponse]] // HTTP scaladsl response is always javadsl
       case None =>
+        request.discardEntityBytes(materializer)
         scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $method"))
     }
 

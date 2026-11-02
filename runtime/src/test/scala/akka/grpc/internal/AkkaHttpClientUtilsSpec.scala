@@ -5,12 +5,16 @@
 package akka.grpc.internal
 
 import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.concurrent.duration._
+import akka.Done
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.stream.scaladsl.Source
 import akka.testkit.TestKit
 import akka.util.ByteString
 import io.grpc.{ Metadata, Status, StatusRuntimeException }
@@ -34,6 +38,23 @@ class AkkaHttpClientUtilsSpec
     PatienceConfig(5.seconds, Span(100, org.scalatest.time.Millis))
 
   "The conversion from HttpResponse to Source" should {
+    "read the response entity when the response encoding is not supported" in {
+      val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
+      val read = Promise[Done]()
+      val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+        read.trySuccess(Done)
+        NotUsed
+      }
+      val response = Future.successful(
+        HttpResponse(
+          OK,
+          RawHeader("grpc-encoding", "unsupported") :: Nil,
+          HttpEntity.Chunked.fromData(GrpcProtocolNative.contentType, body)))
+
+      AkkaHttpClientUtils.responseToSource(requestUri, response, null, false).run().failed.futureValue
+      read.future.futureValue shouldBe Done
+    }
+
     "map a strict 404 response to a failed stream" in {
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val response =

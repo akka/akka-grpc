@@ -103,7 +103,7 @@ public final class @{serviceName}ScalaHandlerFactory implements InstancePerReque
 
             // note, the other impls cover the Not implemented with the ehandler as well
             return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, systemProvider.classicSystem()));
-         }).orElseGet(() -> unsupportedMediaType);
+         }, mat).orElseGet(() -> unsupportedMediaType);
        }
      }
   }

@@ -74,7 +74,10 @@ object WebHandler {
     val handler = asyncHandler(cors(corsSettings, () => servicesRoute), as, mat)
     (req: HttpRequest) =>
       if (scaladsl.ServiceHandler.isGrpcWebRequest(req) || scaladsl.WebHandler.isCorsPreflightRequest(req)) handler(req)
-      else unsupportedMediaType
+      else {
+        req.discardEntityBytes(mat)
+        unsupportedMediaType
+      }
   }
 
   // Java version of Route.asyncHandler
