@@ -20,11 +20,9 @@ import scala.concurrent.{ Future, Promise }
 import scala.util.control.NonFatal
 
 /**
- * Used to indicate that a gRPC client can not establish a connection
- * after the configured number of attempts.
- *
- * Can be caught to re-create the client if it is likely that
- * your service discovery mechanism will resolve to different instances.
+ * Used to indicate that a gRPC client gave up establishing a connection after the configured
+ * number of `connection-attempts`, which is only the case if a limit is set (the default is to retry forever).
+ * The client is shut down when giving up, so a new client must be created to connect again.
  */
 class ClientConnectionException(msg: String) extends RuntimeException(msg)
 
@@ -73,13 +71,17 @@ object ChannelUtils {
       connectingTimeout: Duration,
       log: LoggingAdapter)(scheduleOnce: (FiniteDuration, () => Unit) => Cancellable): Unit = {
 
-    // A connection attempt that never counts as a failure keeps the client retrying forever,
-    // even if the user configured maxConnectionAttempts to fail fast - so a watchdog-abandoned
-    // attempt is counted exactly like a TRANSIENT_FAILURE.
+    // Fail done before shutting down, so that the resulting SHUTDOWN can't complete it successfully.
+    // shutdownNow, as an orderly shutdown would leave calls waiting for a connection hanging forever.
+    def giveUp(ex: ClientConnectionException): Unit = {
+      ready.tryFailure(ex)
+      done.tryFailure(ex)
+      channel.shutdownNow()
+    }
+
     def failOrKeepGoing(nextAttempts: Int): Option[Int] =
       if (maxConnectionAttempts.contains(nextAttempts)) {
-        val ex = new ClientConnectionException(s"Unable to establish connection after [$maxConnectionAttempts]")
-        ready.tryFailure(ex) || done.tryFailure(ex)
+        giveUp(new ClientConnectionException(s"Unable to establish connection after [$nextAttempts] attempts"))
         None
       } else Some(nextAttempts)
 
@@ -92,7 +94,8 @@ object ChannelUtils {
 
       // grpc-java has no timeout for the CONNECTING state as a whole (see grpc/grpc-java#1943), so
       // a connection stuck mid-handshake would otherwise never reach TRANSIENT_FAILURE and never
-      // count as a failed attempt.
+      // count as a failed attempt. An abandoned attempt counts like a TRANSIENT_FAILURE, so that a
+      // configured maxConnectionAttempts can fail fast.
       val pendingWatchdog: Option[Cancellable] =
         if (currentState != ConnectivityState.CONNECTING) None
         else
@@ -125,7 +128,7 @@ object ChannelUtils {
                           log.error(e, "Failed to abandon a connection stuck CONNECTING, giving up")
                           val ex = new ClientConnectionException("Unable to establish connection: " + e.getMessage)
                           ex.initCause(e)
-                          ready.tryFailure(ex) || done.tryFailure(ex)
+                          giveUp(ex)
                       }
                     }))
             case _ => None // connecting-timeout is 'infinite': watchdog disabled

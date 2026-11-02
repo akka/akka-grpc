@@ -40,6 +40,7 @@ private object AkkaNettyGrpcClientGraphStage {
 private final class AkkaNettyGrpcClientGraphStage[I, O](
     descriptor: MethodDescriptor[I, O],
     channel: Channel,
+    closedFailure: () => Option[StatusRuntimeException],
     options: CallOptions,
     streamingResponse: Boolean,
     headers: MetadataImpl)
@@ -110,7 +111,23 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           callback.invoke(Closed(status, trailers))
         }
       }
-      override def preStart(): Unit = {
+      override def preStart(): Unit = closedFailure() match {
+        case Some(failure) => failCall(failure)
+        case None =>
+          try startCall()
+          catch {
+            // a call racing a shutdown can pass the check above and then fail in grpc-java
+            case e: StatusRuntimeException => failCall(closedFailure().getOrElse(e))
+          }
+      }
+
+      private def failCall(failure: Throwable): Unit = {
+        call = null
+        matVal.tryFailure(failure)
+        failStage(failure)
+      }
+
+      private def startCall(): Unit = {
         call = channel.newCall(descriptor, options)
         call.start(listener, headers.toGoogleGrpcMetadata())
 

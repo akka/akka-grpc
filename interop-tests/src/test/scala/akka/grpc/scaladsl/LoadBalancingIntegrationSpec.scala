@@ -159,6 +159,15 @@ class LoadBalancingIntegrationSpec(backend: String, config: Config = ConfigFacto
         failure.getStatus.getCode should be(Code.UNAVAILABLE)
 
       client.closed.failed.futureValue shouldBe a[ClientConnectionException]
+
+      if (backend == "netty") {
+        // the client was shut down when giving up, later calls fail fast with the reason
+        val afterClosed =
+          client.sayHello(HelloRequest(s"Hello friend")).failed.futureValue.asInstanceOf[StatusRuntimeException]
+        afterClosed.getStatus.getCode should be(Code.UNAVAILABLE)
+        afterClosed.getStatus.getDescription should include("closed")
+        afterClosed.getStatus.getCause shouldBe a[ClientConnectionException]
+      }
     }
 
     "not fail when no valid endpoints are provided (retry indefinitely) when max attempts is set to another positive value" in {
