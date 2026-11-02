@@ -22,6 +22,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
 object GrpcMarshalling {
+  // keeps the entity of a rejected request readable, a later route alternative may read it
   def unmarshal[T](req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[T] = {
     negotiated(
       req,
@@ -31,6 +32,7 @@ object GrpcMarshalling {
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  // keeps the entity of a rejected request readable, a later route alternative may read it
   def unmarshalStream[T](
       req: HttpRequest)(implicit u: ProtobufSerializer[T], mat: Materializer): Future[Source[T, NotUsed]] = {
     negotiated(
@@ -41,10 +43,31 @@ object GrpcMarshalling {
       }).getOrElse(throw new GrpcServiceException(Status.UNIMPLEMENTED))
   }
 
+  /**
+   * Does not touch the request entity when negotiation rejects the request, so the caller can pass the request on.
+   * Otherwise the caller must discard the entity. `negotiated(req, f, mat)` does that.
+   */
   def negotiated[T](req: HttpRequest, f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T]): Option[Future[T]] =
     GrpcProtocol.negotiate(req).map {
       case (Success(reader), writer) => f(reader, writer)
       case (Failure(ex), _)          => Future.failed(ex)
+    }
+
+  /**
+   * Like `negotiated(req, f)`, but also discards the request entity when negotiation rejects the request.
+   */
+  def negotiated[T](
+      req: HttpRequest,
+      f: (GrpcProtocolReader, GrpcProtocolWriter) => Future[T],
+      mat: Materializer): Option[Future[T]] =
+    GrpcProtocol.negotiate(req) match {
+      case Some((Success(reader), writer)) => Some(f(reader, writer))
+      case Some((Failure(ex), _)) =>
+        req.discardEntityBytes(mat)
+        Some(Future.failed(ex))
+      case None =>
+        req.discardEntityBytes(mat)
+        None
     }
 
   def unmarshal[T](data: Source[ByteString, Any])(

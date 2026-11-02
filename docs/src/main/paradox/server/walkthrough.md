@@ -230,7 +230,11 @@ Java
 
 
 @scala[Note that `GreeterServiceHandler.partial` and `EchoServiceHandler.partial` are used instead of `apply`
-methods to create partial functions that are combined by `concatOrNotFound`.]
+methods to create partial functions that are combined by `concatOrNotFound`. The handler from `apply` discards the
+request entity when it responds with 404, so a request cannot be passed on to another handler after that.]
+
+Passing the actor system makes `concatOrNotFound` discard the request entity when no handler matches. An unread entity
+keeps its share of the HTTP/2 connection window, so enough unmatched requests can block all request bodies on a connection.
 
 ## Running the server
 

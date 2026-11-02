@@ -35,8 +35,13 @@ import akka.grpc.AkkaGrpcGenerated
 @@ApiMayChange
 @@AkkaGrpcGenerated
 object @{serviceName}Handler {
-    private val notFound = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.NotFound))
+    private val notFoundResponse = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.NotFound))
     private val unsupportedMediaType = scala.concurrent.Future.successful(model.HttpResponse(model.StatusCodes.UnsupportedMediaType))
+
+    private def notFound(request: model.HttpRequest)(implicit system: ClassicActorSystemProvider): scala.concurrent.Future[model.HttpResponse] = {
+      val _ = request.discardEntityBytes(system)
+      notFoundResponse
+    }
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -46,7 +51,7 @@ object @{serviceName}Handler {
      * several services.
      */
     def apply(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
-      partial(implementation).orElse { case _ => notFound }
+      partial(implementation).orElse { case request => notFound(request) }
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -56,7 +61,7 @@ object @{serviceName}Handler {
      * several services.
      */
     def apply(implementation: @serviceName, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
-      partial(implementation, @{service.name}.name, eHandler).orElse { case _ => notFound }
+      partial(implementation, @{service.name}.name, eHandler).orElse { case request => notFound(request) }
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -68,7 +73,7 @@ object @{serviceName}Handler {
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
     def apply(implementation: @serviceName, prefix: String)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
-      partial(implementation, prefix).orElse { case _ => notFound }
+      partial(implementation, prefix).orElse { case request => notFound(request) }
 
     /**
      * Creates a `HttpRequest` to `HttpResponse` handler that can be used in for example `Http().bindAndHandleAsync`
@@ -80,7 +85,7 @@ object @{serviceName}Handler {
      * Registering a gRPC service under a custom prefix is not widely supported and strongly discouraged by the specification.
      */
     def apply(implementation: @serviceName, prefix: String, eHandler: ActorSystem => PartialFunction[Throwable, Trailers])(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
-      partial(implementation, prefix, eHandler).orElse { case _ => notFound }
+      partial(implementation, prefix, eHandler).orElse { case request => notFound(request) }
 
 @if(serviceName != "ServerReflection") {
 
@@ -94,6 +99,7 @@ object @{serviceName}Handler {
      */
     def withServerReflection(implementation: @serviceName)(implicit system: ClassicActorSystemProvider): model.HttpRequest => scala.concurrent.Future[model.HttpResponse] =
         akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
+          system,
           @{serviceName}Handler.partial(implementation),
           akka.grpc.scaladsl.ServerReflection.partial(List(@{service.name})))
 }
@@ -124,9 +130,12 @@ object @{serviceName}Handler {
                   .@{if(method.outputStreaming) { "map" } else { "flatMap" }}(implementation.@{method.nameSafe}(_@{if(powerApis) { ", metadata" } else { "" }}))
                   .map(e => @{method.marshal}(e, eHandler)(@{if (service.scala3Sources) "using " else ""}@method.serializer.name, writer, system))
             }
-            case m => scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
+            case m =>
+              val _ = request.discardEntityBytes(mat)
+              scala.concurrent.Future.failed(new NotImplementedError(s"Not implemented: $m"))
           })
-          .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(@{if (service.scala3Sources) "using " else ""}system, writer))
+          .recoverWith(GrpcExceptionHandler.from(eHandler(system.classicSystem))(@{if (service.scala3Sources) "using " else ""}system, writer)),
+          mat
       ).getOrElse(unsupportedMediaType)
 
       def isThisService(path: model.Uri.Path): Boolean =
@@ -139,7 +148,9 @@ object @{serviceName}Handler {
         case request if isThisService(request.uri.path) =>
           request.uri.path.tail.tail match {
             case model.Uri.Path.Slash(model.Uri.Path.Segment(method, model.Uri.Path.Empty)) => handle(spi.onRequest(prefix, method, request), method)
-            case _ => scala.concurrent.Future.failed(new akka.grpc.GrpcServiceException(io.grpc.Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [${request.uri.path}]")))
+            case _ =>
+              val _ = request.discardEntityBytes(mat)
+              scala.concurrent.Future.failed(new akka.grpc.GrpcServiceException(io.grpc.Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [${request.uri.path}]")))
           }
       }
     }

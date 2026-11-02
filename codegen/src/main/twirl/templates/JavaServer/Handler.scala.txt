@@ -109,6 +109,7 @@ public class @{serviceName}HandlerFactory {
     @@SuppressWarnings("unchecked")
     public static Function<akka.http.javadsl.model.HttpRequest, CompletionStage<akka.http.javadsl.model.HttpResponse>> createWithServerReflection(@serviceName implementation, ClassicActorSystemProvider system) {
       return akka.grpc.javadsl.ServiceHandler.concatOrNotFound(
+          system,
           @{serviceName}HandlerFactory.create(implementation, system),
           akka.grpc.javadsl.ServerReflection.create(
             java.util.Collections.singletonList(@{service.name}.description),
@@ -139,8 +140,10 @@ public class @{serviceName}HandlerFactory {
         Iterator<String> segments = req.getUri().pathSegments().iterator();
         if (segments.hasNext() && segments.next().equals(prefix) && segments.hasNext()) {
           String method = segments.next();
-          if (segments.hasNext()) return notFound; // we don't allow any random `/prefix/Method/anything/here
-          else {
+          if (segments.hasNext()) { // we don't allow any random `/prefix/Method/anything/here
+            req.discardEntityBytes(mat);
+            return notFound;
+          } else {
             return handle(spi.onRequest(prefix, method, req), method, implementation, mat, eHandler, system);
           }
         } else {
@@ -166,12 +169,13 @@ public class @{serviceName}HandlerFactory {
             break;
           }
           default:
+            request.discardEntityBytes(mat);
             CompletableFuture<akka.http.javadsl.model.HttpResponse> result = new CompletableFuture<>();
             result.completeExceptionally(new UnsupportedOperationException("Not implemented: " + method));
             response = result;
         }
         return response.exceptionally(e -> GrpcExceptionHandler.standard(e, eHandler, writer, system));
-      })
+      }, mat)
       .orElseGet(() -> unsupportedMediaType);
     }
   }

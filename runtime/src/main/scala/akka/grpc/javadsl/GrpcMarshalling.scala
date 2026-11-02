@@ -18,10 +18,15 @@ import akka.stream.Materializer
 import akka.stream.javadsl.Source
 import akka.util.ByteString
 
+import scala.util.{ Failure, Success }
 import scala.util.control.NonFatal
 
 object GrpcMarshalling {
 
+  /**
+   * Does not touch the request entity when negotiation rejects the request, so the caller can pass the request on.
+   * Otherwise the caller must discard the entity. `negotiated(req, f, mat)` does that.
+   */
   def negotiated[T](
       req: HttpRequest,
       f: (GrpcProtocolReader, GrpcProtocolWriter) => CompletionStage[T]): Optional[CompletionStage[T]] =
@@ -32,6 +37,23 @@ object GrpcMarshalling {
           maybeReader.map(reader => f(reader, writer)).fold[CompletionStage[T]](failure, identity)
       }
       .fold(Optional.empty[CompletionStage[T]])(Optional.of)
+
+  /**
+   * Like `negotiated(req, f)`, but also discards the request entity when negotiation rejects the request.
+   */
+  def negotiated[T](
+      req: HttpRequest,
+      f: (GrpcProtocolReader, GrpcProtocolWriter) => CompletionStage[T],
+      mat: Materializer): Optional[CompletionStage[T]] =
+    GrpcProtocol.negotiate(req) match {
+      case Some((Success(reader), writer)) => Optional.of(f(reader, writer))
+      case Some((Failure(ex), _)) =>
+        req.discardEntityBytes(mat)
+        Optional.of(failure(ex))
+      case None =>
+        req.discardEntityBytes(mat)
+        Optional.empty()
+    }
 
   def unmarshal[T](
       data: Source[ByteString, AnyRef],

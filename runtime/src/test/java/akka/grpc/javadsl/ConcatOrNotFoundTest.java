@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("deprecation")
 public class ConcatOrNotFoundTest extends JUnitSuite {
 
   private final HttpRequest emptyGrpcRequest =

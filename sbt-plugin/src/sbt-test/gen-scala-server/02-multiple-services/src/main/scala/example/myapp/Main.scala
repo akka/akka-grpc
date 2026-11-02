@@ -21,7 +21,7 @@ object Main extends App {
 
   val echoHandler = EchoServiceHandler.partial(new EchoServiceImpl)
   val greeterHandler = GreeterServiceHandler.partial(new GreeterServiceImpl)
-  val serviceHandler = ServiceHandler.concatOrNotFound(echoHandler, greeterHandler)
+  val serviceHandler = ServiceHandler.concatOrNotFound(system, echoHandler, greeterHandler)
 
   Http().newServerAt("localhost", 8443)
     .enableHttps(serverHttpContext())

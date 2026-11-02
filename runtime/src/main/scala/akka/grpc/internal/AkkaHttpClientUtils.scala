@@ -309,6 +309,7 @@ object AkkaHttpClientUtils {
                           .asJava
                     }))
               case Failure(e) =>
+                response.entity.discardBytes()
                 Source.failed[O](e).mapMaterializedValue(_ => Future.failed(e))
             }
           }

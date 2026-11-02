@@ -62,6 +62,7 @@ object Main extends App {
     // Concatenate the partial functions into a single handler
     val handler =
       ServiceHandler.concatOrNotFound(
+        sys,
         greeterPartial,
         echoPartial,
         reflection)

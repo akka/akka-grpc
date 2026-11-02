@@ -43,7 +43,7 @@ object CombinedServer {
       EchoServiceHandler.partial(new EchoServiceImpl)
     val reflectionService = ServerReflection.partial(List(GreeterService, EchoService))
     val serviceHandlers: HttpRequest => Future[HttpResponse] =
-      ServiceHandler.concatOrNotFound(greeterService, echoService, reflectionService)
+      ServiceHandler.concatOrNotFound(sys, greeterService, echoService, reflectionService)
 
     Http()
       .newServerAt("127.0.0.1", 8080)
