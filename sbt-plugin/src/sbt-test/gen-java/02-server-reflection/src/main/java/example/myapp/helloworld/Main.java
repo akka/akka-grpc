@@ -50,6 +50,7 @@ public class Main {
 
         // Concatenate the partial functions into a single handler
         ServiceHandler.concatOrNotFound(
+                                sys,
                                 greetingPartial,
                                 echoPartial,
                                 reflectionPartial);

@@ -103,6 +103,7 @@ class LoggingErrorHandlingGreeterServer(system: ActorSystem) {
       buildImpl = rc => new Impl(rc.materializer),
       buildHandler = (impl, eHandler) =>
         ServiceHandler.concatOrNotFound(
+          sys,
           GreeterServiceHandler.partial(impl, eHandler = eHandler),
           ServerReflection.partial(List(GreeterService))),
       errorHandler = _ => customErrorMapping)

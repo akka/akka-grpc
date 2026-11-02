@@ -34,13 +34,16 @@ object ServiceHandler {
   /**
    * This is an alias for handler.
    */
+  @deprecated(
+    "Use the overload taking the actor system, it discards the request entity when no handler matches",
+    since = "2.5.14")
   @varargs
   def concatOrNotFound(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] =
     handler(handlers: _*)
 
   /**
-   * This is an alias for handler.
+   * This is an alias for `handler(system, handlers)`.
    */
   @varargs
   def concatOrNotFound(
@@ -55,8 +58,11 @@ object ServiceHandler {
    *  - If the request is not handled by one of the provided handlers, a _404: Not Found_ response is produced.
    *
    * Does not touch the request entity when no handler matches. An unread entity keeps its share of the HTTP/2
-   * connection window, so prefer `handler(system, handlers)`.
+   * connection window.
    */
+  @deprecated(
+    "Use the overload taking the actor system, it discards the request entity when no handler matches",
+    since = "2.5.14")
   @varargs
   def handler(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
       : JFunction[HttpRequest, CompletionStage[HttpResponse]] = {
@@ -65,7 +71,10 @@ object ServiceHandler {
   }
 
   /**
-   * Like `handler(handlers)`, but also discards the request entity when no handler matches.
+   * Creates a `HttpRequest` to `HttpResponse` handler for gRPC services that can be used in
+   * for example `Http().bindAndHandleAsync` for the generated partial function handlers:
+   *  - If the request is not handled by one of the provided handlers, the request entity is discarded and a
+   *    _404: Not Found_ response is produced.
    */
   @varargs
   def handler(system: ClassicActorSystemProvider, handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
@@ -74,7 +83,7 @@ object ServiceHandler {
       req.discardEntityBytes(system)
       notFound
     }
-    handler(handlers :+ discardNotFound: _*)
+    concat(handlers :+ discardNotFound: _*)
   }
 
   private[javadsl] def concat(handlers: JFunction[HttpRequest, CompletionStage[HttpResponse]]*)
