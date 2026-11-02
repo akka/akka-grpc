@@ -11,11 +11,12 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import scala.jdk.FutureConverters._
+import scala.util.Try
 
 import akka.Done
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.grpc.internal.GrpcProtocolNative
+import akka.grpc.internal.GrpcProtocolWeb
 import akka.grpc.javadsl.{ WebHandler => JWebHandler }
 import akka.grpc.scaladsl.headers.`Message-Encoding`
 import akka.http.scaladsl.model.ContentType
@@ -30,6 +31,7 @@ import akka.testkit.TestKit
 import akka.util.ByteString
 import example.myapp.helloworld.grpc.ExceptionGreeterServiceImpl
 import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory
+import example.myapp.helloworld.grpc.helloworld.GreeterService
 import example.myapp.helloworld.grpc.helloworld.GreeterServiceHandler
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -53,6 +55,7 @@ class RejectedRequestEntitySpec
   private val unknownService = "/other.Service/SayHello"
   private val unsupportedEncoding = `Message-Encoding`("unsupported")
 
+  private val mat = Materializer(system)
   private val scalaHandler = GreeterServiceHandler(new CountingGreeterServiceImpl)
   private val javaHandler = GreeterServiceHandlerFactory.create(new ExceptionGreeterServiceImpl, system)
 
@@ -62,9 +65,9 @@ class RejectedRequestEntitySpec
       contentType: ContentType.Binary,
       headers: immutable.Seq[HttpHeader]): Unit = {
     val read = Promise[Done]()
-    val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+    val body = Source.single(ByteString("body")).map { bytes =>
       read.trySuccess(Done)
-      NotUsed
+      bytes
     }
     val request =
       HttpRequest(HttpMethods.POST, path, headers, HttpEntity.Chunked.fromData(contentType, body))
@@ -113,13 +116,46 @@ class RejectedRequestEntitySpec
     "read the entity of a request with an unsupported encoding" in {
       expectRead(method, GrpcProtocolNative.contentType, unsupportedEncoding :: Nil)
     }
+
+    "read the entity of a request with an invalid path" in {
+      expectRead(invalidPath, GrpcProtocolNative.contentType, Nil)
+    }
   }
 
   "The Java gRPC-Web handler" should {
-    "read the entity of a request that is not a gRPC-Web request" in {
-      val webHandler = JWebHandler.grpcWebHandler(Collections.singletonList(javaHandler), system, Materializer(system))
+    val webHandler = JWebHandler.grpcWebHandler(Collections.singletonList(javaHandler), system, mat)
+    val expectRead = expectEntityRead(request => webHandler(request).asScala) _
 
-      expectEntityRead(request => webHandler(request).asScala)(method, GrpcProtocolNative.contentType, Nil)
+    "read the entity of a request that is not a gRPC-Web request" in {
+      expectRead(method, GrpcProtocolNative.contentType, Nil)
+    }
+
+    "read the entity of a gRPC-Web request for an unknown service" in {
+      expectRead(unknownService, GrpcProtocolWeb.contentType, Nil)
+    }
+
+    "read the entity of a gRPC-Web request with an invalid path" in {
+      expectRead(invalidPath, GrpcProtocolWeb.contentType, Nil)
+    }
+  }
+
+  "Scala GrpcMarshalling" should {
+    val serializer = GreeterService.Serializers.HelloRequestSerializer
+
+    Seq[(String, HttpRequest => Future[_])](
+      "unmarshal" -> (request => GrpcMarshalling.unmarshal(request)(serializer, mat)),
+      "unmarshalStream" -> (request => GrpcMarshalling.unmarshalStream(request)(serializer, mat))).foreach {
+      case (name, unmarshal) =>
+        // an unsupported content type makes these throw instead of returning a failed future
+        val expectRead = expectEntityRead(request => Future.fromTry(Try(unmarshal(request))).flatten) _
+
+        s"read the entity in $name when the content type is not supported" in {
+          expectRead(method, ContentTypes.`application/octet-stream`, Nil)
+        }
+
+        s"read the entity in $name when the encoding is not supported" in {
+          expectRead(method, GrpcProtocolNative.contentType, unsupportedEncoding :: Nil)
+        }
     }
   }
 }

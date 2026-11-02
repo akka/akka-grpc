@@ -62,9 +62,9 @@ class RejectedRequestEntitySpec
 
   private def expectEntityRead(contentType: ContentType.Binary, headers: immutable.Seq[HttpHeader]): Unit = {
     val read = Promise[Done]()
-    val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+    val body = Source.single(ByteString("body")).map { bytes =>
       read.trySuccess(Done)
-      NotUsed
+      bytes
     }
 
     handler(

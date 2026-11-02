@@ -5,7 +5,6 @@
 package akka.grpc.internal
 
 import akka.Done
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.HttpEntity
 import akka.http.javadsl.model.{ HttpRequest => JHttpRequest }
@@ -137,9 +136,9 @@ class InstancePerRequestPFSpec
             PartialFunction.empty,
             system)
           val read = Promise[Done]()
-          val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+          val body = Source.single(ByteString("body")).map { bytes =>
             read.trySuccess(Done)
-            NotUsed
+            bytes
           }
           val request = HttpRequest(
             HttpMethods.POST,

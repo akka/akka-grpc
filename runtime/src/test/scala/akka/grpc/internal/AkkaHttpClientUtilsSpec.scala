@@ -8,7 +8,6 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import akka.Done
-import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.HttpEntity.Strict
@@ -41,9 +40,9 @@ class AkkaHttpClientUtilsSpec
     "read the response entity when the response encoding is not supported" in {
       val requestUri = Uri("https://example.com/GuestExeSample/GrpcHello")
       val read = Promise[Done]()
-      val body = Source.single(ByteString("body")).mapMaterializedValue { _ =>
+      val body = Source.single(ByteString("body")).map { bytes =>
         read.trySuccess(Done)
-        NotUsed
+        bytes
       }
       val response = Future.successful(
         HttpResponse(
