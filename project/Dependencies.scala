@@ -58,9 +58,8 @@ object Dependencies {
     val grpcNettyShaded = "io.grpc" % "grpc-netty-shaded" % Versions.grpc
     val grpcProtobuf = "io.grpc" % "grpc-protobuf" % Versions.grpc
 
-    // grpc only brings in guava 33.6.0, which has known vulnerabilities
-    val guava = "com.google.guava" % "guava" % s"${Versions.guava}-android"
-    val guavaJre = "com.google.guava" % "guava" % s"${Versions.guava}-jre"
+    // grpc only brings in guava 33.6.0, which has known vulnerabilities, and the -android flavor
+    val guava = "com.google.guava" % "guava" % s"${Versions.guava}-jre"
 
     // Excluding grpc-alts works around a complex resolution bug
     // Details are in https://github.com/akka/akka-grpc/pull/469
@@ -113,23 +112,26 @@ object Dependencies {
     Compile.guava,
     Test.scalaTest)
 
-  val runtime = l ++= Seq(
-    Compile.scalapbRuntime,
-    Protobuf.protobufJava, // or else scalapb pulls older version in transitively
-    Compile.grpcProtobuf,
-    Compile.grpcCore,
-    Compile.grpcStub % "provided", // comes from the generators
-    Compile.grpcNettyShaded,
-    Compile.guava,
-    Compile.akkaStream,
-    Compile.akkaHttpCore,
-    Compile.akkaHttp,
-    Compile.akkaPki,
-    Compile.akkaDiscovery,
-    Test.akkaTestkit,
-    Test.akkaStreamTestkit,
-    Test.scalaTest,
-    Test.scalaTestPlusJunit)
+  val runtime = Seq(
+    // grpc-stub in provided would otherwise bring in the -android flavor there
+    dependencyOverrides += Compile.guava,
+    l ++= Seq(
+      Compile.scalapbRuntime,
+      Protobuf.protobufJava, // or else scalapb pulls older version in transitively
+      Compile.grpcProtobuf,
+      Compile.grpcCore,
+      Compile.grpcStub % "provided", // comes from the generators
+      Compile.grpcNettyShaded,
+      Compile.guava,
+      Compile.akkaStream,
+      Compile.akkaHttpCore,
+      Compile.akkaHttp,
+      Compile.akkaPki,
+      Compile.akkaDiscovery,
+      Test.akkaTestkit,
+      Test.akkaStreamTestkit,
+      Test.scalaTest,
+      Test.scalaTestPlusJunit))
 
   val mavenPlugin = l ++= Seq(
     Compile.slf4jApi,
@@ -137,7 +139,7 @@ object Dependencies {
     Compile.mavenCore,
     Compile.protocJar,
     Compile.plexusBuildApi,
-    Compile.guavaJre,
+    Compile.guava,
     Test.scalaTest)
 
   val sbtPlugin = Seq(
