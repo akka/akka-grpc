@@ -57,7 +57,8 @@ object ServerInterceptor {
       val intercepted = ServerInterceptorSupport.intercept(
         handler,
         interceptors,
-        GrpcExceptionHandler.defaultMapper(system.classicSystem))
+        GrpcExceptionHandler.defaultMapper(system.classicSystem),
+        system)
 
       { case request if handler.isDefinedAt(request) => intercepted(request) }
     }

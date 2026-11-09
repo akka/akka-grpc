@@ -4,6 +4,7 @@
 
 package akka.grpc.internal
 
+import akka.actor.ClassicActorSystemProvider
 import akka.annotation.InternalApi
 import akka.grpc.GrpcProtocol
 import akka.grpc.Trailers
@@ -44,11 +45,15 @@ private[grpc] object ServerInterceptorSupport {
 
   /**
    * Wraps the handler so that requests with a `/service/method` path go through the interceptors. Any failure is
-   * turned into a gRPC error response with `errorMapper`. Other paths with more than one segment, for example
+   * turned into a gRPC error response with `errorMapper`, and the request entity is discarded. Other paths with more than one segment, for example
    * `//service/method`, are rejected with `INVALID_ARGUMENT` so that they cannot skip the interceptors. Paths that
    * do not look like a service call are passed to the handler untouched.
    */
-  def intercept(handler: Handler, interceptors: Seq[ServerInterceptor], errorMapper: Throwable => Trailers): Handler = {
+  def intercept(
+      handler: Handler,
+      interceptors: Seq[ServerInterceptor],
+      errorMapper: Throwable => Trailers,
+      system: ClassicActorSystemProvider): Handler = {
     if (interceptors.isEmpty) handler
     else {
       // every step is guarded so that outer interceptors see a synchronous throw as a failed future
@@ -61,13 +66,14 @@ private[grpc] object ServerInterceptorSupport {
         request.uri.path match {
           case Uri.Path.Slash(Uri.Path.Segment(service, Uri.Path.Slash(Uri.Path.Segment(method, Uri.Path.Empty)))) =>
             safely(chain(service, method, request)).recover {
-              case e => errorResponse(request, errorMapper(e))
+              case e => errorResponse(request, errorMapper(e), system)
             }(ExecutionContext.parasitic)
           case path if serviceName(path).isDefined || segments(path).sizeIs > 1 =>
             Future.successful(
               errorResponse(
                 request,
-                Trailers(Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [$path]"))))
+                Trailers(Status.INVALID_ARGUMENT.withDescription(s"Invalid gRPC request path [$path]")),
+                system))
           case _ => handler(request)
         }
     }
@@ -77,9 +83,15 @@ private[grpc] object ServerInterceptorSupport {
     try call
     catch { case NonFatal(e) => Future.failed(e) }
 
-  private def errorResponse(request: HttpRequest, trailers: Trailers): HttpResponse =
+  // an unread entity would keep its share of the HTTP/2 connection window
+  private def errorResponse(
+      request: HttpRequest,
+      trailers: Trailers,
+      system: ClassicActorSystemProvider): HttpResponse = {
+    request.discardEntityBytes(system)
     GrpcProtocol.negotiate(request) match {
       case Some((_, writer)) => GrpcResponseHelpers.status(trailers)(writer)
       case None              => unsupportedMediaType
     }
+  }
 }

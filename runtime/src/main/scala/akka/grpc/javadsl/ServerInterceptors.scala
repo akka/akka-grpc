@@ -35,7 +35,7 @@ object ServerInterceptors {
     if (interceptors.isEmpty) handler
     else {
       val errorMapper = GrpcExceptionHandler.defaultMapper(system.classicSystem)
-      asJava(ServerInterceptorSupport.intercept(asScala(handler), interceptors.map(asScala), errorMapper(_)))
+      asJava(ServerInterceptorSupport.intercept(asScala(handler), interceptors.map(asScala), errorMapper(_), system))
     }
   }
 
