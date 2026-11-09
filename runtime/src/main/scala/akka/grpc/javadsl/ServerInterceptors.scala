@@ -27,8 +27,8 @@ object ServerInterceptors {
   /**
    * Wraps a handler so that all gRPC calls reaching it pass through the interceptors, for example a handler for
    * several services combined with [[ServiceHandler.concatOrNotFound]]. Calls to unknown services also pass through
-   * the interceptors before the handler answers with 404. The first interceptor is the outermost. Calls with a path
-   * deeper than `/service/method` are rejected with `INVALID_ARGUMENT` without reaching the handler.
+   * the interceptors before the handler answers with 404. The first interceptor is the outermost. Calls with any other path
+   * of more than one segment are rejected with `INVALID_ARGUMENT` without reaching the handler.
    */
   @varargs
   def intercept(handler: Handler, system: ClassicActorSystemProvider, interceptors: ServerInterceptor*): Handler = {
@@ -66,7 +66,10 @@ object ServerInterceptors {
     else {
       val intercepted = intercept(handler, system, interceptors: _*)
       request =>
-        if (ServerInterceptorSupport.serviceName(request.asInstanceOf[smodel.HttpRequest].uri.path).contains(prefix))
+        if (ServerInterceptorSupport
+            .segments(request.asInstanceOf[smodel.HttpRequest].uri.path)
+            .headOption
+            .contains(prefix))
           intercepted(request)
         else handler(request)
     }

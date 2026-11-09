@@ -144,6 +144,15 @@ class ServerInterceptorSpec
       grpcStatus(handler(request).futureValue) shouldBe Some(Status.Code.INVALID_ARGUMENT.value.toString)
     }
 
+    "not handle a path with an extra leading slash, so the service is never called without interceptors" in {
+      val handler = ServerInterceptor.intercept(
+        ServiceHandler.concat(GreeterServiceHandler.partial(new CountingGreeterServiceImpl)),
+        requireToken)
+      val request = sayHelloRequest().withUri(s"https://localhost//${GreeterService.name}/SayHello")
+
+      handler.isDefinedAt(request) shouldBe false
+    }
+
     "answer with unsupported media type when rejecting a non-gRPC request" in {
       val handler =
         ServerInterceptor.intercept(GreeterServiceHandler.partial(new CountingGreeterServiceImpl), requireToken)

@@ -185,4 +185,31 @@ public class ServerInterceptorTest extends JUnitSuite {
     assertEquals(Optional.empty(), grpcStatus(response));
     assertEquals(GreeterService.name + "/SayHello", seen.get());
   }
+
+  @Test
+  public void perServiceInterceptorCannotBeBypassedWithExtraSlash() throws Exception {
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler =
+        ServerInterceptors.intercept(
+            GreeterService.description,
+            GreeterServiceHandlerFactory.create(impl, system),
+            system,
+            rejectAll);
+
+    for (String path : new String[] {"/" + GreeterService.name, GreeterService.name + "/"}) {
+      HttpResponse response = call(handler, sayHello(path));
+      assertEquals(
+          Optional.of(String.valueOf(Status.Code.INVALID_ARGUMENT.value())), grpcStatus(response));
+    }
+  }
+
+  @Test
+  public void allServicesInterceptorCannotBeBypassedWithExtraSlash() throws Exception {
+    Function<HttpRequest, CompletionStage<HttpResponse>> handler =
+        ServerInterceptors.intercept(
+            GreeterServiceHandlerFactory.create(impl, system), system, rejectAll);
+
+    HttpResponse response = call(handler, sayHello("/" + GreeterService.name));
+    assertEquals(
+        Optional.of(String.valueOf(Status.Code.INVALID_ARGUMENT.value())), grpcStatus(response));
+  }
 }

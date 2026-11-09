@@ -47,7 +47,7 @@ object ServerInterceptor {
   /**
    * Wraps a partial handler, such as the `partial` handler of a generated service or several services combined with
    * [[ServiceHandler.concat]], so that all calls it handles pass through the interceptors. The first interceptor is
-   * the outermost. Calls with a path deeper than `/service/method` are rejected with `INVALID_ARGUMENT` without
+   * the outermost. Calls with any other path of more than one segment are rejected with `INVALID_ARGUMENT` without
    * reaching the handler.
    */
   def intercept(handler: PartialFunction[HttpRequest, Future[HttpResponse]], interceptors: ServerInterceptor*)(

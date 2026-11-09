@@ -19,7 +19,7 @@ after the response headers are sent and are not visible to the interceptor.
 A failure from an interceptor is mapped with the default exception mapping of @apidoc[GrpcExceptionHandler$].
 A custom exception handler given to the service handler does not apply to it.
 
-Calls with a path deeper than `/service/method` are rejected with `INVALID_ARGUMENT` without reaching the handler.
+Calls with any other path of more than one segment are rejected with `INVALID_ARGUMENT` without reaching the handler.
 
 The interceptor is called from the server stream and must not block. The request entity is a stream that can
 only be consumed once, so an interceptor that reads it must not pass the same request to `next`.

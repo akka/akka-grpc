@@ -34,11 +34,19 @@ private[grpc] object ServerInterceptorSupport {
       case _                                                            => None
     }
 
+  /** Non-empty segments of the path, ignoring slashes the way the generated Java handlers do. */
+  def segments(path: Uri.Path): List[String] =
+    path match {
+      case Uri.Path.Segment(head, tail) => head :: segments(tail)
+      case Uri.Path.Slash(tail)         => segments(tail)
+      case _                            => Nil
+    }
+
   /**
    * Wraps the handler so that requests with a `/service/method` path go through the interceptors. Any failure is
-   * turned into a gRPC error response with `errorMapper`. Other paths under a service are rejected with
-   * `INVALID_ARGUMENT`, like the generated handlers do. Paths that do not look like a service call are passed to the
-   * handler untouched.
+   * turned into a gRPC error response with `errorMapper`. Other paths with more than one segment, for example
+   * `//service/method`, are rejected with `INVALID_ARGUMENT` so that they cannot skip the interceptors. Paths that
+   * do not look like a service call are passed to the handler untouched.
    */
   def intercept(handler: Handler, interceptors: Seq[ServerInterceptor], errorMapper: Throwable => Trailers): Handler = {
     if (interceptors.isEmpty) handler
@@ -55,7 +63,7 @@ private[grpc] object ServerInterceptorSupport {
             safely(chain(service, method, request)).recover {
               case e => errorResponse(request, errorMapper(e))
             }(ExecutionContext.parasitic)
-          case path if serviceName(path).isDefined =>
+          case path if serviceName(path).isDefined || segments(path).sizeIs > 1 =>
             Future.successful(
               errorResponse(
                 request,
