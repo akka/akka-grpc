@@ -63,6 +63,7 @@ class AuthenticatedGreeterServer(system: ActorSystem) {
     // Create service handlers, the interceptor only applies to the greeter service
     val handler: HttpRequest => Future[HttpResponse] =
       ServiceHandler.concatOrNotFound(
+        sys,
         ServerInterceptor.intercept(GreeterServiceHandler.partial(new GreeterServiceImpl()), requireToken),
         ServerReflection.partial(List(GreeterService)))
 

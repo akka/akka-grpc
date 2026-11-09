@@ -26,7 +26,7 @@ object ServerInterceptors {
 
   /**
    * Wraps a handler so that all gRPC calls reaching it pass through the interceptors, for example a handler for
-   * several services combined with [[ServiceHandler.concatOrNotFound]]. Calls to unknown services also pass through
+   * several services combined with `ServiceHandler.concatOrNotFound`. Calls to unknown services also pass through
    * the interceptors before the handler answers with 404. The first interceptor is the outermost. Calls with any other path
    * of more than one segment are rejected with `INVALID_ARGUMENT` without reaching the handler.
    */
@@ -42,7 +42,7 @@ object ServerInterceptors {
   /**
    * Wraps the handler of a single service so that only calls to that service pass through the interceptors. Calls
    * to other services are passed to the handler untouched, so the result can still be combined with other handlers
-   * in [[ServiceHandler.concatOrNotFound]].
+   * in `ServiceHandler.concatOrNotFound`.
    */
   @varargs
   def intercept(

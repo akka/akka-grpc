@@ -78,6 +78,7 @@ class AuthenticatedGreeterServer {
     GreeterService impl = new GreeterServiceImpl(mat);
     Function<HttpRequest, CompletionStage<HttpResponse>> handler =
       ServiceHandler.concatOrNotFound(
+        sys,
         ServerInterceptors.intercept(
           GreeterService.description,
           GreeterServiceHandlerFactory.create(impl, sys),

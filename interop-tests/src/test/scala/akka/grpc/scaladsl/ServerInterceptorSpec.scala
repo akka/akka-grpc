@@ -169,7 +169,7 @@ class ServerInterceptorSpec
           ServerReflection.partial(List(GreeterService))),
         requireToken)
       //#all-services
-      val server = Http().newServerAt("localhost", 0).bind(ServiceHandler.concatOrNotFound(handler)).futureValue
+      val server = Http().newServerAt("localhost", 0).bind(ServiceHandler.concatOrNotFound(system, handler)).futureValue
       val client = GreeterServiceClient(
         GrpcClientSettings.connectToServiceAt("localhost", server.localAddress.getPort).withTls(false))
       try {

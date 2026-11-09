@@ -118,6 +118,7 @@ public class ServerInterceptorTest extends JUnitSuite {
     Function<HttpRequest, CompletionStage<HttpResponse>> handler =
         ServerInterceptors.intercept(
             ServiceHandler.concatOrNotFound(
+                system,
                 GreeterServiceHandlerFactory.create(impl, system),
                 ServerReflection.create(Collections.singletonList(GreeterService.description), system)),
             system,
