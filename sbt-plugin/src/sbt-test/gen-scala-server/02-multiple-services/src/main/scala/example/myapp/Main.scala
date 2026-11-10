@@ -5,7 +5,6 @@ import java.security.{KeyStore, SecureRandom}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import akka.grpc.scaladsl.ServiceHandler
 import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
 
@@ -17,7 +16,6 @@ import example.myapp.helloworld.grpc.GreeterServiceHandler
 
 object Main extends App {
   implicit val system = ActorSystem()
-  implicit val mat = ActorMaterializer()
 
   val echoHandler = EchoServiceHandler.partial(new EchoServiceImpl)
   val greeterHandler = GreeterServiceHandler.partial(new GreeterServiceImpl)
