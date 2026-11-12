@@ -11,7 +11,7 @@ object Dependencies {
 
   object Versions {
     val scala212 = "2.12.20"
-    val scala213 = "2.13.17"
+    val scala213 = "2.13.18"
     val scala3 = "3.3.8"
 
     // the order in the list is important because the head will be considered the default.
@@ -21,9 +21,9 @@ object Dependencies {
     // We don't force Akka updates because downstream projects can upgrade
     // themselves. For more information see
     // https://doc.akka.io/libraries/akka-core/current/project/downstream-upgrade-strategy.html
-    val akka = "2.10.11"
+    val akka = "2.11.0"
     val akkaBinary = VersionNumber(akka).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
-    val akkaHttp = "10.7.3"
+    val akkaHttp = "10.8.0"
     val akkaHttpBinary = VersionNumber(akkaHttp).numbers match { case Seq(major, minor, _*) => s"$major.$minor" }
 
     val grpc = "1.85.0" // checked synced by VersionSyncCheckPlugin
