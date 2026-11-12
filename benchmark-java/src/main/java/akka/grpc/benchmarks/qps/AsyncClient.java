@@ -207,7 +207,15 @@ public class AsyncClient {
     lastCall.set(System.nanoTime());
     final AtomicReference<ActorRef> requestIngress = new AtomicReference<>();
     Source<SimpleRequest, NotUsed> requestSource =
-        Source.<SimpleRequest> actorRef(2, OverflowStrategy.fail())
+        Source.<SimpleRequest> actorRef(
+                    msg -> msg instanceof akka.actor.Status.Success
+                        ? java.util.Optional.of(akka.stream.CompletionStrategy.draining())
+                        : java.util.Optional.empty(),
+                    msg -> msg instanceof akka.actor.Status.Failure
+                        ? java.util.Optional.of(((akka.actor.Status.Failure) msg).cause())
+                        : java.util.Optional.empty(),
+                    2,
+                    OverflowStrategy.fail())
         .mapMaterializedValue(ref -> {
           requestIngress.set(ref);
           requestIngress.get().tell(request, ActorRef.noSender());
