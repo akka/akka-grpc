@@ -87,6 +87,8 @@ object RequestBuilderImplSpec {
 class RequestBuilderImplSpec extends AnyWordSpec with Matchers with ScalaFutures with BeforeAndAfterAll {
   import RequestBuilderImplSpec._
 
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, 50.millis)
+
   implicit val system: ActorSystem = ActorSystem("RequestBuilderImplSpec")
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val mat: Materializer = Materializer(system)
