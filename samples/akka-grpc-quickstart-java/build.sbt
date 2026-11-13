@@ -3,7 +3,7 @@ version := "1.0"
 scalaVersion := "2.13.17"
 
 val akkaVersion = "2.10.11"
-lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.5.14")
+lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.6.0")
 
 enablePlugins(AkkaGrpcPlugin)
 
