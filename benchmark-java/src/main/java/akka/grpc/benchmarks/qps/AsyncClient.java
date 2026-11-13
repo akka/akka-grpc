@@ -21,12 +21,14 @@ import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Status.Success;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.BenchmarkServiceClient;
 import akka.grpc.benchmarks.proto.Messages.Payload;
 import akka.grpc.benchmarks.proto.Messages.SimpleRequest;
 import akka.grpc.benchmarks.proto.Messages.SimpleResponse;
+import akka.stream.CompletionStrategy;
 import akka.stream.SystemMaterializer;
 import akka.stream.Materializer;
 import akka.stream.OverflowStrategy;
@@ -41,6 +43,7 @@ import org.HdrHistogram.HistogramIterationValue;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -207,7 +210,13 @@ public class AsyncClient {
     lastCall.set(System.nanoTime());
     final AtomicReference<ActorRef> requestIngress = new AtomicReference<>();
     Source<SimpleRequest, NotUsed> requestSource =
-        Source.<SimpleRequest> actorRef(2, OverflowStrategy.fail())
+        Source.<SimpleRequest> actorRef(
+                    msg -> msg instanceof Success
+                        ? Optional.of(CompletionStrategy.draining())
+                        : Optional.empty(),
+                    msg -> Optional.empty(),
+                    2,
+                    OverflowStrategy.fail())
         .mapMaterializedValue(ref -> {
           requestIngress.set(ref);
           requestIngress.get().tell(request, ActorRef.noSender());
@@ -224,7 +233,7 @@ public class AsyncClient {
           if (endTime > now) {
             requestIngress.get().tell(request, ActorRef.noSender());
           } else {
-            requestIngress.get().tell(new akka.actor.Status.Success("done"), ActorRef.noSender());
+            requestIngress.get().tell(new Success("done"), ActorRef.noSender());
           }
         }), mat);
 
