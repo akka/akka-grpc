@@ -26,7 +26,7 @@ repositories {
 }
 
 def scalaBinaryVersion = (System.getenv("TRAVIS_SCALA_VERSION") ?: "2.13").tokenize('.').take(2).join('.')
-def akkaVersion = "2.10.11"
+def akkaVersion = "2.11.0"
 def protoGoogleCommonVersion = "2.22.0"
 
 tasks.named("processResources") {
