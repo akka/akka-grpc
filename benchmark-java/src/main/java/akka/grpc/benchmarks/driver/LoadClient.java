@@ -21,9 +21,11 @@ import akka.Done;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Status.Success;
 import akka.grpc.GrpcClientSettings;
 import akka.grpc.benchmarks.Utils;
 import akka.grpc.benchmarks.proto.*;
+import akka.stream.CompletionStrategy;
 import akka.stream.Materializer;
 import akka.stream.SystemMaterializer;
 import akka.stream.OverflowStrategy;
@@ -40,6 +42,7 @@ import org.apache.commons.math3.distribution.ExponentialDistribution;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -308,12 +311,10 @@ class LoadClient {
           final AtomicReference<ActorRef> requestIngress = new AtomicReference<>();
           Source<Messages.SimpleRequest, NotUsed> requestSource =
               Source.<Messages.SimpleRequest>actorRef(
-                    msg -> msg instanceof akka.actor.Status.Success
-                        ? java.util.Optional.of(akka.stream.CompletionStrategy.draining())
-                        : java.util.Optional.empty(),
-                    msg -> msg instanceof akka.actor.Status.Failure
-                        ? java.util.Optional.of(((akka.actor.Status.Failure) msg).cause())
-                        : java.util.Optional.empty(),
+                    msg -> msg instanceof Success
+                        ? Optional.of(CompletionStrategy.draining())
+                        : Optional.empty(),
+                    msg -> Optional.empty(),
                     2,
                     OverflowStrategy.fail())
                   .mapMaterializedValue(ref -> {
@@ -325,7 +326,7 @@ class LoadClient {
               .runWith(Sink.foreach(rsp -> {
                 delay(System.nanoTime() - lastCall.get());
                 if (shutdown) {
-                  requestIngress.get().tell(new akka.actor.Status.Success("done"), ActorRef.noSender());
+                  requestIngress.get().tell(new Success("done"), ActorRef.noSender());
                   // Must not send another request.
                   return;
                 }
