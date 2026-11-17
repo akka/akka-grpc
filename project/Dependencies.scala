@@ -33,7 +33,7 @@ object Dependencies {
     // maven-plugin/src/main/maven/plugin.xml and akka.grpc.sbt.AkkaGrpcPlugin
     val googleProtobuf = "3.25.9" // checked synced by VersionSyncCheckPlugin
     val googleApi = "2.64.1"
-    val guava = "33.7.2"
+    val guava = "33.8.0"
 
     val scalaTest = "3.2.12"
 
