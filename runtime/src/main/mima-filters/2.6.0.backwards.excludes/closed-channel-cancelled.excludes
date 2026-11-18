@@ -1,0 +1,3 @@
+# report calls cancelled by shutdownNow as closed in unary adapters, internal classes
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.UnaryCallAdapter.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.UnaryCallWithMetadataAdapter.this")

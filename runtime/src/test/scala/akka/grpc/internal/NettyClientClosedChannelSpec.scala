@@ -12,9 +12,14 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
+import akka.discovery.Lookup
+import akka.discovery.ServiceDiscovery
+import akka.discovery.ServiceDiscovery.Resolved
 import akka.grpc.GrpcClientSettings
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
@@ -40,6 +45,10 @@ object NettyClientClosedChannelSpec {
       .setType(methodType)
       .setFullMethodName(MethodDescriptor.generateFullMethodName("test.Service", "Method"))
       .build()
+
+  final class NeverAnsweringDiscovery extends ServiceDiscovery {
+    override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = Promise[Resolved]().future
+  }
 
   def unusedPort(): Int = {
     val socket = new ServerSocket(0)
@@ -144,6 +153,58 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         .futureValue
 
       assertClosedFailure(failure)
+    }
+  }
+
+  // calls waiting for name resolution are cancelled by grpc-java's shutdownNow, rather than failed
+  private def channelGivingUpWhileResolving(): InternalChannel = {
+    val settings = GrpcClientSettings
+      .usingServiceDiscovery("greeter", new NeverAnsweringDiscovery)
+      .withTls(false)
+      .withConnectionAttempts(1)
+      .withConnectingTimeout(200.millis)
+    NettyClientUtils.createChannel(settings, system.log)
+  }
+
+  "A Netty client channel giving up while name resolution is pending" should {
+
+    "fail waiting unary calls with UNAVAILABLE caused by the connection failure" in {
+      val channel = channelGivingUpWhileResolving()
+      val waiting = channel.invoke(
+        Array.emptyByteArray,
+        MetadataImpl.empty,
+        descriptor(MethodDescriptor.MethodType.UNARY),
+        CallOptions.DEFAULT)
+      channel.done.failed.futureValue shouldBe a[ClientConnectionException]
+
+      assertClosedFailure(waiting.failed.futureValue)
+    }
+
+    "fail waiting unary calls with metadata with UNAVAILABLE caused by the connection failure" in {
+      val channel = channelGivingUpWhileResolving()
+      val waiting = channel.invokeWithMetadata(
+        Array.emptyByteArray,
+        MetadataImpl.empty,
+        descriptor(MethodDescriptor.MethodType.UNARY),
+        CallOptions.DEFAULT)
+      channel.done.failed.futureValue shouldBe a[ClientConnectionException]
+
+      assertClosedFailure(waiting.failed.futureValue)
+    }
+
+    "fail waiting streaming calls with UNAVAILABLE caused by the connection failure" in {
+      val channel = channelGivingUpWhileResolving()
+      val waiting = channel
+        .invokeWithMetadata(
+          Source.single(Array.emptyByteArray),
+          MetadataImpl.empty,
+          descriptor(MethodDescriptor.MethodType.SERVER_STREAMING),
+          streamingResponse = true,
+          CallOptions.DEFAULT)
+        .runWith(Sink.ignore)
+      channel.done.failed.futureValue shouldBe a[ClientConnectionException]
+
+      assertClosedFailure(waiting.failed.futureValue)
     }
   }
 

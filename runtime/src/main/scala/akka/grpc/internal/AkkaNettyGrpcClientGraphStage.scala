@@ -182,7 +182,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           // FIXME share trailers through matval
           completeStage()
         } else {
-          failStage(status.asRuntimeException(trailers))
+          failStage(NettyClientUtils.failure(status, trailers, closedFailure))
         }
         call = null
       }
