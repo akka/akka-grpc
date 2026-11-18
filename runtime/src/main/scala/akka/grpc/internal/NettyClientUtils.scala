@@ -28,6 +28,7 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNegotiator
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext => ShadedNettySslContext }
 import io.grpc.CallOptions
+import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -48,6 +49,15 @@ import scala.concurrent.Promise
  */
 @InternalApi
 object NettyClientUtils {
+
+  // grpc-java cancels calls pending name resolution on shutdownNow, report those as closed instead
+  private[internal] def failure(
+      status: Status,
+      trailers: Metadata,
+      closedFailure: () => Option[StatusRuntimeException]): StatusRuntimeException = {
+    val closed = if (status.getCode == Status.Code.CANCELLED) closedFailure() else None
+    closed.getOrElse(status.asRuntimeException(trailers))
+  }
 
   private final class RefreshingShadedNettySslContext(javaSslContextProvider: () => SSLContext)
       extends ShadedNettySslContext {
@@ -207,7 +217,7 @@ object NettyClientUtils {
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[O] =
         failFastIfClosed {
-          val listener = new UnaryCallAdapter[O]
+          val listener = new UnaryCallAdapter[O](() => closedFailure())
           val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
           call.start(listener, headers.toGoogleGrpcMetadata())
           call.sendMessage(request)
@@ -222,7 +232,7 @@ object NettyClientUtils {
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[GrpcSingleResponse[O]] =
         failFastIfClosed {
-          val listener = new UnaryCallWithMetadataAdapter[O]
+          val listener = new UnaryCallWithMetadataAdapter[O](() => closedFailure())
           val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
           call.start(listener, headers.toGoogleGrpcMetadata())
           call.sendMessage(request)
