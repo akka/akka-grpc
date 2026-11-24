@@ -3,7 +3,7 @@ name := "akka-grpc-quickstart-scala"
 version := "1.0"
 scalaVersion := "2.13.17"
 
-val akkaVersion = "2.10.11"
+val akkaVersion = "2.11.0"
 
 enablePlugins(AkkaGrpcPlugin)
 
