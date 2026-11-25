@@ -28,6 +28,7 @@ import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNegotiator
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
 import io.grpc.netty.shaded.io.netty.handler.ssl.{ SslContext => ShadedNettySslContext }
 import io.grpc.CallOptions
+import io.grpc.Metadata
 import io.grpc.MethodDescriptor
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -48,6 +49,15 @@ import scala.concurrent.Promise
  */
 @InternalApi
 object NettyClientUtils {
+
+  // grpc-java cancels calls pending name resolution on shutdownNow, report those as closed instead
+  private[internal] def failure(
+      status: Status,
+      trailers: Metadata,
+      gaveUpFailure: () => Option[StatusRuntimeException]): StatusRuntimeException = {
+    val gaveUp = if (status.getCode == Status.Code.CANCELLED) gaveUpFailure() else None
+    gaveUp.fold(status)(_.getStatus).asRuntimeException(trailers)
+  }
 
   private final class RefreshingShadedNettySslContext(javaSslContextProvider: () => SSLContext)
       extends ShadedNettySslContext {
@@ -175,16 +185,21 @@ object NettyClientUtils {
     if (settings.eagerConnection)
       channel.getState(true)
 
+    def gaveUp: Option[Throwable] = channelClosedPromise.future.value.flatMap(_.failed.toOption)
+
     // grpc-java may have released the channel executor once shut down, so new calls must not reach it
     def closedFailure(): Option[StatusRuntimeException] =
-      if (channel.isShutdown) {
-        val cause = channelClosedPromise.future.value.flatMap(_.failed.toOption).orNull
+      if (channel.isShutdown)
         Some(
           Status.UNAVAILABLE
             .withDescription(s"Channel to [${settings.serviceName}] closed")
-            .withCause(cause)
+            .withCause(gaveUp.orNull)
             .asRuntimeException())
-      } else None
+      else None
+
+    // only giving up cancels calls with shutdownNow, an orderly shutdown lets in-flight calls finish
+    def gaveUpFailure(): Option[StatusRuntimeException] =
+      if (gaveUp.isDefined) closedFailure() else None
 
     // a call racing a shutdown can pass the check above and then fail in grpc-java
     def failFastIfClosed[T](call: => Future[T]): Future[T] =
@@ -207,7 +222,7 @@ object NettyClientUtils {
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[O] =
         failFastIfClosed {
-          val listener = new UnaryCallAdapter[O]
+          val listener = new UnaryCallAdapter[O](() => gaveUpFailure())
           val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
           call.start(listener, headers.toGoogleGrpcMetadata())
           call.sendMessage(request)
@@ -222,7 +237,7 @@ object NettyClientUtils {
           descriptor: MethodDescriptor[I, O],
           options: CallOptions): Future[GrpcSingleResponse[O]] =
         failFastIfClosed {
-          val listener = new UnaryCallWithMetadataAdapter[O]
+          val listener = new UnaryCallWithMetadataAdapter[O](() => gaveUpFailure())
           val call = channel.newCall(descriptor, callOptionsWithDeadline(options, settings))
           call.start(listener, headers.toGoogleGrpcMetadata())
           call.sendMessage(request)
@@ -253,6 +268,7 @@ object NettyClientUtils {
             descriptor,
             channel,
             () => closedFailure(),
+            () => gaveUpFailure(),
             options,
             streamingResponse,
             headers))

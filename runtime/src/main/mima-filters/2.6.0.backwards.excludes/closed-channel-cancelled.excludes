@@ -1,0 +1,4 @@
+# report calls cancelled by shutdownNow as closed, internal classes
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.UnaryCallAdapter.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.UnaryCallWithMetadataAdapter.this")
+ProblemFilters.exclude[DirectMissingMethodProblem]("akka.grpc.internal.AkkaNettyGrpcClientGraphStage.this")

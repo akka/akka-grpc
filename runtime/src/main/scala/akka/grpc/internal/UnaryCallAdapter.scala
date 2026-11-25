@@ -21,7 +21,8 @@ import scala.jdk.FutureConverters._
  * INTERNAL API
  */
 @InternalApi
-private[akka] final class UnaryCallAdapter[Res] extends ClientCall.Listener[Res] {
+private[akka] final class UnaryCallAdapter[Res](gaveUpFailure: () => Option[StatusRuntimeException])
+    extends ClientCall.Listener[Res] {
   private val responsePromise = Promise[Res]()
 
   override def onMessage(message: Res): Unit =
@@ -37,7 +38,7 @@ private[akka] final class UnaryCallAdapter[Res] extends ClientCall.Listener[Res]
         responsePromise.tryFailure(
           Status.INTERNAL.withDescription("No value received for unary call").asRuntimeException(trailers))
     } else {
-      responsePromise.tryFailure(status.asRuntimeException(trailers))
+      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, gaveUpFailure))
     }
 
   def future: Future[Res] = responsePromise.future
@@ -52,7 +53,8 @@ private[akka] final class UnaryCallAdapter[Res] extends ClientCall.Listener[Res]
 // needs to be a separate class because of CompletionStage error handling not bubbling
 // exceptions like Scala Futures do ;( flip side is that it saves some garbage
 @InternalApi
-private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.Listener[Res] {
+private[akka] final class UnaryCallWithMetadataAdapter[Res](gaveUpFailure: () => Option[StatusRuntimeException])
+    extends ClientCall.Listener[Res] {
   private val responsePromise = Promise[GrpcSingleResponse[Res]]()
   private var headers: OptionVal[Metadata] = OptionVal.None
   private val trailerPromise = Promise[Metadata]()
@@ -100,7 +102,7 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res] extends ClientCall.L
           Status.INTERNAL.withDescription("No value received for unary call").asRuntimeException(trailers))
       trailerPromise.success(trailers)
     } else {
-      responsePromise.tryFailure(status.asRuntimeException(trailers))
+      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, gaveUpFailure))
       trailerPromise.success(trailers)
     }
 
