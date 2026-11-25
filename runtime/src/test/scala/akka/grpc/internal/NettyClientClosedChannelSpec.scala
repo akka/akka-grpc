@@ -24,9 +24,15 @@ import akka.grpc.GrpcClientSettings
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import io.grpc.CallOptions
+import io.grpc.Metadata
 import io.grpc.MethodDescriptor
+import io.grpc.Server
+import io.grpc.ServerCall
+import io.grpc.ServerCallHandler
+import io.grpc.ServerServiceDefinition
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -48,6 +54,27 @@ object NettyClientClosedChannelSpec {
 
   final class NeverAnsweringDiscovery extends ServiceDiscovery {
     override def lookup(lookup: Lookup, resolveTimeout: FiniteDuration): Future[Resolved] = Promise[Resolved]().future
+  }
+
+  val trailerKey: Metadata.Key[String] = Metadata.Key.of("test-trailer", Metadata.ASCII_STRING_MARSHALLER)
+
+  // hands each started call to the test, which decides how the call ends
+  def startServer(
+      methodDescriptor: MethodDescriptor[Array[Byte], Array[Byte]],
+      started: Promise[ServerCall[Array[Byte], Array[Byte]]]): Server = {
+    val handler = new ServerCallHandler[Array[Byte], Array[Byte]] {
+      override def startCall(
+          call: ServerCall[Array[Byte], Array[Byte]],
+          headers: Metadata): ServerCall.Listener[Array[Byte]] = {
+        started.success(call)
+        new ServerCall.Listener[Array[Byte]] {}
+      }
+    }
+    NettyServerBuilder
+      .forPort(0)
+      .addService(ServerServiceDefinition.builder("test.Service").addMethod(methodDescriptor, handler).build())
+      .build()
+      .start()
   }
 
   def unusedPort(): Int = {
@@ -205,6 +232,61 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
       channel.done.failed.futureValue shouldBe a[ClientConnectionException]
 
       assertClosedFailure(waiting.failed.futureValue)
+    }
+  }
+
+  // an orderly shutdown lets in-flight calls finish, their status must reach the caller unchanged
+  private def cancelledByServerAfterShutdown(methodType: MethodDescriptor.MethodType)(
+      startCall: (InternalChannel, MethodDescriptor[Array[Byte], Array[Byte]]) => Future[Any]): Unit = {
+    val methodDescriptor = descriptor(methodType)
+    val started = Promise[ServerCall[Array[Byte], Array[Byte]]]()
+    val server = startServer(methodDescriptor, started)
+    try {
+      val settings = GrpcClientSettings.connectToServiceAt("127.0.0.1", server.getPort).withTls(false)
+      val channel = NettyClientUtils.createChannel(settings, system.log)
+      val inFlight = startCall(channel, methodDescriptor)
+      val serverCall = started.future.futureValue
+
+      channel.shutdown()
+      val trailers = new Metadata()
+      trailers.put(trailerKey, "from-server")
+      serverCall.close(Status.CANCELLED.withDescription("cancelled by server"), trailers)
+
+      val failure = inFlight.failed.futureValue
+      failure shouldBe a[StatusRuntimeException]
+      val exception = failure.asInstanceOf[StatusRuntimeException]
+      exception.getStatus.getCode shouldBe Status.Code.CANCELLED
+      exception.getStatus.getDescription shouldBe "cancelled by server"
+      exception.getTrailers.get(trailerKey) shouldBe "from-server"
+      channel.done.futureValue
+    } finally server.shutdownNow()
+  }
+
+  "A Netty client channel closed with an orderly shutdown" should {
+
+    "keep the CANCELLED status of in-flight unary calls" in {
+      cancelledByServerAfterShutdown(MethodDescriptor.MethodType.UNARY) { (channel, methodDescriptor) =>
+        channel.invoke(Array.emptyByteArray, MetadataImpl.empty, methodDescriptor, CallOptions.DEFAULT)
+      }
+    }
+
+    "keep the CANCELLED status of in-flight unary calls with metadata" in {
+      cancelledByServerAfterShutdown(MethodDescriptor.MethodType.UNARY) { (channel, methodDescriptor) =>
+        channel.invokeWithMetadata(Array.emptyByteArray, MetadataImpl.empty, methodDescriptor, CallOptions.DEFAULT)
+      }
+    }
+
+    "keep the CANCELLED status of in-flight streaming calls" in {
+      cancelledByServerAfterShutdown(MethodDescriptor.MethodType.SERVER_STREAMING) { (channel, methodDescriptor) =>
+        channel
+          .invokeWithMetadata(
+            Source.single(Array.emptyByteArray),
+            MetadataImpl.empty,
+            methodDescriptor,
+            streamingResponse = true,
+            CallOptions.DEFAULT)
+          .runWith(Sink.ignore)
+      }
     }
   }
 
