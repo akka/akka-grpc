@@ -1,5 +1,4 @@
 resolvers += "Akka library repository".at("REPLACE_WITH_REPO_URL_FROM_https://account.akka.io/token")
 
-addSbtPlugin(
-  "com.lightbend.akka.grpc" % "sbt-akka-grpc" % "2.5.13"
-)
+lazy val akkaGrpcVersion = sys.props.getOrElse("akka-grpc.version", "2.6.0")
+addSbtPlugin("com.lightbend.akka.grpc" % "sbt-akka-grpc" % akkaGrpcVersion)
