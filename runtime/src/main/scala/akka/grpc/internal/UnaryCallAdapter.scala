@@ -21,7 +21,7 @@ import scala.jdk.FutureConverters._
  * INTERNAL API
  */
 @InternalApi
-private[akka] final class UnaryCallAdapter[Res](closedFailure: () => Option[StatusRuntimeException])
+private[akka] final class UnaryCallAdapter[Res](gaveUpFailure: () => Option[StatusRuntimeException])
     extends ClientCall.Listener[Res] {
   private val responsePromise = Promise[Res]()
 
@@ -38,7 +38,7 @@ private[akka] final class UnaryCallAdapter[Res](closedFailure: () => Option[Stat
         responsePromise.tryFailure(
           Status.INTERNAL.withDescription("No value received for unary call").asRuntimeException(trailers))
     } else {
-      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, closedFailure))
+      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, gaveUpFailure))
     }
 
   def future: Future[Res] = responsePromise.future
@@ -53,7 +53,7 @@ private[akka] final class UnaryCallAdapter[Res](closedFailure: () => Option[Stat
 // needs to be a separate class because of CompletionStage error handling not bubbling
 // exceptions like Scala Futures do ;( flip side is that it saves some garbage
 @InternalApi
-private[akka] final class UnaryCallWithMetadataAdapter[Res](closedFailure: () => Option[StatusRuntimeException])
+private[akka] final class UnaryCallWithMetadataAdapter[Res](gaveUpFailure: () => Option[StatusRuntimeException])
     extends ClientCall.Listener[Res] {
   private val responsePromise = Promise[GrpcSingleResponse[Res]]()
   private var headers: OptionVal[Metadata] = OptionVal.None
@@ -102,7 +102,7 @@ private[akka] final class UnaryCallWithMetadataAdapter[Res](closedFailure: () =>
           Status.INTERNAL.withDescription("No value received for unary call").asRuntimeException(trailers))
       trailerPromise.success(trailers)
     } else {
-      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, closedFailure))
+      responsePromise.tryFailure(NettyClientUtils.failure(status, trailers, gaveUpFailure))
       trailerPromise.success(trailers)
     }
 

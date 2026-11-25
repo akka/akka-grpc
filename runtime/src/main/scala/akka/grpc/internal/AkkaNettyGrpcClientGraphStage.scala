@@ -41,6 +41,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
     descriptor: MethodDescriptor[I, O],
     channel: Channel,
     closedFailure: () => Option[StatusRuntimeException],
+    gaveUpFailure: () => Option[StatusRuntimeException],
     options: CallOptions,
     streamingResponse: Boolean,
     headers: MetadataImpl)
@@ -182,7 +183,7 @@ private final class AkkaNettyGrpcClientGraphStage[I, O](
           // FIXME share trailers through matval
           completeStage()
         } else {
-          failStage(NettyClientUtils.failure(status, trailers, closedFailure))
+          failStage(NettyClientUtils.failure(status, trailers, gaveUpFailure))
         }
         call = null
       }

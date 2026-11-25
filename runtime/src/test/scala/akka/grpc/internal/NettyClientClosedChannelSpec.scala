@@ -193,6 +193,11 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
     NettyClientUtils.createChannel(settings, system.log)
   }
 
+  private def assertGaveUpFailure(failure: Throwable): Unit = {
+    assertClosedFailure(failure)
+    failure.asInstanceOf[StatusRuntimeException].getTrailers should not be null
+  }
+
   "A Netty client channel giving up while name resolution is pending" should {
 
     "fail waiting unary calls with UNAVAILABLE caused by the connection failure" in {
@@ -204,7 +209,7 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         CallOptions.DEFAULT)
       channel.done.failed.futureValue shouldBe a[ClientConnectionException]
 
-      assertClosedFailure(waiting.failed.futureValue)
+      assertGaveUpFailure(waiting.failed.futureValue)
     }
 
     "fail waiting unary calls with metadata with UNAVAILABLE caused by the connection failure" in {
@@ -216,7 +221,7 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         CallOptions.DEFAULT)
       channel.done.failed.futureValue shouldBe a[ClientConnectionException]
 
-      assertClosedFailure(waiting.failed.futureValue)
+      assertGaveUpFailure(waiting.failed.futureValue)
     }
 
     "fail waiting streaming calls with UNAVAILABLE caused by the connection failure" in {
@@ -231,7 +236,7 @@ class NettyClientClosedChannelSpec extends AnyWordSpec with Matchers with ScalaF
         .runWith(Sink.ignore)
       channel.done.failed.futureValue shouldBe a[ClientConnectionException]
 
-      assertClosedFailure(waiting.failed.futureValue)
+      assertGaveUpFailure(waiting.failed.futureValue)
     }
   }
 
